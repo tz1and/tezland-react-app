@@ -1,0 +1,11 @@
+regarding tokens....
+
+holders for each token
+
+https://api.better-call.dev/v1/contract/mainnet/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/tokens/holders?token_id=6545
+
+get token balances for account by contract
+
+https://api.better-call.dev/v1/account/mainnet/tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb/token_balances?contract=KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton
+
+That will work for now, but consider writing a custom graphql indexer with DipDup later.
