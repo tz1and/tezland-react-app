@@ -1,7 +1,10 @@
 import React from 'react';
 import renderToTexture from '../3D/RenderPreview'
+import './Inventory.css';
 
 type InventoryProps = {
+    selectItemFromInventory(id: number): void;
+    closeForm(): void;
     // using `interface` is also ok
     //message: string;
 };
@@ -49,9 +52,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
             )
     }
 
-    handleClick() {
-        // todo make card into button somehow
-        console.log('card clicked');
+    handleClick(event: React.MouseEvent) {
+        this.props.selectItemFromInventory(Number.parseInt(event.currentTarget.id));
     }
 
     render() {
@@ -64,8 +66,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
             content = <div>Loading...</div>;
         } else {
             content = items.map(item => (
-                <div className="card m-2" style={{width: '200px', cursor: 'pointer'}} key={item.token_id} onClick={this.handleClick}>
-                    <img src={imageBlob} className="card-img-top" width={200} height={200} alt="..."/>
+                <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick.bind(this)}>
+                    <img src={imageBlob} className="card-img-top" alt="..."/>
                     <div className="card-body">
                     <h5 className="card-title">{item.name}</h5>
                     <p className="card-text">x{item.balance}</p>
@@ -78,7 +80,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
         return (
             <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative w-75'>
-                <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close"/>
+                <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={this.props.closeForm}/>
                 <h2>inventory</h2>
                 <div className="d-flex flex-row flex-wrap justify-content-start align-items-start overflow-auto" style={{height: '75vh'}}>
                     {content}

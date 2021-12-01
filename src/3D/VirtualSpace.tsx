@@ -20,17 +20,27 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     //mount: null
   };
 
-  mount: HTMLDivElement | null;
+  private mount: HTMLDivElement | null;
+  private world: VirtualWorld | null;
 
   constructor(props: VirtualSpaceProps) {
     super(props);
     this.mount = null
+    this.world = null;
+  }
+
+  setInventoryItem() {
+    console.log('setting inventory item');
+  }
+
+  lockControls() {
+    this.world?.fpsControls.camControls.lock();
   }
 
   componentDidMount() {
-    let world = new VirtualWorld(this.mount!, {loadForm: this.props.loadForm, setOverlayDispaly: this.props.setOverlayDispaly});
+    this.world = new VirtualWorld(this.mount!, {loadForm: this.props.loadForm, setOverlayDispaly: this.props.setOverlayDispaly});
 
-    world.animate();
+    this.world.animate();
   }
 
   render() {

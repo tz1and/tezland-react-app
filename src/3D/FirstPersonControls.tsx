@@ -31,6 +31,7 @@ class FirstPersonControls {
             });
 
             this.camControls.addEventListener('unlock', () => {
+                // is there some way to distinguish between unlock from code and escape?
                 appControlfunctions.setOverlayDispaly(true);
             });
         }

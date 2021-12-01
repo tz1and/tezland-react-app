@@ -24,6 +24,8 @@ class App extends React.Component<AppProps, AppState> {
     //count: 0,
   };
 
+  private virtualSpaceRef = React.createRef<VirtualSpace>();
+
   loadForm(form_type: string) {
     this.setState({show_form: form_type, dispaly_overlay: true});
   }
@@ -32,7 +34,24 @@ class App extends React.Component<AppProps, AppState> {
     this.setState({dispaly_overlay: display});
   }
 
+  closeForm() {
+    this.setState({show_form: 'none', dispaly_overlay: false});
+
+    this.virtualSpaceRef.current?.lockControls();
+  }
+
+  selectItemFromInventory(id: number) {
+    this.setState({show_form: 'none', dispaly_overlay: false});
+
+    const curVS = this.virtualSpaceRef.current;
+    if(curVS) {
+      curVS.setInventoryItem();
+      curVS.lockControls();
+    }
+  }
+
   render() {
+    let closeFormCallback = this.closeForm.bind(this);
     let form;
     if(this.state.show_form === 'none') form = <div id="app-overlay" className="text-center"><img src={logo} className="App-logo" alt="logo" />
         <p style={{fontSize: 'calc(20px + 2vmin)'}}>Click to play</p>
@@ -42,9 +61,9 @@ class App extends React.Component<AppProps, AppState> {
           Exit: ESCAPE<br/>
         </p>
       </div>
-    else if(this.state.show_form === 'mint') form = <MintFrom/>;
-    else if(this.state.show_form === 'place') form = <PlaceForm/>;
-    else if(this.state.show_form === 'inventory') form = <Inventory/>;
+    else if(this.state.show_form === 'mint') form = <MintFrom closeForm={closeFormCallback}/>;
+    else if(this.state.show_form === 'place') form = <PlaceForm closeForm={closeFormCallback}/>;
+    else if(this.state.show_form === 'inventory') form = <Inventory closeForm={closeFormCallback} selectItemFromInventory={this.selectItemFromInventory.bind(this)}/>;
 
     let overlay = this.state.dispaly_overlay === false ? null : 
         <header className="App-header">
@@ -54,7 +73,7 @@ class App extends React.Component<AppProps, AppState> {
     return (
       <div>
         <div className="App">{overlay}</div>
-        <VirtualSpace setOverlayDispaly={this.setOverlayDispaly.bind(this)} loadForm={this.loadForm.bind(this)} />
+        <VirtualSpace ref={this.virtualSpaceRef} setOverlayDispaly={this.setOverlayDispaly.bind(this)} loadForm={this.loadForm.bind(this)} />
       </div>
     );
   }

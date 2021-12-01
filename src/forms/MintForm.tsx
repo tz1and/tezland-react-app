@@ -15,11 +15,15 @@ interface MintFormValues {
   //itemFile: ArrayBuffer;
 }
 
-export const MintFrom: React.FC<{}> = () => {
+type MintFormProps = {
+  closeForm(): void;
+}
+
+export const MintFrom: React.FC<MintFormProps> = (props) => {
   const initialValues: MintFormValues = { itemAmount: 1, itemRoyalties: 10 };
   return (
     <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative'>
-      <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" />
+      <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={props.closeForm} />
       <h2>new Item</h2>
       <Formik
         initialValues={initialValues}
