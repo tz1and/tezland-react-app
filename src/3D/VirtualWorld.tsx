@@ -1,17 +1,29 @@
 import * as THREE from 'three';
 import { Sky } from 'three/examples/jsm/objects/Sky';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import FirstPersonControls from './FirstPersonControls'
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+
+// Add the extension functions
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 class VirtualWorld {
     mesh: THREE.Mesh;
     renderer: THREE.WebGLRenderer;
     scene: THREE.Scene;
+    worldGroup: THREE.Group;
     camera: THREE.PerspectiveCamera;
+    raycaster: THREE.Raycaster;
     clock: THREE.Clock;
     fpsControls: FirstPersonControls;
 
     constructor(mount: HTMLDivElement, appControlfunctions: any) {
         this.clock = new THREE.Clock();
+
+        this.raycaster = new THREE.Raycaster();
+        this.raycaster.firstHitOnly = true;
 
         this.renderer = new THREE.WebGLRenderer( { antialias: true } );
         this.renderer.setPixelRatio( window.devicePixelRatio );
@@ -34,18 +46,57 @@ class VirtualWorld {
 
         this.scene = new THREE.Scene();
 
-        const geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+        this.worldGroup = new THREE.Group();
+        this.scene.add(this.worldGroup);
+
+        const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
         const material = new THREE.MeshPhongMaterial();
         material.color.set(0xF22356)
+        geometry.computeBoundsTree();
 
         const material2 = new THREE.MeshPhongMaterial();
-        material2.color.set(0xDDDDDD)
+        material2.color.set(0xDDDDDD);
 
         const plane_geom = new THREE.PlaneGeometry(1000,1000);
         const plane_mesh = new THREE.Mesh( plane_geom, material2 );
         plane_mesh.rotateX(THREE.MathUtils.degToRad(-90));
         plane_mesh.receiveShadow = true;
-        this.scene.add(plane_mesh);
+        plane_geom.computeBoundsTree();
+        this.worldGroup.add(plane_mesh);
+
+        new GLTFLoader().load('/models/suzanne.glb', (gltf) => {
+            const suzanne = gltf.scene
+
+            suzanne.position.setX(1);
+            suzanne.position.setY(1);
+
+            suzanne.traverse(child => {
+                if (child.type === 'Mesh') {
+                    const mesh = child as THREE.Mesh;
+                    mesh.castShadow = mesh.receiveShadow = true;
+                    mesh.geometry.computeBoundsTree();
+                    if(Array.isArray(mesh.material)) {
+                        mesh.material.forEach(element => {
+                            if(element.type === 'MeshStandardMaterial') {
+                                const mat = element as THREE.MeshStandardMaterial;
+                                mat.metalness = 0.2;
+                                mat.roughness = 0.8;
+                                mat.color.set(0xFF2244);
+                            }
+                        });
+                    } else {
+                        if(mesh.material.type === 'MeshStandardMaterial') {
+                            const mat = mesh.material as THREE.MeshStandardMaterial;
+                            mat.metalness = 0.2;
+                            mat.roughness = 0.8;
+                            mat.color.set(0xFF2244);
+                        }
+                    }
+                }
+            })
+
+            this.worldGroup.add(suzanne);
+        })
 
         this.mesh = new THREE.Mesh( geometry, material );
         this.mesh.position.y = 0.2;
@@ -59,7 +110,7 @@ class VirtualWorld {
             box_mesh.position.y = 0.101
             box_mesh.castShadow = true;
             box_mesh.receiveShadow = true;
-            this.scene.add( box_mesh );
+            this.worldGroup.add( box_mesh );
         }
 
         this.initSky();
@@ -104,7 +155,7 @@ class VirtualWorld {
             mieCoefficient: 0.007,
             mieDirectionalG: 0.7,
             elevation: 45,
-            azimuth: 165,
+            azimuth: 75,
             exposure: this.renderer.toneMappingExposure
         };
 
@@ -145,6 +196,15 @@ class VirtualWorld {
         var delta = this.clock.getDelta();
 
         this.fpsControls.processInput(delta);
+
+        // set ray origin and direction directly from camera.
+        this.camera.getWorldPosition(this.raycaster.ray.origin);
+        this.camera.getWorldDirection(this.raycaster.ray.direction);
+
+        const intersects = this.raycaster.intersectObjects(this.worldGroup.children);
+        if(intersects.length > 0) {
+            this.mesh.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+        }
 
         this.render();
     }

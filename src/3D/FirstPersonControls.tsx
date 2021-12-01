@@ -17,6 +17,7 @@ class FirstPersonControls {
 
     constructor(camera: THREE.Camera, scene: THREE.Scene, appControlfunctions: any) {
         // TODO: https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_pointerlock.html
+        // TODO quake style controls: https://github.com/WiggleWizard/quake3-movement-unity3d/blob/master/CPMPlayer.js
         this.camControls = new PointerLockControls(camera, document.body);
 
         const overlay_blocker = document.getElementById('app-overlay');
