@@ -1,8 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-// eslint-disable-line @typescript-eslint/no-unused-vars
-import $ from 'jquery';
-// eslint-disable-line @typescript-eslint/no-unused-vars
-import { createPopper } from '@popperjs/core';
+import $ from 'jquery'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { createPopper } from '@popperjs/core'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 import React from 'react';
