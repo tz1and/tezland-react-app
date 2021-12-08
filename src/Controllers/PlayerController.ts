@@ -1,5 +1,6 @@
-import { Camera, IWheelEvent, Mesh, Nullable, PointerEventTypes, Scene, ShadowGenerator } from "@babylonjs/core";
+import { Camera, IWheelEvent, Mesh, Node, Nullable, PointerEventTypes, Scene, ShadowGenerator } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
+import Contracts from "../tz/Contracts";
 
 
 export default class PlayerController {
@@ -11,6 +12,7 @@ export default class PlayerController {
     private tempObjectOffsetY: number;
     //private state: ControllerState;
 
+    private beforeRenderer: () => void;
     /*private handleKeyUp: (e: KeyboardEvent) => void;
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
@@ -32,7 +34,8 @@ export default class PlayerController {
         this.tempObject.isPickable = false;
         shadowGenerator.addShadowCaster(this.tempObject);
 
-        this.scene.registerBeforeRender(() => { this.updateController() });
+        this.beforeRenderer = () => { this.updateController() };
+        this.scene.registerBeforeRender(this.beforeRenderer);
 
         this.scene.onPointerObservable.add((info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
@@ -42,12 +45,29 @@ export default class PlayerController {
                     const newMat = new SimpleMaterial("newMat", this.scene);
                     newMat.diffuseColor.set(0.8, 0.2, 0.2);
 
+                    // TODO: somehow figure out the place the play is inside of
+                    // or placing the item inside.
+                    const parent = scene.getNodeByName(`place${0}`);
+
                     const newObject = Mesh.CreateBox("newObject", 1, this.scene);
+                    newObject.parent = parent;
                     newObject.material = newMat;//scene.getMaterialByName("defaulMat");
                     newObject.position = this.tempObject.position;
                     newObject.checkCollisions = true;
                     newObject.useOctreeForCollisions = true;
                     shadowGenerator.addShadowCaster(newObject);
+
+                    // TEMP try to save items.
+                    // TODO: figure out removals.
+                    const children = parent!.getChildren();
+                    const add_children = new Array<Node>();
+
+                    children.forEach((child) => {
+                        if(child.metadata == undefined)
+                            add_children.push(child);
+                    })
+
+                    Contracts.saveItems(new Array<any>(), add_children, 0);
 
                     eventState.skipNextObservers = true;
                 }

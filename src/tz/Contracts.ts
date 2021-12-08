@@ -1,7 +1,14 @@
-import { DataStorage } from "@babylonjs/core";
+import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, TezosToolkit } from "@taquito/taquito";
+import { TempleWallet } from "@temple-wallet/dapp";
 import axios from 'axios';
 import Conf from "../Config";
+import { toHexString } from "./Utils";
+import {
+  Float16Array, isFloat16Array,
+  getFloat16, setFloat16,
+  hfround,
+} from "@petamoriken/float16";
 //import { Tzip16Module, tzip16, bytes2Char } from '@taquito/tzip16';
 
 class Contracts {
@@ -13,6 +20,19 @@ class Contracts {
         this.tk = new TezosToolkit(Conf.tezos_node);
         this.marketplaces = null;
         //this.tk.addExtension(new Tzip16Module());
+    }
+
+    public async initWallet() {
+      console.log("trying to connect wallet");
+      const available = await TempleWallet.isAvailable();
+      if (!available) {
+        throw new Error("Temple Wallet not installed");
+      }
+
+      const wallet = new TempleWallet('TezlandApp');
+      await wallet.connect({ name: "sandboxlocal", rpc: "http://192.168.0.93:20000/" });
+      this.tk.setWalletProvider(wallet);
+      //this.tk.setProvider({ signer: signer });
     }
 
     public async getItemsForPlaceView(place_id: number): Promise<any> {
@@ -51,6 +71,40 @@ class Contracts {
       }
 
       //return result; // as MichelsonMap<MichelsonTypeNat, any>;
+    }
+
+    public async saveItems(remove: Node[], add: Node[], place_id: number) {
+      const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
+
+      const add_item_list = new Array();
+      add.forEach( (item) => {
+        const mesh = item as Mesh;
+        const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
+        // 4 floats for quat, 1 float scale, 3 floats pos = 16 bytes
+        const array = new Uint8Array(16);
+        const view = new DataView(array.buffer);
+        // quat
+        setFloat16(view, 0, rot.x);
+        setFloat16(view, 2, rot.y);
+        setFloat16(view, 4, rot.z);
+        setFloat16(view, 6, rot.w);
+        // scale
+        setFloat16(view, 8, 1);
+        // pos
+        setFloat16(view, 10, mesh.position.x);
+        setFloat16(view, 12, mesh.position.y);
+        setFloat16(view, 14, mesh.position.z);
+        const item_data = toHexString(array);
+        //console.log(example_item_data);
+
+        add_item_list.push({token_amount: 1, token_id: 0, xtz_per_token: 1000000, item_data: item_data});
+      });
+
+      const place_items_op = await marketplacesWallet.methodsObject.place_items({
+        lot_id: place_id, item_list: add_item_list
+      }).send();
+      await place_items_op.confirmation();
+      //console.log('Operation hash:', place_items_op.hash);
     }
 
     /*public async getItemsForPlaceBCD(place_id: number): Promise<any> {

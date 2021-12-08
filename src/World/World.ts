@@ -320,6 +320,7 @@ export class World {
                 sphere.position.z = Math.random() * 20 - 10;*/
                 sphere.material = this.defaultMaterial;
                 sphere.checkCollisions = true;
+                sphere.metadata = { id: element.id };
                 this.shadowGenerator.addShadowCaster(sphere);
             }
             catch(e) {
