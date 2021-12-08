@@ -1,5 +1,5 @@
-import { MichelsonTypeInt, MichelsonTypeNat } from "@taquito/michel-codec";
-import { Contract, ContractAbstraction, MichelsonMap, TezosToolkit } from "@taquito/taquito";
+import { DataStorage } from "@babylonjs/core";
+import { Contract, TezosToolkit } from "@taquito/taquito";
 import axios from 'axios';
 import Conf from "../Config";
 //import { Tzip16Module, tzip16, bytes2Char } from '@taquito/tzip16';
@@ -15,17 +15,42 @@ class Contracts {
         //this.tk.addExtension(new Tzip16Module());
     }
 
-    public async getItemsForPlaceView(place_id: number): Promise<MichelsonMap<MichelsonTypeNat, any>> {
+    public async getItemsForPlaceView(place_id: number): Promise<any> {
       // use get_stored_items on-chain view.
       if(!this.marketplaces)
         this.marketplaces = await this.tk.contract.at(Conf.marketplaces_contract);
-      
-      //console.log(this.marketplaces.contractViews);
-      //console.log(this.marketplaces.contractViews.get_stored_items().getSignature());
-      const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
-      //console.log(result);
 
-      return result; // as MichelsonMap<MichelsonTypeNat, any>;
+      const stSeqKey = "placeSeq" + place_id;
+      const stItemsKey = "placeItems" + place_id;
+
+      // Read sequence number from storage and contract
+      const placeSequenceStore = DataStorage.ReadString(stSeqKey, "");
+      const seqRes = await this.marketplaces.contractViews.get_place_seqnum(place_id).executeView({viewCaller: this.marketplaces.address});
+      
+      // If they are not the same, reload from blockchain
+      if(placeSequenceStore !== seqRes) {
+        //console.log(this.marketplaces.contractViews);
+        //console.log(this.marketplaces.contractViews.get_stored_items().getSignature());
+        const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
+        //console.log(result);
+
+        const foreachPairs: { id: number; data: object }[] = [];
+        result.forEach((val: object, key: number) => {
+          foreachPairs.push({ id: key, data: val });
+        });
+
+        DataStorage.WriteString(stItemsKey, JSON.stringify(foreachPairs));
+        DataStorage.WriteString(stSeqKey, seqRes);
+
+        return foreachPairs;
+      } else { // Otherwise load items from storage
+        console.log("reading place from local storage");
+        const placeItemsStore = DataStorage.ReadString(stItemsKey, "");
+
+        return JSON.parse(placeItemsStore);
+      }
+
+      //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
     /*public async getItemsForPlaceBCD(place_id: number): Promise<any> {

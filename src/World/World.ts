@@ -17,9 +17,10 @@ import { AdvancedDynamicTexture, Button } from "@babylonjs/gui";
 import "@babylonjs/inspector";
 
 //import { QuakeController } from "../Controllers/QuakeController";
+import PlayerController from "../Controllers/PlayerController";
 
 import "@babylonjs/core/Meshes/meshBuilder";
-import { FreeCamera, Material, MeshBuilder, UniversalCamera } from "@babylonjs/core";
+import { FreeCamera, Material, MeshBuilder, PointerEventTypes, UniversalCamera } from "@babylonjs/core";
 import earcut from 'earcut';
 
 import {
@@ -43,7 +44,7 @@ export class World {
 
     private sunLight: DirectionalLight;
 
-    //private playerController: QuakeController;
+    private playerController: PlayerController;
     private isPointerLocked: boolean = false;
 
     constructor() {
@@ -67,16 +68,18 @@ export class World {
         // Create sun and skybox
         var sun_direction = new Vector3(-50, -100, 50);
         this.sunLight = new DirectionalLight("sunLight", sun_direction, this.scene);
-        this.sunLight.intensity = 0.65;
+        this.sunLight.intensity = 0.5;
+        //this.sunLight.autoCalcShadowZBounds = true;
+        //this.sunLight.autoUpdateExtends = true;
 
         var ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
-        ambient_light.intensity = 0.2;
+        ambient_light.intensity = 0.4;
         ambient_light.diffuse = new Color3(0.7, 0.7, 1);
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        var ground = Mesh.CreateGround("ground1", 100, 100, 4, this.scene);
+        var ground = Mesh.CreateGround("ground1", 50, 50, 4, this.scene);
         ground.material = this.defaultMaterial;
         ground.checkCollisions = true;
         ground.receiveShadows = true;
@@ -91,28 +94,30 @@ export class World {
         skybox.material = skyMaterial;
 
         this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
-        //shadowGenerator.autoCalcDepthBounds = true;
+        //this.shadowGenerator.autoCalcDepthBounds = true;
         this.shadowGenerator.useExponentialShadowMap = true;
         this.shadowGenerator.useBlurExponentialShadowMap = true;
-        //shadowGenerator.usePoissonSampling = true;
+        //this.shadowGenerator.usePoissonSampling = true;
 
         // create debug world
         //this.debugWorld();
 
+        this.playerController = new PlayerController(this.camera, this.scene, this.shadowGenerator);
+
         // Pointer lock stuff
-        this.scene.onPointerDown = (evt) => {
-            //true/false check if we're locked, faster than checking pointerlock on each single click.
-            if (!this.isPointerLocked) {
-                if (canvas.requestPointerLock) {
-                    canvas.requestPointerLock();
+        this.scene.onPointerObservable.add((event, eventState) => {
+            // probably not needed since we have a mask.
+            if (event.type === PointerEventTypes.POINTERDOWN) {
+                //true/false check if we're locked, faster than checking pointerlock on each single click.
+                if (!this.isPointerLocked) {
+                    if (canvas.requestPointerLock) {
+                        canvas.requestPointerLock();
+                    }
+
+                    eventState.skipNextObservers = true;
                 }
             }
-            
-            //continue with shooting requests or whatever :P
-            //evt === 1 (mouse wheel click (not scrolling))
-            //evt === 2 (right mouse click)
-        };
-
+        }, PointerEventTypes.POINTERDOWN, true); // insert first
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         var pointerlockchange = () => {
@@ -270,6 +275,7 @@ export class World {
             extrudedPolygon.position.x = origin.x;
             extrudedPolygon.position.y = 10;
             extrudedPolygon.position.z = origin.z;
+            extrudedPolygon.isPickable = false;
 
             await this.loadPlaceItems(placeId);
         } catch(e) {
@@ -288,8 +294,8 @@ export class World {
         var transform_node = new TransformNode(`place${placeId}`, this.scene);
 
         items.forEach((element: any) => {
-            const item_id = element.item_id;
-            const item_coords = element.item_data;
+            const item_id = element.data.item_id;
+            const item_coords = element.data.item_data;
             // temp, sometimes bytes are shown as string in bcd api???
             try {
                 //console.log(item_coords);
