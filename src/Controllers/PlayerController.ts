@@ -109,7 +109,7 @@ export default class PlayerController {
         // Keyboard controls. Save, remove, place, mint, whatever.
         scene.onKeyboardObservable.add((kbInfo, eventState) => {
             if(kbInfo.type == KeyboardEventTypes.KEYDOWN){
-                if(kbInfo.event.code == "KeyS") {
+                if(kbInfo.event.code == "KeyU") {
                     const parent = scene.getNodeByName(`place${this.currentPlace}`);
 
                     // try to save items.
