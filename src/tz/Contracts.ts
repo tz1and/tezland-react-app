@@ -30,7 +30,7 @@ class Contracts {
       }
 
       const wallet = new TempleWallet('TezlandApp');
-      await wallet.connect({ name: "sandboxlocal", rpc: "http://192.168.0.93:20000/" });
+      await wallet.connect({ name: "sandboxlocal", rpc: Conf.tezos_node });
       this.tk.setWalletProvider(wallet);
       //this.tk.setProvider({ signer: signer });
     }
@@ -76,6 +76,14 @@ class Contracts {
     public async saveItems(remove: Node[], add: Node[], place_id: number) {
       const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
 
+      // TODO: removals
+
+      // TODO: decide if items should be transfered or not
+
+      // TODO: add_operator for items on sale
+
+      // TODO: remove_operator for removed items?
+
       const add_item_list = new Array();
       add.forEach( (item) => {
         const mesh = item as Mesh;
@@ -95,7 +103,6 @@ class Contracts {
         setFloat16(view, 12, mesh.position.y);
         setFloat16(view, 14, mesh.position.z);
         const item_data = toHexString(array);
-        //console.log(example_item_data);
 
         add_item_list.push({token_amount: 1, token_id: 0, xtz_per_token: 1000000, item_data: item_data});
       });

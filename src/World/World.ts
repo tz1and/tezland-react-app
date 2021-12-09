@@ -20,7 +20,7 @@ import "@babylonjs/inspector";
 import PlayerController from "../Controllers/PlayerController";
 
 import "@babylonjs/core/Meshes/meshBuilder";
-import { FreeCamera, Material, MeshBuilder, PointerEventTypes, UniversalCamera } from "@babylonjs/core";
+import { FreeCamera, Material, MeshBuilder, UniversalCamera } from "@babylonjs/core";
 import earcut from 'earcut';
 
 import {
@@ -45,7 +45,6 @@ export class World {
     private sunLight: DirectionalLight;
 
     private playerController: PlayerController;
-    private isPointerLocked: boolean = false;
 
     constructor() {
         // Get the canvas element from the DOM.
@@ -103,39 +102,6 @@ export class World {
         //this.debugWorld();
 
         this.playerController = new PlayerController(this.camera, this.scene, this.shadowGenerator);
-
-        // Pointer lock stuff
-        this.scene.onPointerObservable.add((event, eventState) => {
-            // probably not needed since we have a mask.
-            if (event.type === PointerEventTypes.POINTERDOWN) {
-                //true/false check if we're locked, faster than checking pointerlock on each single click.
-                if (!this.isPointerLocked) {
-                    if (canvas.requestPointerLock) {
-                        canvas.requestPointerLock();
-                    }
-
-                    eventState.skipNextObservers = true;
-                }
-            }
-        }, PointerEventTypes.POINTERDOWN, true); // insert first
-
-        // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
-        var pointerlockchange = () => {
-            /* document.mozPointerLockElement || document.webkitPointerLockElement || document.msPointerLockElement ||  */
-            var controlEnabled = document.pointerLockElement || null;
-            
-            // If the user is already locked
-            if (!controlEnabled) {
-                this.camera.detachControl(canvas);
-                this.isPointerLocked = false;
-            } else {
-                this.camera.attachControl(canvas);
-                this.isPointerLocked = true;
-            }
-        };
-
-        // Attach events to the document
-        document.addEventListener("pointerlockchange", pointerlockchange, false);
 
         // Render every frame
         this.engine.runRenderLoop(() => {

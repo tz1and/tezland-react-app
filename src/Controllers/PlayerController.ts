@@ -1,4 +1,4 @@
-import { Camera, IWheelEvent, Mesh, Node, Nullable, PointerEventTypes, Scene, ShadowGenerator } from "@babylonjs/core";
+import { Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Scene, ShadowGenerator } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import Contracts from "../tz/Contracts";
 
@@ -15,6 +15,9 @@ export default class PlayerController {
     private beforeRenderer: () => void;
     /*private handleKeyUp: (e: KeyboardEvent) => void;
     private handleKeyDown: (e: KeyboardEvent) => void;*/
+
+    private isPointerLocked: boolean = false;
+    private currentPlace: number = 1;
 
     constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator) {
         this.camera = camera;
@@ -37,6 +40,41 @@ export default class PlayerController {
         this.beforeRenderer = () => { this.updateController() };
         this.scene.registerBeforeRender(this.beforeRenderer);
 
+        // Pointer lock stuff
+        const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+        this.scene.onPointerObservable.add((event, eventState) => {
+            // probably not needed since we have a mask.
+            if (event.type === PointerEventTypes.POINTERDOWN) {
+                //true/false check if we're locked, faster than checking pointerlock on each single click.
+                if (!this.isPointerLocked) {
+                    if (canvas.requestPointerLock) {
+                        canvas.requestPointerLock();
+                    }
+
+                    eventState.skipNextObservers = true;
+                }
+            }
+        }, PointerEventTypes.POINTERDOWN, true); // insert first
+
+        // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
+        var pointerlockchange = () => {
+            /* document.mozPointerLockElement || document.webkitPointerLockElement || document.msPointerLockElement ||  */
+            var controlEnabled = document.pointerLockElement || null;
+            
+            // If the user is already locked
+            if (!controlEnabled) {
+                this.camera.detachControl(canvas);
+                this.isPointerLocked = false;
+            } else {
+                this.camera.attachControl(canvas);
+                this.isPointerLocked = true;
+            }
+        };
+
+        // Attach events to the document
+        document.addEventListener("pointerlockchange", pointerlockchange, false);
+
+        // mouse interaction when locked
         this.scene.onPointerObservable.add((info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
                 if(this.tempObject) {
@@ -45,29 +83,17 @@ export default class PlayerController {
                     const newMat = new SimpleMaterial("newMat", this.scene);
                     newMat.diffuseColor.set(0.8, 0.2, 0.2);
 
-                    // TODO: somehow figure out the place the play is inside of
+                    // TODO: somehow figure out the place the player is inside of
                     // or placing the item inside.
-                    const parent = scene.getNodeByName(`place${0}`);
+                    const parent = scene.getNodeByName(`place${this.currentPlace}`);
 
                     const newObject = Mesh.CreateBox("newObject", 1, this.scene);
                     newObject.parent = parent;
                     newObject.material = newMat;//scene.getMaterialByName("defaulMat");
-                    newObject.position = this.tempObject.position;
+                    newObject.position = this.tempObject.position.clone();
                     newObject.checkCollisions = true;
                     newObject.useOctreeForCollisions = true;
                     shadowGenerator.addShadowCaster(newObject);
-
-                    // TEMP try to save items.
-                    // TODO: figure out removals.
-                    const children = parent!.getChildren();
-                    const add_children = new Array<Node>();
-
-                    children.forEach((child) => {
-                        if(child.metadata == undefined)
-                            add_children.push(child);
-                    })
-
-                    Contracts.saveItems(new Array<any>(), add_children, 0);
 
                     eventState.skipNextObservers = true;
                 }
@@ -78,6 +104,42 @@ export default class PlayerController {
 
                 eventState.skipNextObservers = true;
             }
+        });
+
+        // Keyboard controls. Save, remove, place, mint, whatever.
+        scene.onKeyboardObservable.add((kbInfo, eventState) => {
+            if(kbInfo.type == KeyboardEventTypes.KEYDOWN){
+                if(kbInfo.event.code == "KeyS") {
+                    const parent = scene.getNodeByName(`place${this.currentPlace}`);
+
+                    // try to save items.
+                    // TODO: figure out removals.
+                    const children = parent!.getChildren();
+                    const add_children = new Array<Node>();
+
+                    children.forEach((child) => {
+                        if(child.metadata == undefined) {
+                            add_children.push(child);
+                        }
+                    });
+
+                    // exit pointer lock and send operation.
+                    document.exitPointerLock();
+
+                    Contracts.saveItems(new Array<any>(), add_children, this.currentPlace);
+
+                    eventState.skipNextObservers = true;
+                }
+            }
+
+            /*switch (kbInfo.type) {
+                case KeyboardEventTypes.KEYDOWN:
+                    console.log("KEY DOWN: ", kbInfo.event.code);
+                    break;
+                case KeyboardEventTypes.KEYUP:
+                    console.log("KEY UP: ", kbInfo.event.code);
+                    break;
+            }*/
         });
     }
 
