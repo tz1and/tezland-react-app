@@ -98,7 +98,7 @@ class Contracts {
         setFloat16(view, 4, rot.z);
         setFloat16(view, 6, rot.w);
         // scale
-        setFloat16(view, 8, 1);
+        setFloat16(view, 8, Math.abs(mesh.scaling.x));
         // pos
         setFloat16(view, 10, mesh.position.x);
         setFloat16(view, 12, mesh.position.y);

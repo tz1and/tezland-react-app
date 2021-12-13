@@ -288,6 +288,7 @@ export class World {
                     instance.parent = transform_node;
                     instance.rotationQuaternion = quat;
                     instance.position = pos;
+                    instance.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
                     /*sphere.position.x = Math.random() * 20 - 10;
                     sphere.position.y = 1;
                     sphere.position.z = Math.random() * 20 - 10;*/
@@ -296,7 +297,7 @@ export class World {
 
                     // todo: for all submeshes/instances, whatever
                     //instance.checkCollisions = true;
-                    //this.shadowGenerator.addShadowCaster(instance);
+                    this.shadowGenerator.addShadowCaster(instance as Mesh);
 
                     // This is very flakey at best.....
                     // Maybe write a mesh/boundingbox intersector

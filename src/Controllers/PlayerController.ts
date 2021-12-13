@@ -1,4 +1,4 @@
-import { BoundingBox, Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode } from "@babylonjs/core";
+import { BoundingBox, Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import Contracts from "../tz/Contracts";
 import { containsBox } from "../tz/Utils";
@@ -12,7 +12,7 @@ export default class PlayerController {
 
     private tempObject: Nullable<Mesh>;
     private tempObjectOffsetY: number;
-    //private tempObjectRot: Quaternion;
+    private tempObjectRot: Quaternion;
     //private state: ControllerState;
 
     private beforeRenderer: () => void;
@@ -29,7 +29,7 @@ export default class PlayerController {
         this.shadowGenerator = shadowGenerator;
         this.tempObject = null;
         this.tempObjectOffsetY = 0;
-        //this.tempObjectRot = new Quaternion();
+        this.tempObjectRot = new Quaternion();
 
         this.beforeRenderer = () => { this.updateController() };
         this.scene.registerBeforeRender(this.beforeRenderer);
@@ -79,6 +79,8 @@ export default class PlayerController {
 
                     const newObject = await ipfs.download_item(this.currentItem, this.scene, parent) as Mesh;
                     newObject.position = this.tempObject.position.clone();
+                    newObject.rotationQuaternion = this.tempObjectRot.clone();
+                    newObject.scaling = this.tempObject.scaling.clone();
                     newObject.metadata = { itemId: this.currentItem }
 
                     // TODO: clicking places new object
@@ -108,10 +110,42 @@ export default class PlayerController {
         // Keyboard controls. Save, remove, place, mint, whatever.
         scene.onKeyboardObservable.add((kbInfo, eventState) => {
             if(kbInfo.type == KeyboardEventTypes.KEYDOWN){
-                if(kbInfo.event.code == "KeyE") {
-                    // todo rotate right
-                    //this.tempObjectRot
+                // TEMP: switch item in inventory
+                if(kbInfo.event.code == "Digit1") {
+                    this.setCurrentItem(0);
+                    eventState.skipNextObservers = true;
                 }
+                else if(kbInfo.event.code == "Digit2") {
+                    this.setCurrentItem(1);
+                    eventState.skipNextObservers = true;
+                }
+                else if(kbInfo.event.code == "Digit3") {
+                    this.setCurrentItem(2);
+                    eventState.skipNextObservers = true;
+                }
+                else if(kbInfo.event.code == "Digit4") {
+                    this.setCurrentItem(3);
+                    eventState.skipNextObservers = true;
+                }
+                // Scale
+                else if(kbInfo.event.code == "KeyR") {
+                    this.tempObject?.scaling.multiplyInPlace(new Vector3(1.1, 1.1, 1.1));
+                    eventState.skipNextObservers = true;
+                }
+                else if(kbInfo.event.code == "KeyF") {
+                    this.tempObject?.scaling.multiplyInPlace(new Vector3(0.9, 0.9, 0.9));
+                    eventState.skipNextObservers = true;
+                }
+                // Rotate
+                else if(kbInfo.event.code == "KeyE") {
+                    this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), Math.PI / 20);
+                    eventState.skipNextObservers = true;
+                }
+                else if(kbInfo.event.code == "KeyQ") {
+                    this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), -Math.PI / 20);
+                    eventState.skipNextObservers = true;
+                }
+                // Save place
                 else if(kbInfo.event.code == "KeyU") {
                     const parent = scene.getNodeByName(`place${this.currentPlace}`);
 
@@ -152,6 +186,7 @@ export default class PlayerController {
 
         this.currentItem = item_id;
         this.tempObject = await ipfs.download_item(this.currentItem, this.scene, null) as Mesh;
+        this.tempObject.rotationQuaternion = this.tempObjectRot;
 
         // set pickable false on the whole hierarchy.
         this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
