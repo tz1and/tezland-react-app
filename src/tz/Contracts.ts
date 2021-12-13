@@ -87,6 +87,7 @@ class Contracts {
       const add_item_list = new Array();
       add.forEach( (item) => {
         const mesh = item as Mesh;
+        const item_id = mesh.metadata.itemId
         const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
         // 4 floats for quat, 1 float scale, 3 floats pos = 16 bytes
         const array = new Uint8Array(16);
@@ -104,7 +105,7 @@ class Contracts {
         setFloat16(view, 14, mesh.position.z);
         const item_data = toHexString(array);
 
-        add_item_list.push({token_amount: 1, token_id: 0, xtz_per_token: 1000000, item_data: item_data});
+        add_item_list.push({token_amount: 1, token_id: item_id, xtz_per_token: 1000000, item_data: item_data});
       });
 
       const place_items_op = await marketplacesWallet.methodsObject.place_items({

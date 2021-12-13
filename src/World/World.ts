@@ -8,7 +8,7 @@ import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator"
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
-//import { GridMaterial } from "@babylonjs/materials/grid";
+import { GridMaterial } from "@babylonjs/materials/grid";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import { SkyMaterial } from "@babylonjs/materials/sky";
 
@@ -20,7 +20,7 @@ import "@babylonjs/inspector";
 import PlayerController from "../Controllers/PlayerController";
 
 import "@babylonjs/core/Meshes/meshBuilder";
-import { FreeCamera, Material, MeshBuilder, UniversalCamera } from "@babylonjs/core";
+import { BoundingBox, FreeCamera, Material, MeshBuilder, UniversalCamera } from "@babylonjs/core";
 import earcut from 'earcut';
 
 import {
@@ -32,6 +32,8 @@ import {
 import axios from 'axios';
 import Conf from "../Config";
 import Contracts from "../tz/Contracts";
+import * as ipfs from "../ipfs/ipfs";
+import { containsBox } from "../tz/Utils";
 
 
 export class World {
@@ -44,7 +46,7 @@ export class World {
 
     private sunLight: DirectionalLight;
 
-    private playerController: PlayerController;
+    public playerController: PlayerController;
 
     constructor() {
         // Get the canvas element from the DOM.
@@ -57,7 +59,7 @@ export class World {
         // Create our first scene.
         this.scene = new Scene(this.engine);
         this.scene.collisionsEnabled = true;
-        //this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
+        this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
 
         this.camera = this.initCamera();
 
@@ -78,7 +80,7 @@ export class World {
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        var ground = Mesh.CreateGround("ground1", 50, 50, 4, this.scene);
+        var ground = Mesh.CreateGround("ground1", 100, 100, 4, this.scene);
         ground.material = this.defaultMaterial;
         ground.checkCollisions = true;
         ground.receiveShadows = true;
@@ -192,15 +194,16 @@ export class World {
             const tokenInfo = responseP.data[0].token_info;
 
             // create mat
-            const transparent_mat = new SimpleMaterial("tranp", this.scene);
+            /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
             transparent_mat.alpha = 0.2;
             //transparent_mat.disableLighting = true;
             //transparent_mat.backFaceCulling = false;
-            transparent_mat.diffuseColor.set(0.2, 0.2, 0.8);
-            /*const transparent_mat = new GridMaterial("transp_grid", this.scene);
-            transparent_mat.alpha = 0.2;
+            transparent_mat.diffuseColor.set(0.2, 0.2, 0.8);*/
+            const transparent_mat = new GridMaterial("transp_grid", this.scene);
+            transparent_mat.opacity = 0.3;
             transparent_mat.mainColor.set(0.2, 0.2, 0.8);
-            transparent_mat.lineColor.set(0.2, 0.8, 0.8);*/
+            transparent_mat.lineColor.set(0.2, 0.8, 0.8);
+            transparent_mat.backFaceCulling = false;
             //transparent_mat.wireframe = true;
 
             // Using polygon mesh builder (only 2D)
@@ -232,25 +235,25 @@ export class World {
             // TODO: make sure the place coordinates are going right around!
             shape = shape.reverse();
 
-            const extrudedPolygon = MeshBuilder.ExtrudePolygon("polygon", {
+            const placeBounds = MeshBuilder.ExtrudePolygon(`placeBounds${placeId}`, {
                 shape: shape,
                 depth: 11
             }, this.scene, earcut); 
 
-            extrudedPolygon.material = transparent_mat;
-            extrudedPolygon.position.x = origin.x;
-            extrudedPolygon.position.y = 10;
-            extrudedPolygon.position.z = origin.z;
-            extrudedPolygon.isPickable = false;
+            placeBounds.material = transparent_mat;
+            placeBounds.position.x = origin.x;
+            placeBounds.position.y = 10;
+            placeBounds.position.z = origin.z;
+            placeBounds.isPickable = false;
 
-            await this.loadPlaceItems(placeId);
+            await this.loadPlaceItems(placeId, placeBounds);
         } catch(e) {
             console.log("failed to load place " + placeId);
             console.log(e);
         }
     }
 
-    public async loadPlaceItems(placeId: number) {
+    public async loadPlaceItems(placeId: number, placeBounds: Mesh) {
         // Load items
         const items = await Contracts.getItemsForPlaceView(placeId);
 
@@ -259,7 +262,8 @@ export class World {
 
         var transform_node = new TransformNode(`place${placeId}`, this.scene);
 
-        items.forEach((element: any) => {
+        //items.forEach(async (element: any) => {
+        for (const element of items) {
             const item_id = element.data.item_id;
             const item_coords = element.data.item_data;
             // temp, sometimes bytes are shown as string in bcd api???
@@ -272,22 +276,46 @@ export class World {
                 const quat = new Quaternion(getFloat16(view, 0), getFloat16(view, 2), getFloat16(view, 4), getFloat16(view, 6));
                 const scale = getFloat16(view, 8);
                 const pos = new Vector3(getFloat16(view, 10), getFloat16(view, 12), getFloat16(view, 14));
-                
-                //console.log(quat);
-                //console.log(scale);
-                //console.log(pos);
 
-                var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);
-                sphere.parent = transform_node;
-                sphere.rotationQuaternion = quat;
-                sphere.position = pos;
-                /*sphere.position.x = Math.random() * 20 - 10;
-                sphere.position.y = 1;
-                sphere.position.z = Math.random() * 20 - 10;*/
-                sphere.material = this.defaultMaterial;
-                sphere.checkCollisions = true;
-                sphere.metadata = { id: element.id };
-                this.shadowGenerator.addShadowCaster(sphere);
+                const instance = await ipfs.download_item(item_id, this.scene, transform_node);
+
+                if(instance) {
+                    //console.log(quat);
+                    //console.log(scale);
+                    //console.log(pos);
+
+                    /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
+                    instance.parent = transform_node;
+                    instance.rotationQuaternion = quat;
+                    instance.position = pos;
+                    /*sphere.position.x = Math.random() * 20 - 10;
+                    sphere.position.y = 1;
+                    sphere.position.z = Math.random() * 20 - 10;*/
+                    //sphere.material = this.defaultMaterial;
+                    instance.metadata = { id: element.id, itemId: item_id };
+
+                    // todo: for all submeshes/instances, whatever
+                    //instance.checkCollisions = true;
+                    //this.shadowGenerator.addShadowCaster(instance);
+
+                    // This is very flakey at best.....
+                    // Maybe write a mesh/boundingbox intersector
+                    // calculate instance mesh bounding box
+                    const {min, max} = instance.getHierarchyBoundingVectors(true);
+                    const bbox = new BoundingBox(min, max);
+                    // get place bounding box.
+                    const placebbox = placeBounds.getBoundingInfo().boundingBox;
+
+                    if(!containsBox(placebbox, bbox)) {
+                        console.log("place doesn't fully contain object");
+                        instance!.dispose();
+                    }
+
+                    /*if((instance as Mesh).intersectsMesh(placeBounds, true, true)) {
+                        console.log("intersects");
+                        instance!.dispose();
+                    }*/
+                }
             }
             catch(e) {
                 /*console.log(item_coords.length);
@@ -298,7 +326,7 @@ export class World {
                 console.log(hex);
                 console.log(item_coords);*/
             }
-        });
+        };
 
         //this.octree = this.scene.createOrUpdateSelectionOctree();
     }

@@ -1,6 +1,8 @@
-import { Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Scene, ShadowGenerator } from "@babylonjs/core";
+import { BoundingBox, Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import Contracts from "../tz/Contracts";
+import { containsBox } from "../tz/Utils";
+import * as ipfs from "../ipfs/ipfs";
 
 
 export default class PlayerController {
@@ -10,6 +12,7 @@ export default class PlayerController {
 
     private tempObject: Nullable<Mesh>;
     private tempObjectOffsetY: number;
+    //private tempObjectRot: Quaternion;
     //private state: ControllerState;
 
     private beforeRenderer: () => void;
@@ -18,6 +21,7 @@ export default class PlayerController {
 
     private isPointerLocked: boolean = false;
     private currentPlace: number = 1;
+    private currentItem: number = 3;
 
     constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator) {
         this.camera = camera;
@@ -25,17 +29,7 @@ export default class PlayerController {
         this.shadowGenerator = shadowGenerator;
         this.tempObject = null;
         this.tempObjectOffsetY = 0;
-
-        const transparent_mat = new SimpleMaterial("tranp", this.scene);
-        //transparent_mat.alpha = 0.2;
-        //transparent_mat.disableLighting = true;
-        //transparent_mat.backFaceCulling = false;
-        transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
-
-        this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
-        this.tempObject.material = transparent_mat;
-        this.tempObject.isPickable = false;
-        shadowGenerator.addShadowCaster(this.tempObject);
+        //this.tempObjectRot = new Quaternion();
 
         this.beforeRenderer = () => { this.updateController() };
         this.scene.registerBeforeRender(this.beforeRenderer);
@@ -75,24 +69,29 @@ export default class PlayerController {
         document.addEventListener("pointerlockchange", pointerlockchange, false);
 
         // mouse interaction when locked
-        this.scene.onPointerObservable.add((info, eventState) => {
+        this.scene.onPointerObservable.add(async (info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
-                if(this.tempObject) {
-                    // TODO: clicking places new object
-                    // check place permissions, etc, move to new function
-                    const newMat = new SimpleMaterial("newMat", this.scene);
-                    newMat.diffuseColor.set(0.8, 0.2, 0.2);
+                if(this.tempObject && this.tempObject.isEnabled()) {
 
                     // TODO: somehow figure out the place the player is inside of
                     // or placing the item inside.
-                    const parent = scene.getNodeByName(`place${this.currentPlace}`);
+                    const parent = scene.getNodeByName(`place${this.currentPlace}`) as TransformNode;
+
+                    const newObject = await ipfs.download_item(this.currentItem, this.scene, parent) as Mesh;
+                    newObject.position = this.tempObject.position.clone();
+                    newObject.metadata = { itemId: this.currentItem }
+
+                    // TODO: clicking places new object
+                    // check place permissions, etc, move to new function
+                    /*const newMat = new SimpleMaterial("newMat", this.scene);
+                    newMat.diffuseColor.set(0.8, 0.2, 0.2);
 
                     const newObject = Mesh.CreateBox("newObject", 1, this.scene);
                     newObject.parent = parent;
                     newObject.material = newMat;//scene.getMaterialByName("defaulMat");
                     newObject.position = this.tempObject.position.clone();
                     newObject.checkCollisions = true;
-                    newObject.useOctreeForCollisions = true;
+                    newObject.useOctreeForCollisions = true;*/
                     shadowGenerator.addShadowCaster(newObject);
 
                     eventState.skipNextObservers = true;
@@ -109,7 +108,11 @@ export default class PlayerController {
         // Keyboard controls. Save, remove, place, mint, whatever.
         scene.onKeyboardObservable.add((kbInfo, eventState) => {
             if(kbInfo.type == KeyboardEventTypes.KEYDOWN){
-                if(kbInfo.event.code == "KeyU") {
+                if(kbInfo.event.code == "KeyE") {
+                    // todo rotate right
+                    //this.tempObjectRot
+                }
+                else if(kbInfo.event.code == "KeyU") {
                     const parent = scene.getNodeByName(`place${this.currentPlace}`);
 
                     // try to save items.
@@ -118,7 +121,7 @@ export default class PlayerController {
                     const add_children = new Array<Node>();
 
                     children.forEach((child) => {
-                        if(child.metadata == undefined) {
+                        if(child.metadata.id == undefined) {
                             add_children.push(child);
                         }
                     });
@@ -143,13 +146,55 @@ export default class PlayerController {
         });
     }
 
+    public async setCurrentItem(item_id: number) {
+        // remove old object.
+        if(this.tempObject) this.tempObject.dispose();
+
+        this.currentItem = item_id;
+        this.tempObject = await ipfs.download_item(this.currentItem, this.scene, null) as Mesh;
+
+        // set pickable false on the whole hierarchy.
+        this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
+
+        /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
+        //transparent_mat.alpha = 0.2;
+        //transparent_mat.disableLighting = true;
+        //transparent_mat.backFaceCulling = false;
+        transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
+
+        this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
+        this.tempObject.material = transparent_mat;
+        this.tempObject.isPickable = false;
+        //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
+        this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
+    }
+
     private updateController() {
         const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
-        const hit = this.scene.pickWithRay(this.camera.getForwardRay());
-        if(this.tempObject && hit && hit.pickedPoint) {
-            const point = hit.pickedPoint;
-            this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
+        const placeBounds = this.scene.getNodeByName(`placeBounds${this.currentPlace}`) as Mesh;
+
+        if(this.tempObject && placeBounds) {
+            const hit = this.scene.pickWithRay(this.camera.getForwardRay());
+            if(hit && hit.pickedPoint) {
+                const point = hit.pickedPoint;
+                this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
+            }
+
+            // Check if the object is contained in the place.
+            const {min, max} = this.tempObject.getHierarchyBoundingVectors(true);
+            const bbox = new BoundingBox(min, max);
+            const placebbox = placeBounds.getBoundingInfo().boundingBox;
+
+            // todo: do this differently maybe. instead of dirtying the object
+            // literally every frame.
+            if(!containsBox(placebbox, bbox)) {
+                this.tempObject.setEnabled(false);
+                //this.tempObject.material!.alpha = 0.2;
+            } else {
+                this.tempObject.setEnabled(true);
+                //this.tempObject.material!.alpha = 1;
+            }
         }
     }
 }
