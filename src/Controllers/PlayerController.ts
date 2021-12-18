@@ -1,6 +1,5 @@
-import { BoundingBox, Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
+import { Camera, IWheelEvent, KeyboardEventTypes, Mesh, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
-import { containsBox } from "../tz/Utils";
 import * as ipfs from "../ipfs/ipfs";
 import Place from "../World/Place";
 
@@ -203,27 +202,16 @@ export default class PlayerController {
     private updateController() {
         if(!this.currentPlace) return;
 
-        // TODO: move bounds check to Place class.
-
         const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
-        const placeBounds = this.scene.getNodeByName(`placeBounds${this.currentPlace.placeId}`) as Mesh;
-
-        if(this.tempObject && placeBounds) {
+        if(this.tempObject) {
             const hit = this.scene.pickWithRay(this.camera.getForwardRay());
             if(hit && hit.pickedPoint) {
                 const point = hit.pickedPoint;
                 this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
             }
 
-            // Check if the object is contained in the place.
-            const {min, max} = this.tempObject.getHierarchyBoundingVectors(true);
-            const bbox = new BoundingBox(min, max);
-            const placebbox = placeBounds.getBoundingInfo().boundingBox;
-
-            // todo: do this differently maybe. instead of dirtying the object
-            // literally every frame.
-            if(!containsBox(placebbox, bbox)) {
+            if(!this.currentPlace.isInBounds(this.tempObject)) {
                 this.tempObject.setEnabled(false);
                 //this.tempObject.material!.alpha = 0.2;
             } else {

@@ -13,7 +13,7 @@ import axios from 'axios';
 import Conf from "../Config";
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { containsBox } from "../tz/Utils";
+import { pointIsInside } from "../tz/Utils";
 import { World } from "./World";
 
 
@@ -162,23 +162,10 @@ export default class Place {
                     //instance.checkCollisions = true;
                     this.world.shadowGenerator.addShadowCaster(instance as Mesh);
 
-                    // This is very flakey at best.....
-                    // Maybe write a mesh/boundingbox intersector
-                    // calculate instance mesh bounding box
-                    const {min, max} = instance.getHierarchyBoundingVectors(true);
-                    const bbox = new BoundingBox(min, max);
-                    // get place bounding box.
-                    const placebbox = this.placeBounds.getBoundingInfo().boundingBox;
-
-                    if(!containsBox(placebbox, bbox)) {
+                    if(!this.isInBounds(instance)) {
                         console.log("place doesn't fully contain object");
-                        instance!.dispose();
+                        instance.dispose();
                     }
-
-                    /*if((instance as Mesh).intersectsMesh(placeBounds, true, true)) {
-                        console.log("intersects");
-                        instance!.dispose();
-                    }*/
                 }
             }
             catch(e) {
@@ -217,5 +204,21 @@ export default class Place {
         Contracts.saveItems(new Array<any>(), add_children, this.placeId).then(() => {
             this.loadItems();
         });
+    }
+
+    public isInBounds(object: Node) {
+        if(!this.placeBounds) return false;
+
+        const {min, max} = object.getHierarchyBoundingVectors(true);
+        const bbox = new BoundingBox(min, max);
+
+        for(var i = 0; i < bbox.vectorsWorld.length; ++i) {
+            const p = bbox.vectorsWorld[i];
+
+            if(!pointIsInside(p, this.placeBounds))
+                return false;
+        }
+
+        return true;
     }
 }

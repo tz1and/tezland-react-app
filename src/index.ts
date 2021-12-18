@@ -12,7 +12,8 @@ TempleWallet.onAvailabilityChange((avail) => { Contracts.initWallet() });
     await world.loadPlace(0);
     await world.loadPlace(1);
     await world.loadPlace(2);
+    await world.loadPlace(3);
 
-    const place = world.places.get(1);
+    const place = world.places.get(3);
     if(place) world.playerController.setCurrentPlace(place);
 })();
