@@ -214,6 +214,8 @@ export default class Place {
             }
         });
 
-        Contracts.saveItems(new Array<any>(), add_children, this.placeId);
+        Contracts.saveItems(new Array<any>(), add_children, this.placeId).then(() => {
+            this.loadItems();
+        });
     }
 }

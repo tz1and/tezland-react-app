@@ -49,6 +49,7 @@ class Contracts {
       
       // If they are not the same, reload from blockchain
       if(placeSequenceStore !== seqRes) {
+        console.log("place items outdates, reading from chain");
         //console.log(this.marketplaces.contractViews);
         //console.log(this.marketplaces.contractViews.get_stored_items().getSignature());
         const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
