@@ -1,8 +1,8 @@
 import { BoundingBox, Camera, IWheelEvent, KeyboardEventTypes, Mesh, Node, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
-import Contracts from "../tz/Contracts";
 import { containsBox } from "../tz/Utils";
 import * as ipfs from "../ipfs/ipfs";
+import Place from "../World/Place";
 
 
 export default class PlayerController {
@@ -20,13 +20,14 @@ export default class PlayerController {
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
     private isPointerLocked: boolean = false;
-    private currentPlace: number = 1;
+    private currentPlace: Nullable<Place>;
     private currentItem: number = 3;
 
     constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator) {
         this.camera = camera;
         this.scene = scene;
         this.shadowGenerator = shadowGenerator;
+        this.currentPlace = null;
         this.tempObject = null;
         this.tempObjectOffsetY = 0;
         this.tempObjectRot = new Quaternion();
@@ -71,11 +72,13 @@ export default class PlayerController {
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
-                if(this.tempObject && this.tempObject.isEnabled()) {
+                if(this.currentPlace && this.tempObject && this.tempObject.isEnabled()) {
+
+                    // TODO: move placing items into Place class.
 
                     // TODO: somehow figure out the place the player is inside of
                     // or placing the item inside.
-                    const parent = scene.getNodeByName(`place${this.currentPlace}`) as TransformNode;
+                    const parent = scene.getNodeByName(`place${this.currentPlace.placeId}`) as TransformNode;
 
                     const newObject = await ipfs.download_item(this.currentItem, this.scene, parent) as Mesh;
                     newObject.position = this.tempObject.position.clone();
@@ -147,25 +150,14 @@ export default class PlayerController {
                 }
                 // Save place
                 else if(kbInfo.event.code == "KeyU") {
-                    const parent = scene.getNodeByName(`place${this.currentPlace}`);
+                    if(this.currentPlace) {
+                        // exit pointer lock and send operation.
+                        document.exitPointerLock();
 
-                    // try to save items.
-                    // TODO: figure out removals.
-                    const children = parent!.getChildren();
-                    const add_children = new Array<Node>();
+                        this.currentPlace.save();
 
-                    children.forEach((child) => {
-                        if(child.metadata.id == undefined) {
-                            add_children.push(child);
-                        }
-                    });
-
-                    // exit pointer lock and send operation.
-                    document.exitPointerLock();
-
-                    Contracts.saveItems(new Array<any>(), add_children, this.currentPlace);
-
-                    eventState.skipNextObservers = true;
+                        eventState.skipNextObservers = true;
+                    }
                 }
             }
 
@@ -178,6 +170,10 @@ export default class PlayerController {
                     break;
             }*/
         });
+    }
+
+    public setCurrentPlace(place: Place) {
+        this.currentPlace = place;
     }
 
     public async setCurrentItem(item_id: number) {
@@ -205,9 +201,13 @@ export default class PlayerController {
     }
 
     private updateController() {
+        if(!this.currentPlace) return;
+
+        // TODO: move bounds check to Place class.
+
         const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
-        const placeBounds = this.scene.getNodeByName(`placeBounds${this.currentPlace}`) as Mesh;
+        const placeBounds = this.scene.getNodeByName(`placeBounds${this.currentPlace.placeId}`) as Mesh;
 
         if(this.tempObject && placeBounds) {
             const hit = this.scene.pickWithRay(this.camera.getForwardRay());
