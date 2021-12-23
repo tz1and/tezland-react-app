@@ -37,9 +37,9 @@ export class World {
 
     readonly places: Map<number, Place>;
 
-    constructor() {
+    constructor(mount: HTMLCanvasElement, appControlfunctions: any) {
         // Get the canvas element from the DOM.
-        const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+        const canvas = mount;
         const divFps = document.getElementById("fps");
 
         // Associate a Babylon Engine to it.
@@ -92,7 +92,7 @@ export class World {
         // create debug world
         //this.debugWorld();
 
-        this.playerController = new PlayerController(this.camera, this.scene, this.shadowGenerator);
+        this.playerController = new PlayerController(this.camera, this.scene, this.shadowGenerator, canvas, appControlfunctions);
 
         this.places = new Map<number, Place>();
 
@@ -102,7 +102,7 @@ export class World {
             divFps!.innerHTML = this.engine.getFps().toFixed() + " fps";
         });
 
-        window.addEventListener('resize', () => { this.engine.resize(); });
+        canvas.addEventListener('resize', () => { this.engine.resize(); });
     }
 
     private debugWorld() {

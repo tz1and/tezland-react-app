@@ -1,5 +1,7 @@
 import React from 'react';
-import VirtualWorld from './VirtualWorld'
+import { World } from '../World/World'
+import Contracts from "../tz/Contracts";
+import { TempleWallet } from "@temple-wallet/dapp";
 import './VirtualSpace.css';
 
 type VirtualSpaceProps = {
@@ -20,8 +22,8 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     //mount: null
   };
 
-  private mount: HTMLDivElement | null;
-  private world: VirtualWorld | null;
+  private mount: HTMLCanvasElement | null;
+  private world: World | null;
 
   constructor(props: VirtualSpaceProps) {
     super(props);
@@ -29,23 +31,43 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     this.world = null;
   }
 
-  setInventoryItem() {
-    console.log('setting inventory item');
+  setInventoryItem(id: number) {
+    this.world?.playerController.setCurrentItem(id);
   }
 
   lockControls() {
-    this.world?.fpsControls.camControls.lock();
+    // request pointer lock.
+    this.mount?.requestPointerLock();
+    // focus on canvas for keyboard input to work.
+    this.mount?.focus();
+    //this.world?.fpsControls.camControls.lock();
   }
 
   componentDidMount() {
-    this.world = new VirtualWorld(this.mount!, {loadForm: this.props.loadForm, setOverlayDispaly: this.props.setOverlayDispaly});
+    this.world = new World(this.mount!, {loadForm: this.props.loadForm, setOverlayDispaly: this.props.setOverlayDispaly});
 
-    this.world.animate();
+    TempleWallet.onAvailabilityChange((avail) => { Contracts.initWallet() });
+
+    (async () => {
+      if(!this.world) return;
+
+      await this.world.playerController.setCurrentItem(2);
+      await this.world.loadPlace(0);
+      await this.world.loadPlace(1);
+      await this.world.loadPlace(2);
+      await this.world.loadPlace(3);
+
+      const place = this.world.places.get(3);
+      if(place) this.world.playerController.setCurrentPlace(place);
+    })();
   }
 
   render() {
     return (
-      <div className="VirtualSpace" ref={ref => (this.mount = ref)} />
+      <div className='VirtualSpace'>
+        <canvas id="renderCanvas" touch-action="none" ref={ref => (this.mount = ref)} ></canvas>
+        <div id="fps">0</div>
+      </div>
     )
   }
 }

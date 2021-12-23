@@ -45,7 +45,7 @@ class App extends React.Component<AppProps, AppState> {
 
     const curVS = this.virtualSpaceRef.current;
     if(curVS) {
-      curVS.setInventoryItem();
+      curVS.setInventoryItem(id);
       curVS.lockControls();
     }
   }
@@ -53,7 +53,7 @@ class App extends React.Component<AppProps, AppState> {
   render() {
     let closeFormCallback = this.closeForm.bind(this);
     let form;
-    if(this.state.show_form === 'none') form = <div id="app-overlay" className="text-center"><img src={logo} className="App-logo" alt="logo" />
+    if(this.state.show_form === 'none') form = <div id="app-overlay" className="text-center" onClick={closeFormCallback}><img src={logo} className="App-logo" alt="logo" />
         <p style={{fontSize: 'calc(20px + 2vmin)'}}>Click to play</p>
         <p>
           Move: WASD<br/>
@@ -70,9 +70,10 @@ class App extends React.Component<AppProps, AppState> {
           {form}
         </header>
 
+//
     return (
-      <div>
-        <div className="App">{overlay}</div>
+      <div className='App'>
+        <div className="App-overlay">{overlay}</div>
         <VirtualSpace ref={this.virtualSpaceRef} setOverlayDispaly={this.setOverlayDispaly.bind(this)} loadForm={this.loadForm.bind(this)} />
       </div>
     );

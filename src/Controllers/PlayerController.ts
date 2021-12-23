@@ -22,7 +22,7 @@ export default class PlayerController {
     private currentPlace: Nullable<Place>;
     private currentItem: number = 3;
 
-    constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator) {
+    constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: any) {
         this.camera = camera;
         this.scene = scene;
         this.shadowGenerator = shadowGenerator;
@@ -35,7 +35,6 @@ export default class PlayerController {
         this.scene.registerBeforeRender(this.beforeRenderer);
 
         // Pointer lock stuff
-        const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
         this.scene.onPointerObservable.add((event, eventState) => {
             // probably not needed since we have a mask.
             if (event.type === PointerEventTypes.POINTERDOWN) {
@@ -59,6 +58,7 @@ export default class PlayerController {
             if (!controlEnabled) {
                 this.camera.detachControl(canvas);
                 this.isPointerLocked = false;
+                appControlfunctions.setOverlayDispaly(true);
             } else {
                 this.camera.attachControl(canvas);
                 this.isPointerLocked = true;
@@ -113,50 +113,64 @@ export default class PlayerController {
         scene.onKeyboardObservable.add((kbInfo, eventState) => {
             if(kbInfo.type == KeyboardEventTypes.KEYDOWN){
                 // TEMP: switch item in inventory
-                if(kbInfo.event.code == "Digit1") {
-                    this.setCurrentItem(0);
-                    eventState.skipNextObservers = true;
-                }
-                else if(kbInfo.event.code == "Digit2") {
-                    this.setCurrentItem(1);
-                    eventState.skipNextObservers = true;
-                }
-                else if(kbInfo.event.code == "Digit3") {
-                    this.setCurrentItem(2);
-                    eventState.skipNextObservers = true;
-                }
-                else if(kbInfo.event.code == "Digit4") {
-                    this.setCurrentItem(3);
-                    eventState.skipNextObservers = true;
-                }
-                // Scale
-                else if(kbInfo.event.code == "KeyR") {
-                    this.tempObject?.scaling.multiplyInPlace(new Vector3(1.1, 1.1, 1.1));
-                    eventState.skipNextObservers = true;
-                }
-                else if(kbInfo.event.code == "KeyF") {
-                    this.tempObject?.scaling.multiplyInPlace(new Vector3(0.9, 0.9, 0.9));
-                    eventState.skipNextObservers = true;
-                }
-                // Rotate
-                else if(kbInfo.event.code == "KeyE") {
-                    this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), Math.PI / 20);
-                    eventState.skipNextObservers = true;
-                }
-                else if(kbInfo.event.code == "KeyQ") {
-                    this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), -Math.PI / 20);
-                    eventState.skipNextObservers = true;
-                }
-                // Save place
-                else if(kbInfo.event.code == "KeyU") {
-                    if(this.currentPlace) {
-                        // exit pointer lock and send operation.
+                switch(kbInfo.event.code) {
+                    case "Digit1":
+                        this.setCurrentItem(0);
+                        break;
+                    
+                    case "Digit2":
+                        this.setCurrentItem(1);
+                        break;
+                    
+                    case "Digit3":
+                        this.setCurrentItem(2);
+                        break;
+                    
+                    case "Digit4":
+                        this.setCurrentItem(3);
+                        break;
+                    
+                    // Scale
+                    case "KeyR":
+                        this.tempObject?.scaling.multiplyInPlace(new Vector3(1.1, 1.1, 1.1));
+                        break;
+                    
+                    case "KeyF":
+                        this.tempObject?.scaling.multiplyInPlace(new Vector3(0.9, 0.9, 0.9));
+                        break;
+                    
+                    // Rotate
+                    case "KeyE":
+                        this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), Math.PI / 20);
+                        break;
+                    
+                    case "KeyQ":
+                        this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), -Math.PI / 20);
+                        break;
+                    
+                    // Save place
+                    case "KeyU":
+                        if(this.currentPlace) {
+                            // exit pointer lock and send operation.
+                            document.exitPointerLock();
+                            this.currentPlace.save();
+                        }
+                        break;
+                    
+                    case 'KeyM': // Opens the mint form
                         document.exitPointerLock();
+                        appControlfunctions.loadForm('mint');
+                        break;
 
-                        this.currentPlace.save();
+                    case 'KeyP': // Opens the place form
+                        document.exitPointerLock();
+                        appControlfunctions.loadForm('place');
+                        break;
 
-                        eventState.skipNextObservers = true;
-                    }
+                    case 'KeyI': // Opens the inventory
+                        document.exitPointerLock();
+                        appControlfunctions.loadForm('inventory');
+                        break;
                 }
             }
 
