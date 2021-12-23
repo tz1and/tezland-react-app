@@ -1,5 +1,5 @@
 import React from 'react';
-import renderToTexture from '../3D/RenderPreview'
+import renderToTexture from '../components/RenderPreview'
 import './Inventory.css';
 
 type InventoryProps = {

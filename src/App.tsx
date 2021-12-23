@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import VirtualSpace from './3D/VirtualSpace';
+import VirtualSpace from './components/VirtualSpace';
 import { MintFrom } from './forms/MintForm';
 import { PlaceForm } from './forms/PlaceForm';
 import { Inventory } from './forms/Inventory';
