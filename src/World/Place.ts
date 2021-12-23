@@ -212,6 +212,8 @@ export default class Place {
         const {min, max} = object.getHierarchyBoundingVectors(true);
         const bbox = new BoundingBox(min, max);
 
+        // TODO: get points from OBB
+        // for some reason passing world matrix to BoundingBox constructor doesn't have the desired effect....
         for(var i = 0; i < bbox.vectorsWorld.length; ++i) {
             const p = bbox.vectorsWorld[i];
 
