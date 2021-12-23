@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import FirstPersonControls from './FirstPersonControls'
+import Stats from 'three/examples/jsm/libs/stats.module';
+import FirstPersonControls from './FirstPersonControls';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 
 // Add the extension functions
@@ -16,8 +17,9 @@ class VirtualWorld {
     worldGroup: THREE.Group;
     camera: THREE.PerspectiveCamera;
     raycaster: THREE.Raycaster;
-    clock: THREE.Clock;
     fpsControls: FirstPersonControls;
+    private clock: THREE.Clock;
+    private stats: Stats;
 
     constructor(mount: HTMLDivElement, appControlfunctions: any) {
         this.clock = new THREE.Clock();
@@ -103,10 +105,10 @@ class VirtualWorld {
         this.mesh.castShadow = true;
         this.scene.add( this.mesh );
 
-        for(let x = 0; x < 1000; ++x) {
+        for(let x = 0; x < 100; ++x) {
             const box_mesh = new THREE.Mesh( geometry, material2 );
-            box_mesh.position.x = THREE.MathUtils.randFloat(-10, 10);
-            box_mesh.position.z = THREE.MathUtils.randFloat(-10, 10);
+            box_mesh.position.x = THREE.MathUtils.randFloat(-2.2, 2.2);
+            box_mesh.position.z = THREE.MathUtils.randFloat(-2.2, 2.2);
             box_mesh.position.y = 0.101
             box_mesh.castShadow = true;
             box_mesh.receiveShadow = true;
@@ -116,6 +118,9 @@ class VirtualWorld {
         this.initSky();
 
         this.fpsControls = new FirstPersonControls(this.camera, this.scene, appControlfunctions);
+
+        this.stats = Stats();
+	    document.body.appendChild( this.stats.dom );
     }
 
     /*init(this.mount!);
@@ -207,6 +212,8 @@ class VirtualWorld {
         }
 
         this.render();
+
+        this.stats.update();
     }
 
     onWindowResize() {
