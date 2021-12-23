@@ -16,7 +16,7 @@ import { AdvancedDynamicTexture, Button } from "@babylonjs/gui";
 import "@babylonjs/inspector";
 
 //import { QuakeController } from "../Controllers/QuakeController";
-import PlayerController from "../Controllers/PlayerController";
+import PlayerController from "../controllers/PlayerController";
 
 //import "@babylonjs/core/Meshes/meshBuilder";
 import { FreeCamera, Material, UniversalCamera } from "@babylonjs/core";

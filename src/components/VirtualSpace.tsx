@@ -1,5 +1,5 @@
 import React from 'react';
-import { World } from '../World/World'
+import { World } from '../world/World'
 import Contracts from "../tz/Contracts";
 import { TempleWallet } from "@temple-wallet/dapp";
 import './VirtualSpace.css';

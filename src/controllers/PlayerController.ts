@@ -1,7 +1,7 @@
 import { Camera, IWheelEvent, KeyboardEventTypes, Mesh, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
-import Place from "../World/Place";
+import Place from "../world/Place";
 
 
 export default class PlayerController {
