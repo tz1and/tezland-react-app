@@ -1,0 +1,48 @@
+/*:root {
+  --cashmere-orange: #edbd20;
+  --cashmere-orange-dark: #c37f1a;
+}
+
+a {
+    color: var(--cashmere-orange);
+}
+a:hover {
+    color: var(--cashmere-orange-dark);
+}*/
+
+/*.btn-cashmere {
+    color: #fff;
+    background-color: var(--cashmere-orange);
+    border-color: var(--cashmere-orange-dark);
+}
+.btn-cashmere:hover {
+    color: #fff;
+    background-color: var(--cashmere-orange-dark);
+    border-color: var(--cashmere-orange);
+}
+.btn-cashmere:focus {
+    box-shadow: 0 0 0 0.25rem #c31a44;
+}
+
+.btn-gray {
+    color: #fff;
+    background-color: var(--bs-gray);
+    border-color: var(--bs-gray-dark);
+}
+.btn-gray:hover {
+    color: #fff;
+    background-color: var(--bs-gray-dark);
+    border-color: var(--bs-gray);
+}
+
+.bg-cashmere {
+    background-color: var(--cashmere-orange) !important;
+}
+
+.text-cashmere {
+    color: var(--cashmere-orange) !important;
+}
+
+.smaller {
+    font-size: 0.65em;
+}*/
