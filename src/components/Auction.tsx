@@ -20,7 +20,7 @@ export default function Auction(props: AuctionProps) {
             <div className='p-3'>
                 Start time / End time
                 <div className="progress mb-3">
-                    <div id="auctionProgress" className="progress-bar bg-cashmere" role="progressbar" style={{ width: "50%" }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={50}></div>
+                    <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: "50%" }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={50}></div>
                 </div>
 
                 <p className='small'>
@@ -30,8 +30,8 @@ export default function Auction(props: AuctionProps) {
                     End price: {props.endPrice} &#42793;
                 </p>
 
-                <Link to='/explore?coordx=10&coordz=10' className="btn btn-secondary btn-sm w-100 mb-1">Visit place</Link>
-                <button className="btn btn-cashmere btn-md w-100 text-dark">Get for 2.0 &#42793;</button>
+                <Link to='/explore?coordx=10&coordz=10' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
+                <button className="btn btn-primary btn-md w-100">Get for 2.0 &#42793;</button>
             </div>
         </div>
     );

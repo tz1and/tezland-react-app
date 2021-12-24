@@ -16,7 +16,7 @@ export default function Auctions() {
             <div className="container text-start pt-4">
                 <h1>Active Land Auctions</h1>
                 <p>All auctions are dutch auctions, with the price lowering continually.</p>
-                <Link to='/auctions/create' className='btn btn-cashmere'>Create Auction</Link>
+                <Link to='/auctions/create' className='btn btn-primary'>Create Auction</Link>
                 <hr/>
                 <div className="d-flex justify-content-left flex-wrap p-2">
                     {rows}

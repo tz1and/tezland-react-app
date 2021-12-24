@@ -3,10 +3,10 @@ import './Navigation.css';
 
 export default function Frontpage() {
     return (
-        <header className="sticky-top p-3 bg-dark text-white">
+        <header className="sticky-top p-3 bg-white text-dark">
             <div className="container">
                 <div className="d-flex flex-wrap align-items-center justify-content-start">
-                    <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none me-5">
+                    <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none me-5">
                         <img className="me-3" src="logo192.png" alt="" width="40" height="40" />
                         <span className="fs-4">[tz1aND]</span>
                     </Link>
@@ -19,7 +19,7 @@ export default function Frontpage() {
                         <li><Link to="/explore" className="nav-link px-2">Explore</Link></li>
                     </ul>
 
-                    <Link to="/explore" className="btn btn-cashmere nav-link mb-auto">Explore</Link>
+                    <Link to="/explore" className="btn btn-primary mb-auto">Explore</Link>
                 </div>
             </div>
         </header>

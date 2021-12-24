@@ -5,6 +5,6 @@
 
 .auction-img {
     width: 18rem;
-    border-top: 1px solid var(--cashmere-orange);
-    border-bottom: 1px solid var(--cashmere-orange);
+    border-top: 1px solid var(--bs-primary);
+    border-bottom: 1px solid var(--bs-primary);
 }
