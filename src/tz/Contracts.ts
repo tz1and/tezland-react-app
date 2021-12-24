@@ -9,11 +9,13 @@ import { setFloat16 } from "@petamoriken/float16";
 class Contracts {
     private tk: TezosToolkit;
     private marketplaces: Contract | null;
+    private places: Contract | null;
 
     constructor() {
         //this.tk = new TezosToolkit("https://api.tez.ie/rpc/mainnet");
         this.tk = new TezosToolkit(Conf.tezos_node);
         this.marketplaces = null;
+        this.places = null;
         //this.tk.addExtension(new Tzip16Module());
     }
 
@@ -28,6 +30,16 @@ class Contracts {
       await wallet.connect({ name: "sandboxlocal", rpc: Conf.tezos_node });
       this.tk.setWalletProvider(wallet);
       //this.tk.setProvider({ signer: signer });
+    }
+
+    public async isPlaceOwner(place_id: number): Promise<boolean> {
+      // use get_balance on-chain view.
+      if(!this.places)
+        this.places = await this.tk.contract.at(Conf.place_contract);
+
+      const balanceRes = await this.places.contractViews.get_balance({ owner: Conf.dev_account, token_id: place_id }).executeView({viewCaller: this.places.address});
+
+      return !balanceRes.isZero();
     }
 
     public async getItemsForPlaceView(place_id: number): Promise<any> {

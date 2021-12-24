@@ -1,4 +1,5 @@
-import { Camera, IWheelEvent, KeyboardEventTypes, Mesh, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
+import { ActionManager, Camera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, Vector3 } from "@babylonjs/core";
+import assert from "assert";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
 import Place from "../world/Place";
@@ -13,6 +14,8 @@ export default class PlayerController {
     private tempObjectOffsetY: number;
     private tempObjectRot: Quaternion;
     //private state: ControllerState;
+
+    readonly playerTrigger: Mesh;
 
     private beforeRenderer: () => void;
     /*private handleKeyUp: (e: KeyboardEvent) => void;
@@ -30,6 +33,11 @@ export default class PlayerController {
         this.tempObject = null;
         this.tempObjectOffsetY = 0;
         this.tempObjectRot = new Quaternion();
+
+        this.playerTrigger = MeshBuilder.CreateCapsule("player", {height: 1.8, radius: 0.5, updatable: false}, this.scene);
+        this.playerTrigger.isPickable = false;
+        this.playerTrigger.isVisible = false;
+        this.playerTrigger.actionManager = new ActionManager(this.scene);
 
         this.beforeRenderer = () => { this.updateController() };
         this.scene.registerBeforeRender(this.beforeRenderer);
@@ -71,16 +79,15 @@ export default class PlayerController {
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
-                if(this.currentPlace && this.tempObject && this.tempObject.isEnabled()) {
+                if(this.currentPlace && this.currentPlace.isOwned && this.tempObject && this.tempObject.isEnabled()) {
 
                     // TODO: move placing items into Place class.
-
-                    // TODO: somehow figure out the place the player is inside of
-                    // or placing the item inside.
-                    const parent = scene.getNodeByName(`place${this.currentPlace.placeId}`) as TransformNode;
+                    const parent = this.currentPlace.getItemsNode;
+                    assert(parent);
 
                     const newObject = await ipfs.download_item(this.currentItem, this.scene, parent) as Mesh;
-                    newObject.position = this.tempObject.position.clone();
+                    // Make sure item is place relative to place origin.
+                    newObject.position = this.tempObject.position.subtract(parent.position);
                     newObject.rotationQuaternion = this.tempObjectRot.clone();
                     newObject.scaling = this.tempObject.scaling.clone();
                     newObject.metadata = { itemId: this.currentItem }
@@ -218,6 +225,9 @@ export default class PlayerController {
 
         //const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
+        // update player trigger mesh position.
+        this.playerTrigger.position.set(this.camera.position.x, this.camera.position.y - 0.9, this.camera.position.z);
+
         if(this.tempObject) {
             const hit = this.scene.pickWithRay(this.camera.getForwardRay());
             if(hit && hit.pickedPoint) {
@@ -225,12 +235,12 @@ export default class PlayerController {
                 this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
             }
 
-            if(!this.currentPlace.isInBounds(this.tempObject)) {
-                this.tempObject.setEnabled(false);
-                //this.tempObject.material!.alpha = 0.2;
-            } else {
+            if(this.currentPlace.isOwned && this.currentPlace.isInBounds(this.tempObject)) {
                 this.tempObject.setEnabled(true);
                 //this.tempObject.material!.alpha = 1;
+            } else {
+                this.tempObject.setEnabled(false);
+                //this.tempObject.material!.alpha = 0.2;
             }
         }
     }

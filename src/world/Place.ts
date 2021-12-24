@@ -1,5 +1,5 @@
 import { GridMaterial } from "@babylonjs/materials/grid";
-import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node, TransformNode, Vector3 } from "@babylonjs/core";
+import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node, TransformNode, Vector3, ExecuteCodeAction, ActionManager } from "@babylonjs/core";
 
 import earcut from 'earcut';
 
@@ -18,13 +18,22 @@ export default class Place {
     readonly world: World;
 
     private placeBounds: Nullable<Mesh>;
+    private origin: Vector3;
+
     private itemsNode: Nullable<TransformNode>;
+    get getItemsNode() { return this.itemsNode; }
+
+    private _isOwned: boolean;
+    get isOwned() { return this._isOwned; }
+    private set isOwned(val: boolean) { this._isOwned = val; }
 
     constructor(placeId: number, world: World) {
         this.placeId = placeId;
         this.world = world;
         this.placeBounds = null;
+        this.origin = new Vector3();
         this.itemsNode = null;
+        this._isOwned = false;
     }
 
     public async load() {
@@ -70,7 +79,7 @@ export default class Place {
             polygon.position.y += 10;*/
 
             // Using ExtrudePolygon
-            const origin = Vector3.FromArray(tokenInfo.center_coordinates);
+            this.origin = Vector3.FromArray(tokenInfo.center_coordinates);
 
             var shape = new Array<Vector3>();
             tokenInfo.border_coordinates.forEach((v: Array<number>) => {
@@ -83,15 +92,35 @@ export default class Place {
             const placeBounds = MeshBuilder.ExtrudePolygon(`placeBounds${this.placeId}`, {
                 shape: shape,
                 depth: 11
-            }, this.world.scene, earcut); 
+            }, this.world.scene, earcut);
+
+            // TODO: store place build height in metadata!
 
             placeBounds.material = transparent_mat;
-            placeBounds.position.x = origin.x;
+            placeBounds.position.x = this.origin.x;
             placeBounds.position.y = 10;
-            placeBounds.position.z = origin.z;
+            placeBounds.position.z = this.origin.z;
             placeBounds.isPickable = false;
 
             this.placeBounds = placeBounds;
+
+            this.isOwned = await Contracts.isPlaceOwner(this.placeId);
+
+            this.world.playerController.playerTrigger.actionManager?.registerAction(
+                new ExecuteCodeAction(
+                    {
+                        trigger: ActionManager.OnIntersectionEnterTrigger,
+                        parameter: { 
+                            mesh: this.placeBounds, 
+                            usePreciseIntersection: true
+                        }
+                    },
+                    () => {
+                        this.world.playerController.setCurrentPlace(this);
+                        console.log("entered place: " + this.placeId)
+                    },
+                ),
+            );
 
             await this.loadItems();
         } catch(e) {
@@ -119,7 +148,9 @@ export default class Place {
             console.log("cleared old items");
         }
 
+        // itemsNode must be in the origin.
         this.itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
+        this.itemsNode.position = this.origin.clone();
 
         //items.forEach(async (element: any) => {
         for (const element of items) {
@@ -184,7 +215,10 @@ export default class Place {
             return;
         }
 
-        // TODO: check ownership or wahtever
+        if(!this.isOwned) {
+            console.log("can't save: place not owned: " + this.placeId);
+            return;
+        }
 
         // try to save items.
         // TODO: figure out removals.
