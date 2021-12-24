@@ -1,14 +1,9 @@
 import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, TezosToolkit } from "@taquito/taquito";
 import { TempleWallet } from "@temple-wallet/dapp";
-import axios from 'axios';
 import Conf from "../Config";
 import { toHexString } from "./Utils";
-import {
-  Float16Array, isFloat16Array,
-  getFloat16, setFloat16,
-  hfround,
-} from "@petamoriken/float16";
+import { setFloat16 } from "@petamoriken/float16";
 //import { Tzip16Module, tzip16, bytes2Char } from '@taquito/tzip16';
 
 class Contracts {
@@ -85,7 +80,7 @@ class Contracts {
 
       // TODO: remove_operator for removed items?
 
-      const add_item_list = new Array();
+      const add_item_list: object[] = [];
       add.forEach( (item) => {
         const mesh = item as Mesh;
         const item_id = mesh.metadata.itemId

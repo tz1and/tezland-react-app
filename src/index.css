@@ -13,7 +13,6 @@ body {
     height: 100%;
     padding: 0;
     margin: 0;
-    overflow: hidden;
 }
 
 code {
@@ -24,4 +23,9 @@ code {
 #root {
   width: 100%;
   height: 100%;
+}
+
+:root {
+  --cashmere-orange: #edbd20;
+  --cashmere-orange-dark: #c37f1a;
 }

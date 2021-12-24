@@ -1,6 +1,6 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Quaternion } from "@babylonjs/core/Maths/math";
+import { Vector3, Color3 } from "@babylonjs/core/Maths/math";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -11,7 +11,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import { SkyMaterial } from "@babylonjs/materials/sky";
 
-import { AdvancedDynamicTexture, Button } from "@babylonjs/gui";
+//import { AdvancedDynamicTexture, Button } from "@babylonjs/gui";
 
 import "@babylonjs/inspector";
 

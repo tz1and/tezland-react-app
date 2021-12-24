@@ -1,5 +1,5 @@
 import { Camera, IWheelEvent, KeyboardEventTypes, Mesh, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, TransformNode, Vector3 } from "@babylonjs/core";
-import { SimpleMaterial } from "@babylonjs/materials/simple";
+//import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
 import Place from "../world/Place";
 
@@ -102,7 +102,7 @@ export default class PlayerController {
                 }
             }
             else if (info.type === PointerEventTypes.POINTERWHEEL) {
-                var event = <IWheelEvent>info.event;
+                var event = info.event as IWheelEvent;
                 this.tempObjectOffsetY += event.deltaY * -0.001;
 
                 eventState.skipNextObservers = true;
@@ -111,7 +111,7 @@ export default class PlayerController {
 
         // Keyboard controls. Save, remove, place, mint, whatever.
         scene.onKeyboardObservable.add((kbInfo, eventState) => {
-            if(kbInfo.type == KeyboardEventTypes.KEYDOWN){
+            if(kbInfo.type === KeyboardEventTypes.KEYDOWN){
                 // TEMP: switch item in inventory
                 switch(kbInfo.event.code) {
                     case "Digit1":
@@ -216,7 +216,7 @@ export default class PlayerController {
     private updateController() {
         if(!this.currentPlace) return;
 
-        const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
+        //const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
         if(this.tempObject) {
             const hit = this.scene.pickWithRay(this.camera.getForwardRay());

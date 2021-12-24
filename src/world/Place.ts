@@ -3,11 +3,7 @@ import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node, TransformNo
 
 import earcut from 'earcut';
 
-import {
-    Float16Array, isFloat16Array,
-    getFloat16, setFloat16,
-    hfround,
-} from "@petamoriken/float16";
+import { getFloat16 } from "@petamoriken/float16";
 
 import axios from 'axios';
 import Conf from "../Config";
@@ -196,7 +192,7 @@ export default class Place {
         const add_children = new Array<Node>();
 
         children.forEach((child) => {
-            if(child.metadata.id == undefined) {
+            if(child.metadata.id === undefined) {
                 add_children.push(child);
             }
         });

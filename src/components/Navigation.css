@@ -1,0 +1,15 @@
+.nav-link {
+    color: var(--bs-white);
+}
+.nav-link:hover {
+    color: var(--cashmere-orange);
+}
+.nav-link:focus {
+    color: var(--cashmere-orange-dark);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: var(--cashmere-orange);
+}
