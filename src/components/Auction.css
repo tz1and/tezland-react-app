@@ -1,0 +1,5 @@
+.Auction {
+    padding: 2rem;
+    background-color: var(--bs-light);
+    border-radius: 1rem;
+}
