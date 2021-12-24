@@ -34,6 +34,14 @@ export default class PlayerController {
         this.tempObjectOffsetY = 0;
         this.tempObjectRot = new Quaternion();
 
+        // TEMP-ish: get coordinates from url.
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if(urlParams.has('coordx') && urlParams.has('coordz')) {
+            this.camera.position.x = parseFloat(urlParams.get('coordx')!);
+            this.camera.position.z = parseFloat(urlParams.get('coordz')!);
+        }
+
         this.playerTrigger = MeshBuilder.CreateCapsule("player", {height: 1.8, radius: 0.5, updatable: false}, this.scene);
         this.playerTrigger.isPickable = false;
         this.playerTrigger.isVisible = false;
