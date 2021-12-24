@@ -8,7 +8,7 @@ export default function Frontpage() {
                 <div className="d-flex flex-wrap align-items-center justify-content-start">
                     <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none me-5">
                         <img className="me-3" src="logo192.png" alt="" width="40" height="40" />
-                        <span className="fs-4">tz1aND</span>
+                        <span className="fs-4">[tz1aND]</span>
                     </Link>
 
                     <ul className="nav me-auto mb-2 justify-content-center mb-md-0">

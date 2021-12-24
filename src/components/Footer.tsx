@@ -6,7 +6,7 @@ export default function Frontpage() {
             <div className="row">
                 <div className="col-6 col-md">
                     {/*<img src="/logo192.png" width="64" height="64" /><br /><br />*/}
-                    tz1aND
+                    [tz1aND]
                     <small className="d-block mb-3 text-muted">© 2021</small>
                 </div>
                 <div className="col-6 col-md">

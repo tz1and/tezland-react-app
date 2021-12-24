@@ -1,5 +1,10 @@
 .Auction {
-    padding: 2rem;
     background-color: var(--bs-light);
     border-radius: 1rem;
+}
+
+.auction-img {
+    width: 18rem;
+    border-top: 1px solid var(--cashmere-orange);
+    border-bottom: 1px solid var(--cashmere-orange);
 }
