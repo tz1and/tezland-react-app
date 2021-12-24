@@ -221,12 +221,14 @@ export default class PlayerController {
     }
 
     private updateController() {
-        if(!this.currentPlace) return;
-
         //const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
         // update player trigger mesh position.
         this.playerTrigger.position.set(this.camera.position.x, this.camera.position.y - 0.9, this.camera.position.z);
+
+        // following from here, stuff is relating to placing items.
+        // we can early out if there is no current place.
+        if(!this.currentPlace) return;
 
         if(this.tempObject) {
             const hit = this.scene.pickWithRay(this.camera.getForwardRay());
