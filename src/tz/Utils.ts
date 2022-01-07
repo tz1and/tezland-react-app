@@ -1,4 +1,5 @@
 import { Axis, Mesh, Ray, Vector3 } from "@babylonjs/core";
+import BigNumber from 'bignumber.js';
 
 export const pointIsInside = (point: Vector3, mesh: Mesh) => {
     const boundInfo = mesh.getBoundingInfo();
@@ -34,3 +35,17 @@ export const pointIsInside = (point: Vector3, mesh: Mesh) => {
 }
 
 export const toHexString = (bytes: Uint8Array) => bytes.reduce((str: String, byte: Number) => str + byte.toString(16).padStart(2, '0'), '');
+
+export const fromHexString = (hexString: string) => new Uint8Array(hexString.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+
+export const tokensAmountToNat = (tokensAmount: BigNumber | number, decimals: number): BigNumber => {
+  return new BigNumber(tokensAmount).multipliedBy(10 ** decimals).integerValue();
+};
+
+export const numberToTokensAmount = (value: BigNumber | number, decimals: number): BigNumber => {
+  return new BigNumber(value).div(10 ** decimals).integerValue();
+};
+
+const tezDecimals = 6;
+export const tezToMutez = (tez: BigNumber | number): BigNumber => tokensAmountToNat(tez, tezDecimals);
+export const mutezToTez = (mutez: BigNumber | number): BigNumber => numberToTokensAmount(mutez, tezDecimals);
