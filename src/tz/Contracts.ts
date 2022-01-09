@@ -2,25 +2,32 @@ import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, TezosToolkit } from "@taquito/taquito";
 import { TempleWallet } from "@temple-wallet/dapp";
 import Conf from "../Config";
-import { toHexString } from "./Utils";
+import { isDev, tezToMutez, toHexString } from "./Utils";
 import { setFloat16 } from "@petamoriken/float16";
+import { char2Bytes } from '@taquito/utils'
 //import { Tzip16Module, tzip16, bytes2Char } from '@taquito/tzip16';
 
 class Contracts {
     private tk: TezosToolkit;
     private marketplaces: Contract | null;
     private places: Contract | null;
+    private minter: Contract | null;
 
     constructor() {
         //this.tk = new TezosToolkit("https://api.tez.ie/rpc/mainnet");
         this.tk = new TezosToolkit(Conf.tezos_node);
         this.marketplaces = null;
         this.places = null;
+        this.minter = null;
         //this.tk.addExtension(new Tzip16Module());
     }
 
+    public async walletPHK(): Promise<string> {
+      return this.tk.wallet.pkh();
+    }
+
     public async initWallet() {
-      console.log("trying to connect wallet");
+      if(isDev()) console.log("trying to connect wallet");
       const available = await TempleWallet.isAvailable();
       if (!available) {
         throw new Error("Temple Wallet not installed");
@@ -37,9 +44,23 @@ class Contracts {
       if(!this.places)
         this.places = await this.tk.contract.at(Conf.place_contract);
 
-      const balanceRes = await this.places.contractViews.get_balance({ owner: Conf.dev_account, token_id: place_id }).executeView({viewCaller: this.places.address});
+      // TODO: walletPHK might fail.
+      const balanceRes = await this.places.contractViews.get_balance({ owner: await this.walletPHK(), token_id: place_id }).executeView({viewCaller: this.places.address});
 
       return !balanceRes.isZero();
+    }
+
+    public async mintItem(item_metadata_url: string, royalties: number, amount: number) {
+      const minterWallet = await this.tk.wallet.at(Conf.minter_contract);
+
+      const mint_item_op = await minterWallet.methodsObject.mint_Item({
+        address: await this.tk.wallet.pkh(),
+        amount: amount,
+        royalties: royalties,
+        metadata: char2Bytes(item_metadata_url)
+      }).send();
+      
+      await mint_item_op.confirmation();
     }
 
     public async getItemsForPlaceView(place_id: number): Promise<any> {
@@ -56,11 +77,9 @@ class Contracts {
       
       // If they are not the same, reload from blockchain
       if(placeSequenceStore !== seqRes) {
-        console.log("place items outdates, reading from chain");
-        //console.log(this.marketplaces.contractViews);
-        //console.log(this.marketplaces.contractViews.get_stored_items().getSignature());
+        if(isDev()) console.log("place items outdated, reading from chain");
+
         const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
-        //console.log(result);
 
         const foreachPairs: { id: number; data: object }[] = [];
         result.forEach((val: object, key: number) => {
@@ -72,7 +91,8 @@ class Contracts {
 
         return foreachPairs;
       } else { // Otherwise load items from storage
-        console.log("reading place from local storage");
+        if(isDev()) console.log("reading place from local storage");
+        
         const placeItemsStore = DataStorage.ReadString(stItemsKey, "");
 
         return JSON.parse(placeItemsStore);
@@ -95,9 +115,11 @@ class Contracts {
       const add_item_list: object[] = [];
       add.forEach( (item) => {
         const mesh = item as Mesh;
-        const item_id = mesh.metadata.itemId
+        const item_id = mesh.metadata.itemId;
+        const item_amount = mesh.metadata.itemAmount;
+        const item_price = tezToMutez(mesh.metadata.itemPrice);
         const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
-        // 4 floats for quat, 1 float scale, 3 floats pos = 16 bytes
+        // 4 floats for quat, 1 float scale, 3 floats pos = 8 half floats = 16 bytes
         const array = new Uint8Array(16);
         const view = new DataView(array.buffer);
         // quat
@@ -113,7 +135,7 @@ class Contracts {
         setFloat16(view, 14, mesh.position.z);
         const item_data = toHexString(array);
 
-        add_item_list.push({token_amount: 1, token_id: item_id, xtz_per_token: 1000000, item_data: item_data});
+        add_item_list.push({token_id: item_id, token_amount: item_amount, xtz_per_token: item_price, item_data: item_data});
       });
 
       const place_items_op = await marketplacesWallet.methodsObject.place_items({

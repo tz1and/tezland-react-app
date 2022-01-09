@@ -34,9 +34,25 @@ export const pointIsInside = (point: Vector3, mesh: Mesh) => {
     return pointFound;
 }
 
+export const isDev = () => !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+
 export const toHexString = (bytes: Uint8Array) => bytes.reduce((str: String, byte: Number) => str + byte.toString(16).padStart(2, '0'), '');
 
 export const fromHexString = (hexString: string) => new Uint8Array(hexString.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+
+export function readFileAsync(file: File): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(reader.result as ArrayBuffer);
+    };
+
+    reader.onerror = reject;
+
+    reader.readAsArrayBuffer(file);
+  })
+}
 
 export const tokensAmountToNat = (tokensAmount: BigNumber | number, decimals: number): BigNumber => {
   return new BigNumber(tokensAmount).multipliedBy(10 ** decimals).integerValue();

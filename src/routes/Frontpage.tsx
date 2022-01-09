@@ -31,7 +31,7 @@ export default function Frontpage() {
                     </div>
                     <div className="col-lg-6">
                         <h1 className="display-5 fw-bold lh-1 mb-3">Ever Expaning</h1>
-                        <p className="lead">The world will be expanded at a pace that makes sense.</p>
+                        <p className="lead">The world will be expanded at a pace that makes sense and new Land will become available regularly.</p>
                         <div className="d-grid gap-2 d-md-flex justify-content-md-start">
                             {/*<a className="btn btn-primary btn-lg px-4 me-md-2">Primary</a>*/}
                             <Link to="/faq" className="btn btn-outline-secondary btn-lg px-4">Learn More</Link>

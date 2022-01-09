@@ -2,11 +2,11 @@ import React from 'react';
 import { World } from '../world/World'
 import Contracts from "../tz/Contracts";
 import { TempleWallet } from "@temple-wallet/dapp";
+import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 
 type VirtualSpaceProps = {
-  loadForm(form_type: string): void;
-  setOverlayDispaly(display: boolean): void;
+  appControl: AppControlFunctions;
   // using `interface` is also ok
   //message: string;
 };
@@ -44,7 +44,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
   }
 
   componentDidMount() {
-    this.world = new World(this.mount!, {loadForm: this.props.loadForm, setOverlayDispaly: this.props.setOverlayDispaly});
+    this.world = new World(this.mount!, this.props.appControl);
 
     TempleWallet.onAvailabilityChange((avail) => { Contracts.initWallet() });
 

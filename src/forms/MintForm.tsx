@@ -5,38 +5,64 @@ import {
   Field
 } from 'formik';
 import CustomFileUpload from './CustomFileUpload'
+//import ModelPreview from './ModelPreview'
+import Contracts from '../tz/Contracts'
+import { upload_model, upload_item_metadata } from '../ipfs/ipfs'
+import { readFileAsync } from '../tz/Utils';
 
 interface MintFormValues {
-  /*itemTitle: string;
+  itemTitle: string;
   itemDescription: string;
-  itemTags: string;*/
+  itemTags: string;
   itemAmount: number;
   itemRoyalties: number;
-  //itemFile: ArrayBuffer;
+  itemFile: File | null;
 }
 
 type MintFormProps = {
-  closeForm(): void;
+  closeForm(cancelled: boolean): void;
 }
 
 export const MintFrom: React.FC<MintFormProps> = (props) => {
-  const initialValues: MintFormValues = { itemAmount: 1, itemRoyalties: 10 };
+  const initialValues: MintFormValues = { itemFile: null, itemTitle: "", itemDescription: "", itemTags: "", itemAmount: 1, itemRoyalties: 10 };
+
   return (
     <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative'>
-      <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={props.closeForm} />
+      <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm(true)} />
       <h2>new Item</h2>
       <Formik
         initialValues={initialValues}
-        onSubmit={(values, actions) => {
-          console.log({ values, actions });
-          alert(JSON.stringify(values, null, 2));
+        onSubmit={async (values, actions) => {
+          //console.log({ values, actions });
+          //alert(JSON.stringify(values, null, 2));
+
+          // TODO: validate inputs
+          // TODO: validate model! polycount, if it loads, etc.
+
+          // read model file.
+          const buffer = await readFileAsync(values.itemFile!);
+
+          // upload model.
+          const model_url = await upload_model(buffer);
+
+          // TODO: upload thumbnail
+
+          // upload metadata.
+          const metadata_url = await upload_item_metadata(await Contracts.walletPHK(), values.itemTitle, values.itemDescription, values.itemTags, model_url);
+
+          // mint item.
+          await Contracts.mintItem(metadata_url, values.itemRoyalties, values.itemAmount);
+
           actions.setSubmitting(false);
+
+          props.closeForm(false);
         }}
       >
         <Form>
             <div className="mb-3">
                 <label htmlFor="itemFile" className="form-label">3D Model file</label>
-                <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} />
+                <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload}/>
+                {/*<ModelPreview file={null}/>*/}
                 <div id="fileHelp" className="form-text">Only gltf models are supported.</div>
             </div>
             <div className="mb-3">

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as ipfs from 'ipfs-http-client';
 import Conf from '../Config';
-//import { GLTFFileLoader } from '@babylonjs/loaders/glTF';
+import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 
 const ipfs_client = ipfs.create({ url: Conf.ipfs_url });
@@ -18,7 +18,7 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
         const hash = artifact.slice(7);
 
         // LoadAssetContainer?
-        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb'); // todo: store filetype in metadata!
+        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb'); // TODO: store filetype in metadata!
 
         // get the root mesh
         mesh = newMeshes.meshes[0] as Mesh;
@@ -49,4 +49,64 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
 
 export async function download_file(url: string) {
     return ipfs_client.get(url);
+}
+
+export async function upload_model(buffer: ArrayBuffer): Promise<string> {
+    const result = await ipfs_client.add(buffer);
+
+    return `ipfs://${result.path}`;
+}
+
+interface ItemMetadata {
+    description: string;
+    minter: string;
+    name: string;
+    modelUrl: string;
+    thumbnailUrl: string;
+    tags: string[];
+}
+
+function createItemTokenMetadata(metadata: ItemMetadata) {
+    // TODO: thumbnail Uri
+    // TODO: creators
+    
+    return Buffer.from(
+        JSON.stringify({
+            name: metadata.name,
+            description: metadata.description,
+            tags: metadata.tags,
+            minter: metadata.minter,
+            isTransferable: true,
+            isBooleanAmount: false,
+            shouldPreferSymbol: false,
+            symbol: 'Item',
+            artifactUri: metadata.modelUrl,
+            thumbnailUri: metadata.thumbnailUrl,
+            decimals: 0
+        })
+    )
+}
+
+export async function upload_item_metadata(minter_address: string, name: string,
+    description: string, tags: string, model_url: string): Promise<string> {
+
+    // Process tags, trim, remove empty, etc.
+    const tags_processed = new Array<string>();
+    tags.split(';').forEach(tag => {
+        const trimmed = tag.trim();
+        if(trimmed.length > 0) tags_processed.push(trimmed);
+    });
+
+    // TODO: thumbnail URL
+
+    const result = await ipfs_client.add(createItemTokenMetadata({
+        name: name,
+        description: description,
+        minter: minter_address,
+        modelUrl: model_url,
+        thumbnailUrl: "https://TODO.nocom",
+        tags: tags_processed
+    }));
+
+    return `ipfs://${result.path}`;
 }

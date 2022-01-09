@@ -13,14 +13,14 @@ import { SkyMaterial } from "@babylonjs/materials/sky";
 
 //import { AdvancedDynamicTexture, Button } from "@babylonjs/gui";
 
-import "@babylonjs/inspector";
-
 //import { QuakeController } from "../Controllers/QuakeController";
 import PlayerController from "../controllers/PlayerController";
 
 //import "@babylonjs/core/Meshes/meshBuilder";
 import { FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
 import Place from "./Place";
+import { AppControlFunctions } from "./AppControlFunctions";
+import { isDev } from "../tz/Utils";
 
 
 export class World {
@@ -37,7 +37,7 @@ export class World {
 
     readonly places: Map<number, Place>;
 
-    constructor(mount: HTMLCanvasElement, appControlfunctions: any) {
+    constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         // Get the canvas element from the DOM.
         const canvas = mount;
         const divFps = document.getElementById("fps");
@@ -48,7 +48,13 @@ export class World {
         // Create our first scene.
         this.scene = new Scene(this.engine);
         this.scene.collisionsEnabled = true;
-        this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
+
+        // Enable inspector in dev
+        if(isDev()) {
+            import("@babylonjs/inspector").then( () => {
+                this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
+            });
+        }
 
         this.camera = this.initCamera();
 

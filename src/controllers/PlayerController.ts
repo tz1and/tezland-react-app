@@ -2,6 +2,7 @@ import { ActionManager, Camera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuild
 import assert from "assert";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
+import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place from "../world/Place";
 
 
@@ -25,7 +26,7 @@ export default class PlayerController {
     private currentPlace: Nullable<Place>;
     private currentItem: number = 3;
 
-    constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: any) {
+    constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         this.camera = camera;
         this.scene = scene;
         this.shadowGenerator = shadowGenerator;
@@ -90,7 +91,7 @@ export default class PlayerController {
                 if(this.currentPlace && this.currentPlace.isOwned && this.tempObject && this.tempObject.isEnabled()) {
 
                     // TODO: move placing items into Place class.
-                    const parent = this.currentPlace.getItemsNode;
+                    const parent = this.currentPlace.itemsNode;
                     assert(parent);
 
                     const newObject = await ipfs.download_item(this.currentItem, this.scene, parent) as Mesh;
@@ -114,6 +115,9 @@ export default class PlayerController {
                     shadowGenerator.addShadowCaster(newObject);
 
                     eventState.skipNextObservers = true;
+
+                    document.exitPointerLock();
+                    appControlfunctions.placeItem(newObject);
                 }
             }
             else if (info.type === PointerEventTypes.POINTERWHEEL) {
@@ -175,11 +179,6 @@ export default class PlayerController {
                     case 'KeyM': // Opens the mint form
                         document.exitPointerLock();
                         appControlfunctions.loadForm('mint');
-                        break;
-
-                    case 'KeyP': // Opens the place form
-                        document.exitPointerLock();
-                        appControlfunctions.loadForm('place');
                         break;
 
                     case 'KeyI': // Opens the inventory

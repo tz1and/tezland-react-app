@@ -9,19 +9,20 @@ import axios from 'axios';
 import Conf from "../Config";
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { pointIsInside } from "../tz/Utils";
+import { fromHexString, pointIsInside } from "../tz/Utils";
 import { World } from "./World";
 
 
 export default class Place {
     readonly placeId: number;
-    readonly world: World;
+    private world: World;
 
     private placeBounds: Nullable<Mesh>;
     private origin: Vector3;
 
-    private itemsNode: Nullable<TransformNode>;
-    get getItemsNode() { return this.itemsNode; }
+    private _itemsNode: Nullable<TransformNode>;
+    get itemsNode() { return this._itemsNode; }
+    private set itemsNode(val: Nullable<TransformNode>) { this._itemsNode = val; }
 
     private _isOwned: boolean;
     get isOwned() { return this._isOwned; }
@@ -32,7 +33,7 @@ export default class Place {
         this.world = world;
         this.placeBounds = null;
         this.origin = new Vector3();
-        this.itemsNode = null;
+        this._itemsNode = null;
         this._isOwned = false;
     }
 
@@ -137,9 +138,6 @@ export default class Place {
 
         // Load items
         const items = await Contracts.getItemsForPlaceView(this.placeId);
-
-        const fromHexString = (hexString: string) =>
-            new Uint8Array(hexString.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
 
         // remove old place items if they exist.
         if(this.itemsNode) {
