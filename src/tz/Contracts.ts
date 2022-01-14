@@ -59,7 +59,7 @@ class Contracts {
       const mint_item_op = await minterWallet.methodsObject.mint_Item({
         address: await this.tk.wallet.pkh(),
         amount: amount,
-        royalties: royalties,
+        royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
         metadata: char2Bytes(item_metadata_url)
       }).send();
       
