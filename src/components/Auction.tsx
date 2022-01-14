@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom';
+import { MapContainer, ImageOverlay } from 'react-leaflet'
+import L from 'leaflet';
 import './Auction.css'
+import 'leaflet/dist/leaflet.css';
 
 type AuctionProps = {
     auctionId: number;
@@ -16,7 +19,9 @@ export default function Auction(props: AuctionProps) {
                 <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
                 <p className="text-center mb-0">Auction place #{props.auctionId}</p>
             </div>
-            <img src="/img/map_placeholder.png" className="auction-img" alt="A preview map of the land"></img>
+            <MapContainer className="auction-img" center={[500, 500]} zoom={1} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
+                <ImageOverlay bounds={[[0,0], [1000, 1000]]} url="/img/map.svg" />
+            </MapContainer>
             <div className='p-3'>
                 Start time / End time
                 <div className="progress mb-3">

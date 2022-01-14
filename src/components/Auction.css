@@ -1,10 +1,12 @@
 .Auction {
     background-color: var(--bs-light);
     border-radius: 1rem;
+    border: 1px solid var(--bs-secondary);
 }
 
 .auction-img {
-    width: 18rem;
+    width: 17.7777rem;
+    height: 10rem;
     border-top: 1px solid var(--bs-primary);
     border-bottom: 1px solid var(--bs-primary);
 }

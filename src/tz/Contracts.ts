@@ -1,11 +1,10 @@
 import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
-import { Contract, TezosToolkit } from "@taquito/taquito";
+import { Contract, TezosToolkit, Wallet } from "@taquito/taquito";
 import { TempleWallet } from "@temple-wallet/dapp";
 import Conf from "../Config";
 import { isDev, tezToMutez, toHexString } from "./Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
-//import { Tzip16Module, tzip16, bytes2Char } from '@taquito/tzip16';
 
 class Contracts {
     private tk: TezosToolkit;
@@ -24,6 +23,10 @@ class Contracts {
 
     public async walletPHK(): Promise<string> {
       return this.tk.wallet.pkh();
+    }
+
+    public wallet(): Wallet {
+      return this.tk.wallet;
     }
 
     public async initWallet() {
