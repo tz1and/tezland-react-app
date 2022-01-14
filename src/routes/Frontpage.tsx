@@ -30,7 +30,7 @@ export default function Frontpage() {
                             height="500" loading="lazy" />
                     </div>
                     <div className="col-lg-6">
-                        <h1 className="display-5 fw-bold lh-1 mb-3">Ever Expaning</h1>
+                        <h1 className="display-5 fw-bold lh-1 mb-3">Ever Expanding</h1>
                         <p className="lead">The world will be expanded at a pace that makes sense and new Land will become available regularly.</p>
                         <div className="d-grid gap-2 d-md-flex justify-content-md-start">
                             {/*<a className="btn btn-primary btn-lg px-4 me-md-2">Primary</a>*/}
@@ -44,7 +44,7 @@ export default function Frontpage() {
                 <div className="row flex-lg-row-reverse align-items-center g-5 py-5">
                     <div className="col-lg-6">
                         <h1 className="display-5 fw-bold lh-1 mb-3">Build Together</h1>
-                        <p className="lead">I don't like to point fingers, but the others are all about scarcity and speculation.</p>
+                        <p className="lead">Some point about collaboration.</p>
                         <p className="lead">Let's build something cool, together.</p>
                         <div className="d-grid gap-2 d-md-flex justify-content-md-start">
                             {/*<a className="btn btn-primary btn-lg px-4 me-md-2">Primary</a>*/}

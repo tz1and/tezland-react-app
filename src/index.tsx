@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import $ from 'jquery'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { createPopper } from '@popperjs/core'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import 'bootstrap/dist/js/bootstrap.bundle.min';
@@ -14,6 +15,12 @@ import Frontpage from './routes/Frontpage';
 import Auctions from './routes/Auctions';
 import Faq from './routes/Faq';
 import Docs from './routes/Docs';
+import Map from './routes/Map';
+import { CreateAuctionForm } from './forms/CreateAuction';
+import Contracts from "./tz/Contracts";
+import { TempleWallet } from "@temple-wallet/dapp";
+
+TempleWallet.onAvailabilityChange((avail) => { Contracts.initWallet() });
 
 ReactDOM.render(
     <React.StrictMode>
@@ -21,9 +28,13 @@ ReactDOM.render(
             <Routes>
                 <Route path="/" element={<SiteLayout />}>
                     <Route path="" element={<Frontpage />} />
-                    <Route path="auctions" element={<Auctions />} />
+                    <Route path="auctions">
+                        <Route path="" element={<Auctions />} />
+                        <Route path="create" element={<CreateAuctionForm />} />
+                    </Route>
                     <Route path="faq" element={<Faq />} />
                     <Route path="docs" element={<Docs />} />
+                    <Route path="map" element={<Map />} />
                 </Route>
                 <Route path="/explore" element={<App />} />
                 <Route

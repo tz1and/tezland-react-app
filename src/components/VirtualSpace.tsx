@@ -1,7 +1,5 @@
 import React from 'react';
 import { World } from '../world/World'
-import Contracts from "../tz/Contracts";
-import { TempleWallet } from "@temple-wallet/dapp";
 import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 
@@ -45,8 +43,6 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
   componentDidMount() {
     this.world = new World(this.mount!, this.props.appControl);
-
-    TempleWallet.onAvailabilityChange((avail) => { Contracts.initWallet() });
 
     (async () => {
       if(!this.world) return;

@@ -2,6 +2,7 @@ import React from 'react';
 import renderToTexture from '../components/RenderPreview'
 import './Inventory.css';
 import Contracts from '../tz/Contracts'
+import Conf from '../Config'
 
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
@@ -30,7 +31,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     componentDidMount() {
         Contracts.walletPHK().then(wallet_address => {
-            fetch(`${process.env.REACT_APP_BCD_URL}/v1/account/${process.env.REACT_APP_TEZOS_NETWORK}/${wallet_address}/token_balances?contract=${process.env.REACT_APP_ITEM_CONTRACT}`)
+            fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${wallet_address}/token_balances?contract=${Conf.item_contract}`)
                 .then(res => res.json())
                 .then(
                     (result) => {

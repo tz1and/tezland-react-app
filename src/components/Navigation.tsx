@@ -7,7 +7,7 @@ export default function Frontpage() {
             <div className="container">
                 <div className="d-flex flex-wrap align-items-center justify-content-start">
                     <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none me-5">
-                        <img className="me-3" src="logo192.png" alt="" width="40" height="40" />
+                        <img className="me-3" src="/logo192.png" alt="" width="40" height="40" />
                         <span className="fs-4">[tz1aND]</span>
                     </Link>
 
@@ -16,7 +16,8 @@ export default function Frontpage() {
                         <li><Link to="/auctions" className="nav-link px-2">Land Auctions</Link></li>
                         <li><Link to="/faq" className="nav-link px-2">FAQ</Link></li>
                         <li><Link to="/docs" className="nav-link px-2">Docs</Link></li>
-                        <li><Link to="/explore" className="nav-link px-2">Explore</Link></li>
+                        <li><Link to="/map" className="nav-link px-2">Map</Link></li>
+                        {/*<li><Link to="/explore" className="nav-link px-2">Explore</Link></li>*/}
                     </ul>
 
                     <Link to="/explore" className="btn btn-primary mb-auto">Explore</Link>
