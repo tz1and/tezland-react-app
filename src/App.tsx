@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import VirtualSpace from './components/VirtualSpace';
 import { MintFrom } from './forms/MintForm';
@@ -66,7 +65,8 @@ class App extends React.Component<AppProps, AppState> {
     render() {
         let closeFormCallback = this.closeForm.bind(this);
         let form;
-        if (this.state.show_form === 'none') form = <div id="app-overlay" className="text-center" onClick={() => closeFormCallback(true)}><img src={logo} className="App-logo" alt="logo" />
+        if (this.state.show_form === 'none') form = <div id="app-overlay" className="text-center" onClick={() => closeFormCallback(true)}>
+            <p style={{ fontSize: 'calc(20px + 8vmin)' }}>[tz1aND]</p>
             <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>
             <p>
                 Move: WASD<br />

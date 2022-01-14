@@ -57,6 +57,12 @@ export async function upload_model(buffer: ArrayBuffer): Promise<string> {
     return `ipfs://${result.path}`;
 }
 
+export async function upload_thumbnail(blob: Blob): Promise<string> {
+    const result = await ipfs_client.add(blob);
+
+    return `ipfs://${result.path}`;
+}
+
 interface ItemMetadata {
     description: string;
     minter: string;
@@ -88,7 +94,7 @@ function createItemTokenMetadata(metadata: ItemMetadata) {
 }
 
 export async function upload_item_metadata(minter_address: string, name: string,
-    description: string, tags: string, model_url: string): Promise<string> {
+    description: string, tags: string, model_url: string, thumbnail_url: string): Promise<string> {
 
     // Process tags, trim, remove empty, etc.
     const tags_processed = new Array<string>();
@@ -104,7 +110,7 @@ export async function upload_item_metadata(minter_address: string, name: string,
         description: description,
         minter: minter_address,
         modelUrl: model_url,
-        thumbnailUrl: "https://TODO.nocom",
+        thumbnailUrl: thumbnail_url,
         tags: tags_processed
     }));
 
