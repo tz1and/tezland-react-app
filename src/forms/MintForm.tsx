@@ -105,54 +105,52 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                     valid*/
                 }) => {
                     return (
-                        <div>
-                            <Form>
-                                <div className='row'>
-                                    <div className='col'>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemFile" className="form-label">3D Model file</label>
-                                            <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
-                                            <div id="fileHelp" className="form-text">Only gltf models are supported.</div>
-                                            {touched.itemFile && errors.itemFile && <small className="text-danger">{errors.itemFile}</small>}
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemTitle" className="form-label">Title</label>
-                                            <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
-                                            {touched.itemTitle && errors.itemTitle && <small className="text-danger">{errors.itemTitle}</small>}
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemDescription" className="form-label">Description</label>
-                                            <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemTags" className="form-label">Tags</label>
-                                            <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
-                                            <div id="tagsHelp" className="form-text">List of tags, separated by <i>;</i>.</div>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                            <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
-                                            <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
-                                            {touched.itemAmount && errors.itemAmount && <small className="text-danger">{errors.itemAmount}</small>}
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
-                                            <div className="input-group mb-3">
-                                                <span className="input-group-text">%</span>
-                                                <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
-                                            </div>
-                                            <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
-                                            {touched.itemRoyalties && errors.itemRoyalties && <small className="text-danger">{errors.itemRoyalties}</small>}
-                                        </div>
-                                        <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} mint Item</button>
+                        <Form>
+                            <div className='row'>
+                                <div className='col'>
+                                    <div className="mb-3">
+                                        <label htmlFor="itemFile" className="form-label">3D Model file</label>
+                                        <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
+                                        <div id="fileHelp" className="form-text">Only gltf models are supported.</div>
+                                        {touched.itemFile && errors.itemFile && <small className="text-danger">{errors.itemFile}</small>}
                                     </div>
-                                    <div className='col'>
-                                        <ModelPreview file={values.itemFile} ref={modelPreviewRef} /><br/>
-                                        {state.error.length > 0 && ( <small className='text-danger'>Minting failed: {state.error}</small> )}
+                                    <div className="mb-3">
+                                        <label htmlFor="itemTitle" className="form-label">Title</label>
+                                        <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
+                                        {touched.itemTitle && errors.itemTitle && <small className="text-danger">{errors.itemTitle}</small>}
                                     </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="itemDescription" className="form-label">Description</label>
+                                        <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="itemTags" className="form-label">Tags</label>
+                                        <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
+                                        <div id="tagsHelp" className="form-text">List of tags, separated by <i>;</i>.</div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="itemAmount" className="form-label">Amount</label>
+                                        <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
+                                        <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
+                                        {touched.itemAmount && errors.itemAmount && <small className="text-danger">{errors.itemAmount}</small>}
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
+                                        <div className="input-group mb-3">
+                                            <span className="input-group-text">%</span>
+                                            <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
+                                        </div>
+                                        <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
+                                        {touched.itemRoyalties && errors.itemRoyalties && <small className="text-danger">{errors.itemRoyalties}</small>}
+                                    </div>
+                                    <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} mint Item</button>
                                 </div>
-                            </Form>
-                        </div>
+                                <div className='col'>
+                                    <ModelPreview file={values.itemFile} ref={modelPreviewRef} /><br/>
+                                    {state.error.length > 0 && ( <small className='text-danger'>Minting failed: {state.error}</small> )}
+                                </div>
+                            </div>
+                        </Form>
                     )
                 }}
             </Formik>

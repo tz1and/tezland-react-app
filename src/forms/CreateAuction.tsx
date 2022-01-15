@@ -47,6 +47,8 @@ export const CreateAuctionForm: React.FC<CreateAuctionFormProps> = (props) => {
                             //console.log({ values, actions });
                             //alert(JSON.stringify(values, null, 2));
 
+                            // TODO: validation
+
                             try {
                                 await DutchAuction.createAuction(new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration);
 
