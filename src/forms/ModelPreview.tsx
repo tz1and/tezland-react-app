@@ -1,11 +1,11 @@
 import React from 'react';
 import '@babylonjs/loaders/glTF';
-import { ArcRotateCamera, Engine, HemisphericLight, Mesh,
+import { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh,
     Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 
 
 type ModelPreviewProps = {
-    file: File | null;
+    file?: File;
 };
 
 type ModelPreviewState = {
@@ -47,20 +47,19 @@ class PreviewScene {
         camera.wheelPrecision = 25;
         camera.attachControl(this.canvas, true);
         /*const light =*/ new HemisphericLight("light", new Vector3(0.1, 1, 0.1), scene);
+
+        scene.clearColor = Color4.FromHexString("#503333");
     
-        // Add a camera to the scene and attach it to the canvas
-        // Add a lights to the scene
-    
-        //Your Code
-    
-      return scene;
+        return scene;
     };
 
-    async loadObject(file: File) {
+    async loadObject(file?: File) {
         if(this.previewObject) {
              this.previewObject.dispose();
              this.previewObject = null;
         }
+
+        if(!file) return;
 
         const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
 
@@ -109,7 +108,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         // if yes, update the preview.
         if(this.props.file !== prevProps.file) {
             // if file is not null and preview exists.
-            if(this.props.file && this.preview) {
+            if(this.preview) {
                 this.preview.loadObject(this.props.file);
             }
         }
@@ -127,12 +126,12 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         return (
         <div>
             <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={ref => (this.mount = ref)} ></canvas><br/>
-            The image will be used for the preview thumbnail.<br/><br/>
+            <small>The image will be used for the preview thumbnail.<br/><br/>
 
             Use the mouse to control the view.<br/><br/>
             Mouse wheel: zoom<br/>
             Left mouse: rotate<br/>
-            Right mouse: pan<br/>
+            Right mouse: pan<br/></small>
         </div>);
     }
 }

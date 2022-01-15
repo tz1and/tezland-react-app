@@ -7,29 +7,22 @@ const acceptedFileMimeTypes = ".gltf, model/gltf+json, .glb, model/gltf-binary";
 
 type CustomFileUploadProps = {
   field: any,
-  form: any
+  form: any,
+  disabled: boolean
 }
 
-const CustomFileUpload: React.FC<CustomFileUploadProps> = ({field, form}) => {
+const CustomFileUpload: React.FC<CustomFileUploadProps> = ({field, form, disabled}) => {
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target?.files) {
+    if (e.target.files) {
       const file = e.target.files[0];
-
-      //console.log(file);
+      
+      form.setFieldTouched(field.name, true);
       form.setFieldValue(field.name, file);
-
-      /*const reader = new FileReader();
-      reader.readAsArrayBuffer(file);
-
-      reader.onload = await function(event) {
-        let buffer = event.target?.result
-        //form.setFieldValue(field.name, buffer);
-      }*/
     }
   };
 
   return (
-    <input type="file" accept={acceptedFileMimeTypes} onChange={handleChange} className="form-control"/>
+    <input type="file" accept={acceptedFileMimeTypes} onChange={handleChange} className="form-control" disabled={disabled}/>
   );
 }
 

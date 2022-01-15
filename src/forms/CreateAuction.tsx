@@ -65,48 +65,36 @@ export const CreateAuctionForm: React.FC<CreateAuctionFormProps> = (props) => {
                             touched,*/
                             isSubmitting
                         }) => { return (
-                            <div>
-                                {isSubmitting === false && (
-                                    <Form>
-                                        <div className="mb-3">
-                                            <label htmlFor="placeId" className="form-label">Place ID</label>
-                                            <Field id="placeId" name="placeId" type="number" className="form-control" aria-describedby="idHelp" />
-                                            <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="duration" className="form-label">Duration (in hours)</label>
-                                            <Field id="duration" name="duration" type="number" className="form-control" aria-describedby="durationHelp" />
-                                            <div id="durationHelp" className="form-text">Time, in hours, until end price is reached. Auction begins immediately.</div>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="startPrice" className="form-label">Start Price</label>
-                                            <div className="input-group mb-3">
-                                                <span className="input-group-text">{'\uA729'}</span>
-                                                <Field id="startPrice" name="startPrice" type="number" className="form-control" aria-describedby="startPriceHelp" />
-                                            </div>
-                                            <div id="startPriceHelp" className="form-text">The starting price for the auction. Must be &gt; end price.</div>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="endPrice" className="form-label">End Price</label>
-                                            <div className="input-group mb-3">
-                                                <span className="input-group-text">{'\uA729'}</span>
-                                                <Field id="endPrice" name="endPrice" type="number" className="form-control" aria-describedby="endPriceHelp" />
-                                            </div>
-                                            <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
-                                        </div>
-                                        <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting}>Create Auction</button><br/>
-                                        {state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {state.error}</span> )}
-                                    </Form>
-                                )}
-
-                                {isSubmitting === true && (
-                                    <div className="text-center">
-                                        <div className="spinner-border m-5" role="status">
-                                            <span className="visually-hidden">Loading...</span>
-                                        </div>
+                            <Form>
+                                <div className="mb-3">
+                                    <label htmlFor="placeId" className="form-label">Place ID</label>
+                                    <Field id="placeId" name="placeId" type="number" className="form-control" aria-describedby="idHelp" disabled={isSubmitting} />
+                                    <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="duration" className="form-label">Duration (in hours)</label>
+                                    <Field id="duration" name="duration" type="number" className="form-control" aria-describedby="durationHelp" disabled={isSubmitting} />
+                                    <div id="durationHelp" className="form-text">Time, in hours, until end price is reached. Auction begins immediately.</div>
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="startPrice" className="form-label">Start Price</label>
+                                    <div className="input-group mb-3">
+                                        <span className="input-group-text">{'\uA729'}</span>
+                                        <Field id="startPrice" name="startPrice" type="number" className="form-control" aria-describedby="startPriceHelp" disabled={isSubmitting} />
                                     </div>
-                                )}
-                            </div>
+                                    <div id="startPriceHelp" className="form-text">The starting price for the auction. Must be &gt; end price.</div>
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="endPrice" className="form-label">End Price</label>
+                                    <div className="input-group mb-3">
+                                        <span className="input-group-text">{'\uA729'}</span>
+                                        <Field id="endPrice" name="endPrice" type="number" className="form-control" aria-describedby="endPriceHelp" disabled={isSubmitting} />
+                                    </div>
+                                    <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
+                                </div>
+                                <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
+                                {state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {state.error}</span> )}
+                            </Form>
                         )}}
                     </Formik>
                 </div>

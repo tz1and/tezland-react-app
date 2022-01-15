@@ -66,7 +66,7 @@ class App extends React.Component<AppProps, AppState> {
         let closeFormCallback = this.closeForm.bind(this);
         let form;
         if (this.state.show_form === 'none') form = <div id="app-overlay" className="text-center" onClick={() => closeFormCallback(true)}>
-            <p style={{ fontSize: 'calc(20px + 8vmin)' }}>[tz1aND]</p>
+            <p className='text-info' style={{ fontSize: 'calc(20px + 8vmin)' }}>[tz1aND]</p>
             <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>
             <p>
                 Move: WASD<br />
