@@ -24,7 +24,7 @@ export default class PlayerController {
 
     private isPointerLocked: boolean = false;
     private currentPlace: Nullable<Place>;
-    private currentItem: number = 3;
+    private currentItem?: number;
 
     constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         this.camera = camera;
@@ -88,7 +88,7 @@ export default class PlayerController {
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
-                if(this.currentPlace && this.currentPlace.isOwned && this.tempObject && this.tempObject.isEnabled()) {
+                if(this.currentPlace && this.currentPlace.isOwned && this.currentItem && this.tempObject && this.tempObject.isEnabled()) {
 
                     // TODO: move placing items into Place class.
                     const parent = this.currentPlace.itemsNode;
@@ -133,22 +133,6 @@ export default class PlayerController {
             if(kbInfo.type === KeyboardEventTypes.KEYDOWN){
                 // TEMP: switch item in inventory
                 switch(kbInfo.event.code) {
-                    case "Digit1":
-                        this.setCurrentItem(0);
-                        break;
-                    
-                    case "Digit2":
-                        this.setCurrentItem(1);
-                        break;
-                    
-                    case "Digit3":
-                        this.setCurrentItem(2);
-                        break;
-                    
-                    case "Digit4":
-                        this.setCurrentItem(3);
-                        break;
-                    
                     // Scale
                     case "KeyR":
                         this.tempObject?.scaling.multiplyInPlace(new Vector3(1.1, 1.1, 1.1));
@@ -185,6 +169,10 @@ export default class PlayerController {
                         document.exitPointerLock();
                         appControlfunctions.loadForm('inventory');
                         break;
+
+                    case 'KeyC': // Clear item selection
+                        this.setCurrentItem();
+                        break;
                 }
             }
 
@@ -203,11 +191,14 @@ export default class PlayerController {
         this.currentPlace = place;
     }
 
-    public async setCurrentItem(item_id: number) {
+    public async setCurrentItem(item_id?: number) {
         // remove old object.
         if(this.tempObject) this.tempObject.dispose();
 
         this.currentItem = item_id;
+
+        if (!this.currentItem) return;
+
         this.tempObject = await ipfs.download_item(this.currentItem, this.scene, null) as Mesh;
         this.tempObject.rotationQuaternion = this.tempObjectRot;
 

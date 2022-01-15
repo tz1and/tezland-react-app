@@ -47,7 +47,6 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     (async () => {
       if(!this.world) return;
 
-      await this.world.playerController.setCurrentItem(2);
       await this.world.loadPlace(0);
       await this.world.loadPlace(1);
       await this.world.loadPlace(2);
