@@ -9,7 +9,7 @@ import axios from 'axios';
 import Conf from "../Config";
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { fromHexString, pointIsInside } from "../tz/Utils";
+import { fromHexString, isDev, pointIsInside } from "../tz/Utils";
 import { World } from "./World";
 
 
@@ -118,21 +118,21 @@ export default class Place {
                     },
                     () => {
                         this.world.playerController.setCurrentPlace(this);
-                        console.log("entered place: " + this.placeId)
+                        if(isDev()) console.log("entered place: " + this.placeId)
                     },
                 ),
             );
 
             await this.loadItems();
         } catch(e) {
-            console.log("failed to load place " + this.placeId);
+            if(isDev()) console.log("failed to load place " + this.placeId);
             console.log(e);
         }
     }
 
     public async loadItems() {
         if(!this.placeBounds) {
-            console.log("place bounds don't exist: " + this.placeId);
+            if(isDev()) console.log("place bounds don't exist: " + this.placeId);
             return;
         }
 
@@ -143,7 +143,7 @@ export default class Place {
         if(this.itemsNode) {
             this.itemsNode.dispose();
             this.itemsNode = null;
-            console.log("cleared old items");
+            if(isDev()) console.log("cleared old items");
         }
 
         // itemsNode must be in the origin.
@@ -188,7 +188,7 @@ export default class Place {
                     this.world.shadowGenerator.addShadowCaster(instance as Mesh);
 
                     if(!this.isInBounds(instance)) {
-                        console.log("place doesn't fully contain object");
+                        if(isDev()) console.log("place doesn't fully contain object");
                         instance.dispose();
                     }
                 }
@@ -207,14 +207,14 @@ export default class Place {
         //this.octree = this.scene.createOrUpdateSelectionOctree();
     }
 
-    public async save() {
+    public save() {
         if(!this.itemsNode) {
-            console.log("can't save: items not loaded: " + this.placeId);
+            if(isDev()) console.log("can't save: items not loaded: " + this.placeId);
             return;
         }
 
         if(!this.isOwned) {
-            console.log("can't save: place not owned: " + this.placeId);
+            if(isDev()) console.log("can't save: place not owned: " + this.placeId);
             return;
         }
 
@@ -228,6 +228,12 @@ export default class Place {
                 add_children.push(child);
             }
         });
+
+        if (add_children.length === 0) {
+            // TODO: probably should throw exceptions here.
+            if(isDev()) console.log("Nothing to save");
+            return;
+        }
 
         Contracts.saveItems(new Array<any>(), add_children, this.placeId).then(() => {
             this.loadItems();

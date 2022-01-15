@@ -17,6 +17,10 @@
   pointer-events: none;
 }
 
+.App-logo-text {
+  font-size: calc(20px + 8vmin);
+}
+
 .App-header {
   background-color: rgba(42, 51, 82, 0.5);
   min-height: 100vh;

@@ -20,7 +20,7 @@ import PlayerController from "../controllers/PlayerController";
 import { FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
 import Place from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
-import { isDev } from "../tz/Utils";
+//import { isDev } from "../tz/Utils";
 
 
 export class World {
@@ -50,11 +50,11 @@ export class World {
         this.scene.collisionsEnabled = true;
 
         // Enable inspector in dev
-        if(isDev()) {
+        /*if(isDev()) {
             import("@babylonjs/inspector").then( () => {
                 this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
             });
-        }
+        }*/
 
         this.camera = this.initCamera();
 

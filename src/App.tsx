@@ -65,14 +65,17 @@ class App extends React.Component<AppProps, AppState> {
     render() {
         let closeFormCallback = this.closeForm.bind(this);
         let form;
-        if (this.state.show_form === 'none') form = <div id="app-overlay" className="text-center" onClick={() => closeFormCallback(true)}>
-            <p className='text-info' style={{ fontSize: 'calc(20px + 8vmin)' }}>[tz1aND]</p>
-            <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>
-            <p>
-                Move: WASD<br />
-                Look: MOUSE<br />
-                Exit: ESCAPE<br />
-            </p>
+        if (this.state.show_form === 'none') form = <div className="text-center">
+            <div id="app-overlay" onClick={() => closeFormCallback(true)}>
+                <p className='text-info App-logo-text'>[tz1aND]</p>
+                <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>
+                <p>
+                    Move: WASD<br />
+                    Look: MOUSE<br />
+                    Exit: ESCAPE<br />
+                </p>
+            </div>
+            <br /><br /><button className='btn btn-primary fs-4 px-4 py-2'>Connect Wallet</button>
         </div>
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={closeFormCallback} />;
         else if (this.state.show_form === 'place') form = <PlaceForm closeForm={closeFormCallback} placedItem={this.state.placedItem} />;
