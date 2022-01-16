@@ -17,7 +17,7 @@ import { SkyMaterial } from "@babylonjs/materials/sky";
 import PlayerController from "../controllers/PlayerController";
 
 //import "@babylonjs/core/Meshes/meshBuilder";
-import { FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
+import { Database, FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
 import Place from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 //import { isDev } from "../tz/Utils";
@@ -44,6 +44,10 @@ export class World {
 
         // Associate a Babylon Engine to it.
         this.engine = new Engine(canvas, true);
+        this.engine.disableManifestCheck = true;
+
+        // Allow cache on IndexedDB
+        Database.IDBStorageEnabled = true;
 
         // Create our first scene.
         this.scene = new Scene(this.engine);
@@ -75,7 +79,7 @@ export class World {
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        var ground = Mesh.CreateGround("ground1", 100, 100, 4, this.scene);
+        var ground = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
         ground.material = this.defaultMaterial;
         ground.checkCollisions = true;
         ground.receiveShadows = true;
@@ -186,7 +190,7 @@ export class World {
         }
         else {
             const new_place = new Place(placeId, this);
-            new_place.load();
+            await new_place.load();
             
             this.places.set(placeId, new_place);
         }
