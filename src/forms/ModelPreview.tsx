@@ -74,10 +74,11 @@ class PreviewScene {
 
         const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
 
+        // Scale and move object based on extent.
         const new_scale = 6 / extent_max;
         this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-        // TODO: set camera based on extent.
+        this.previewObject.position.y = -extent.y * new_scale / 2;
     }
 
     getScreenshot(): Promise<string> {
