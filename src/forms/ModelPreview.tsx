@@ -27,6 +27,7 @@ class PreviewScene {
 
         // Associate a Babylon Engine to it.
         this.engine = new Engine(this.canvas, true);
+        this.engine.disableManifestCheck = true;
 
         // Create our first scene.
         this.scene = this.createScene();
