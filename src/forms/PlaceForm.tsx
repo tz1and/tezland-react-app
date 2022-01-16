@@ -87,7 +87,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                 <div id="priceHelp" className="form-text">The price for each item. 0 if not for sale.</div>
                                 {touched.itemPrice && errors.itemPrice && <small className="text-danger">{errors.itemPrice}</small>}
                             </div>
-                            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>place Item</button>
+                            <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>
+                            <small>Note: Placed Items are transferred to the Land contract,<br/> but are retrievable only by you (the owner) and a potential buyer.</small>
                         </Form>
                     )
                 }}
