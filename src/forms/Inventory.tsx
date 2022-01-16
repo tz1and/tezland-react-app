@@ -48,6 +48,11 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                         });
                     }
                 )
+            }, error => {
+                this.setState({
+                    isLoaded: true,
+                    error: new Error("No wallet connected")
+                });
             });
     }
 
