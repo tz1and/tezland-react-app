@@ -1,4 +1,3 @@
-import { GridMaterial } from "@babylonjs/materials/grid";
 import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node, TransformNode, Vector3, ExecuteCodeAction, ActionManager } from "@babylonjs/core";
 
 import earcut from 'earcut';
@@ -46,11 +45,6 @@ export default class Place {
             //transparent_mat.disableLighting = true;
             //transparent_mat.backFaceCulling = false;
             transparent_mat.diffuseColor.set(0.2, 0.2, 0.8);*/
-            const transparent_mat = new GridMaterial("transp_grid", this.world.scene);
-            transparent_mat.opacity = 0.3;
-            transparent_mat.mainColor.set(0.2, 0.2, 0.8);
-            transparent_mat.lineColor.set(0.2, 0.8, 0.8);
-            transparent_mat.backFaceCulling = false;
             //transparent_mat.wireframe = true;
 
             // Using polygon mesh builder (only 2D)
@@ -89,7 +83,7 @@ export default class Place {
 
             // TODO: store place build height in metadata!
 
-            placeBounds.material = transparent_mat;
+            placeBounds.material = this.world.transparentGridMat;
             placeBounds.position.x = this.origin.x;
             placeBounds.position.y = 10;
             placeBounds.position.z = this.origin.z;

@@ -8,8 +8,7 @@ import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator"
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
-import { SimpleMaterial } from "@babylonjs/materials/simple";
-import { SkyMaterial } from "@babylonjs/materials/sky";
+import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 
 //import { QuakeController } from "../Controllers/QuakeController";
 import PlayerController from "../controllers/PlayerController";
@@ -27,6 +26,7 @@ export class World {
     
     private engine: Engine;
     private defaultMaterial: Material;
+    readonly transparentGridMat: GridMaterial;
     
     private sunLight: DirectionalLight;
     
@@ -62,6 +62,13 @@ export class World {
 
         // Create a default material
         this.defaultMaterial = new SimpleMaterial("defaulMat", this.scene);
+
+        // transparent grid material for place bounds
+        this.transparentGridMat = new GridMaterial("transp_grid", this.scene);
+        this.transparentGridMat.opacity = 0.3;
+        this.transparentGridMat.mainColor.set(0.2, 0.2, 0.8);
+        this.transparentGridMat.lineColor.set(0.2, 0.8, 0.8);
+        this.transparentGridMat.backFaceCulling = false;
         
         // Create sun and skybox
         let sun_direction = new Vector3(-50, -100, 50);
