@@ -16,6 +16,8 @@ export default class Metadata {
             const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${contract}&token_id=${token_id}`);
             const tokenInfo = responseP.data[0];
 
+            if(!tokenInfo) return undefined;
+
             DataStorage.WriteString(key, JSON.stringify(tokenInfo));
             tokenMetadata = tokenInfo;
         }
