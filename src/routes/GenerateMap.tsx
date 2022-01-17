@@ -223,10 +223,6 @@ export default function GenerateMap() {
 
         const places = []
 
-        //for(var i = 0; i < land.length; ++i)
-        // TEMP: not sure if this actually works
-        // create place metadata
-
         for(const curr of land) {
             const centroid = curr.centroid();
             const pointsrel: number[][] = [];
@@ -241,10 +237,6 @@ export default function GenerateMap() {
                 center_coordinates: [centroid.x, 0, centroid.y],
                 border_coordinates: pointsrel
             }));
-
-            /*const place_metadata_url = await upload_place_metadata(walletphk,
-                [centroid.x, 0, centroid.y],
-                pointsrel);*/
         };
 
         // Upload all places metadata
