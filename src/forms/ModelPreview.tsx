@@ -63,11 +63,6 @@ class PreviewScene {
         if(!file) return;
 
         const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
-
-        // todo: scale the object to fit into view?
-
-        //this.previewObject = result.transformNodes[0];
-
         this.previewObject = result.meshes[0] as Mesh;
 
         const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
