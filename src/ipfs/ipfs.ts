@@ -17,6 +17,7 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
         const hash = itemMetadata.artifact_uri.slice(7);
 
         // LoadAssetContainer?
+        // TODO: get mimetype from metadata
         const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb'); // TODO: store filetype in metadata!
 
         // get the root mesh
@@ -24,7 +25,8 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
         mesh.name = `item${item_id}`;
 
         // then set original to be disabled
-        mesh.setEnabled(false);
+        mesh.parent = scene.getTransformNodeByName("loadedItemCache");
+        //mesh.setEnabled(false); // not needed, as loadedItemCache is disabled.
 
         // Something funky going on with babylon 5 beta4, disabled objects are pickable now
         // and you can't disable it.

@@ -64,31 +64,31 @@ export class World {
         this.defaultMaterial = new SimpleMaterial("defaulMat", this.scene);
         
         // Create sun and skybox
-        var sun_direction = new Vector3(-50, -100, 50);
+        let sun_direction = new Vector3(-50, -100, 50);
         this.sunLight = new DirectionalLight("sunLight", sun_direction, this.scene);
         this.sunLight.intensity = 0.5;
         //this.sunLight.autoCalcShadowZBounds = true;
         //this.sunLight.autoUpdateExtends = true;
 
-        var ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
+        let ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
         ambient_light.intensity = 0.4;
         ambient_light.diffuse = new Color3(0.7, 0.7, 1);
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        var ground = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
+        let ground = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
         ground.material = this.defaultMaterial;
         ground.checkCollisions = true;
         ground.receiveShadows = true;
 
-        var skyMaterial = new SkyMaterial("skyMaterial", this.scene);
+        let skyMaterial = new SkyMaterial("skyMaterial", this.scene);
         skyMaterial.backFaceCulling = false;
         //skyMaterial.inclination = 0.25;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.negate();
 
-        var skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
+        let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
 
         this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
@@ -96,6 +96,11 @@ export class World {
         this.shadowGenerator.useExponentialShadowMap = true;
         this.shadowGenerator.useBlurExponentialShadowMap = true;
         //this.shadowGenerator.usePoissonSampling = true;
+
+        let loadedItemCache = new TransformNode("loadedItemCache", this.scene);
+        console.log(loadedItemCache.scaling)
+        loadedItemCache.position.y = -200;
+        loadedItemCache.setEnabled(false);
 
         // create debug world
         //this.debugWorld();
