@@ -5,12 +5,11 @@ import earcut from 'earcut';
 
 import { getFloat16 } from "@petamoriken/float16";
 
-import axios from 'axios';
-import Conf from "../Config";
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { fromHexString, isDev, pointIsInside } from "../tz/Utils";
+import { fromHexString, isDev, mutezToTez, pointIsInside } from "../tz/Utils";
 import { World } from "./World";
+import Metadata from "./Metadata";
 
 
 export default class Place {
@@ -38,15 +37,8 @@ export default class Place {
     }
 
     public async load() {
-        //console.log("loading something, hopefully");
-        // Get item balances.
-        //`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${Conf.dev_account}/token_balances?contract=${Conf.item_contract}`
-        //const response = await axios.get(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${Conf.dev_account}/token_balances?contract=${Conf.item_contract}`);
-        //console.log(response.data);
-
         try {
-            const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${Conf.place_contract}&token_id=${this.placeId}`);
-            const tokenInfo = responseP.data[0].token_info;
+            let placeMetadata = await Metadata.getPlaceMetadata(this.placeId);
 
             // create mat
             /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
@@ -80,10 +72,10 @@ export default class Place {
             polygon.position.y += 10;*/
 
             // Using ExtrudePolygon
-            this.origin = Vector3.FromArray(tokenInfo.center_coordinates);
+            this.origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
 
             var shape = new Array<Vector3>();
-            tokenInfo.border_coordinates.forEach((v: Array<number>) => {
+            placeMetadata.token_info.border_coordinates.forEach((v: Array<number>) => {
                 shape.push(Vector3.FromArray(v));
             });
 
@@ -152,9 +144,13 @@ export default class Place {
 
         //items.forEach(async (element: any) => {
         for (const element of items) {
-            const item_id = element.data.item_id;
-            const item_coords = element.data.item_data;
-            // temp, sometimes bytes are shown as string in bcd api???
+            if(!element.data.item) continue;
+
+            const item_id = element.data.item.item_id;
+            const item_coords = element.data.item.item_data;
+            const item_amount = element.data.item.item_amount;
+            const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
+            
             try {
                 //console.log(item_coords);
 
@@ -181,7 +177,8 @@ export default class Place {
                     sphere.position.y = 1;
                     sphere.position.z = Math.random() * 20 - 10;*/
                     //sphere.material = this.defaultMaterial;
-                    instance.metadata = { id: element.id, itemId: item_id };
+                    instance.metadata = { id: element.id, placeId: this.placeId,
+                        itemTokenId: item_id, xtzPerItem: xtz_per_item, itemAmount: item_amount };
 
                     // todo: for all submeshes/instances, whatever
                     //instance.checkCollisions = true;

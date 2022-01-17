@@ -67,6 +67,9 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                     // TODO: validate model! polycount, if it loads, etc.
 
                     try {
+                        // check if wallet is connected first.
+                        if(!await Contracts.isWalletConnected()) throw new Error("No wallet connected");
+
                         // read model file.
                         const buffer = await readFileAsync(values.itemFile!);
 
@@ -84,6 +87,9 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
 
                         // when successful, close form.
                         props.closeForm(false);
+
+                        // return to avoid setting properties after unmount.
+                        return;
                     } catch(e: any) {
                         state.error = e.message;
                     }

@@ -59,7 +59,7 @@ export const tokensAmountToNat = (tokensAmount: BigNumber | number, decimals: nu
 };
 
 export const numberToTokensAmount = (value: BigNumber | number, decimals: number): BigNumber => {
-  return new BigNumber(value).div(10 ** decimals).integerValue();
+  return new BigNumber(value).div(10 ** decimals);
 };
 
 const tezDecimals = 6;
@@ -89,3 +89,7 @@ export const dataURItoBlob = (dataURI: string): Blob => {
   var blob = new Blob([ab], {type: mimeString});
   return blob;
 }
+
+export const truncate = (str: string, n: number, ellip?: string) => {
+  return (str.length > n) ? str.substring(0, n-1) + (ellip ? ellip :'&hellip;') : str;
+};

@@ -4,6 +4,8 @@ import assert from "assert";
 import * as ipfs from "../ipfs/ipfs";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place from "../world/Place";
+import { World } from "../world/World";
+import PickingGuiController from "./PickingGuiController";
 
 
 export default class PlayerController {
@@ -16,6 +18,8 @@ export default class PlayerController {
     private tempObjectRot: Quaternion;
     //private state: ControllerState;
 
+    private pickingGui: PickingGuiController;
+
     readonly playerTrigger: Mesh;
 
     private beforeRenderer: () => void;
@@ -26,14 +30,15 @@ export default class PlayerController {
     private currentPlace: Nullable<Place>;
     private currentItem?: number;
 
-    constructor(camera: Camera, scene: Scene, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
+    constructor(camera: Camera, world: World, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         this.camera = camera;
-        this.scene = scene;
+        this.scene = world.scene;
         this.shadowGenerator = shadowGenerator;
         this.currentPlace = null;
         this.tempObject = null;
         this.tempObjectOffsetY = 0;
         this.tempObjectRot = new Quaternion();
+        this.pickingGui = new PickingGuiController(world);
 
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
@@ -51,8 +56,8 @@ export default class PlayerController {
         this.beforeRenderer = () => { this.updateController() };
         this.scene.registerBeforeRender(this.beforeRenderer);
 
-        // Pointer lock stuff
-        this.scene.onPointerObservable.add((event, eventState) => {
+        // Pointer lock stuff - not needed since we have the overlay now.
+        /*this.scene.onPointerObservable.add((event, eventState) => {
             // probably not needed since we have a mask.
             if (event.type === PointerEventTypes.POINTERDOWN) {
                 //true/false check if we're locked, faster than checking pointerlock on each single click.
@@ -64,7 +69,7 @@ export default class PlayerController {
                     eventState.skipNextObservers = true;
                 }
             }
-        }, PointerEventTypes.POINTERDOWN, true); // insert first
+        }, PointerEventTypes.POINTERDOWN, true); // insert first*/
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         var pointerlockchange = () => {
@@ -99,19 +104,8 @@ export default class PlayerController {
                     newObject.position = this.tempObject.position.subtract(parent.position);
                     newObject.rotationQuaternion = this.tempObjectRot.clone();
                     newObject.scaling = this.tempObject.scaling.clone();
-                    newObject.metadata = { itemId: this.currentItem }
+                    newObject.metadata = { itemTokenId: this.currentItem }
 
-                    // TODO: clicking places new object
-                    // check place permissions, etc, move to new function
-                    /*const newMat = new SimpleMaterial("newMat", this.scene);
-                    newMat.diffuseColor.set(0.8, 0.2, 0.2);
-
-                    const newObject = Mesh.CreateBox("newObject", 1, this.scene);
-                    newObject.parent = parent;
-                    newObject.material = newMat;//scene.getMaterialByName("defaulMat");
-                    newObject.position = this.tempObject.position.clone();
-                    newObject.checkCollisions = true;
-                    newObject.useOctreeForCollisions = true;*/
                     shadowGenerator.addShadowCaster(newObject);
 
                     eventState.skipNextObservers = true;
@@ -126,10 +120,10 @@ export default class PlayerController {
 
                 eventState.skipNextObservers = true;
             }
-        });
+        }, undefined, true);
 
         // Keyboard controls. Save, remove, place, mint, whatever.
-        scene.onKeyboardObservable.add((kbInfo, eventState) => {
+        this.scene.onKeyboardObservable.add((kbInfo, eventState) => {
             if(kbInfo.type === KeyboardEventTypes.KEYDOWN){
                 // TEMP: switch item in inventory
                 switch(kbInfo.event.code) {
@@ -184,7 +178,7 @@ export default class PlayerController {
                     console.log("KEY UP: ", kbInfo.event.code);
                     break;
             }*/
-        });
+        }, KeyboardEventTypes.KEYDOWN);
     }
 
     public setCurrentPlace(place: Place) {
@@ -193,7 +187,10 @@ export default class PlayerController {
 
     public async setCurrentItem(item_id?: number) {
         // remove old object.
-        if(this.tempObject) this.tempObject.dispose();
+        if(this.tempObject) {
+            this.tempObject.dispose();
+            this.tempObject = null;
+        }
 
         this.currentItem = item_id;
 
@@ -216,6 +213,9 @@ export default class PlayerController {
         this.tempObject.isPickable = false;
         //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
         this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
+
+        // make sure picking gui goes away.
+        this.pickingGui.updatePickingGui(null, 0);
     }
 
     private updateController() {
@@ -226,10 +226,12 @@ export default class PlayerController {
 
         // following from here, stuff is relating to placing items.
         // we can early out if there is no current place.
+        // TODO: pretty sure this doesn't do anything.
         if(!this.currentPlace) return;
 
+        const hit = this.scene.pickWithRay(this.camera.getForwardRay());
+
         if(this.tempObject) {
-            const hit = this.scene.pickWithRay(this.camera.getForwardRay());
             if(hit && hit.pickedPoint) {
                 const point = hit.pickedPoint;
                 this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
@@ -242,6 +244,8 @@ export default class PlayerController {
                 this.tempObject.setEnabled(false);
                 //this.tempObject.material!.alpha = 0.2;
             }
+        } else if (hit) {
+            this.pickingGui.updatePickingGui(hit.pickedMesh, hit.distance);
         }
     }
 }

@@ -11,8 +11,6 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { SimpleMaterial } from "@babylonjs/materials/simple";
 import { SkyMaterial } from "@babylonjs/materials/sky";
 
-//import { AdvancedDynamicTexture, Button } from "@babylonjs/gui";
-
 //import { QuakeController } from "../Controllers/QuakeController";
 import PlayerController from "../controllers/PlayerController";
 
@@ -102,7 +100,12 @@ export class World {
         // create debug world
         //this.debugWorld();
 
-        this.playerController = new PlayerController(this.camera, this.scene, this.shadowGenerator, canvas, appControlfunctions);
+        // TODO: this disable scene picking, but need to use onPointerDown, etc.
+        /*this.scene.onPrePointerObservable.add((pointerInfo) => {
+            pointerInfo.skipOnPointerObservable = true;
+        });*/
+
+        this.playerController = new PlayerController(this.camera, this, this.shadowGenerator, canvas, appControlfunctions);
 
         this.places = new Map<number, Place>();
 
@@ -195,22 +198,4 @@ export class World {
             this.places.set(placeId, new_place);
         }
     }
-
-    //this.playerController = new QuakeController(player, this.camera, this.scene);
-    //this.playerController.start();
-
-    /*var advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-    let loadedGUI = advancedTexture.parseFromURLAsync("https://doc.babylonjs.com/examples/ColorPickerGui.json");*/
-
-    /*var button1 = Button.CreateSimpleButton("but1", "Click Me");
-    button1.width = "150px"
-    button1.height = "40px";
-    button1.color = "white";
-    button1.cornerRadius = 20;
-    button1.background = "green";
-    button1.onPointerUpObservable.add(function () {
-        alert("you did it!");
-    });
-    advancedTexture.addControl(button1);*/
 }

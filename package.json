@@ -25,6 +25,8 @@
     "ipfs-http-client": "^54.0.2",
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
+    "polygon-clipping": "^0.15.3",
+    "prando": "^6.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-leaflet": "^3.2.4",
@@ -32,6 +34,7 @@
     "react-scripts": "4.0.3",
     "svgdom": "^0.1.10",
     "typescript": "^4.1.2",
+    "voronoijs": "^1.0.0",
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {

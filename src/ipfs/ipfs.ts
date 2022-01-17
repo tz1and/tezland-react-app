@@ -1,8 +1,8 @@
-import axios from 'axios';
 import * as ipfs from 'ipfs-http-client';
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
+import Metadata from '../world/Metadata';
 
 const ipfs_client = ipfs.create({ url: Conf.ipfs_url });
 
@@ -11,11 +11,10 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
     // Otherwise, download it.
     var mesh = scene.getMeshByName(`item${item_id}`);
     if(!mesh) {
-        const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${Conf.item_contract}&token_id=${item_id}`);
-        const artifact = responseP.data[0].artifact_uri;
+        const itemMetadata = await Metadata.getItemMetadata(item_id);
 
         // remove ipfs:// from uri
-        const hash = artifact.slice(7);
+        const hash = itemMetadata.artifact_uri.slice(7);
 
         // LoadAssetContainer?
         const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb'); // TODO: store filetype in metadata!
@@ -26,6 +25,10 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
 
         // then set original to be disabled
         mesh.setEnabled(false);
+
+        // Something funky going on with babylon 5 beta4, disabled objects are pickable now
+        // and you can't disable it.
+        //mesh.getChildMeshes(false).forEach((e) => e.isPickable = false );
     }
     //else console.log("mesh found in cache");
         
@@ -73,7 +76,6 @@ interface ItemMetadata {
 }
 
 function createItemTokenMetadata(metadata: ItemMetadata) {
-    // TODO: thumbnail Uri
     // TODO: creators
     
     return Buffer.from(
@@ -103,8 +105,6 @@ export async function upload_item_metadata(minter_address: string, name: string,
         if(trimmed.length > 0) tags_processed.push(trimmed);
     });
 
-    // TODO: thumbnail URL
-
     const result = await ipfs_client.add(createItemTokenMetadata({
         name: name,
         description: description,
@@ -116,3 +116,53 @@ export async function upload_item_metadata(minter_address: string, name: string,
 
     return `ipfs://${result.path}`;
 }
+
+interface PlaceMetadata {
+    center_coordinates: number[];
+    border_coordinates: number[][];
+    description: string;
+    minter: string;
+    identifier: string;
+}
+
+export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
+    return Buffer.from(
+        JSON.stringify({
+            identifier: metadata.identifier,
+            description: metadata.description,
+            minter: metadata.minter,
+            isTransferable: true,
+            isBooleanAmount: true,
+            shouldPreferSymbol: true,
+            symbol: 'Place',
+            //artifactUri: cid,
+            decimals: 0,
+            center_coordinates: metadata.center_coordinates,
+            border_coordinates: metadata.border_coordinates
+        })
+    )
+}
+
+export async function upload_places(places: Buffer[]): Promise<string[]> {
+    const files = [];
+    for(const file of places) { files.push({content: file}); }
+
+    const addedFiles: string[] = [];
+    for await (const upload of ipfs_client.addAll(files/*, { progress: (prog) => console.log(`received: ${prog}`) }*/)) {
+        addedFiles.push(`ipfs://${upload.path}`);
+    }
+
+    return addedFiles
+}
+
+/*export async function upload_place_metadata(minter_address: string, center: number[], border: number[][]): Promise<string> {
+    const result = await ipfs_client.add(createPlaceTokenMetadata({
+        identifier: "some-uuid",
+        description: "A nice place",
+        minter: minter_address,
+        center_coordinates: center,
+        border_coordinates: border
+    }));
+
+    return `ipfs://${result.path}`;
+}*/

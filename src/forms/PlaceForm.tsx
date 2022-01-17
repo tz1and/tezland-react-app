@@ -23,7 +23,7 @@ type PlaceFormProps = {
 }
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
-    const initialValues: PlaceFormValues = { itemId: props.placedItem?.metadata.itemId, itemAmount: 1, itemPrice: 0 };
+    const initialValues: PlaceFormValues = { itemId: props.placedItem?.metadata.itemTokenId, itemAmount: 1, itemPrice: 0 };
 
     return (
         <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative'>
@@ -51,7 +51,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     // set amount and price on Node (item) metadata.
                     if (props.placedItem) {
                         props.placedItem.metadata.itemAmount = values.itemAmount;
-                        props.placedItem.metadata.itemPrice = values.itemPrice;
+                        props.placedItem.metadata.xtzPerItem = values.itemPrice;
                     }
 
                     actions.setSubmitting(false);

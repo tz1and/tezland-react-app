@@ -1,10 +1,11 @@
 import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
-import { Contract, TezosToolkit, Wallet } from "@taquito/taquito";
+import { Contract, OpKind, TezosToolkit, Wallet } from "@taquito/taquito";
 import { TempleWallet } from "@temple-wallet/dapp";
 import Conf from "../Config";
 import { isDev, tezToMutez, toHexString } from "./Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
+
 
 class Contracts {
     private tk: TezosToolkit;
@@ -15,10 +16,29 @@ class Contracts {
     constructor() {
         //this.tk = new TezosToolkit("https://api.tez.ie/rpc/mainnet");
         this.tk = new TezosToolkit(Conf.tezos_node);
+
+        // NOTE: these are KNOWN account keys.
+        // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
+        // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt
+        //InMemorySigner.fromSecretKey('edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq').then((signer) => {
+        //  this.tk.setProvider({signer});
+        //})
+
         this.marketplaces = null;
         this.places = null;
         this.minter = null;
         //this.tk.addExtension(new Tzip16Module());
+    }
+
+    // A convenience function to check if a wallet (or signer) is set up/connected.
+    public async isWalletConnected(): Promise<boolean> {
+      try {
+        await this.walletPHK();
+        return true;
+      }
+      catch {
+        return false;
+      }
     }
 
     public async walletPHK(): Promise<string> {
@@ -36,7 +56,7 @@ class Contracts {
         throw new Error("Temple Wallet not installed");
       }
 
-      const wallet = new TempleWallet('TezlandApp');
+      const wallet = new TempleWallet(isDev() ? 'TezlandApp-dev': 'TezlandApp');
       await wallet.connect({ name: "sandboxlocal", rpc: Conf.tezos_node });
       this.tk.setWalletProvider(wallet);
       //this.tk.setProvider({ signer: signer });
@@ -47,7 +67,9 @@ class Contracts {
       if(!this.places)
         this.places = await this.tk.contract.at(Conf.place_contract);
 
-      // TODO: walletPHK might fail.
+      // check if wallet is connected before callign walletPHK
+      if(!await this.isWalletConnected()) return false;
+
       const balanceRes = await this.places.contractViews.get_balance({ owner: await this.walletPHK(), token_id: place_id }).executeView({viewCaller: this.places.address});
 
       return !balanceRes.isZero();
@@ -56,14 +78,30 @@ class Contracts {
     public async mintItem(item_metadata_url: string, royalties: number, amount: number) {
       const minterWallet = await this.tk.wallet.at(Conf.minter_contract);
 
+      // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+      if(!await this.isWalletConnected()) throw new Error("mintItem: No wallet connected");
+
       const mint_item_op = await minterWallet.methodsObject.mint_Item({
-        address: await this.tk.wallet.pkh(),
+        address: await this.walletPHK(),
         amount: amount,
         royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
         metadata: char2Bytes(item_metadata_url)
       }).send();
       
       await mint_item_op.confirmation();
+    }
+
+    public async getItem(place_id: number, item_id: number, xtz_per_item: number) {
+      const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
+
+      // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+      if(!await this.isWalletConnected()) throw new Error("getItem: No wallet connected");
+
+      const get_item_op = await marketplacesWallet.methodsObject.get_item({
+        lot_id: place_id, item_id: item_id
+      }).send({ amount: xtz_per_item, mutez: false });
+      
+      await get_item_op.confirmation();
     }
 
     public async getItemsForPlaceView(place_id: number): Promise<any> {
@@ -106,21 +144,19 @@ class Contracts {
 
     public async saveItems(remove: Node[], add: Node[], place_id: number) {
       const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
+      const itemsWallet = await this.tk.wallet.at(Conf.item_contract);
 
       // TODO: removals
 
-      // TODO: decide if items should be transfered or not
-
-      // TODO: add_operator for items on sale
-
-      // TODO: remove_operator for removed items?
+      const wallet_phk = await this.walletPHK();
 
       const add_item_list: object[] = [];
+      const item_set = new Set<number>();
       add.forEach( (item) => {
         const mesh = item as Mesh;
-        const item_id = mesh.metadata.itemId;
+        const item_id = mesh.metadata.itemTokenId;
         const item_amount = mesh.metadata.itemAmount;
-        const item_price = tezToMutez(mesh.metadata.itemPrice);
+        const item_price = tezToMutez(mesh.metadata.xtzPerItem);
         const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
         // 4 floats for quat, 1 float scale, 3 floats pos = 8 half floats = 16 bytes
         const array = new Uint8Array(16);
@@ -139,12 +175,50 @@ class Contracts {
         const item_data = toHexString(array);
 
         add_item_list.push({token_id: item_id, token_amount: item_amount, xtz_per_token: item_price, item_data: item_data});
+
+        item_set.add(item_id);
       });
 
-      const place_items_op = await marketplacesWallet.methodsObject.place_items({
-        lot_id: place_id, item_list: add_item_list
-      }).send();
-      await place_items_op.confirmation();
+      const operator_adds: object[] = [];
+      const operator_removes: object[] = [];
+
+      item_set.forEach((item_id) => {
+        operator_adds.push({
+          add_operator: {
+              owner: wallet_phk,
+              operator: marketplacesWallet.address,
+              token_id: item_id
+          }
+        });
+  
+        operator_removes.push({
+          remove_operator: {
+              owner: wallet_phk,
+              operator: marketplacesWallet.address,
+              token_id: item_id
+          }
+        });
+      });
+
+      const batch = this.wallet().batch([
+        {
+          kind: OpKind.TRANSACTION,
+          ...itemsWallet.methods.update_operators(operator_adds).toTransferParams()
+        },
+        {
+          kind: OpKind.TRANSACTION,
+          ...marketplacesWallet.methodsObject.place_items({
+            lot_id: place_id, item_list: add_item_list
+          }).toTransferParams()
+        },
+        {
+          kind: OpKind.TRANSACTION,
+          ...itemsWallet.methods.update_operators(operator_removes).toTransferParams()
+        }
+      ]);
+
+      const batch_op = await batch.send();
+      await batch_op.confirmation();
       //console.log('Operation hash:', place_items_op.hash);
     }
 
