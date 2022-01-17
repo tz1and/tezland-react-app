@@ -18,7 +18,19 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
 
         // LoadAssetContainer?
         // TODO: get mimetype from metadata
-        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb'); // TODO: store filetype in metadata!
+        // TODO: store filetype in metadata!
+        // TODO: figure out the proper way to stop animations.
+        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb');
+
+        /*newMeshes.skeletons.forEach((sk) => {
+            scene.removeSkeleton(sk);
+            sk.dispose();
+        })
+
+        newMeshes.animationGroups.forEach((ag) => {
+            scene.removeAnimationGroup(ag);
+            ag.dispose();
+        })*/
 
         // get the root mesh
         mesh = newMeshes.meshes[0] as Mesh;
