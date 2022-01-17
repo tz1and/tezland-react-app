@@ -98,7 +98,6 @@ export class World {
         //this.shadowGenerator.usePoissonSampling = true;
 
         let loadedItemCache = new TransformNode("loadedItemCache", this.scene);
-        console.log(loadedItemCache.scaling)
         loadedItemCache.position.y = -200;
         loadedItemCache.setEnabled(false);
 

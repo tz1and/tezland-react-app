@@ -201,6 +201,8 @@ export default class PlayerController {
 
         // set pickable false on the whole hierarchy.
         this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
+        // throws an error for some reason.
+        //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
 
         /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
         //transparent_mat.alpha = 0.2;

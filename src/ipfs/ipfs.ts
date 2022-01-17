@@ -36,7 +36,11 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
         
     // clone
     const instance = mesh.instantiateHierarchy(parent);
-    instance?.setEnabled(true);
+    if(instance) {
+        instance.setEnabled(true);
+        // for some reason instantiateHierarchy ignores setting the parent if null.
+        if(parent === null) instance.parent = null;
+    }
 
     //const loader = new GLTFFileLoader();
     //loader.loadFile(null, `http://localhost:8080/ipfs/${hash}`);
