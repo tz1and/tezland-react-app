@@ -1,5 +1,6 @@
 import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, OpKind, TezosToolkit, Wallet } from "@taquito/taquito";
+//import { InMemorySigner } from "@taquito/signer";
 import { TempleWallet } from "@temple-wallet/dapp";
 import Conf from "../Config";
 import { isDev, tezToMutez, toHexString } from "./Utils";
@@ -174,7 +175,7 @@ class Contracts {
         setFloat16(view, 14, mesh.position.z);
         const item_data = toHexString(array);
 
-        add_item_list.push({token_id: item_id, token_amount: item_amount, xtz_per_token: item_price, item_data: item_data});
+        add_item_list.push({item: {token_id: item_id, token_amount: item_amount, xtz_per_token: item_price, item_data: item_data}});
 
         item_set.add(item_id);
       });
