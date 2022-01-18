@@ -140,13 +140,13 @@ interface PlaceMetadata {
     border_coordinates: number[][];
     description: string;
     minter: string;
-    identifier: string;
+    name: string;
 }
 
 export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
     return Buffer.from(
         JSON.stringify({
-            identifier: metadata.identifier,
+            name: metadata.name,
             description: metadata.description,
             minter: metadata.minter,
             isTransferable: true,
