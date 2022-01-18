@@ -26,6 +26,13 @@ class Land {
         this.points = [];
     }
 
+    isValid(): boolean {
+        for (const p of this.points)
+            if (!isFinite(p.x) || !isFinite(p.y)) return false;
+
+        return true;
+    }
+
     pointsToArray(): number[] {
         const arr: number[] = []
 
@@ -36,14 +43,14 @@ class Land {
         return arr;
     }
 
-    pointsTo2dArray(): Polygon {
+    pointsToPolygon(): Polygon {
         const arr: Ring = []
 
         this.points.forEach((p) => {
             arr.push([p.x, p.y]);
         })
 
-        arr.push([this.points[0].x, this.points[0].y]);
+        //arr.push([this.points[0].x, this.points[0].y]);
 
         return [arr];
     }
@@ -224,6 +231,8 @@ export default function GenerateMap() {
         const places = []
 
         for(const curr of land) {
+            if(!curr.isValid()) continue;
+
             const centroid = curr.centroid();
             const pointsrel: number[][] = [];
             curr.pointsRelative(centroid).forEach((p) => {
@@ -299,6 +308,7 @@ export default function GenerateMap() {
         const sites: Site[] = [];
         const exclusion: ExclusionZone[] = [];
 
+        // begin old
         /*generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
 
         generateCircle(sites, exclusion, new Vector2(250, -375), 50, 0, 6);
@@ -320,7 +330,13 @@ export default function GenerateMap() {
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 415), 65, Angle.FromDegrees(0).radians(), 4);
         }*/
+        // end old
 
+        // generate central circle
+        generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
+        generateCircle(sites, exclusion, new Vector2(0, 0), 90, 0, 16);
+
+        // generate grid blocks
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(0).radians(), 4);
         }
@@ -353,9 +369,7 @@ export default function GenerateMap() {
             generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -405), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
-        generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
-        generateCircle(sites, exclusion, new Vector2(0, 0), 90, 0, 16);
-
+        // generate other circles
         generateCircle(sites, exclusion, new Vector2(0, 275 + 65), 80, 0, 5);
         generateCircle(sites, exclusion, new Vector2(0, -275 - 65), 80, Angle.FromDegrees(180).radians(), 5);
 
@@ -388,40 +402,105 @@ export default function GenerateMap() {
             land.straightSkeleton(2.5);
         }
 
+        const clipAgainst = (poly: Polygon, land: Land): Land[] => {
+
+            // TEMP: skip clip
+            /*const nl = new Land();
+            // need to get points in reverse
+            for(let i = poly[0].length-1; i >= 0 ; --i) {
+                const p = poly[0][i];
+                nl.points.push(new Vector2(p[0], p[1]));
+            }
+            nl.center = nl.centroid();
+            return nl;*/
+
+            try{
+                const res = intersection(land.pointsToPolygon(), poly)
+
+                const landArr: Land[] = [];
+                for (const resP of res) {
+                //if(res.length === 1) {
+                    const nl = new Land();
+                    // need to get points in reverse
+                    for(let i = resP[0].length-1; i > 0 ; --i) {
+                        const p = resP[0][i];
+                        nl.points.push(new Vector2(p[0], p[1]));
+                    }
+                    nl.center = nl.centroid();
+                    landArr.push(nl);
+                }
+                return landArr;
+            } catch(e: any) { console.log(e); console.log(poly); console.log(land); }
+
+            return [];
+        }
+
+        const generateGrid = (land: Land): Polygon[] => {
+            // compute bounds
+            let min = new Vector2(Infinity, Infinity);
+            let max = new Vector2(-Infinity, -Infinity);
+            for (const p of land.points) {
+                min = Vector2.Minimize(p, min);
+                max = Vector2.Maximize(p, max);
+            }
+            const safeEps = 0.00001;
+            min.subtractInPlace(new Vector2(safeEps, safeEps));
+            max.addInPlace(new Vector2(safeEps, safeEps));
+
+            const extent = max.subtract(min);
+            const gridSize = new Vector2(Math.ceil(extent.x / 25), Math.ceil(extent.y / 25));
+            const spacing = new Vector2(extent.x / gridSize.x, extent.y / gridSize.y);
+            
+            const grid: Polygon[] = [];
+
+            for (let i = 0; i < gridSize.x; ++i) {
+                for (let j = 0; j < gridSize.y; ++j) {
+                    const pos = new Vector2(min.x + spacing.x * i + spacing.x / 2, min.y + spacing.y * j + spacing.y / 2);
+
+                    const poly: Polygon = [[
+                        [spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
+                        [-spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
+                        [-spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
+                        [spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
+                        //[spacing.x / 2 + pos.x, spacing.y / 2 + pos.y]
+                    ]];
+
+                    grid.push(poly);
+                }
+            }
+
+            return grid;
+        }
+
         // TODO: tesselate large cells into grids.
         const clippedLand: Land[] = []
 
         for(const land of landArray) {
             // TODO: exclude certain cells from clipping, by area or id.
-            const clipAgainst = (poly: Polygon) => {
-                const res = intersection(land.pointsTo2dArray(), poly)
+            const grid = generateGrid(land);
 
-                if(res.length === 1) {
-                    const nl = new Land();
-                    // need to get points in reverse
-                    for(let i = res[0][0].length-1; i > 0 ; --i) {
-                        const p = res[0][0][i];
-                        nl.points.push(new Vector2(p[0], p[1]));
-                    }
-                    clippedLand.push(nl);
-                }
+            for (const poly of grid) {
+                const nl = clipAgainst(poly, land);
+                clippedLand.push(...nl);
             }
-
-            // TODO: clip against a grid
-            clipAgainst([[[10 + land.center.x, 10 + land.center.y], [-10 + land.center.x, 10 + land.center.y], [-10 + land.center.x, -10 + land.center.y], [10 + land.center.x, -10 + land.center.y]]])
-            clipAgainst([[[10 + land.center.x - 20, 10 + land.center.y], [-10 + land.center.x - 20, 10 + land.center.y], [-10 + land.center.x - 20, -10 + land.center.y], [10 + land.center.x - 20, -10 + land.center.y]]])
-            clipAgainst([[[10 + land.center.x + 20, 10 + land.center.y], [-10 + land.center.x + 20, 10 + land.center.y], [-10 + land.center.x + 20, -10 + land.center.y], [10 + land.center.x + 20, -10 + land.center.y]]])
         }
 
         for(const land of clippedLand) {
             land.straightSkeleton(2.5);
-            draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor)
-            const centroid = land.centroid();
-            draw.circle(4).stroke(strokeColor).fill(strokeColor).move(centroid.x - 2, centroid.y - 2)
-            draw.circle(4).stroke('blue').fill('blue').move(land.center.x - 2, land.center.y - 2)
+            if(land.isValid()) {
+                draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor);
+                const centroid = land.centroid();
+                draw.circle(3).stroke(strokeColor).fill(strokeColor).move(centroid.x - 1.5, centroid.y - 1.5)
+                draw.circle(3).stroke('blue').fill('blue').move(land.center.x - 1.5, land.center.y - 1.5)
+            }
         }
 
-        //mintPlaces(landArray);
+        /*for(const land of landArray) {
+            draw.polygon(land.pointsToArray()).fill('none').stroke('red');
+        }*/
+
+        console.log("Number of places (incl invalid): ", clippedLand.length);
+        //mintPlaces(clippedLand);
 
         state.svg = draw.svg();
     });

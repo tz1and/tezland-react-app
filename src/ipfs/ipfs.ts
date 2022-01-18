@@ -170,7 +170,7 @@ export async function upload_places(places: Buffer[]): Promise<string[]> {
         addedFiles.push(`ipfs://${upload.path}`);
     }
 
-    return addedFiles
+    return addedFiles;
 }
 
 /*export async function upload_place_metadata(minter_address: string, center: number[], border: number[][]): Promise<string> {
