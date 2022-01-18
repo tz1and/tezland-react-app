@@ -472,6 +472,7 @@ export default function GenerateMap() {
         return; // TEMP
 
         // Upload all places metadata
+        // eslint-disable-next-line no-unreachable
         const place_meta_files = await upload_places(places);
 
         // Mint places
