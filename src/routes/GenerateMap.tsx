@@ -9,6 +9,7 @@ import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import Prando from 'prando';
 import { intersection, Polygon, Ring } from 'polygon-clipping'; // TODO
+import { Matrix2D } from "@babylonjs/gui";
 const sleep = (milliseconds: number) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
@@ -20,10 +21,12 @@ type GenerateMapState = {
 class Land {
     public center: Vector2;
     public points: Vector2[];
+    public dontSplit: boolean;
 
     constructor() {
         this.center = new Vector2();
         this.points = [];
+        this.dontSplit = false;
     }
 
     isValid(): boolean {
@@ -148,6 +151,104 @@ class Land {
     }
 }
 
+const translateAndRotate = (x: number, y: number, r: number): Matrix2D => {
+    const m_t = Matrix2D.Identity();
+    Matrix2D.TranslationToRef(x, y, m_t);
+    const m_r = Matrix2D.Identity();
+    Matrix2D.RotationToRef(Angle.FromDegrees(r).radians(), m_r);
+    const m = Matrix2D.Identity();
+    m_r.multiplyToRef(m_t, m);
+    return m;
+}
+
+/*const rotateAndTranslate = (x: number, y: number, r: number): Matrix2D => {
+    const m_t = Matrix2D.Identity();
+    Matrix2D.TranslationToRef(x, y, m_t);
+    const m_r = Matrix2D.Identity();
+    Matrix2D.RotationToRef(Angle.FromDegrees(r).radians(), m_r);
+    const m = Matrix2D.Identity();
+    m_t.multiplyToRef(m_r, m);
+    return m;
+}*/
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+class Rectangle {
+    public width: number;
+    public height: number;
+
+    public pos: Vector2;
+    public angle: number;
+    //public transform: Matrix2D;
+
+    constructor(width: number = 100, height: number = 100, pos: Vector2, angle: number) {
+        this.width = width;
+        this.height = height;
+        this.pos = pos;
+        this.angle = angle;
+    }
+
+    subdivide(x: number, y: number): Rectangle[] {
+        const arr: Rectangle[] = [];
+
+        const transform = translateAndRotate(this.pos.x, this.pos.y, this.angle);
+
+        const xoff = this.width/x;
+        const yoff = this.height/y;
+
+        const tx = (-this.width + xoff) / 2;
+        const ty = (-this.height + yoff) / 2;
+
+        for (let i = 0; i < x; ++i) {
+            for (let j = 0; j < y; ++j) {
+                const pos = new Vector2();
+                transform.transformCoordinates(xoff * i + tx, yoff * j + ty, pos);
+                arr.push(new Rectangle(this.width / x, this.height / y, pos, this.angle))
+            }
+        }
+
+        return arr;
+    }
+
+    points(): Vector2[] {
+        const arr: Vector2[] = [];
+
+        const transform = translateAndRotate(this.pos.x, this.pos.y, this.angle);
+        
+        arr.push(new Vector2(/*this.pos.x*/ - this.width / 2, /*this.pos.y*/ - this.height / 2));
+        arr.push(new Vector2(/*this.pos.x*/ + this.width / 2, /*this.pos.y*/ - this.height / 2));
+        arr.push(new Vector2(/*this.pos.x*/ + this.width / 2, /*this.pos.y*/ + this.height / 2));
+        arr.push(new Vector2(/*this.pos.x*/ - this.width / 2, /*this.pos.y*/ + this.height / 2));
+
+        for(const p of arr) {
+            transform.transformCoordinates(p.x, p.y, p);
+        }
+
+        return arr;
+    }
+
+    pointsToPolygon(): Polygon {
+        const arr: Ring = []
+
+        //const points = this.points();
+        for (const p of this.points()) {
+            arr.push([p.x, p.y]);
+        };
+        //arr.push([this.points[0].x, this.points[0].y]);
+
+        return [arr];
+    }
+
+    pointsToArray(): number[] {
+        const arr: number[] = [];
+
+        for (const p of this.points()) {
+            arr.push(p.x, p.y);
+        }
+
+        return arr;
+    }
+}
+
 class ExclusionZone {
     public center: Vector2;
     public radius: number;
@@ -221,6 +322,106 @@ export default function GenerateMap() {
 
             if(!excl) sites.push({id: sites.length, x: pos.x, y: pos.y});
         }
+    }
+
+    const clipAgainst = (poly: Polygon, land: Land): Land[] => {
+
+        // TEMP: skip clip
+        /*const nl = new Land();
+        // need to get points in reverse
+        for(let i = poly[0].length-1; i >= 0 ; --i) {
+            const p = poly[0][i];
+            nl.points.push(new Vector2(p[0], p[1]));
+        }
+        nl.center = nl.centroid();
+        return nl;*/
+
+        try{
+            const res = intersection(land.pointsToPolygon(), poly)
+
+            const landArr: Land[] = [];
+            for (const resP of res) {
+            //if(res.length === 1) {
+                const nl = new Land();
+                // need to get points in reverse
+                for(let i = resP[0].length-1; i > 0 ; --i) {
+                    const p = resP[0][i];
+                    nl.points.push(new Vector2(p[0], p[1]));
+                }
+                nl.center = nl.centroid();
+                landArr.push(nl);
+            }
+            return landArr;
+        } catch(e: any) { console.log(e); console.log(poly); console.log(land); }
+
+        return [];
+    }
+
+    const generateGrid = (land: Land, prando: Prando, draw: Svg): Polygon[] => {
+        // TODO: New code using subdivided Rectangle
+         // compute bounds
+        /*let min = new Vector2(Infinity, Infinity);
+        let max = new Vector2(-Infinity, -Infinity);
+        for (const p of land.points) {
+            min = Vector2.Minimize(p, min);
+            max = Vector2.Maximize(p, max);
+        }
+        const safeEps = 0.001;
+        min.subtractInPlace(new Vector2(safeEps, safeEps));
+        max.addInPlace(new Vector2(safeEps, safeEps));
+
+        const extent = max.subtract(min);
+        const max_extent = Math.max(extent.x, extent.y);
+        const gridSize = new Vector2(Math.ceil(max_extent / prando.next(30, 40)), Math.ceil(max_extent / prando.next(30, 40)));
+
+        let rect = new Rectangle(max_extent * 1, max_extent * 1, min.add(extent.divide(new Vector2(2,2))), prando.nextInt(0, 8) * 45);
+        //draw.polygon(rect.pointsToArray()).stroke('red').fill('none');
+
+        const grid: Polygon[] = [];
+
+        for (const s of rect.subdivide(gridSize.x, gridSize.x)) {
+            //draw.polygon(s.pointsToArray()).stroke('red').fill('none');
+
+            grid.push(s.pointsToPolygon());
+        }
+
+        return grid;*/
+
+        // OLD CODE. TBH: old code was better
+        // compute bounds
+        let min = new Vector2(Infinity, Infinity);
+        let max = new Vector2(-Infinity, -Infinity);
+        for (const p of land.points) {
+            min = Vector2.Minimize(p, min);
+            max = Vector2.Maximize(p, max);
+        }
+        const safeEps = 0.001;
+        min.subtractInPlace(new Vector2(safeEps, safeEps));
+        max.addInPlace(new Vector2(safeEps, safeEps));
+
+        const extent = max.subtract(min);
+        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(25, 35)), Math.ceil(extent.y / prando.next(25, 35)));
+        const spacing = new Vector2(extent.x / gridSize.x, extent.y / gridSize.y);
+        
+        const grid: Polygon[] = [];
+
+        for (let i = 0; i < gridSize.x; ++i) {
+            for (let j = 0; j < gridSize.y; ++j) {
+                const pos = new Vector2(min.x + spacing.x * i + spacing.x / 2, min.y + spacing.y * j + spacing.y / 2);
+
+                const poly: Polygon = [[
+                    [spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
+                    [-spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
+                    [-spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
+                    [spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
+                    //[spacing.x / 2 + pos.x, spacing.y / 2 + pos.y]
+                ]];
+
+                grid.push(poly);
+            }
+        }
+
+        return grid;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -308,6 +509,8 @@ export default function GenerateMap() {
         const sites: Site[] = [];
         const exclusion: ExclusionZone[] = [];
 
+        const noSplit: Vector2[] = [];
+
         // begin old
         /*generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
 
@@ -334,47 +537,74 @@ export default function GenerateMap() {
 
         // generate central circle
         generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
-        generateCircle(sites, exclusion, new Vector2(0, 0), 90, 0, 16);
+
+        for(const s of sites) {
+            noSplit.push(new Vector2(s.x, s.y));
+        }
+
+        generateCircle(sites, exclusion, new Vector2(0, 0), 80, 0, 8);
 
         // generate grid blocks
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(0).radians(), 4);
+            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(45).radians(), 4);
         }
 
+        noSplit.push(new Vector2(395 - 65, 275));
+
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 405), 65, Angle.FromDegrees(0).radians(), 4);
+            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 405), 65, Angle.FromDegrees(45).radians(), 4);
         }
+
+        noSplit.push(new Vector2(395 - 65, 405));
 
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 275), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
+        noSplit.push(new Vector2(-395 + 65, 275));
+
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 405), 65, Angle.FromDegrees(0).radians(), 4);
         }
+
+        noSplit.push(new Vector2(-395 + 65, 405));
 
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(395 - 65 * i, -275), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
+        noSplit.push(new Vector2(395 - 65, -275));
+
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(395 - 65 * i, -405), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
-        for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -275), 65, Angle.FromDegrees(0).radians(), 4);
-        }
+        noSplit.push(new Vector2(395 - 65, -405));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -405), 65, Angle.FromDegrees(0).radians(), 4);
+            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -275), 65, Angle.FromDegrees(45).radians(), 4);
         }
+
+        noSplit.push(new Vector2(-395 + 65, -275));
+
+        for (let i = 0; i < 4; ++i) {
+            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -405), 65, Angle.FromDegrees(45).radians(), 4);
+        }
+
+        noSplit.push(new Vector2(-395 + 65, -405));
 
         // generate other circles
         generateCircle(sites, exclusion, new Vector2(0, 275 + 65), 80, 0, 5);
         generateCircle(sites, exclusion, new Vector2(0, -275 - 65), 80, Angle.FromDegrees(180).radians(), 5);
 
+        noSplit.push(new Vector2(0, 275 + 65));
+        noSplit.push(new Vector2(0, -275 - 65));
+
         generateCircle(sites, exclusion, new Vector2(-275 - 65, 0), 90, 0, 6);
         generateCircle(sites, exclusion, new Vector2(275 + 65, 0), 90, Angle.FromDegrees(90).radians(), 6);
+
+        noSplit.push(new Vector2(275 + 65, 0));
+        noSplit.push(new Vector2(-275 - 65, 0));
 
         generateRandomSites(sites, exclusion, 200, 663);
  
@@ -395,89 +625,30 @@ export default function GenerateMap() {
                     land.points.push(new Vector2(halfedge.edge.vb.x, halfedge.edge.vb.y));
             }
 
+            for (const p of noSplit) {
+                if(land.center.equalsWithEpsilon(p)) land.dontSplit = true;
+            }
+
             landArray.push(land);
         }
 
         for(const land of landArray) {
-            land.straightSkeleton(2.5);
-        }
-
-        const clipAgainst = (poly: Polygon, land: Land): Land[] => {
-
-            // TEMP: skip clip
-            /*const nl = new Land();
-            // need to get points in reverse
-            for(let i = poly[0].length-1; i >= 0 ; --i) {
-                const p = poly[0][i];
-                nl.points.push(new Vector2(p[0], p[1]));
-            }
-            nl.center = nl.centroid();
-            return nl;*/
-
-            try{
-                const res = intersection(land.pointsToPolygon(), poly)
-
-                const landArr: Land[] = [];
-                for (const resP of res) {
-                //if(res.length === 1) {
-                    const nl = new Land();
-                    // need to get points in reverse
-                    for(let i = resP[0].length-1; i > 0 ; --i) {
-                        const p = resP[0][i];
-                        nl.points.push(new Vector2(p[0], p[1]));
-                    }
-                    nl.center = nl.centroid();
-                    landArr.push(nl);
-                }
-                return landArr;
-            } catch(e: any) { console.log(e); console.log(poly); console.log(land); }
-
-            return [];
-        }
-
-        const generateGrid = (land: Land): Polygon[] => {
-            // compute bounds
-            let min = new Vector2(Infinity, Infinity);
-            let max = new Vector2(-Infinity, -Infinity);
-            for (const p of land.points) {
-                min = Vector2.Minimize(p, min);
-                max = Vector2.Maximize(p, max);
-            }
-            const safeEps = 0.00001;
-            min.subtractInPlace(new Vector2(safeEps, safeEps));
-            max.addInPlace(new Vector2(safeEps, safeEps));
-
-            const extent = max.subtract(min);
-            const gridSize = new Vector2(Math.ceil(extent.x / 25), Math.ceil(extent.y / 25));
-            const spacing = new Vector2(extent.x / gridSize.x, extent.y / gridSize.y);
-            
-            const grid: Polygon[] = [];
-
-            for (let i = 0; i < gridSize.x; ++i) {
-                for (let j = 0; j < gridSize.y; ++j) {
-                    const pos = new Vector2(min.x + spacing.x * i + spacing.x / 2, min.y + spacing.y * j + spacing.y / 2);
-
-                    const poly: Polygon = [[
-                        [spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
-                        [-spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
-                        [-spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
-                        [spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
-                        //[spacing.x / 2 + pos.x, spacing.y / 2 + pos.y]
-                    ]];
-
-                    grid.push(poly);
-                }
-            }
-
-            return grid;
+            land.straightSkeleton(3.5);
         }
 
         // TODO: tesselate large cells into grids.
+        const prando = new Prando(1234);
         const clippedLand: Land[] = []
 
         for(const land of landArray) {
+            if(land.dontSplit) {
+                clippedLand.push(land);
+                console.log("didn't split")
+                continue;
+            }
+
             // TODO: exclude certain cells from clipping, by area or id.
-            const grid = generateGrid(land);
+            const grid = generateGrid(land, prando, draw);
 
             for (const poly of grid) {
                 const nl = clipAgainst(poly, land);
@@ -486,7 +657,7 @@ export default function GenerateMap() {
         }
 
         for(const land of clippedLand) {
-            land.straightSkeleton(2.5);
+            land.straightSkeleton(3);
             if(land.isValid()) {
                 draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor);
                 const centroid = land.centroid();
