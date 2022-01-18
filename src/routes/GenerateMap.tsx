@@ -460,7 +460,7 @@ export default function GenerateMap() {
 
             places.push(createPlaceTokenMetadata({
                 name: `Place #${places.length}`,
-                description: `${curr.area()} \u33A1`,
+                description: `${curr.area().toFixed(2)} \u33A1`,
                 minter: walletphk,
                 center_coordinates: [centroid.x, 0, centroid.y],
                 border_coordinates: pointsrel
