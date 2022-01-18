@@ -210,23 +210,25 @@ export default class Place {
         }
 
         // try to save items.
-        // TODO: figure out removals.
         const children = this.itemsNode.getChildren();
         const add_children = new Array<Node>();
+        const remove_children = new Array<Node>();
 
         children.forEach((child) => {
             if(child.metadata.id === undefined) {
                 add_children.push(child);
+            } else if(child.metadata.markForRemoval === true) {
+                remove_children.push(child);
             }
         });
 
-        if (add_children.length === 0) {
+        if (add_children.length === 0 && remove_children.length === 0) {
             // TODO: probably should throw exceptions here.
             if(isDev()) console.log("Nothing to save");
             return;
         }
 
-        Contracts.saveItems(new Array<any>(), add_children, this.placeId).then(() => {
+        Contracts.saveItems(remove_children, add_children, this.placeId).then(() => {
             this.loadItems();
         });
     }

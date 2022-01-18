@@ -151,6 +151,13 @@ class Contracts {
 
       const wallet_phk = await this.walletPHK();
 
+      // build remove item list
+      const remove_item_list: number[] = [];
+      remove.forEach( (item) => {
+        remove_item_list.push(item.metadata.id);
+      });
+
+      // build add item list
       const add_item_list: object[] = [];
       const item_set = new Set<number>();
       add.forEach( (item) => {
@@ -180,6 +187,7 @@ class Contracts {
         item_set.add(item_id);
       });
 
+      // build operator add/remove lists
       const operator_adds: object[] = [];
       const operator_removes: object[] = [];
 
@@ -201,22 +209,33 @@ class Contracts {
         });
       });
 
-      const batch = this.wallet().batch([
-        {
-          kind: OpKind.TRANSACTION,
-          ...itemsWallet.methods.update_operators(operator_adds).toTransferParams()
-        },
-        {
-          kind: OpKind.TRANSACTION,
-          ...marketplacesWallet.methodsObject.place_items({
-            lot_id: place_id, item_list: add_item_list
-          }).toTransferParams()
-        },
-        {
-          kind: OpKind.TRANSACTION,
-          ...itemsWallet.methods.update_operators(operator_removes).toTransferParams()
-        }
-      ]);
+      // prepare batch
+      const batch = this.wallet().batch();
+      
+      if(operator_adds.length > 0) batch.with([{
+        kind: OpKind.TRANSACTION,
+        ...itemsWallet.methods.update_operators(operator_adds).toTransferParams()
+      }]);
+
+      // removals first. because of item limit.
+      if(remove_item_list.length > 0) batch.with([{
+        kind: OpKind.TRANSACTION,
+        ...marketplacesWallet.methodsObject.remove_items({
+          lot_id: place_id, item_list: remove_item_list
+        }).toTransferParams()
+      }]);
+
+      if(add_item_list.length > 0) batch.with([{
+        kind: OpKind.TRANSACTION,
+        ...marketplacesWallet.methodsObject.place_items({
+          lot_id: place_id, item_list: add_item_list
+        }).toTransferParams()
+      }]);
+
+      if(operator_removes.length > 0) batch.with([{
+        kind: OpKind.TRANSACTION,
+        ...itemsWallet.methods.update_operators(operator_removes).toTransferParams()
+      }]);
 
       const batch_op = await batch.send();
       await batch_op.confirmation();

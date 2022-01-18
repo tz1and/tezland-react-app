@@ -66,7 +66,7 @@ export default class PickingGuiController {
     }
 
     // TODO: do I even need this?
-    private getInstanceRoot(node: Node): Nullable<Node> {
+    private getInstanceRoot(node: Nullable<Node>): Nullable<Node> {
         let parent: Nullable<Node> = node;
         while(parent) {
             if(parent.metadata && parent.metadata.itemTokenId) return parent;
@@ -79,6 +79,10 @@ export default class PickingGuiController {
         const root = this.getInstanceRoot(node);
         if(root) return root.metadata;
         return null;
+    }
+
+    public getCurrentItem(): Nullable<Node> {
+        return this.getInstanceRoot(this.current_node);
     }
 
     async updatePickingGui(node: Nullable<TransformNode>, distance: number) {

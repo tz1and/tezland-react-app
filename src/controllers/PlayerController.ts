@@ -167,6 +167,21 @@ export default class PlayerController {
                     case 'KeyC': // Clear item selection
                         this.setCurrentItem();
                         break;
+
+                    case 'Delete': // Mark item for deletion
+                        const current_item = this.pickingGui.getCurrentItem();
+                        if(current_item) {
+                            // If the item is unsaved, remove it directly.
+                            if(current_item.metadata.id === undefined) {
+                                current_item.dispose();
+                            }
+                            // Otherwise mark it for removal.
+                            else {
+                                current_item.metadata.markForRemoval = true;
+                                current_item.setEnabled(false);
+                            }
+                        }
+                        break;
                 }
             }
 
