@@ -30,10 +30,28 @@ class Land {
     }
 
     isValid(): boolean {
+        if(this.points.length < 3) return false;
+        if(this.area() < 18) return false;
+
         for (const p of this.points)
             if (!isFinite(p.x) || !isFinite(p.y)) return false;
 
         return true;
+    }
+
+    private signedArea(data: number[], start: number, end: number, dim: number) {
+        var sum = 0;
+        for (var i = start, j = end - dim; i < end; i += dim) {
+            sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
+            j = i;
+        }
+        return sum;
+    }
+
+    area(): number {
+        const verts = this.pointsToArray();
+        var polygonArea = Math.abs(this.signedArea(verts, 0, verts.length, 2));
+        return polygonArea;
     }
 
     pointsToArray(): number[] {
@@ -324,7 +342,7 @@ export default function GenerateMap() {
         }
     }
 
-    const clipAgainst = (poly: Polygon, land: Land): Land[] => {
+    const clipAgainst = (land: Land, poly: Polygon): Land[] => {
 
         // TEMP: skip clip
         /*const nl = new Land();
@@ -448,6 +466,10 @@ export default function GenerateMap() {
                 border_coordinates: pointsrel
             }));
         };
+
+        console.log("valid places", places.length);
+
+        return; // TEMP
 
         // Upload all places metadata
         const place_meta_files = await upload_places(places);
@@ -642,27 +664,36 @@ export default function GenerateMap() {
 
         for(const land of landArray) {
             if(land.dontSplit) {
+                land.straightSkeleton(3);
                 clippedLand.push(land);
                 console.log("didn't split")
                 continue;
             }
 
-            // TODO: exclude certain cells from clipping, by area or id.
+            //draw.polygon(land.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
+
             const grid = generateGrid(land, prando, draw);
 
             for (const poly of grid) {
-                const nl = clipAgainst(poly, land);
-                clippedLand.push(...nl);
+                const newland = clipAgainst(land, poly);
+
+                // shrink then clip again to get rid of some of the weird ones
+                newland.forEach((l) => {
+                    l.straightSkeleton(3);
+                    if(l.isValid()) {
+                        const properLand = clipAgainst(l, poly);
+                        clippedLand.push(...properLand);
+                    }
+                });
             }
         }
 
         for(const land of clippedLand) {
-            land.straightSkeleton(3);
             if(land.isValid()) {
-                draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor);
+                draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor).attr({'stroke-width': 0.5});
                 const centroid = land.centroid();
-                draw.circle(3).stroke(strokeColor).fill(strokeColor).move(centroid.x - 1.5, centroid.y - 1.5)
-                draw.circle(3).stroke('blue').fill('blue').move(land.center.x - 1.5, land.center.y - 1.5)
+                draw.circle(1).stroke(strokeColor).fill(strokeColor).move(centroid.x - 0.5, centroid.y - 0.5)
+                //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5)
             }
         }
 
@@ -671,7 +702,7 @@ export default function GenerateMap() {
         }*/
 
         console.log("Number of places (incl invalid): ", clippedLand.length);
-        //mintPlaces(clippedLand);
+        mintPlaces(clippedLand);
 
         state.svg = draw.svg();
     });
