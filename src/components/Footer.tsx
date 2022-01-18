@@ -13,8 +13,8 @@ export default function Frontpage() {
                     <h5>Virtual World</h5>
                     <ul className="list-unstyled text-small">
                         <li><Link to="/explore" className="link-secondary">Explore</Link></li>
-                        <li><Link to="/map" className="link-secondary">Map</Link></li>
                         <li><Link to="/auctions" className="link-secondary">Land Auctions</Link></li>
+                        <li><Link to="/map" className="link-secondary">Map</Link></li>
                     </ul>
                 </div>
                 <div className="col-6 col-md">
