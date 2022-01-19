@@ -93,3 +93,7 @@ export const dataURItoBlob = (dataURI: string): Blob => {
 export const truncate = (str: string, n: number, ellip?: string) => {
   return (str.length > n) ? str.substring(0, n-1) + (ellip ? ellip :'&hellip;') : str;
 };
+
+export const sleep = (milliseconds: number) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+};

@@ -22,6 +22,9 @@ export default class Place {
     get itemsNode() { return this._itemsNode; }
     private set itemsNode(val: Nullable<TransformNode>) { this._itemsNode = val; }
 
+    private owner: string;
+
+    // TODO: misnomer: isOwnedOrOperated
     private _isOwned: boolean;
     get isOwned() { return this._isOwned; }
     private set isOwned(val: boolean) { this._isOwned = val; }
@@ -33,6 +36,7 @@ export default class Place {
         this.origin = new Vector3();
         this._itemsNode = null;
         this._isOwned = false;
+        this.owner = "";
     }
 
     public async load() {
@@ -91,7 +95,8 @@ export default class Place {
 
             this.placeBounds = placeBounds;
 
-            this.isOwned = await Contracts.isPlaceOwner(this.placeId);
+            this.owner = await Contracts.getPlaceOwner(this.placeId);
+            this.isOwned = await Contracts.isPlaceOwnerOrOperator(this.placeId, this.owner);
 
             this.world.playerController.playerTrigger.actionManager?.registerAction(
                 new ExecuteCodeAction(
@@ -228,7 +233,7 @@ export default class Place {
             return;
         }
 
-        Contracts.saveItems(remove_children, add_children, this.placeId).then(() => {
+        Contracts.saveItems(remove_children, add_children, this.placeId, this.owner).then(() => {
             this.loadItems();
         });
     }

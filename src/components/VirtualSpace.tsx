@@ -2,6 +2,7 @@ import React from 'react';
 import { World } from '../world/World'
 import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
+import { sleep } from '../tz/Utils';
 
 type VirtualSpaceProps = {
   appControl: AppControlFunctions;
@@ -45,14 +46,17 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     this.world = new World(this.mount!, this.props.appControl);
 
     (async () => {
+      // this is all really temporary anyway.
       if(!this.world) return;
+
+      await sleep(1000);
 
       await this.world.loadPlace(0);
       await this.world.loadPlace(1);
       await this.world.loadPlace(2);
       await this.world.loadPlace(3);
 
-      //for(let i = 4; i < 206; ++i)
+      //for(let i = 4; i < 1526; ++i)
       //  await this.world.loadPlace(i);
 
       const place = this.world.places.get(3);

@@ -6,6 +6,7 @@ import Conf from "../Config";
 import { isDev, tezToMutez, toHexString } from "./Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
+import axios from "axios";
 
 
 class Contracts {
@@ -52,10 +53,10 @@ class Contracts {
 
     public async initWallet() {
       if(isDev()) console.log("trying to connect wallet");
-      const available = await TempleWallet.isAvailable();
-      if (!available) {
-        throw new Error("Temple Wallet not installed");
-      }
+      //const available = await TempleWallet.isAvailable();
+      //if (!available) {
+      //  throw new Error("Temple Wallet not installed");
+      //}
 
       const wallet = new TempleWallet(isDev() ? 'TezlandApp-dev': 'TezlandApp');
       await wallet.connect({ name: "sandboxlocal", rpc: Conf.tezos_node });
@@ -63,17 +64,50 @@ class Contracts {
       //this.tk.setProvider({ signer: signer });
     }
 
-    public async isPlaceOwner(place_id: number): Promise<boolean> {
-      // use get_balance on-chain view.
+    public async getPlaceOwner(place_id: number): Promise<string> {
+      const responseP = await axios.get(`${Conf.bcd_url}/v1/contract/${Conf.tezos_network}/${Conf.place_contract}/transfers?token_id=${place_id}&size=1`);
+      const transferInfo = responseP.data;
+
+      if(transferInfo.total > 0) return transferInfo.transfers[0].to;
+
+      return "";
+    }
+
+    private async isPlaceOwner(place_id: number): Promise<boolean> {
+      // check if wallet is connected before calling walletPHK
+      if(!await this.isWalletConnected()) return false;
+
       if(!this.places)
         this.places = await this.tk.contract.at(Conf.place_contract);
 
-      // check if wallet is connected before callign walletPHK
-      if(!await this.isWalletConnected()) return false;
-
+      // use get_balance on-chain view.
       const balanceRes = await this.places.contractViews.get_balance({ owner: await this.walletPHK(), token_id: place_id }).executeView({viewCaller: this.places.address});
 
       return !balanceRes.isZero();
+    }
+
+    private async isPlaceOperator(place_id: number, owner: string): Promise<boolean> {
+      // check if wallet is connected before calling walletPHK
+      if(!await this.isWalletConnected()) return false;
+
+      if(!this.places)
+        this.places = await this.tk.contract.at(Conf.place_contract);
+
+      // use is_operator on-chain view.
+      const isOperatorRes = await this.places.contractViews.is_operator({ operator: await this.walletPHK(), owner: owner, token_id: place_id }).executeView({viewCaller: this.places.address});
+
+      console.log(isOperatorRes);
+
+      return isOperatorRes;
+    }
+
+    public async isPlaceOwnerOrOperator(place_id: number, owner: string): Promise<boolean> {
+      // check if wallet is connected before calling walletPHK
+      if(!await this.isWalletConnected()) return false;
+
+      if(await this.walletPHK() === owner) return true;
+
+      return this.isPlaceOperator(place_id, owner);
     }
 
     public async mintItem(item_metadata_url: string, royalties: number, amount: number) {
@@ -143,7 +177,7 @@ class Contracts {
       //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
-    public async saveItems(remove: Node[], add: Node[], place_id: number) {
+    public async saveItems(remove: Node[], add: Node[], place_id: number, owner: string) {
       const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
       const itemsWallet = await this.tk.wallet.at(Conf.item_contract);
 
@@ -221,14 +255,14 @@ class Contracts {
       if(remove_item_list.length > 0) batch.with([{
         kind: OpKind.TRANSACTION,
         ...marketplacesWallet.methodsObject.remove_items({
-          lot_id: place_id, item_list: remove_item_list
+          lot_id: place_id, item_list: remove_item_list, owner: owner
         }).toTransferParams()
       }]);
 
       if(add_item_list.length > 0) batch.with([{
         kind: OpKind.TRANSACTION,
         ...marketplacesWallet.methodsObject.place_items({
-          lot_id: place_id, item_list: add_item_list
+          lot_id: place_id, item_list: add_item_list, owner: owner
         }).toTransferParams()
       }]);
 

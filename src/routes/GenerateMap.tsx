@@ -10,9 +10,7 @@ import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import Prando from 'prando';
 import { intersection, Polygon, Ring } from 'polygon-clipping'; // TODO
 import { Matrix2D } from "@babylonjs/gui";
-const sleep = (milliseconds: number) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
+import { sleep } from "../tz/Utils";
 
 type GenerateMapState = {
     svg?: string;
