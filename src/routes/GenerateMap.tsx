@@ -631,7 +631,7 @@ export default function GenerateMap() {
  
         const diagram: Diagram = voronoi.compute(sites, bbox);
 
-        const landArray: Land[] = []
+        var landArray: Land[] = []
 
         for(const cell of diagram.cells) {
             const land = new Land();
@@ -652,6 +652,10 @@ export default function GenerateMap() {
 
             landArray.push(land);
         }
+
+        // Sort original sites by distance to center
+        const center = new Vector2();
+        landArray = landArray.sort((a, b) => a.center.subtract(center).length() - b.center.subtract(center).length());
 
         for(const land of landArray) {
             land.straightSkeleton(3.5);
