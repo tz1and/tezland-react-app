@@ -88,6 +88,7 @@ export class World {
         ground.material = this.defaultMaterial;
         ground.checkCollisions = true;
         ground.receiveShadows = true;
+        ground.position.y = -0.01;
 
         let skyMaterial = new SkyMaterial("skyMaterial", this.scene);
         skyMaterial.backFaceCulling = false;

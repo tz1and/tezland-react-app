@@ -1,4 +1,5 @@
-import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node, TransformNode, Vector3, ExecuteCodeAction, ActionManager } from "@babylonjs/core";
+import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node,
+    TransformNode, Vector3, ExecuteCodeAction, ActionManager, Color3, Material } from "@babylonjs/core";
 
 import earcut from 'earcut';
 
@@ -9,6 +10,7 @@ import * as ipfs from "../ipfs/ipfs";
 import { fromHexString, isDev, mutezToTez, pointIsInside } from "../tz/Utils";
 import { World } from "./World";
 import Metadata from "./Metadata";
+import { SimpleMaterial } from "@babylonjs/materials";
 
 
 export default class Place {
@@ -16,6 +18,7 @@ export default class Place {
     private world: World;
 
     private placeBounds: Nullable<Mesh>;
+    private placeGround: Nullable<Mesh>;
     private origin: Vector3;
 
     private _itemsNode: Nullable<TransformNode>;
@@ -33,10 +36,36 @@ export default class Place {
         this.placeId = placeId;
         this.world = world;
         this.placeBounds = null;
+        this.placeGround = null;
         this.origin = new Vector3();
         this._itemsNode = null;
         this._isOwned = false;
         this.owner = "";
+    }
+
+    private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
+        const extrude = MeshBuilder.ExtrudePolygon(`placeBounds${this.placeId}`, {
+            shape: shape,
+            depth: depth
+        }, this.world.scene, earcut);
+
+        extrude.material = mat;
+        extrude.position = pos;
+        extrude.isPickable = false;
+
+        return extrude;
+    }
+
+    private polygonMeshFromShape(shape: Vector3[], pos: Vector3, mat: Material): Mesh {
+        const poly = MeshBuilder.CreatePolygon(`placeBounds${this.placeId}`, {
+            shape: shape
+        }, this.world.scene, earcut);
+
+        poly.material = mat;
+        poly.position = pos;
+        poly.isPickable = false;
+
+        return poly;
     }
 
     public async load() {
@@ -80,20 +109,15 @@ export default class Place {
             // TODO: make sure the place coordinates are going right around!
             shape = shape.reverse();
 
-            const placeBounds = MeshBuilder.ExtrudePolygon(`placeBounds${this.placeId}`, {
-                shape: shape,
-                depth: 11
-            }, this.world.scene, earcut);
-
             // TODO: store place build height in metadata!
+            // create bounds
+            this.placeBounds = this.extrudeMeshFromShape(shape, 11, new Vector3(this.origin.x, 10, this.origin.z),
+                this.world.transparentGridMat);
 
-            placeBounds.material = this.world.transparentGridMat;
-            placeBounds.position.x = this.origin.x;
-            placeBounds.position.y = 10;
-            placeBounds.position.z = this.origin.z;
-            placeBounds.isPickable = false;
-
-            this.placeBounds = placeBounds;
+            // create ground
+            this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this.origin.x, 0, this.origin.z),
+                new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
+            this.placeGround.receiveShadows = true;
 
             this.owner = await Contracts.getPlaceOwner(this.placeId);
             this.isOwned = await Contracts.isPlaceOwnerOrOperator(this.placeId, this.owner);
@@ -130,6 +154,9 @@ export default class Place {
         // Load items
         const items = await Contracts.getItemsForPlaceView(this.placeId);
 
+        if(this.placeGround)
+            (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
+
         // remove old place items if they exist.
         if(this.itemsNode) {
             this.itemsNode.dispose();
@@ -142,7 +169,7 @@ export default class Place {
         this.itemsNode.position = this.origin.clone();
 
         //items.forEach(async (element: any) => {
-        for (const element of items) {
+        for (const element of items.stored_items) {
             if(!element.data.item) continue;
 
             const item_id = element.data.item.item_id;

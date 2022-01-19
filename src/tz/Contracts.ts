@@ -158,14 +158,16 @@ class Contracts {
         const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
 
         const foreachPairs: { id: number; data: object }[] = [];
-        result.forEach((val: object, key: number) => {
+        result.stored_items.forEach((val: object, key: number) => {
           foreachPairs.push({ id: key, data: val });
         });
 
-        DataStorage.WriteString(stItemsKey, JSON.stringify(foreachPairs));
+        const place_data = { stored_items: foreachPairs, place_props: result.place_props }
+
+        DataStorage.WriteString(stItemsKey, JSON.stringify(place_data));
         DataStorage.WriteString(stSeqKey, seqRes);
 
-        return foreachPairs;
+        return place_data;
       } else { // Otherwise load items from storage
         if(isDev()) console.log("reading place from local storage");
         
