@@ -104,7 +104,7 @@ export default class PlayerController {
                     newObject.position = this.tempObject.position.subtract(parent.position);
                     newObject.rotationQuaternion = this.tempObjectRot.clone();
                     newObject.scaling = this.tempObject.scaling.clone();
-                    newObject.metadata = { itemTokenId: this.currentItem }
+                    newObject.metadata = { itemTokenId: this.currentItem, placeId: this.currentPlace.placeId }
 
                     shadowGenerator.addShadowCaster(newObject);
 
@@ -171,14 +171,17 @@ export default class PlayerController {
                     case 'Delete': // Mark item for deletion
                         const current_item = this.pickingGui.getCurrentItem();
                         if(current_item) {
-                            // If the item is unsaved, remove it directly.
-                            if(current_item.metadata.id === undefined) {
-                                current_item.dispose();
-                            }
-                            // Otherwise mark it for removal.
-                            else {
-                                current_item.metadata.markForRemoval = true;
-                                current_item.setEnabled(false);
+                            const place = world.places.get(current_item.metadata.placeId);
+                            if(place && place.isOwned) {
+                                // If the item is unsaved, remove it directly.
+                                if(current_item.metadata.id === undefined) {
+                                    current_item.dispose();
+                                }
+                                // Otherwise mark it for removal.
+                                else {
+                                    current_item.metadata.markForRemoval = true;
+                                    current_item.setEnabled(false);
+                                }
                             }
                         }
                         break;
