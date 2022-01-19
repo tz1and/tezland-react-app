@@ -252,11 +252,7 @@ export default class PlayerController {
         // update player trigger mesh position.
         this.playerTrigger.position.set(this.camera.position.x, this.camera.position.y - 0.9, this.camera.position.z);
 
-        // following from here, stuff is relating to placing items.
-        // we can early out if there is no current place.
-        // TODO: pretty sure this doesn't do anything.
-        if(!this.currentPlace) return;
-
+        // cast a ray for picking guy and item placing
         const hit = this.scene.pickWithRay(this.camera.getForwardRay());
 
         if(this.tempObject) {
@@ -265,7 +261,7 @@ export default class PlayerController {
                 this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
             }
 
-            if(this.currentPlace.isOwned && this.currentPlace.isInBounds(this.tempObject)) {
+            if(this.currentPlace && this.currentPlace.isOwned && this.currentPlace.isInBounds(this.tempObject)) {
                 this.tempObject.setEnabled(true);
                 //this.tempObject.material!.alpha = 1;
             } else {

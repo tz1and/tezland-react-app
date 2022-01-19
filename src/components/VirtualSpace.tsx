@@ -58,9 +58,6 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
       //for(let i = 4; i < 1526; ++i)
       //  await this.world.loadPlace(i);
-
-      const place = this.world.places.get(3);
-      if(place) this.world.playerController.setCurrentPlace(place);
     })();
   }
 
