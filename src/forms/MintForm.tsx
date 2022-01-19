@@ -9,7 +9,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { upload_model, upload_item_metadata, upload_thumbnail } from '../ipfs/ipfs'
-import { dataURItoBlob, readFileAsync } from '../tz/Utils';
+import { dataURItoBlob, getFileExt, readFileAsync } from '../tz/Utils';
 
 interface MintFormValues {
     itemTitle: string;
@@ -79,8 +79,17 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                         // TOOD: check modelPreviewRef.current
                         const thumbnail_url = await upload_thumbnail(dataURItoBlob(await modelPreviewRef.current!.getThumbnail()));
 
+                        var mime_type;
+                        const file_ext = getFileExt(values.itemFile!.name);
+                        if(file_ext === "glb") mime_type = "model/gltf-binary";
+                        else if(file_ext === "gltf") mime_type = "model/gltf+json";
+                        else throw new Error("Unsupported mimeType");
+
                         // upload metadata.
-                        const metadata_url = await upload_item_metadata(await Contracts.walletPHK(), values.itemTitle, values.itemDescription, values.itemTags, model_url, thumbnail_url);
+                        const metadata_url = await upload_item_metadata(
+                            await Contracts.walletPHK(), values.itemTitle,
+                            values.itemDescription, values.itemTags,
+                            model_url, thumbnail_url, mime_type);
 
                         // mint item.
                         await Contracts.mintItem(metadata_url, values.itemRoyalties, values.itemAmount);

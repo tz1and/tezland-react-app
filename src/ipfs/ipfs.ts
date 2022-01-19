@@ -15,12 +15,20 @@ export async function download_item(item_id: number, scene: Scene, parent: Nulla
 
         // remove ipfs:// from uri
         const hash = itemMetadata.artifact_uri.slice(7);
+        const mime_type = itemMetadata.formats[0].mimeType;
+
+        let plugin_ext;
+        if (mime_type === "model/gltf-binary")
+            plugin_ext = ".glb";
+        else if (mime_type === "model/gltf+json")
+            plugin_ext = ".gltf";
+        else throw new Error("Unsupported mimeType");
 
         // LoadAssetContainer?
         // TODO: get mimetype from metadata
         // TODO: store filetype in metadata!
         // TODO: figure out the proper way to stop animations.
-        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, '.glb');
+        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, plugin_ext);
 
         /*newMeshes.skeletons.forEach((sk) => {
             scene.removeSkeleton(sk);
@@ -91,6 +99,7 @@ interface ItemMetadata {
     modelUrl: string;
     thumbnailUrl: string;
     tags: string[];
+    formats: object[];
 }
 
 function createItemTokenMetadata(metadata: ItemMetadata) {
@@ -108,13 +117,14 @@ function createItemTokenMetadata(metadata: ItemMetadata) {
             symbol: 'Item',
             artifactUri: metadata.modelUrl,
             thumbnailUri: metadata.thumbnailUrl,
-            decimals: 0
+            decimals: 0,
+            formats: metadata.formats
         })
     )
 }
 
 export async function upload_item_metadata(minter_address: string, name: string,
-    description: string, tags: string, model_url: string, thumbnail_url: string): Promise<string> {
+    description: string, tags: string, model_url: string, thumbnail_url: string, mime_type: string): Promise<string> {
 
     // Process tags, trim, remove empty, etc.
     const tags_processed = new Array<string>();
@@ -129,7 +139,13 @@ export async function upload_item_metadata(minter_address: string, name: string,
         minter: minter_address,
         modelUrl: model_url,
         thumbnailUrl: thumbnail_url,
-        tags: tags_processed
+        tags: tags_processed,
+        formats: [
+            {
+                mimeType: mime_type,
+                uri: model_url
+            }
+        ]
     }));
 
     return `ipfs://${result.path}`;

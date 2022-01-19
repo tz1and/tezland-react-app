@@ -97,3 +97,7 @@ export const truncate = (str: string, n: number, ellip?: string) => {
 export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 };
+
+export const getFileExt = (filename: string) => {
+  return filename.substring(filename.lastIndexOf('.') + 1);
+}
