@@ -2,6 +2,7 @@ import { ActionManager, Camera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuild
 import assert from "assert";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
+import { isDev } from "../tz/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place from "../world/Place";
 import { World } from "../world/World";
@@ -214,28 +215,35 @@ export default class PlayerController {
 
         if (!this.currentItem) return;
 
-        this.tempObject = await ipfs.download_item(this.currentItem, this.scene, null) as Mesh;
-        this.tempObject.rotationQuaternion = this.tempObjectRot;
+        try {
+            this.tempObject = await ipfs.download_item(this.currentItem, this.scene, null) as Mesh;
+            this.tempObject.rotationQuaternion = this.tempObjectRot;
 
-        // set pickable false on the whole hierarchy.
-        this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
-        // throws an error for some reason.
-        //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
+            // set pickable false on the whole hierarchy.
+            this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
+            // throws an error for some reason.
+            //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
 
-        /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
-        //transparent_mat.alpha = 0.2;
-        //transparent_mat.disableLighting = true;
-        //transparent_mat.backFaceCulling = false;
-        transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
+            /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
+            //transparent_mat.alpha = 0.2;
+            //transparent_mat.disableLighting = true;
+            //transparent_mat.backFaceCulling = false;
+            transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
 
-        this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
-        this.tempObject.material = transparent_mat;
-        this.tempObject.isPickable = false;
-        //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
-        this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
+            this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
+            this.tempObject.material = transparent_mat;
+            this.tempObject.isPickable = false;
+            //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
+            this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
 
-        // make sure picking gui goes away.
-        this.pickingGui.updatePickingGui(null, 0);
+            // make sure picking gui goes away.
+            this.pickingGui.updatePickingGui(null, 0);
+        }
+        catch {
+            this.currentItem = undefined;
+
+            if (isDev()) console.log("failed to load item");
+        }
     }
 
     private updateController() {
