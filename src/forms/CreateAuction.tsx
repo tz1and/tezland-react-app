@@ -92,7 +92,7 @@ export const CreateAuctionForm: React.FC<CreateAuctionFormProps> = (props) => {
                                         <span className="input-group-text">{'\uA729'}</span>
                                         <Field id="endPrice" name="endPrice" type="number" className="form-control" aria-describedby="endPriceHelp" disabled={isSubmitting} />
                                     </div>
-                                    <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
+                                    <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.<br/>There is a 2.5% fee on successful swap.</div>
                                 </div>
                                 <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
                                 {state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {state.error}</span> )}
@@ -103,7 +103,7 @@ export const CreateAuctionForm: React.FC<CreateAuctionFormProps> = (props) => {
 
                 <div className='col-lg-4 col-md-6'>
                     <h2>Map Preview</h2>
-                    <MapContainer className="mb-2" style={{height: "20rem"}} center={[500, 500]} zoom={1} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
+                    <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[500, 500]} zoom={1} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
                         <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url="/img/map.svg" />
                     </MapContainer>
                     <small>Note: The the Place will be transferred to the auction contract. Auctions can be cancelled, but please make sure you really intend to create the auction.</small>

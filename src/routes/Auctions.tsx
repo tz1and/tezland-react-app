@@ -15,7 +15,7 @@ export default function Auctions() {
         <main>
             <div className="container text-start pt-4">
                 <h1>Active Land Auctions</h1>
-                <p>All auctions are dutch auctions, with the price lowering continually.</p>
+                <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price. Auctions can be cancelled by the creator before it's bought.</p>
                 <Link to='/auctions/create' className='btn btn-primary'>Create Auction</Link>
                 <hr/>
                 <div className="d-flex justify-content-left flex-wrap p-2">

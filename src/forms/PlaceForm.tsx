@@ -84,7 +84,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                     <span className="input-group-text">{'\uA729'}</span>
                                     <Field id="itemPrice" name="itemPrice" type="number" className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
                                 </div>
-                                <div id="priceHelp" className="form-text">The price for each item. 0 if not for sale.</div>
+                                <div id="priceHelp" className="form-text">The price for each item. Set 0&#42793; if not for sale.<br/>There is a 2.5% fee on successful swap.</div>
                                 {touched.itemPrice && errors.itemPrice && <small className="text-danger">{errors.itemPrice}</small>}
                             </div>
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>
