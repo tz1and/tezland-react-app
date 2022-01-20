@@ -1,4 +1,5 @@
 import React from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction from '../components/Auction'
 import { fetchGraphQL } from '../ipfs/graphql';
@@ -7,7 +8,9 @@ import { isDev } from '../tz/Utils';
 type AuctionsProps = {}
 
 type AuctionsState = {
-    auctions: any[]
+    auctions: any[],
+    auction_offset: number,
+    more_data: boolean
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
@@ -15,14 +18,18 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     constructor(props: AuctionsProps) {
         super(props);
         this.state = {
-            auctions: []
+            auctions: [],
+            auction_offset: 0,
+            more_data: true
         };
     }
 
+    private fetchAmount: number = 16;
+
     async getAuctions() {
         const { errors, data } = await fetchGraphQL(`
-            query getAuctions {
-                dutchAuction(limit: 10, order_by: {id: desc}) {
+            query getAuctions($offset: Int!, $amount: Int!) {
+                dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
                     endPrice
                     endTime
                     id
@@ -31,7 +38,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     startTime
                     tokenId
                 }
-            }`, "getAuctions");
+            }`, "getAuctions", { amount: this.fetchAmount, offset: this.state.auction_offset });
+        
         if(errors) {
             if(isDev()) console.log(errors);
             throw new Error("Query failed");
@@ -45,7 +53,23 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     reloadAuctions() {
         this.getAuctions().then((res) => {
-            this.setState({ auctions: res });
+            const more_data = res.length == this.fetchAmount;
+            this.setState({
+                auctions: res,
+                auction_offset: this.fetchAmount,
+                more_data: more_data
+            });
+        });
+    }
+
+    fetchMoreData() {
+        this.getAuctions().then((res) => {
+            const more_data = res.length == this.fetchAmount;
+            this.setState({
+                auctions: this.state.auctions.concat(res),
+                auction_offset: this.state.auction_offset + this.fetchAmount,
+                more_data: more_data
+            });
         });
     }
 
@@ -74,9 +98,21 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <p>Price drops once every 60 seconds.</p>
                     <Link to='/auctions/create' className='btn btn-primary'>Create Auction</Link>
                     <hr/>
-                    <div className="d-flex justify-content-left flex-wrap p-2">
+                    <InfiniteScroll
+                        className="d-flex justify-content-left flex-wrap p-2"
+                        dataLength={this.state.auctions.length} //This is important field to render the next data
+                        next={this.fetchMoreData.bind(this)}
+                        hasMore={this.state.more_data}
+                        loader={<h4>Loading...</h4>}
+                        scrollThreshold={1}
+                        endMessage={
+                            <div className="d-flex justify-content-left flex-wrap p-2">
+                                That's all of them.
+                            </div>
+                        }
+                    >
                         {rows}
-                    </div>
+                    </InfiniteScroll>
                 </div>
 
             </main>
