@@ -15,17 +15,16 @@ type VirtualSpaceState = {
 };
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
-  state: VirtualSpaceState = {
-    // optional second annotation for better type inference
-    //count: 0,
-    //mount: null
-  };
-
   private mount: HTMLCanvasElement | null;
   private world: World | null;
 
   constructor(props: VirtualSpaceProps) {
     super(props);
+    this.state = {
+      // optional second annotation for better type inference
+      //count: 0,
+      //mount: null
+    };
     this.mount = null
     this.world = null;
   }
@@ -56,7 +55,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
       await this.world.loadPlace(2);
       await this.world.loadPlace(3);
 
-      //for(let i = 4; i < 1526; ++i)
+      //for(let i = 4; i < 90; ++i)
       //  await this.world.loadPlace(i);
     })();
   }

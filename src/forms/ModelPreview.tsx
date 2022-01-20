@@ -83,19 +83,18 @@ class PreviewScene {
 }
 
 class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState> {
-    state: ModelPreviewState = {
-        // optional second annotation for better type inference
-        loading: false,
-        thumbnail: null
-        //count: 0,
-        //mount: null
-    };
-
     private mount: HTMLCanvasElement | null;
     private preview: PreviewScene | null;
 
     constructor(props: ModelPreviewProps) {
         super(props);
+        this.state = {
+            // optional second annotation for better type inference
+            loading: false,
+            thumbnail: null
+            //count: 0,
+            //mount: null
+        };
         this.mount = null
         this.preview = null;
       }

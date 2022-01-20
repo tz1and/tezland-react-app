@@ -18,15 +18,18 @@ type AppState = {
 };
 
 class App extends React.Component<AppProps, AppState> {
-    state: AppState = {
-        show_form: 'none',
-        dispaly_overlay: true,
-        placedItem: null
-        // optional second annotation for better type inference
-        //count: 0,
-    };
-
     private virtualSpaceRef = React.createRef<VirtualSpace>();
+
+    constructor(props: AppProps) {
+        super(props);
+        this.state = {
+            show_form: 'none',
+            dispaly_overlay: true,
+            placedItem: null
+            // optional second annotation for better type inference
+            //count: 0,
+        };
+    }
 
     loadForm(form_type: string) {
         this.setState({ show_form: form_type, dispaly_overlay: true });

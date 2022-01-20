@@ -11,9 +11,13 @@ type AuctionsState = {
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
-    state: AuctionsState = {
-      auctions: []
-    };
+
+    constructor(props: AuctionsProps) {
+        super(props);
+        this.state = {
+            auctions: []
+        };
+    }
 
     async getAuctions() {
         const { errors, data } = await fetchGraphQL(`

@@ -665,7 +665,11 @@ export default function GenerateMap() {
         const prando = new Prando(1234);
         const clippedLand: Land[] = []
 
+        let land_limit_counter = 0;
+        let land_limit = Infinity;
         for(const land of landArray) {
+            if(land_limit_counter > land_limit) break;
+
             if(land.dontSplit) {
                 land.straightSkeleton(3);
                 clippedLand.push(land);
@@ -689,6 +693,8 @@ export default function GenerateMap() {
                     }
                 });
             }
+
+            land_limit_counter++;
         }
 
         for(const land of clippedLand) {
