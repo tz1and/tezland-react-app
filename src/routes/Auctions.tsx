@@ -14,6 +14,7 @@ type AuctionsState = {
 
 // TODO: when new auction was added, it might add elements with duplicate keys.
 // find a way to avoid that. maybe a map?
+// With a map I can also remove an item in reloadAuctions
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
@@ -29,7 +30,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     private fetchAmount: number = 8;
     private firstFetchDone: boolean = false;
 
-    private async getAuctions() {
+    private async getAuctions(offset: number) {
         const data = await fetchGraphQL(`
             query getAuctions($offset: Int!, $amount: Int!) {
                 dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
@@ -41,7 +42,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     startTime
                     tokenId
                 }
-            }`, "getAuctions", { amount: this.fetchAmount, offset: this.state.auction_offset });
+            }`, "getAuctions", { amount: this.fetchAmount, offset: offset });
         
         return data.dutchAuction;
     }
@@ -51,7 +52,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     private reloadAuctions() {
-        this.getAuctions().then((res) => {
+        this.getAuctions(0).then((res) => {
             const more_data = res.length === this.fetchAmount;
             this.setState({
                 auctions: res,
@@ -64,7 +65,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     private fetchMoreData() {
         if(this.firstFetchDone) {
-            this.getAuctions().then((res) => {
+            this.getAuctions(this.state.auction_offset).then((res) => {
                 const more_data = res.length === this.fetchAmount;
                 this.setState({
                     auctions: this.state.auctions.concat(res),
