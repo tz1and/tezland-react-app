@@ -3,7 +3,7 @@ import { MapContainer, ImageOverlay, Circle, Polygon } from 'react-leaflet'
 import L from 'leaflet';
 import './Auction.css'
 import 'leaflet/dist/leaflet.css';
-import { mutezToTez } from '../tz/Utils';
+import { mutezToTez, signedArea } from '../tz/Utils';
 import Contracts from '../tz/Contracts';
 import { MapSetCenter } from '../forms/CreateAuction';
 import React from 'react';
@@ -26,7 +26,8 @@ type AuctionState = {
     updateCount: number,
     mapLocation: [number, number],
     placePoly: [number, number][],
-    placeCoords: [number, number]
+    placeCoords: [number, number],
+    placeArea: number
 }
 
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
@@ -36,7 +37,8 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
             updateCount: 0,
             mapLocation: [500, 500],
             placePoly: [],
-            placeCoords: [0, 0]
+            placeCoords: [0, 0],
+            placeArea: 0,
         };
         this.updateTimeVars();
     }
@@ -88,16 +90,19 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
             const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
 
             const polygon = res.token_info.border_coordinates;
-            const placePoly: [number, number][] = []
+            const placePoly: [number, number][] = [];
+            const areaPoly: number[] = [];
             for(const pos of polygon)
             {
                 placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
+                areaPoly.push(pos[0], pos[2]);
             }
 
             this.setState({
                 mapLocation: center_pos,
                 placePoly: placePoly,
-                placeCoords: [coords[0], coords[2]]
+                placeCoords: [coords[0], coords[2]],
+                placeArea: Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2))
             });
         })
     }
@@ -126,7 +131,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <h4 className="text-center mb-0">Place #{this.props.tokenId}</h4>
                     <small className='text-center d-block mb-0'>Auction #{this.props.auctionId}</small>
                 </div>
-                <MapContainer className="auction-img" center={[500, 500]} zoom={1} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
+                <MapContainer className="auction-img" center={[500, 500]} zoom={2} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
                     <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url="/img/map.svg" />
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
@@ -138,7 +143,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     </div>
 
                     <p className='small'>
-                        Land area: 100 m<sup>2</sup><br/>
+                        Land area: {this.state.placeArea.toFixed(2)} m<sup>2</sup><br/>
                         Current owner: <a href={`https://tzkt.io/${this.props.owner}`} target='_blank' rel='noreferrer'>{this.props.owner.substring(0,12)}...</a><br/>
                         Start price: {mutezToTez(this.props.startPrice).toNumber()} &#42793;<br/>
                         End price: {mutezToTez(this.props.endPrice).toNumber()} &#42793;<br/>

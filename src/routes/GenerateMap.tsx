@@ -8,9 +8,9 @@ import { OpKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import Prando from 'prando';
-import { intersection, Polygon, Ring } from 'polygon-clipping'; // TODO
+import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { Matrix2D } from "@babylonjs/gui";
-import { sleep } from "../tz/Utils";
+import { signedArea, sleep } from "../tz/Utils";
 
 type GenerateMapState = {
     svg?: string;
@@ -37,18 +37,9 @@ class Land {
         return true;
     }
 
-    private signedArea(data: number[], start: number, end: number, dim: number) {
-        var sum = 0;
-        for (var i = start, j = end - dim; i < end; i += dim) {
-            sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
-            j = i;
-        }
-        return sum;
-    }
-
     area(): number {
         const verts = this.pointsToArray();
-        var polygonArea = Math.abs(this.signedArea(verts, 0, verts.length, 2));
+        var polygonArea = Math.abs(signedArea(verts, 0, verts.length, 2));
         return polygonArea;
     }
 
@@ -57,6 +48,16 @@ class Land {
 
         this.points.forEach((p) => {
             arr.push(p.x, p.y);
+        })
+
+        return arr;
+    }
+
+    pointsToArraySvg(): number[] {
+        const arr: number[] = []
+
+        this.points.forEach((p) => {
+            arr.push(-p.x, p.y);
         })
 
         return arr;
@@ -697,6 +698,7 @@ export default function GenerateMap() {
             land_limit_counter++;
         }
 
+        // TODO: figure out which way to flip the map...
         for(const land of clippedLand) {
             if(land.isValid()) {
                 draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor).attr({'stroke-width': 0.5});

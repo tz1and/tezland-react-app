@@ -101,3 +101,12 @@ export const sleep = (milliseconds: number) => {
 export const getFileExt = (filename: string) => {
   return filename.substring(filename.lastIndexOf('.') + 1);
 }
+
+export const signedArea = (data: number[], start: number, end: number, dim: number) => {
+  var sum = 0;
+  for (var i = start, j = end - dim; i < end; i += dim) {
+      sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
+      j = i;
+  }
+  return sum;
+}
