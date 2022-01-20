@@ -54,7 +54,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     reloadAuctions() {
         this.getAuctions().then((res) => {
-            const more_data = res.length == this.fetchAmount;
+            const more_data = res.length === this.fetchAmount;
             this.setState({
                 auctions: res,
                 auction_offset: this.fetchAmount,
@@ -67,7 +67,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     fetchMoreData() {
         if(this.firstFetchDone) {
             this.getAuctions().then((res) => {
-                const more_data = res.length == this.fetchAmount;
+                const more_data = res.length === this.fetchAmount;
                 this.setState({
                     auctions: this.state.auctions.concat(res),
                     auction_offset: this.state.auction_offset + this.fetchAmount,

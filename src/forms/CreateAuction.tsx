@@ -2,15 +2,16 @@ import React, { useEffect } from 'react';
 import {
     Formik,
     Form,
-    Field
+    Field,
+    FormikErrors
 } from 'formik';
 import { MapContainer, ImageOverlay, useMap, Circle, Polygon } from 'react-leaflet'
-import L, { Map } from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import BigNumber from 'bignumber.js';
 import DutchAuction from '../tz/DutchAuction';
-import { useNavigate } from 'react-router-dom';
 import Metadata from '../world/Metadata';
+import { useNavigate } from 'react-router-dom';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -42,7 +43,7 @@ interface CreateAuctionFormValues {
     //itemFile: ArrayBuffer;
 }
 
-type CreateAuctionFormProps = {}
+type CreateAuctionFormProps = { }
 
 type CreateAuctionFormState = {
     error: string,
@@ -50,7 +51,7 @@ type CreateAuctionFormState = {
     placePoly: [number, number][],
 }
 
-export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
+class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
     private initialValues: CreateAuctionFormValues = { placeId: 0, duration: 48, startPrice: 0, endPrice: 0 };
 
     constructor(props: CreateAuctionFormProps) {
@@ -63,6 +64,8 @@ export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, C
     }
 
     private panMapToPlace(place_id: number) {
+        if(place_id < 0) return;
+
         Metadata.getPlaceMetadata(place_id).then((res) => {
             const coords = res.token_info.center_coordinates;
             const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
@@ -97,32 +100,51 @@ export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, C
                         <h2>Create Auction</h2>
                         <Formik
                             initialValues={this.initialValues}
+                            validate = {(values) => {
+                                const errors: FormikErrors<CreateAuctionFormValues> = {};
+            
+                                if (values.placeId < 0) {
+                                    errors.placeId = 'Place ID invalid.';
+                                }
+            
+                                if (values.duration <= 0 || values.duration > 720) {
+                                    errors.duration = 'Duration must be more than 0 and less than 720h.'
+                                }
+                              
+                                if (values.startPrice <= 0) {
+                                    errors.startPrice = 'Start price must be > 0.';
+                                }
+            
+                                if (values.endPrice <= 0 || values.endPrice >= values.startPrice) {
+                                    errors.endPrice = 'End price must be > 0 and < start price.';
+                                }
+                              
+                                return errors;
+                            }}
                             onSubmit={async (values, actions) => {
-                                //console.log({ values, actions });
-                                //alert(JSON.stringify(values, null, 2));
-
-                                // TODO: validation
-
                                 try {
                                     await DutchAuction.createAuction(new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration);
 
                                     // navigate to auctions page on success
-                                    const navigate = useNavigate();
-                                    navigate("/auctions", { replace: true });
+                                    // @ts-expect-error
+                                    this.props.navigate("/auctions", { replace: true });
+
+                                    return;
                                 } catch(e: any) {
                                     this.setState({ error: e.message});
                                 }
 
-                                // clear error state
-                                this.setState({ error: ''});
+                                // clear error state TODO: needed?
+                                //this.setState({ error: ''});
 
                                 actions.setSubmitting(false);
                             }}
                         >
                             {({
-                                /*values,
+                                //values,
+                                isValid,
                                 errors,
-                                touched,*/
+                                touched,
                                 isSubmitting,
                                 handleChange
                             }) => { return (
@@ -131,11 +153,13 @@ export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, C
                                         <label htmlFor="placeId" className="form-label">Place ID</label>
                                         <Field id="placeId" name="placeId" type="number" className="form-control" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { this.onIdChange(e); handleChange(e);}}/>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
+                                        {touched.placeId && errors.placeId && <small className="text-danger">{errors.placeId}</small>}
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="duration" className="form-label">Duration (in hours)</label>
                                         <Field id="duration" name="duration" type="number" className="form-control" aria-describedby="durationHelp" disabled={isSubmitting} />
                                         <div id="durationHelp" className="form-text">Time, in hours, until end price is reached. Auction begins immediately.</div>
+                                        {touched.duration && errors.duration && <small className="text-danger">{errors.duration}</small>}
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="startPrice" className="form-label">Start Price</label>
@@ -144,6 +168,7 @@ export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, C
                                             <Field id="startPrice" name="startPrice" type="number" className="form-control" aria-describedby="startPriceHelp" disabled={isSubmitting} />
                                         </div>
                                         <div id="startPriceHelp" className="form-text">The starting price for the auction. Must be &gt; end price.</div>
+                                        {touched.startPrice && errors.startPrice && <small className="text-danger">{errors.startPrice}</small>}
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="endPrice" className="form-label">End Price</label>
@@ -151,9 +176,11 @@ export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, C
                                             <span className="input-group-text">{'\uA729'}</span>
                                             <Field id="endPrice" name="endPrice" type="number" className="form-control" aria-describedby="endPriceHelp" disabled={isSubmitting} />
                                         </div>
-                                        <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.<br/>There is a 2.5% fee on successful swap.</div>
+                                        <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
+                                        {touched.endPrice && errors.endPrice && <small className="text-danger">{errors.endPrice}</small>}
                                     </div>
-                                    <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
+                                    <div className="form-text mb-3">There is a 2.5% fee on successful swap.</div>
+                                    <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
                                     {this.state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {this.state.error}</span> )}
                                 </Form>
                             )}}
@@ -176,3 +203,14 @@ export class CreateAuctionForm extends React.Component<CreateAuctionFormProps, C
         );
     }
 };
+
+
+// TODO: figure out how to properly to HOC in typescript.
+//https://github.com/remix-run/react-router/issues/8146#issuecomment-947860640
+// @ts-expect-error
+function withNavigation(Component) {
+    // @ts-expect-error
+    return props => <Component {...props} navigate={useNavigate()} />;
+}
+
+export const CreateAuctionFormW = withNavigation(CreateAuctionForm);

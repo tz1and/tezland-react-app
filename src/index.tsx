@@ -16,7 +16,8 @@ import Auctions from './routes/Auctions';
 import Faq from './routes/Faq';
 import Docs from './routes/Docs';
 import Map from './routes/Map';
-import { CreateAuctionForm } from './forms/CreateAuction';
+//import GenerateMap from './routes/GenerateMap';
+import { CreateAuctionFormW } from './forms/CreateAuction';
 import Contracts from "./tz/Contracts";
 import { TempleWallet } from "@temple-wallet/dapp";
 
@@ -30,11 +31,12 @@ ReactDOM.render(
                     <Route path="" element={<Frontpage />} />
                     <Route path="auctions">
                         <Route path="" element={<Auctions />} />
-                        <Route path="create" element={<CreateAuctionForm />} />
+                        <Route path="create" element={<CreateAuctionFormW />} />
                     </Route>
                     <Route path="faq" element={<Faq />} />
                     <Route path="docs" element={<Docs />} />
                     <Route path="map" element={<Map />} />
+                    {/*<Route path="genmap" element={<GenerateMap />} />*/}
                 </Route>
                 <Route path="/explore" element={<App />} />
                 <Route
