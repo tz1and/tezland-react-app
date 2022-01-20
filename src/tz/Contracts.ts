@@ -65,6 +65,7 @@ class Contracts {
     }
 
     public async getPlaceOwner(place_id: number): Promise<string> {
+      // todo: use fetch?
       const responseP = await axios.get(`${Conf.bcd_url}/v1/contract/${Conf.tezos_network}/${Conf.place_contract}/transfers?token_id=${place_id}&size=1`);
       const transferInfo = responseP.data;
 
@@ -137,6 +138,17 @@ class Contracts {
       }).send({ amount: xtz_per_item, mutez: false });
       
       await get_item_op.confirmation();
+    }
+
+    public async bidOnAuction(auction_id: number, price_mutez: number) {
+      const auctionsWallet = await this.tk.wallet.at(Conf.dutch_auchtion_contract);
+
+      // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+      if(!await this.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
+
+      const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
+      
+      await bid_op.confirmation();
     }
 
     public async getItemsForPlaceView(place_id: number): Promise<any> {
