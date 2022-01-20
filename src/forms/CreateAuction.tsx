@@ -12,6 +12,8 @@ import BigNumber from 'bignumber.js';
 import DutchAuction from '../tz/DutchAuction';
 import Metadata from '../world/Metadata';
 import { useNavigate } from 'react-router-dom';
+import { fetchGraphQL } from '../ipfs/graphql';
+import Contracts from '../tz/Contracts';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -49,6 +51,7 @@ type CreateAuctionFormState = {
     error: string,
     mapLocation: [number, number],
     placePoly: [number, number][],
+    placeInventory: any[]
 }
 
 // TODO: fetch owned places from landex and make a dropdown of places.
@@ -61,7 +64,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         this.state = {
             error: '',
             mapLocation: [500, 500],
-            placePoly: []
+            placePoly: [],
+            placeInventory: []
         };
     }
 
@@ -83,6 +87,17 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         })
     }
 
+    private async getPlaces() {
+        const data = await fetchGraphQL(`
+            query getPlaces($address: String!) {
+                placeTokenHolder(where: {holderId: {_eq: $address}}, order_by: {tokenId: asc}) {
+                    tokenId
+                }
+            }`, "getPlaces", { address: await Contracts.walletPHK() });
+        
+        return data.placeTokenHolder;
+    }
+
     onIdChange(e: React.ChangeEvent<any>) {
         const place_id = e.target.value;
 
@@ -90,6 +105,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     };
 
     componentDidMount() {
+        this.getPlaces().then((result) => {
+            this.setState({ placeInventory: result });
+        })
+
         this.panMapToPlace(0);
     }
 
@@ -153,7 +172,13 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 <Form>
                                     <div className="mb-3">
                                         <label htmlFor="placeId" className="form-label">Place ID</label>
-                                        <Field id="placeId" name="placeId" type="number" className="form-control" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { this.onIdChange(e); handleChange(e);}}/>
+                                        <Field id="placeId" name="placeId" as="select" className="form-select" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { this.onIdChange(e); handleChange(e);}}>
+                                            {this.state.placeInventory.length === 0 ?
+                                                (<option value={0}>Loading Place Inventory...</option>) :
+                                                    this.state.placeInventory.map((key) => (
+                                                        <option key={key.tokenId} value={key.tokenId}>Place #{key.tokenId}</option>
+                                                    ))}
+                                        </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
                                         {touched.placeId && errors.placeId && <small className="text-danger">{errors.placeId}</small>}
                                     </div>

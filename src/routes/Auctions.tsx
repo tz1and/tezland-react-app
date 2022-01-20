@@ -3,7 +3,6 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction from '../components/Auction'
 import { fetchGraphQL } from '../ipfs/graphql';
-import { isDev } from '../tz/Utils';
 
 type AuctionsProps = {}
 
@@ -12,6 +11,9 @@ type AuctionsState = {
     auction_offset: number,
     more_data: boolean
 }
+
+// TODO: when new auction was added, it might add elements with duplicate keys.
+// find a way to avoid that. maybe a map?
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
@@ -27,8 +29,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     private fetchAmount: number = 8;
     private firstFetchDone: boolean = false;
 
-    async getAuctions() {
-        const { errors, data } = await fetchGraphQL(`
+    private async getAuctions() {
+        const data = await fetchGraphQL(`
             query getAuctions($offset: Int!, $amount: Int!) {
                 dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
                     endPrice
@@ -41,10 +43,6 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 }
             }`, "getAuctions", { amount: this.fetchAmount, offset: this.state.auction_offset });
         
-        if(errors) {
-            if(isDev()) console.log(errors);
-            throw new Error("Query failed");
-        }
         return data.dutchAuction;
     }
 
@@ -52,7 +50,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.reloadAuctions();
     }
 
-    reloadAuctions() {
+    private reloadAuctions() {
         this.getAuctions().then((res) => {
             const more_data = res.length === this.fetchAmount;
             this.setState({
@@ -64,7 +62,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         });
     }
 
-    fetchMoreData() {
+    private fetchMoreData() {
         if(this.firstFetchDone) {
             this.getAuctions().then((res) => {
                 const more_data = res.length === this.fetchAmount;
