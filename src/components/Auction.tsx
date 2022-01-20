@@ -25,7 +25,8 @@ type AuctionProps = {
 type AuctionState = {
     updateCount: number,
     mapLocation: [number, number],
-    placePoly: [number, number][]
+    placePoly: [number, number][],
+    placeCoords: [number, number]
 }
 
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
@@ -34,7 +35,8 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         this.state = {
             updateCount: 0,
             mapLocation: [500, 500],
-            placePoly: []
+            placePoly: [],
+            placeCoords: [0, 0]
         };
         this.updateTimeVars();
     }
@@ -53,8 +55,6 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         this.started = this.current_time >= this.props.startTime;
         this.since_start = Math.min(this.current_time, this.props.endTime) - this.props.startTime;
         this.progress = Math.min(100 - this.since_start / this.duration * 100, 100);
-
-        console.log(this.progress);
     }
 
     // returns current price in mutez
@@ -94,7 +94,11 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                 placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
             }
 
-            this.setState({ mapLocation: center_pos, placePoly: placePoly });
+            this.setState({
+                mapLocation: center_pos,
+                placePoly: placePoly,
+                placeCoords: [coords[0], coords[2]]
+            });
         })
     }
 
@@ -141,8 +145,9 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                         Duration: {this.duration / 3600}h
                     </p>
 
-                    <Link to='/explore?coordx=10&coordz=10' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
-                    <button onClick={this.bidOnAuction.bind(this)} className="btn btn-primary btn-md w-100" disabled={!this.started}>{!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>
+                    <Link to={`/explore?coordx=${this.state.placeCoords[0]}&coordz=${this.state.placeCoords[1]}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
+                    <button onClick={this.bidOnAuction.bind(this)} className="btn btn-primary btn-md w-100" disabled={!this.started}>
+                        {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>
                 </div>
             </div>
         );
