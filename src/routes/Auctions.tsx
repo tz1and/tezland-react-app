@@ -24,7 +24,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         };
     }
 
-    private fetchAmount: number = 16;
+    private fetchAmount: number = 8;
+    private firstFetchDone: boolean = false;
 
     async getAuctions() {
         const { errors, data } = await fetchGraphQL(`
@@ -59,18 +60,21 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 auction_offset: this.fetchAmount,
                 more_data: more_data
             });
+            this.firstFetchDone = true;
         });
     }
 
     fetchMoreData() {
-        this.getAuctions().then((res) => {
-            const more_data = res.length == this.fetchAmount;
-            this.setState({
-                auctions: this.state.auctions.concat(res),
-                auction_offset: this.state.auction_offset + this.fetchAmount,
-                more_data: more_data
+        if(this.firstFetchDone) {
+            this.getAuctions().then((res) => {
+                const more_data = res.length == this.fetchAmount;
+                this.setState({
+                    auctions: this.state.auctions.concat(res),
+                    auction_offset: this.state.auction_offset + this.fetchAmount,
+                    more_data: more_data
+                });
             });
-        });
+        }
     }
 
     private parseTimestamp(t: string): number {
