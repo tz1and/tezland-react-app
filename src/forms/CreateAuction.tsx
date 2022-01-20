@@ -51,6 +51,8 @@ type CreateAuctionFormState = {
     placePoly: [number, number][],
 }
 
+// TODO: fetch owned places from landex and make a dropdown of places.
+
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
     private initialValues: CreateAuctionFormValues = { placeId: 0, duration: 48, startPrice: 0, endPrice: 0 };
 
