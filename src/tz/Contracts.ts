@@ -97,8 +97,6 @@ class Contracts {
       // use is_operator on-chain view.
       const isOperatorRes = await this.places.contractViews.is_operator({ operator: await this.walletPHK(), owner: owner, token_id: place_id }).executeView({viewCaller: this.places.address});
 
-      console.log(isOperatorRes);
-
       return isOperatorRes;
     }
 

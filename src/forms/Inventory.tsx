@@ -2,6 +2,7 @@ import React from 'react';
 import './Inventory.css';
 import Contracts from '../tz/Contracts'
 import Conf from '../Config'
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
@@ -12,48 +13,71 @@ type InventoryProps = {
 
 type InventoryState = {
     error?: Error;
-    isLoaded: boolean;
     items: any[];
     //count: number; // like this
     //mount: HTMLDivElement | null;
+    item_offset: number,
+    more_data: boolean;
 };
 
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
     constructor(props: InventoryProps) {
         super(props);
         this.state = {
-            isLoaded: false,
-            items: []
+            items: [],
+            item_offset: 0,
+            more_data: true
         };
     }
 
+    private fetchAmount: number = 50;
+    private firstFetchDone: boolean = false;
+
     componentDidMount() {
+        this.loadInventory((res) => {
+            console.log(res.balances)
+            const more_data = res.balances.length === this.fetchAmount;
+            this.setState({
+                items: res.balances,
+                item_offset: this.fetchAmount,
+                more_data: more_data
+            });
+            this.firstFetchDone = true;
+        })
+    }
+
+    private loadInventory(callback: (res: any) => void) {
         Contracts.walletPHK().then(wallet_address => {
-            fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${wallet_address}/token_balances?contract=${Conf.item_contract}`)
+            fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${wallet_address}/token_balances?contract=${Conf.item_contract}&size=${this.fetchAmount}&offset=${this.state.item_offset}`)
                 .then(res => res.json())
-                .then(
-                    (result) => {
-                        this.setState({
-                            isLoaded: true,
-                            items: result.balances
-                        });
-                    },
+                .then(callback,
                     // Note: it's important to handle errors here
                     // instead of a catch() block so that we don't swallow
                     // exceptions from actual bugs in components.
                     (error) => {
                         this.setState({
-                            isLoaded: true,
                             error: error
                         });
                     }
                 )
             }, error => {
                 this.setState({
-                    isLoaded: true,
                     error: new Error("No wallet connected")
                 });
             });
+    }
+
+    private fetchMoreData() {
+        if(this.firstFetchDone) {
+            this.loadInventory((res) => {
+                const more_data = res.balances.length === this.fetchAmount;
+                this.setState({
+                    items: this.state.items.concat(res.balances),
+                    item_offset: this.state.item_offset + this.fetchAmount,
+                    more_data: more_data
+                });
+            })
+        }
     }
 
     handleClick(event: React.MouseEvent) {
@@ -67,13 +91,11 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     }
 
     render() {
-        const { error, isLoaded, items } = this.state;
+        const { error, items, more_data } = this.state;
 
         let content;
         if (error) {
             content = <div>Error: {error.message}</div>;
-        } else if (!isLoaded) {
-            content = <div>Loading...</div>;
         } else {
             content = items.map(item => (
                 <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick.bind(this)}>
@@ -85,17 +107,24 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                     </div>
                 </div>
             ))
-                
         }
 
         return (
             <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative w-75'>
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)}/>
                 <h2>inventory</h2>
-                <div className="d-flex flex-row flex-wrap justify-content-start align-items-start overflow-auto" style={{height: '75vh'}}>
+                <InfiniteScroll
+                    className="d-flex flex-row flex-wrap justify-content-start align-items-start overflow-auto"
+                    style={{height: '75vh'}}
+                    height='75vh'
+                    dataLength={items.length} //This is important field to render the next data
+                    next={this.fetchMoreData.bind(this)}
+                    hasMore={more_data}
+                    loader={<h4>Loading...</h4>}
+                    scrollThreshold={0.8}
+                >
                     {content}
-                    
-                </div>
+                </InfiniteScroll>
             </div>
         );
 
