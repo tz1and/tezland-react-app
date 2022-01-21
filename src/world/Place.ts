@@ -82,6 +82,7 @@ export default class Place {
 
     public async load() {
         try {
+            //let startTime = performance.now()
             let placeMetadata = await Metadata.getPlaceMetadata(this.placeId);
 
             // create mat
@@ -150,7 +151,11 @@ export default class Place {
                 ),
             );
 
+            //console.log(`generating place took ${performance.now() - startTime} milliseconds`)
+
             await this.loadItems();
+
+            //console.log(`Call to load took ${performance.now() - startTime} milliseconds`)
         } catch(e) {
             Logging.InfoDev("failed to load place " + this.placeId);
             console.log(e);
