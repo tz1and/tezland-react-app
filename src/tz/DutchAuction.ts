@@ -3,10 +3,11 @@ import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Conf from "../Config";
 import { tezToMutez } from "../utils/Utils";
+import Contracts from "./Contracts";
 
 export default class DutchAuction {
     // Duration is in hours.
-    static async createAuction(walletProvider: ITezosWalletProvider, placeId: BigNumber, startPrice: number, endPrice: number, duration: number) {
+    static async createAuction(walletProvider: ITezosWalletProvider, placeId: BigNumber, startPrice: number, endPrice: number, duration: number, callback?: () => void) {
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
         const placesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.place_contract);
 
@@ -52,17 +53,18 @@ export default class DutchAuction {
         await create_auction_op.confirmation();*/
 
         const batch_op = await batch.send();
-        await batch_op.confirmation();
+
+        Contracts.handleOperation(walletProvider, batch_op, callback);
     }
 
-    static async bidOnAuction(walletProvider: ITezosWalletProvider, auction_id: number, price_mutez: number) {
+    static async bidOnAuction(walletProvider: ITezosWalletProvider, auction_id: number, price_mutez: number, callback?: () => void) {
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
   
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
   
         const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
-        
-        await bid_op.confirmation();
+
+        Contracts.handleOperation(walletProvider, bid_op, callback);
       }
 }

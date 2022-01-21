@@ -6,6 +6,7 @@ import Conf from "../Config";
 import { isDev } from "../utils/Utils";
 import { InMemorySigner } from "@taquito/signer";
 import EventEmitter from "events";
+import { OperationPending, OperationPendingData } from "./OperationPending";
 
 export type ITezosWalletProvider = {
     //setWalletAddress(walletAddress: string): void
@@ -15,6 +16,9 @@ export type ITezosWalletProvider = {
     tezosToolkit: () => TezosToolkit,
     walletPHK: () => string,
     walletEvents: () => EventEmitter
+
+    addWalletOperation(hash: string): void;
+    walletOperationDone(hash: string, success: boolean, message?: string): void;
 }
 
 // @ts-ignore
@@ -30,7 +34,8 @@ type TezosWalletProviderState = {
     tezos: TezosToolkit,
     beaconWallet?: BeaconWallet,
     walletAddress?: string,
-    useInMemorySigner: boolean
+    useInMemorySigner: boolean,
+    pendingOps: OperationPendingData[];
 }
 
 // TODO: fetch owned places from landex and make a dropdown of places.
@@ -43,7 +48,8 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         this.walletEventEmitter = new EventEmitter();
         this.state = {
             tezos: new TezosToolkit(Conf.tezos_node),
-            useInMemorySigner: false
+            useInMemorySigner: false,
+            pendingOps: []
         };
     }
 
@@ -53,21 +59,21 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     // A convenience function to check if a wallet (or signer) is set up/connected.
-    isWalletConnected(): boolean {
+    public isWalletConnected = (): boolean => {
         if (this.state.walletAddress !== undefined) return true;
         return false;
     }
 
-    tezosToolkit(): TezosToolkit {
+    public tezosToolkit = (): TezosToolkit => {
         return this.state.tezos;
     }
 
-    walletPHK(): string {
+    public walletPHK = (): string => {
         if (!this.state.walletAddress) throw new Error("No wallet connected");
         return this.state.walletAddress;
     }
 
-    walletEvents(): EventEmitter {
+    public walletEvents = (): EventEmitter => {
         return this.walletEventEmitter;
     }
 
@@ -97,7 +103,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         });
     }
 
-    public connectWallet() {
+    public connectWallet = () => {
         //console.log("called connectWallet");
         if (!this.state.beaconWallet) return;
 
@@ -114,7 +120,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         })
     }
 
-    public disconnectWallet() {
+    public disconnectWallet = () => {
         //console.log("called disconnectWallet");
         if (!this.state.beaconWallet) return;
 
@@ -133,30 +139,58 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
           this.state.tezos.setProvider({signer});
           signer.publicKeyHash().then((pkh) => this.setState({ walletAddress: pkh, useInMemorySigner: true }));
         })
-      }
+    }
+
+    // Transaction overlay stuff
+    public addWalletOperation = (hash: string) => {
+        console.log("addWalletOperation");
+        this.setState({ pendingOps: this.state.pendingOps.concat({hash: hash, done: false }) });
+    }
+
+    public walletOperationDone = (hash: string, success: boolean, message?: string) => {
+        console.log("walletOperationDone");
+        const elem = this.state.pendingOps.find((v) => v.hash === hash);
+        if(elem) {
+            elem.done = true;
+            elem.success = success;
+            elem.error = message;
+
+            this.setState({pendingOps: this.state.pendingOps});
+
+            setTimeout(() => {
+                this.removePendingOpetation(hash);
+            }, 30000);
+        }
+    }
+
+    private removePendingOpetation(hash: string) {
+        const newPending: OperationPendingData[] = [];
+        for(const p of this.state.pendingOps) {
+            if(p.hash !== hash) newPending.push(p);
+        }
+        this.setState({pendingOps: newPending});
+    }
 
     render() {
         const { children } = this.props
 
-        let connectWalletCB = this.connectWallet.bind(this);
-        let disconnectWalletCB = this.disconnectWallet.bind(this);
-        let isWalletConnectedCB = this.isWalletConnected.bind(this);
-        let tezosToolkitCB = this.tezosToolkit.bind(this);
-        let walletPHKCB = this.walletPHK.bind(this);
-        let walletEventsCB = this.walletEvents.bind(this);
+        let toasts = this.state.pendingOps.map(v => { return <OperationPending data={v} key={v.hash} /> });
 
         return (
             <TezosWalletContext.Provider
                 value={{
-                    connectWallet: connectWalletCB,
-                    disconnectWallet: disconnectWalletCB,
-                    isWalletConnected: isWalletConnectedCB,
-                    tezosToolkit: tezosToolkitCB,
-                    walletPHK: walletPHKCB,
-                    walletEvents: walletEventsCB
+                    connectWallet: this.connectWallet,
+                    disconnectWallet: this.disconnectWallet,
+                    isWalletConnected: this.isWalletConnected,
+                    tezosToolkit: this.tezosToolkit,
+                    walletPHK: this.walletPHK,
+                    walletEvents: this.walletEvents,
+                    addWalletOperation: this.addWalletOperation,
+                    walletOperationDone: this.walletOperationDone
                 }}
             >
                 {children}
+                <div className="toast-container position-fixed bottom-0 end-0 p-4" style={{zIndex: "1050"}}>{toasts}</div>
             </TezosWalletContext.Provider>
         )
     }

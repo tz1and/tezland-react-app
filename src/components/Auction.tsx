@@ -80,12 +80,12 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private async bidOnAuction() {
-        await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice());
-        
-        // Wait a little for the indexer to catch up.
-        this.reloadInterval = setTimeout(() => {
-            this.props.reloadAuctions();
-        }, 5000);
+        await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice(), () => {
+            // Wait a little for the indexer to catch up.
+            this.reloadInterval = setTimeout(() => {
+                this.props.reloadAuctions();
+            }, 5000);
+        });
     }
 
     private panMapToPlace(place_id: number) {

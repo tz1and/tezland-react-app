@@ -84,7 +84,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         return (
             <div className='Explore'>
                 {overlay}
-                <VirtualSpace ref={this.virtualSpaceRef} appControl={{setOverlayDispaly: this.setOverlayDispaly.bind(this), loadForm: this.loadForm.bind(this), placeItem: this.placeItem.bind(this)}} />
+                <VirtualSpace ref={this.virtualSpaceRef} appControl={{
+                    setOverlayDispaly: this.setOverlayDispaly.bind(this),
+                    loadForm: this.loadForm.bind(this),
+                    placeItem: this.placeItem.bind(this)
+                }} />
             </div>
         );
     }

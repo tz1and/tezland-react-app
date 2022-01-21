@@ -17,7 +17,7 @@ Metadata.Storage.open(() => {
     renderApp();
 }, () => {
     renderApp(
-        (<div className="position-fixed bottom-0 end-0 p-4" style={{zIndex: "1050"}}>
+        (<div className="position-fixed bottom-0 start-0 p-4" style={{zIndex: "1050"}}>
             <div className="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
                 <div className="d-flex">
                     <div className="toast-body">

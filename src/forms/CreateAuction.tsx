@@ -165,11 +165,9 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                             }}
                             onSubmit={async (values, actions) => {
                                 try {
-                                    await DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration);
-
-                                    // navigate to auctions page on success
-                                    // @ts-expect-error
-                                    this.props.navigate("/auctions", { replace: true });
+                                    await DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration,
+                                        // @ts-expect-error
+                                        () => { this.props.navigate("/auctions", { replace: true }) });
 
                                     return;
                                 } catch(e: any) {

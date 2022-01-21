@@ -290,7 +290,7 @@ export default class Place {
             return;
         }
 
-        Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner).then(() => {
+        Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
             this.loadItems();
         });
     }

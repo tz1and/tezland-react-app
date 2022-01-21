@@ -1,5 +1,5 @@
 import { Mesh, Node, Quaternion } from "@babylonjs/core";
-import { Contract, OpKind } from "@taquito/taquito";
+import { Contract, OpKind, TransactionWalletOperation } from "@taquito/taquito";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { setFloat16 } from "@petamoriken/float16";
@@ -10,6 +10,7 @@ import Metadata from "../world/Metadata";
 import { InstanceMetadata } from "../world/Place";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
+import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
 
 
 export class Contracts {
@@ -68,7 +69,7 @@ export class Contracts {
       return this.isPlaceOperator(walletProvider, place_id, owner);
     }
 
-    public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number) {
+    public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: () => void) {
       const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
       // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
@@ -81,10 +82,10 @@ export class Contracts {
         metadata: char2Bytes(item_metadata_url)
       }).send();
       
-      await mint_item_op.confirmation();
+      this.handleOperation(walletProvider, mint_item_op, callback);
     }
 
-    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number) {
+    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number, callback?: () => void) {
       const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
 
       //console.log(place_id, item_id, xtz_per_item);
@@ -95,8 +96,8 @@ export class Contracts {
       const get_item_op = await marketplacesWallet.methodsObject.get_item({
         lot_id: place_id, item_id: item_id
       }).send({ amount: xtz_per_item, mutez: false });
-      
-      await get_item_op.confirmation();
+
+      this.handleOperation(walletProvider, get_item_op, callback);
     }
 
     public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number): Promise<any> {
@@ -140,7 +141,7 @@ export class Contracts {
       //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
-    public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string) {
+    public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: () => void) {
       const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
       const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
@@ -237,9 +238,20 @@ export class Contracts {
       }]);
 
       const batch_op = await batch.send();
-      await batch_op.confirmation();
-      //console.log('Operation hash:', place_items_op.hash);
+
+      this.handleOperation(walletProvider, batch_op, callback);
     }
+
+  public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: () => void) {
+    walletProvider.addWalletOperation(op.opHash);
+    op.confirmation().then(() => {
+      walletProvider.walletOperationDone(op.opHash, true);
+
+      if(callback) callback();
+    }, (e: any) => {
+      walletProvider.walletOperationDone(op.opHash, false, e.message);
+    })
+  }
 }
 
 export default new Contracts();
