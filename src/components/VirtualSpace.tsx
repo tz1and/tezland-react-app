@@ -3,6 +3,7 @@ import { World } from '../world/World'
 import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 import { sleep } from '../tz/Utils';
+import TezosWalletContext from './TezosWalletContext';
 
 type VirtualSpaceProps = {
   appControl: AppControlFunctions;
@@ -15,6 +16,9 @@ type VirtualSpaceState = {
 };
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
+  static contextType = TezosWalletContext;
+  context!: React.ContextType<typeof TezosWalletContext>;
+  
   private mount: HTMLCanvasElement | null;
   private world: World | null;
 
@@ -42,7 +46,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
   }
 
   componentDidMount() {
-    this.world = new World(this.mount!, this.props.appControl);
+    this.world = new World(this.mount!, this.props.appControl, this.context);
 
     (async () => {
       // this is all really temporary anyway.
@@ -55,9 +59,16 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
       await this.world.loadPlace(2);
       await this.world.loadPlace(3);
 
-      //for(let i = 4; i < 90; ++i)
+      //for(let i = 4; i < 86; ++i)
       //  await this.world.loadPlace(i);
     })();
+  }
+
+  componentWillUnmount() {
+    if(this.world) {
+      this.world.destroy();
+      this.world = null;
+    }
   }
 
   render() {

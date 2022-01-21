@@ -17,6 +17,7 @@ import PlayerController from "../controllers/PlayerController";
 import { Database, FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
 import Place from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
+import { ITezosWalletProvider } from "../components/TezosWalletContext";
 //import { isDev } from "../tz/Utils";
 
 
@@ -35,10 +36,14 @@ export class World {
 
     readonly places: Map<number, Place>;
 
-    constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
+    readonly walletProvider: ITezosWalletProvider;
+
+    constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
         // Get the canvas element from the DOM.
         const canvas = mount;
         const divFps = document.getElementById("fps");
+
+        this.walletProvider = walletProvider;
 
         // Associate a Babylon Engine to it.
         this.engine = new Engine(canvas, true);

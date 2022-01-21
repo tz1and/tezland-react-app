@@ -10,6 +10,7 @@ import ModelPreview from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { upload_model, upload_item_metadata, upload_thumbnail } from '../ipfs/ipfs'
 import { dataURItoBlob, getFileExt, readFileAsync } from '../tz/Utils';
+import { useTezosWalletContext } from '../components/TezosWalletContext';
 
 interface MintFormValues {
     itemTitle: string;
@@ -32,6 +33,8 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
     const initialValues: MintFormValues = { itemTitle: "", itemDescription: "", itemTags: "", itemAmount: 1, itemRoyalties: 10 };
     const state: MintFormState = { error: "" }
     const modelPreviewRef = React.createRef<ModelPreview>();
+    
+    const context = useTezosWalletContext();
 
     return (
         <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative'>
@@ -68,7 +71,7 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
 
                     try {
                         // check if wallet is connected first.
-                        if(!await Contracts.isWalletConnected()) throw new Error("No wallet connected");
+                        if(!context.isWalletConnected()) throw new Error("No wallet connected");
 
                         // read model file.
                         const buffer = await readFileAsync(values.itemFile!);
@@ -87,12 +90,12 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
 
                         // upload metadata.
                         const metadata_url = await upload_item_metadata(
-                            await Contracts.walletPHK(), values.itemTitle,
+                            context.walletPHK(), values.itemTitle,
                             values.itemDescription, values.itemTags,
                             model_url, thumbnail_url, mime_type);
 
                         // mint item.
-                        await Contracts.mintItem(metadata_url, values.itemRoyalties, values.itemAmount);
+                        await Contracts.mintItem(context, metadata_url, values.itemRoyalties, values.itemAmount);
 
                         // when successful, close form.
                         props.closeForm(false);

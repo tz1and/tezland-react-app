@@ -13,7 +13,7 @@ import DutchAuction from '../tz/DutchAuction';
 import Metadata from '../world/Metadata';
 import { useNavigate } from 'react-router-dom';
 import { fetchGraphQL } from '../ipfs/graphql';
-import Contracts from '../tz/Contracts';
+import TezosWalletContext from '../components/TezosWalletContext';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -51,51 +51,66 @@ type CreateAuctionFormState = {
     error: string,
     mapLocation: [number, number],
     placePoly: [number, number][],
-    placeInventory: any[]
+    placeInventory?: any[]
 }
 
 // TODO: fetch owned places from landex and make a dropdown of places.
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
-    private initialValues: CreateAuctionFormValues = { placeId: 0, duration: 48, startPrice: 0, endPrice: 0 };
+    private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48, startPrice: 0, endPrice: 0 };
+
+    static contextType = TezosWalletContext;
+    context!: React.ContextType<typeof TezosWalletContext>;
+    //declare context: React.ContextType<typeof TezosWalletContext>
 
     constructor(props: CreateAuctionFormProps) {
         super(props);
         this.state = {
             error: '',
             mapLocation: [500, 500],
-            placePoly: [],
-            placeInventory: []
+            placePoly: []
         };
     }
 
     private panMapToPlace(place_id: number) {
         if(place_id < 0) return;
 
-        Metadata.getPlaceMetadata(place_id).then((res) => {
-            const coords = res.token_info.center_coordinates;
-            const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
+        Metadata.Storage.open(() => {
+            Metadata.getPlaceMetadata(place_id).then((res) => {
+                const coords = res.token_info.center_coordinates;
+                const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
 
-            const polygon = res.token_info.border_coordinates;
-            const placePoly: [number, number][] = []
-            for(const pos of polygon)
-            {
-                placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
-            }
+                const polygon = res.token_info.border_coordinates;
+                const placePoly: [number, number][] = []
+                for(const pos of polygon)
+                {
+                    placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
+                }
 
-            this.setState({ mapLocation: center_pos, placePoly: placePoly });
-        })
+                this.setState({ mapLocation: center_pos, placePoly: placePoly });
+            }, () => {})
+        }, () => {});
     }
 
-    private async getPlaces() {
+    private async fetchPlaces() {
+        if(!this.context.isWalletConnected()) return [];
+
         const data = await fetchGraphQL(`
             query getPlaces($address: String!) {
                 placeTokenHolder(where: {holderId: {_eq: $address}}, order_by: {tokenId: asc}) {
                     tokenId
                 }
-            }`, "getPlaces", { address: await Contracts.walletPHK() });
+            }`, "getPlaces", { address: this.context.walletPHK() });
         
         return data.placeTokenHolder;
+    }
+
+    private updatePlacesAndMap() {
+        this.fetchPlaces().then((result) => {
+            this.setState({ placeInventory: result });
+            if(result.length > 0)
+                this.panMapToPlace(result[0].tokenId);
+        })
     }
 
     onIdChange(e: React.ChangeEvent<any>) {
@@ -104,12 +119,18 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         this.panMapToPlace(place_id);
     };
 
-    componentDidMount() {
-        this.getPlaces().then((result) => {
-            this.setState({ placeInventory: result });
-        })
+    private walletChangeListener = () => {
+        this.updatePlacesAndMap();
+    }
 
-        this.panMapToPlace(0);
+    componentDidMount() {
+        this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
+
+        this.updatePlacesAndMap();
+    }
+
+    componentWillUnmount() {
+        this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
     render() {
@@ -144,7 +165,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                             }}
                             onSubmit={async (values, actions) => {
                                 try {
-                                    await DutchAuction.createAuction(new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration);
+                                    await DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration);
 
                                     // navigate to auctions page on success
                                     // @ts-expect-error
@@ -173,11 +194,13 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                     <div className="mb-3">
                                         <label htmlFor="placeId" className="form-label">Place ID</label>
                                         <Field id="placeId" name="placeId" as="select" className="form-select" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { this.onIdChange(e); handleChange(e);}}>
-                                            {this.state.placeInventory.length === 0 ?
-                                                (<option value={0}>Loading Place Inventory...</option>) :
-                                                    this.state.placeInventory.map((key) => (
-                                                        <option key={key.tokenId} value={key.tokenId}>Place #{key.tokenId}</option>
-                                                    ))}
+                                            {!this.state.placeInventory ?
+                                                (<option value={-1}>Loading Place Inventory...</option>) :
+                                                    this.state.placeInventory.length === 0 ?
+                                                        (<option value={-1}>No places in inventory.</option>) :
+                                                            this.state.placeInventory.map((key) => (
+                                                                <option key={key.tokenId} value={key.tokenId}>Place #{key.tokenId}</option>
+                                                            ))}
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
                                         {touched.placeId && errors.placeId && <small className="text-danger">{errors.placeId}</small>}

@@ -1,8 +1,8 @@
 import React from 'react';
 import './Inventory.css';
-import Contracts from '../tz/Contracts'
 import Conf from '../Config'
 import InfiniteScroll from 'react-infinite-scroll-component';
+import TezosWalletContext from '../components/TezosWalletContext';
 
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
@@ -21,6 +21,9 @@ type InventoryState = {
 };
 
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
+    static contextType = TezosWalletContext;
+    context!: React.ContextType<typeof TezosWalletContext>;
+    
     constructor(props: InventoryProps) {
         super(props);
         this.state = {
@@ -46,24 +49,25 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     }
 
     private loadInventory(callback: (res: any) => void) {
-        Contracts.walletPHK().then(wallet_address => {
-            fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${wallet_address}/token_balances?contract=${Conf.item_contract}&size=${this.fetchAmount}&offset=${this.state.item_offset}`)
-                .then(res => res.json())
-                .then(callback,
-                    // Note: it's important to handle errors here
-                    // instead of a catch() block so that we don't swallow
-                    // exceptions from actual bugs in components.
-                    (error) => {
-                        this.setState({
-                            error: error
-                        });
-                    }
-                )
-            }, error => {
-                this.setState({
-                    error: new Error("No wallet connected")
-                });
+        if(!this.context.isWalletConnected()) {
+            this.setState({
+                error: new Error("No wallet connected")
             });
+            return;
+        }
+
+        fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${this.context.walletPHK()}/token_balances?contract=${Conf.item_contract}&size=${this.fetchAmount}&offset=${this.state.item_offset}`)
+        .then(res => res.json())
+        .then(callback,
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                this.setState({
+                    error: error
+                });
+            }
+        );
     }
 
     private fetchMoreData() {

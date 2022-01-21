@@ -1,9 +1,7 @@
 import { Mesh, Node, Quaternion } from "@babylonjs/core";
-import { Contract, OpKind, TezosToolkit, Wallet } from "@taquito/taquito";
-//import { InMemorySigner } from "@taquito/signer";
-import { TempleWallet } from "@temple-wallet/dapp";
+import { Contract, OpKind } from "@taquito/taquito";
 import Conf from "../Config";
-import { isDev, tezToMutez, toHexString } from "./Utils";
+import { tezToMutez, toHexString } from "./Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
 import axios from "axios";
@@ -11,61 +9,18 @@ import { Logging } from "../utils/Logging";
 import Metadata from "../world/Metadata";
 import { InstanceMetadata } from "../world/Place";
 import BigNumber from "bignumber.js";
+import { ITezosWalletProvider } from "../components/TezosWalletContext";
 
 
-class Contracts {
-    private tk: TezosToolkit;
+export class Contracts {
     private marketplaces: Contract | null;
     private places: Contract | null;
     private minter: Contract | null;
 
     constructor() {
-        //this.tk = new TezosToolkit("https://api.tez.ie/rpc/mainnet");
-        this.tk = new TezosToolkit(Conf.tezos_node);
-
-        // NOTE: these are KNOWN account keys.
-        // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
-        // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt
-        //InMemorySigner.fromSecretKey('edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq').then((signer) => {
-        //  this.tk.setProvider({signer});
-        //})
-
         this.marketplaces = null;
         this.places = null;
         this.minter = null;
-        //this.tk.addExtension(new Tzip16Module());
-    }
-
-    // A convenience function to check if a wallet (or signer) is set up/connected.
-    public async isWalletConnected(): Promise<boolean> {
-      try {
-        await this.walletPHK();
-        return true;
-      }
-      catch {
-        return false;
-      }
-    }
-
-    public async walletPHK(): Promise<string> {
-      return this.tk.wallet.pkh();
-    }
-
-    public wallet(): Wallet {
-      return this.tk.wallet;
-    }
-
-    public async initWallet() {
-      Logging.InfoDev("trying to connect wallet")
-      //const available = await TempleWallet.isAvailable();
-      //if (!available) {
-      //  throw new Error("Temple Wallet not installed");
-      //}
-
-      const wallet = new TempleWallet(isDev() ? 'TezlandApp-dev': 'TezlandApp');
-      await wallet.connect({ name: "sandboxlocal", rpc: Conf.tezos_node });
-      this.tk.setWalletProvider(wallet);
-      //this.tk.setProvider({ signer: signer });
     }
 
     public async getPlaceOwner(place_id: number): Promise<string> {
@@ -78,49 +33,49 @@ class Contracts {
       return "";
     }
 
-    private async isPlaceOwner(place_id: number): Promise<boolean> {
+    private async isPlaceOwner(walletProvider: ITezosWalletProvider, place_id: number): Promise<boolean> {
       // check if wallet is connected before calling walletPHK
-      if(!await this.isWalletConnected()) return false;
+      if(!walletProvider.isWalletConnected()) return false;
 
       if(!this.places)
-        this.places = await this.tk.contract.at(Conf.place_contract);
+        this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
 
       // use get_balance on-chain view.
-      const balanceRes = await this.places.contractViews.get_balance({ owner: await this.walletPHK(), token_id: place_id }).executeView({viewCaller: this.places.address});
+      const balanceRes = await this.places.contractViews.get_balance({ owner: walletProvider.walletPHK(), token_id: place_id }).executeView({viewCaller: this.places.address});
 
       return !balanceRes.isZero();
     }
 
-    private async isPlaceOperator(place_id: number, owner: string): Promise<boolean> {
+    private async isPlaceOperator(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<boolean> {
       // check if wallet is connected before calling walletPHK
-      if(!await this.isWalletConnected()) return false;
+      if(!walletProvider.isWalletConnected()) return false;
 
       if(!this.places)
-        this.places = await this.tk.contract.at(Conf.place_contract);
+        this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
 
       // use is_operator on-chain view.
-      const isOperatorRes = await this.places.contractViews.is_operator({ operator: await this.walletPHK(), owner: owner, token_id: place_id }).executeView({viewCaller: this.places.address});
+      const isOperatorRes = await this.places.contractViews.is_operator({ operator: walletProvider.walletPHK(), owner: owner, token_id: place_id }).executeView({viewCaller: this.places.address});
 
       return isOperatorRes;
     }
 
-    public async isPlaceOwnerOrOperator(place_id: number, owner: string): Promise<boolean> {
+    public async isPlaceOwnerOrOperator(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<boolean> {
       // check if wallet is connected before calling walletPHK
-      if(!await this.isWalletConnected()) return false;
+      if(!walletProvider.isWalletConnected()) return false;
 
-      if(await this.walletPHK() === owner) return true;
+      if(walletProvider.walletPHK() === owner) return true;
 
-      return this.isPlaceOperator(place_id, owner);
+      return this.isPlaceOperator(walletProvider, place_id, owner);
     }
 
-    public async mintItem(item_metadata_url: string, royalties: number, amount: number) {
-      const minterWallet = await this.tk.wallet.at(Conf.minter_contract);
+    public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number) {
+      const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
       // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-      if(!await this.isWalletConnected()) throw new Error("mintItem: No wallet connected");
+      if(!walletProvider.isWalletConnected()) throw new Error("mintItem: No wallet connected");
 
       const mint_item_op = await minterWallet.methodsObject.mint_Item({
-        address: await this.walletPHK(),
+        address: walletProvider.walletPHK(),
         amount: amount,
         royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
         metadata: char2Bytes(item_metadata_url)
@@ -129,11 +84,13 @@ class Contracts {
       await mint_item_op.confirmation();
     }
 
-    public async getItem(place_id: number, item_id: number, xtz_per_item: number) {
-      const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
+    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number) {
+      const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
+
+      //console.log(place_id, item_id, xtz_per_item);
 
       // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-      if(!await this.isWalletConnected()) throw new Error("getItem: No wallet connected");
+      if(!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
       const get_item_op = await marketplacesWallet.methodsObject.get_item({
         lot_id: place_id, item_id: item_id
@@ -142,21 +99,10 @@ class Contracts {
       await get_item_op.confirmation();
     }
 
-    public async bidOnAuction(auction_id: number, price_mutez: number) {
-      const auctionsWallet = await this.tk.wallet.at(Conf.dutch_auchtion_contract);
-
-      // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-      if(!await this.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
-
-      const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
-      
-      await bid_op.confirmation();
-    }
-
-    public async getItemsForPlaceView(place_id: number): Promise<any> {
+    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number): Promise<any> {
       // use get_stored_items on-chain view.
       if(!this.marketplaces)
-        this.marketplaces = await this.tk.contract.at(Conf.marketplaces_contract);
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
 
       const stSeqKey = "placeSeq";
       const stItemsKey = "placeItems";
@@ -194,13 +140,13 @@ class Contracts {
       //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
-    public async saveItems(remove: Node[], add: Node[], place_id: number, owner: string) {
-      const marketplacesWallet = await this.tk.wallet.at(Conf.marketplaces_contract);
-      const itemsWallet = await this.tk.wallet.at(Conf.item_contract);
+    public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string) {
+      const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
+      const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
       // TODO: removals
 
-      const wallet_phk = await this.walletPHK();
+      const wallet_phk = walletProvider.walletPHK();
 
       // build remove item list
       const remove_item_list: BigNumber[] = [];
@@ -263,7 +209,7 @@ class Contracts {
       });
 
       // prepare batch
-      const batch = this.wallet().batch();
+      const batch = walletProvider.tezosToolkit().wallet.batch();
       
       if(operator_adds.length > 0) batch.with([{
         kind: OpKind.TRANSACTION,
@@ -294,59 +240,6 @@ class Contracts {
       await batch_op.confirmation();
       //console.log('Operation hash:', place_items_op.hash);
     }
-
-    /*public async getItemsForPlaceBCD(place_id: number): Promise<any> {
-        // todo: figure out how to hash key. this is hardcoded for key 'nat: 0'
-        const key_hash = 'expruh4nG4YxN8sgCGLd6cHuCYZCeunSKp3MXVkKD8JXXteMbqssdA';
-        // for now use better call dev. until views are available in taquito.
-        return axios.get(`${Conf.bcd_url}/v1/bigmap/${Conf.tezos_network}/14/keys/${key_hash}`).then(function(data) {
-            // this is our map of stored items.
-            //console.log(data.data.values[0]);
-            return data.data.values[0].value.children[1].children;
-        });
-    }*/
-
-    /*this.tk.contract.at(places_contract, tzip16)
-        .then((contract) => {
-            //let methods = contract.parameterSchema.ExtractSignatures();
-            //console.log(JSON.stringify(methods, null, 2));
-            return contract.tzip16().metadataViews();
-        })
-        .then(views => {
-            console.log(`The following view names were found in the metadata: ${Object.keys(views)}`);
-            /*return views.someJson().executeView()
-        }).then(result => {
-            console.log(`Result of the view someJson: ${result}`);
-            console.log(`Transform result to char: ${bytes2Char(result)}`);* /
-        })
-        .catch((error) => console.log(error));*/
-
-  /*public initUI() {
-    $("#show-balance-button").bind("click", () =>
-      this.getBalance($("#address-input").val())
-    );
-  }
-
-  private showError(message: string) {
-    $("#balance-output").removeClass().addClass("hide");
-    $("#error-message")
-      .removeClass()
-      .addClass("show")
-      .html("Error: " + message);
-  }
-
-  private showBalance(balance: number) {
-    $("#error-message").removeClass().addClass("hide");
-    $("#balance-output").removeClass().addClass("show");
-    $("#balance").html(balance);
-  }
-
-  private getBalance(address: string) {
-    this.tk.rpc
-      .getBalance(address)
-      .then(balance => this.showBalance(balance.toNumber() / 1000000))
-      .catch(e => this.showError("Address not found"));
-  }*/
 }
 
 export default new Contracts();

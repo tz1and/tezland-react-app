@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import './Navigation.css';
+import { useTezosWalletContext } from "./TezosWalletContext";
 
 export default function Frontpage() {
+    const context = useTezosWalletContext()
     return (
         <header className="sticky-top p-3 bg-white text-dark">
             <div className="container">
@@ -21,6 +23,10 @@ export default function Frontpage() {
                     </ul>
 
                     <Link to="/explore" className="btn btn-primary mb-auto">Explore</Link>
+                    { context.isWalletConnected() ?
+                        <button className="btn btn-danger mb-auto ms-3" onClick={() => context.disconnectWallet()}>Disonnect Wallet</button> :
+                        <button className="btn btn-success mb-auto ms-3" onClick={() => context.connectWallet()}>Connect Wallet</button>
+                    }
                 </div>
             </div>
         </header>

@@ -3,7 +3,6 @@ import { Svg } from "@svgdotjs/svg.js";
 import { Voronoi, BoundingBox, Site, Diagram } from 'voronoijs';
 import { Angle, Vector2 } from '@babylonjs/core'
 import Conf from "../Config";
-import Contracts from "../tz/Contracts";
 import { OpKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
@@ -11,6 +10,7 @@ import Prando from 'prando';
 import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { Matrix2D } from "@babylonjs/gui";
 import { signedArea, sleep } from "../tz/Utils";
+import { useTezosWalletContext } from "../components/TezosWalletContext";
 
 type GenerateMapState = {
     svg?: string;
@@ -281,6 +281,8 @@ export default function GenerateMap() {
 
     const svgRef = createRef<SVGSVGElement>();
 
+    const context = useTezosWalletContext();
+
     const downloadFile = () => {
         if(!state.svg) return;
 
@@ -443,8 +445,8 @@ export default function GenerateMap() {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const mintPlaces = async (land: Land[]) => {
-        const minterWallet = await Contracts.wallet().at(Conf.minter_contract);
-        const walletphk = await Contracts.walletPHK();
+        const minterWallet = await context.tezosToolkit().wallet.at(Conf.minter_contract);
+        const walletphk = context.walletPHK();
 
         const places = []
 
@@ -475,7 +477,7 @@ export default function GenerateMap() {
         const place_meta_files = await upload_places(places);
 
         // Mint places
-        let batch = Contracts.wallet().batch();
+        let batch = context.tezosToolkit().wallet.batch();
         let batch_size = 0;
 
         for(const meta of place_meta_files) {
@@ -504,7 +506,7 @@ export default function GenerateMap() {
                 await sleep(10000);
                 console.log("done sleeping, preparing next batch");
 
-                batch = Contracts.wallet().batch();
+                batch = context.tezosToolkit().wallet.batch();
                 batch_size = 0;
             }
         }

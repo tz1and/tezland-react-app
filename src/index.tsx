@@ -9,13 +9,41 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import AppRouter from './AppRouter';
+import Metadata from './world/Metadata';
 
-ReactDOM.render(
-    <React.StrictMode>
-        <AppRouter/>
-    </React.StrictMode>,
-    document.getElementById('root')
-);
+
+// TODO: find a better way to do this, see todo.
+Metadata.Storage.open(() => {
+    renderApp();
+}, () => {
+    renderApp(
+        (<div className="position-fixed bottom-0 end-0 p-4" style={{zIndex: "1050"}}>
+            <div className="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div className="d-flex">
+                    <div className="toast-body">
+                        <p className='mb-2 fw-bolder'>Failed to open Database storage</p>
+                        The app may not work correctly.<br/>
+                        Check the Javascript console for more details.
+                    </div>
+                    <button type="button" className="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>)
+    );
+})
+
+const renderApp = (element?: JSX.Element) => {
+    ReactDOM.render(
+        <React.StrictMode>
+            <AppRouter>
+                {element}
+            </AppRouter>
+        </React.StrictMode>,
+        document.getElementById('root')
+    );
+}
+
+
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

@@ -133,7 +133,7 @@ export default class Place {
             this.placeGround.receiveShadows = true;
 
             this.owner = await Contracts.getPlaceOwner(this.placeId);
-            this.isOwned = await Contracts.isPlaceOwnerOrOperator(this.placeId, this.owner);
+            this.isOwned = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
 
             this.world.playerController.playerTrigger.actionManager?.registerAction(
                 new ExecuteCodeAction(
@@ -169,7 +169,7 @@ export default class Place {
         }
 
         // Load items
-        const items = await Contracts.getItemsForPlaceView(this.placeId);
+        const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId);
 
         if(this.placeGround)
             (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
@@ -290,7 +290,7 @@ export default class Place {
             return;
         }
 
-        Contracts.saveItems(remove_children, add_children, this.placeId, this.owner).then(() => {
+        Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner).then(() => {
             this.loadItems();
         });
     }

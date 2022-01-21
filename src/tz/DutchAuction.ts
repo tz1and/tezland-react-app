@@ -1,20 +1,14 @@
-import { Contract, OpKind } from "@taquito/taquito";
+import { OpKind } from "@taquito/taquito";
 import BigNumber from "bignumber.js";
+import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Conf from "../Config";
-import Contracts from "./Contracts";
 import { tezToMutez } from "./Utils";
 
-class DutchAuction {
-    private auction: Contract | null;
-
-    constructor() {
-        this.auction = null;
-    }
-
+export default class DutchAuction {
     // Duration is in hours.
-    public async createAuction(placeId: BigNumber, startPrice: number, endPrice: number, duration: number) {
-        const auctionsWallet = await Contracts.wallet().at(Conf.dutch_auchtion_contract);
-        const placesWallet = await Contracts.wallet().at(Conf.place_contract);
+    static async createAuction(walletProvider: ITezosWalletProvider, placeId: BigNumber, startPrice: number, endPrice: number, duration: number) {
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
+        const placesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.place_contract);
 
         /*def create(self, params):
 
@@ -28,12 +22,12 @@ class DutchAuction {
         const start_time = (Math.floor(current_time / 60) + 1) * 60; // begins at the next full minute.
         const end_time = start_time + duration * 3600; // hours to seconds
 
-        const batch = Contracts.wallet().batch([
+        const batch = walletProvider.tezosToolkit().wallet.batch([
             {
                 kind: OpKind.TRANSACTION,
                 ...placesWallet.methods.update_operators([{
                     add_operator: {
-                        owner: await Contracts.walletPHK(),
+                        owner: walletProvider.walletPHK(),
                         operator: auctionsWallet.address,
                         token_id: placeId
                     }
@@ -59,9 +53,16 @@ class DutchAuction {
 
         const batch_op = await batch.send();
         await batch_op.confirmation();
-
-        //throw new Error("Not implemented");
     }
-}
 
-export default new DutchAuction();
+    static async bidOnAuction(walletProvider: ITezosWalletProvider, auction_id: number, price_mutez: number) {
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
+  
+        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+        if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
+  
+        const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
+        
+        await bid_op.confirmation();
+      }
+}

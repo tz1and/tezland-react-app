@@ -4,10 +4,11 @@ import L from 'leaflet';
 import './Auction.css'
 import 'leaflet/dist/leaflet.css';
 import { mutezToTez, signedArea } from '../tz/Utils';
-import Contracts from '../tz/Contracts';
 import { MapSetCenter } from '../forms/CreateAuction';
 import React from 'react';
 import Metadata from '../world/Metadata';
+import TezosWalletContext from './TezosWalletContext';
+import DutchAuction from '../tz/DutchAuction';
 
 type AuctionProps = {
     auctionId: number;
@@ -31,6 +32,9 @@ type AuctionState = {
 }
 
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
+    static contextType = TezosWalletContext;
+    context!: React.ContextType<typeof TezosWalletContext>;
+    
     constructor(props: AuctionProps) {
         super(props);
         this.state = {
@@ -76,7 +80,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private async bidOnAuction() {
-        await Contracts.bidOnAuction(this.props.auctionId, this.calculateCurrentPrice());
+        await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice());
         
         // Wait a little for the indexer to catch up.
         this.reloadInterval = setTimeout(() => {
