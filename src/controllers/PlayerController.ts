@@ -95,7 +95,7 @@ export default class PlayerController {
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
             if (info.type === PointerEventTypes.POINTERDOWN) {
-                if(this.currentPlace && this.currentPlace.isOwned && this.currentItem && this.tempObject && this.tempObject.isEnabled()) {
+                if(this.currentPlace && this.currentPlace.isOwned && this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
                     // TODO: move placing items into Place class.
                     const parent = this.currentPlace.itemsNode;
