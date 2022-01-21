@@ -143,12 +143,10 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
 
     // Transaction overlay stuff
     public addWalletOperation = (hash: string) => {
-        console.log("addWalletOperation");
         this.setState({ pendingOps: this.state.pendingOps.concat({hash: hash, done: false }) });
     }
 
     public walletOperationDone = (hash: string, success: boolean, message?: string) => {
-        console.log("walletOperationDone");
         const elem = this.state.pendingOps.find((v) => v.hash === hash);
         if(elem) {
             elem.done = true;
