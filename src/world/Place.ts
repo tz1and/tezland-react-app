@@ -7,7 +7,7 @@ import { getFloat16 } from "@petamoriken/float16";
 
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { fromHexString, mutezToTez, pointIsInside } from "../tz/Utils";
+import { fromHexString, mutezToTez, pointIsInside } from "../utils/Utils";
 import { World } from "./World";
 import Metadata from "./Metadata";
 import { SimpleMaterial } from "@babylonjs/materials";

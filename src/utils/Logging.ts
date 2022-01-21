@@ -1,4 +1,4 @@
-import { isDev } from "../tz/Utils"
+import { isDev } from "./Utils"
 
 export namespace Logging {
     export const Error = console.error.bind(window.console);

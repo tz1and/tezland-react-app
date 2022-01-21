@@ -9,7 +9,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { upload_model, upload_item_metadata, upload_thumbnail } from '../ipfs/ipfs'
-import { dataURItoBlob, getFileExt, readFileAsync } from '../tz/Utils';
+import { dataURItoBlob, getFileExt, readFileAsync } from '../utils/Utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 
 interface MintFormValues {

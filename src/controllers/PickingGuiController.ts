@@ -2,7 +2,7 @@ import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/cor
 
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import Contracts from "../tz/Contracts";
-import { truncate } from "../tz/Utils";
+import { truncate } from "../utils/Utils";
 import Metadata from "../world/Metadata";
 import { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";

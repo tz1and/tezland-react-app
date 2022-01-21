@@ -3,7 +3,7 @@ import { MapContainer, ImageOverlay, Circle, Polygon } from 'react-leaflet'
 import L from 'leaflet';
 import './Auction.css'
 import 'leaflet/dist/leaflet.css';
-import { mutezToTez, signedArea } from '../tz/Utils';
+import { mutezToTez, signedArea } from '../utils/Utils';
 import { MapSetCenter } from '../forms/CreateAuction';
 import React from 'react';
 import Metadata from '../world/Metadata';

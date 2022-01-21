@@ -9,7 +9,7 @@ import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import Prando from 'prando';
 import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { Matrix2D } from "@babylonjs/gui";
-import { signedArea, sleep } from "../tz/Utils";
+import { signedArea, sleep } from "../utils/Utils";
 import { useTezosWalletContext } from "../components/TezosWalletContext";
 
 type GenerateMapState = {

@@ -3,7 +3,7 @@ import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from '@taquito/beacon-wallet';
 import { NetworkType, DAppClientOptions } from '@airgap/beacon-sdk';
 import Conf from "../Config";
-import { isDev } from "../tz/Utils";
+import { isDev } from "../utils/Utils";
 import { InMemorySigner } from "@taquito/signer";
 import EventEmitter from "events";
 

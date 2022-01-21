@@ -2,7 +2,7 @@ import { OpKind } from "@taquito/taquito";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Conf from "../Config";
-import { tezToMutez } from "./Utils";
+import { tezToMutez } from "../utils/Utils";
 
 export default class DutchAuction {
     // Duration is in hours.

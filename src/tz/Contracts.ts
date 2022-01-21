@@ -1,7 +1,7 @@
 import { Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, OpKind } from "@taquito/taquito";
 import Conf from "../Config";
-import { tezToMutez, toHexString } from "./Utils";
+import { tezToMutez, toHexString } from "../utils/Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
 import axios from "axios";
