@@ -217,8 +217,7 @@ export default class PlayerController {
         }
 
         this.currentItem = item_id;
-
-        if (!this.currentItem) return;
+        if (this.currentItem === undefined) return;
 
         try {
             this.tempObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, null) as Mesh;
