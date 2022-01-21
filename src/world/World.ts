@@ -136,8 +136,11 @@ export class World {
     }
 
     public destroy() {
-        // TODO!
-        // dispose scene or whatever
+        // Destorying the engine should prbably be enough.
+        this.places.clear();
+
+        this.engine.dispose();
+        this.scene.dispose();
     }
 
     private debugWorld() {

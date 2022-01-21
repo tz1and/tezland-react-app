@@ -58,24 +58,8 @@ export default class PlayerController {
         this.beforeRenderer = () => { this.updateController() };
         this.scene.registerBeforeRender(this.beforeRenderer);
 
-        // Pointer lock stuff - not needed since we have the overlay now.
-        /*this.scene.onPointerObservable.add((event, eventState) => {
-            // probably not needed since we have a mask.
-            if (event.type === PointerEventTypes.POINTERDOWN) {
-                //true/false check if we're locked, faster than checking pointerlock on each single click.
-                if (!this.isPointerLocked) {
-                    if (canvas.requestPointerLock) {
-                        canvas.requestPointerLock();
-                    }
-
-                    eventState.skipNextObservers = true;
-                }
-            }
-        }, PointerEventTypes.POINTERDOWN, true); // insert first*/
-
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         var pointerlockchange = () => {
-            /* document.mozPointerLockElement || document.webkitPointerLockElement || document.msPointerLockElement ||  */
             var controlEnabled = document.pointerLockElement || null;
             
             // If the user is already locked
