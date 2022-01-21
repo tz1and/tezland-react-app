@@ -130,6 +130,11 @@ export class World {
         canvas.addEventListener('resize', () => { this.engine.resize(); });
     }
 
+    public destroy() {
+        // TODO!
+        // dispose scene or whatever
+    }
+
     private debugWorld() {
         var transform_node = new TransformNode("transform", this.scene);
 
