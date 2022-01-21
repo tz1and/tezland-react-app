@@ -1,10 +1,11 @@
 import { ActionManager, Camera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, Vector3 } from "@babylonjs/core";
 import assert from "assert";
+import BigNumber from "bignumber.js";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
 import { Logging } from "../utils/Logging";
 import { AppControlFunctions } from "../world/AppControlFunctions";
-import Place from "../world/Place";
+import Place, { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
 import PickingGuiController from "./PickingGuiController";
 
@@ -100,12 +101,15 @@ export default class PlayerController {
                     const parent = this.currentPlace.itemsNode;
                     assert(parent);
 
-                    const newObject = await ipfs.download_item(this.currentItem, this.scene, parent) as Mesh;
+                    const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
                     // Make sure item is place relative to place origin.
                     newObject.position = this.tempObject.position.subtract(parent.position);
                     newObject.rotationQuaternion = this.tempObjectRot.clone();
                     newObject.scaling = this.tempObject.scaling.clone();
-                    newObject.metadata = { itemTokenId: this.currentItem, placeId: this.currentPlace.placeId }
+                    newObject.metadata = {
+                        itemTokenId: new BigNumber(this.currentItem),
+                        placeId: this.currentPlace.placeId
+                    } as InstanceMetadata;
 
                     shadowGenerator.addShadowCaster(newObject);
 
@@ -172,15 +176,16 @@ export default class PlayerController {
                     case 'Delete': // Mark item for deletion
                         const current_item = this.pickingGui.getCurrentItem();
                         if(current_item) {
-                            const place = world.places.get(current_item.metadata.placeId);
+                            const metadata = current_item.metadata as InstanceMetadata;
+                            const place = world.places.get(metadata.placeId);
                             if(place && place.isOwned) {
                                 // If the item is unsaved, remove it directly.
-                                if(current_item.metadata.id === undefined) {
+                                if(metadata.id === undefined) {
                                     current_item.dispose();
                                 }
                                 // Otherwise mark it for removal.
                                 else {
-                                    current_item.metadata.markForRemoval = true;
+                                    metadata.markForRemoval = true;
                                     current_item.setEnabled(false);
                                 }
                             }
@@ -216,7 +221,7 @@ export default class PlayerController {
         if (!this.currentItem) return;
 
         try {
-            this.tempObject = await ipfs.download_item(this.currentItem, this.scene, null) as Mesh;
+            this.tempObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, null) as Mesh;
             this.tempObject.rotationQuaternion = this.tempObjectRot;
 
             // set pickable false on the whole hierarchy.

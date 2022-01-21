@@ -35,7 +35,6 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     componentDidMount() {
         this.loadInventory((res) => {
-            console.log(res.balances)
             const more_data = res.balances.length === this.fetchAmount;
             this.setState({
                 items: res.balances,

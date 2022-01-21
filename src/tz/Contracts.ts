@@ -1,4 +1,4 @@
-import { DataStorage, Mesh, Node, Quaternion } from "@babylonjs/core";
+import { Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, OpKind, TezosToolkit, Wallet } from "@taquito/taquito";
 //import { InMemorySigner } from "@taquito/signer";
 import { TempleWallet } from "@temple-wallet/dapp";
@@ -8,6 +8,9 @@ import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
 import axios from "axios";
 import { Logging } from "../utils/Logging";
+import Metadata from "../world/Metadata";
+import { InstanceMetadata } from "../world/Place";
+import BigNumber from "bignumber.js";
 
 
 class Contracts {
@@ -155,11 +158,11 @@ class Contracts {
       if(!this.marketplaces)
         this.marketplaces = await this.tk.contract.at(Conf.marketplaces_contract);
 
-      const stSeqKey = "placeSeq" + place_id;
-      const stItemsKey = "placeItems" + place_id;
+      const stSeqKey = "placeSeq";
+      const stItemsKey = "placeItems";
 
       // Read sequence number from storage and contract
-      const placeSequenceStore = DataStorage.ReadString(stSeqKey, "");
+      const placeSequenceStore = await Metadata.Storage.loadObject(place_id, stSeqKey);
       const seqRes = await this.marketplaces.contractViews.get_place_seqnum(place_id).executeView({viewCaller: this.marketplaces.address});
       
       // If they are not the same, reload from blockchain
@@ -175,16 +178,17 @@ class Contracts {
 
         const place_data = { stored_items: foreachPairs, place_props: result.place_props }
 
-        DataStorage.WriteString(stItemsKey, JSON.stringify(place_data));
-        DataStorage.WriteString(stSeqKey, seqRes);
+        // TODO: await save?
+        Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
+        Metadata.Storage.saveObject(place_id, stSeqKey, seqRes);
 
         return place_data;
       } else { // Otherwise load items from storage
         Logging.InfoDev("reading place from local storage")
         
-        const placeItemsStore = DataStorage.ReadString(stItemsKey, "");
+        const placeItemsStore = await Metadata.Storage.loadObject(place_id, stItemsKey);
 
-        return JSON.parse(placeItemsStore);
+        return placeItemsStore;
       }
 
       //return result; // as MichelsonMap<MichelsonTypeNat, any>;
@@ -199,19 +203,21 @@ class Contracts {
       const wallet_phk = await this.walletPHK();
 
       // build remove item list
-      const remove_item_list: number[] = [];
+      const remove_item_list: BigNumber[] = [];
       remove.forEach( (item) => {
-        remove_item_list.push(item.metadata.id);
+        const metadata = item.metadata as InstanceMetadata;
+        remove_item_list.push(metadata.id);
       });
 
       // build add item list
       const add_item_list: object[] = [];
-      const item_set = new Set<number>();
+      const item_set = new Set<BigNumber>();
       add.forEach( (item) => {
         const mesh = item as Mesh;
-        const item_id = mesh.metadata.itemTokenId;
-        const item_amount = mesh.metadata.itemAmount;
-        const item_price = tezToMutez(mesh.metadata.xtzPerItem);
+        const metadata = mesh.metadata as InstanceMetadata;
+        const item_id = metadata.itemTokenId;
+        const item_amount = metadata.itemAmount;
+        const item_price = tezToMutez(metadata.xtzPerItem);
         const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
         // 4 floats for quat, 1 float scale, 3 floats pos = 8 half floats = 16 bytes
         const array = new Uint8Array(16);

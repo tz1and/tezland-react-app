@@ -12,6 +12,17 @@ import { World } from "./World";
 import Metadata from "./Metadata";
 import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
+import BigNumber from "bignumber.js";
+
+
+export type InstanceMetadata = {
+    id: BigNumber;
+    placeId: number;
+    itemTokenId: BigNumber;
+    xtzPerItem: number;
+    itemAmount: BigNumber;
+    markForRemoval: boolean;
+}
 
 
 export default class Place {
@@ -173,7 +184,14 @@ export default class Place {
         for (const element of items.stored_items) {
             if(!element.data.item) continue;
 
-            const item_id = element.data.item.item_id;
+            // Set prototype to make sure BigNumbers get recognised.
+            // See here: https://github.com/MikeMcl/bignumber.js/issues/245
+            Object.setPrototypeOf(element.id, BigNumber.prototype);
+            Object.setPrototypeOf(element.data.item.item_id, BigNumber.prototype);
+            Object.setPrototypeOf(element.data.item.xtz_per_item, BigNumber.prototype);
+            Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
+
+            const item_id = new BigNumber(element.data.item.item_id);
             const item_coords = element.data.item.item_data;
             const item_amount = element.data.item.item_amount;
             const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
@@ -204,8 +222,13 @@ export default class Place {
                     sphere.position.y = 1;
                     sphere.position.z = Math.random() * 20 - 10;*/
                     //sphere.material = this.defaultMaterial;
-                    instance.metadata = { id: element.id, placeId: this.placeId,
-                        itemTokenId: item_id, xtzPerItem: xtz_per_item, itemAmount: item_amount };
+                    instance.metadata = {
+                        id: new BigNumber(element.id),
+                        placeId: this.placeId,
+                        itemTokenId: item_id,
+                        xtzPerItem: xtz_per_item,
+                        itemAmount: new BigNumber(item_amount)
+                    } as InstanceMetadata;
 
                     // todo: for all submeshes/instances, whatever
                     //instance.checkCollisions = true;
@@ -248,9 +271,10 @@ export default class Place {
         const remove_children = new Array<Node>();
 
         children.forEach((child) => {
-            if(child.metadata.id === undefined) {
+            const metadata = child.metadata as InstanceMetadata;
+            if(metadata.id === undefined) {
                 add_children.push(child);
-            } else if(child.metadata.markForRemoval === true) {
+            } else if(metadata.markForRemoval === true) {
                 remove_children.push(child);
             }
         });

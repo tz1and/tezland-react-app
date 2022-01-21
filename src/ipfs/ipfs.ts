@@ -3,15 +3,16 @@ import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
+import BigNumber from 'bignumber.js';
 
 const ipfs_client = ipfs.create({ url: Conf.ipfs_url });
 
-export async function download_item(item_id: number, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
+export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
     var mesh = scene.getMeshByName(`item${item_id}`);
     if(!mesh) {
-        const itemMetadata = await Metadata.getItemMetadata(item_id);
+        const itemMetadata = await Metadata.getItemMetadata(item_id.toNumber());
 
         // remove ipfs:// from uri
         const hash = itemMetadata.artifact_uri.slice(7);

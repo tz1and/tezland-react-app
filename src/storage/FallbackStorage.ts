@@ -47,10 +47,12 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @returns the fetched object or null
      */
-    loadObject(key: string, table: string): any {
-        const value = this.storage.getItem(table + key);
-        if (value === null) return null;
-        return JSON.parse(value);
+    loadObject(key: number, table: string): Promise<any> {
+        return new Promise((resolve) => {
+            const value = this.storage.getItem(table + key);
+            if (value === null) resolve(null);
+            else resolve(JSON.parse(value));
+        })
     }
  
     /**
@@ -59,8 +61,11 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: string, table: string, data: any): void {
-        this.storage.setItem(table + key, JSON.stringify(data));
+    saveObject(key: number, table: string, data: any): Promise<void> {
+        return new Promise((resolve) => {
+            this.storage.setItem(table + key, JSON.stringify(data));
+            resolve();
+        });
     }
 
     //public static ReadString(key: string, defaultValue: string): string {

@@ -1,19 +1,28 @@
 import axios from "axios";
 import Conf from "../Config";
-import { FallbackStorage, IStorageProvider } from "../storage";
+import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
 
 export default class Metadata {
-    private static Storage: IStorageProvider = Metadata.GetStorageProvider();
+    public static Storage: IStorageProvider = Metadata.GetStorageProvider();
 
     private static GetStorageProvider(): IStorageProvider {
-        // Just create fallback storage for now.
-        return new FallbackStorage();
+        const dbstorage = new DatabaseStorage();
+        if(!dbstorage.isSupported)
+            return new FallbackStorage();
+        else {
+            dbstorage.open(() => {
+                Logging.InfoDev("Opened Database storage");
+            }, () => {
+                Logging.Error("Failed to open database storage");
+            });
+            return dbstorage;
+        }
     }
 
-    private static async getMetadata(key: string, token_id: number, contract: string) {
+    private static async getMetadata(table: string, token_id: number, contract: string): Promise<any> {
         // Try to read the token metadata from storage.
-        let tokenMetadata = Metadata.Storage.loadObject(key, "");
+        let tokenMetadata = await Metadata.Storage.loadObject(token_id, table);
 
         // load from bcdhub if it doesn't exist
         if(!tokenMetadata) {
@@ -25,22 +34,19 @@ export default class Metadata {
 
             if(!tokenInfo) return undefined;
 
-            Metadata.Storage.saveObject(key, "", tokenInfo);
+            // TODO: await store?
+            Metadata.Storage.saveObject(token_id, table, tokenInfo);
             tokenMetadata = tokenInfo;
         }
 
         return tokenMetadata;
     }
 
-    public static async getPlaceMetadata(place_id: number) {
-        const stMetaKey = "placeMeta" + place_id;
-
-        return Metadata.getMetadata(stMetaKey, place_id, Conf.place_contract);
+    public static async getPlaceMetadata(place_id: number): Promise<any> {
+        return Metadata.getMetadata("placeMetadata", place_id, Conf.place_contract);
     }
 
-    public static async getItemMetadata(item_id: number) {
-        const stMetaKey = "itemMeta" + item_id;
-
-        return Metadata.getMetadata(stMetaKey, item_id, Conf.item_contract);
+    public static async getItemMetadata(item_id: number): Promise<any> {
+        return Metadata.getMetadata("itemMetadata", item_id, Conf.item_contract);
     }
 }

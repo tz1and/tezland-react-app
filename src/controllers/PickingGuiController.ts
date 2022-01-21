@@ -4,6 +4,7 @@ import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBl
 import Contracts from "../tz/Contracts";
 import { truncate } from "../tz/Utils";
 import Metadata from "../world/Metadata";
+import { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
 
 export default class PickingGuiController {
@@ -35,7 +36,7 @@ export default class PickingGuiController {
 
                     if(metadata && metadata.xtzPerItem !== 0) {
                         document.exitPointerLock();
-                        Contracts.getItem(metadata.placeId, metadata.id, metadata.xtzPerItem).then(() => {
+                        Contracts.getItem(metadata.placeId, metadata.id.toNumber(), metadata.xtzPerItem).then(() => {
                             world.places.get(metadata.placeId)?.loadItems();
                         })
                     }
@@ -120,15 +121,16 @@ Remove item: Del`;
     private getInstanceRoot(node: Nullable<Node>): Nullable<Node> {
         let parent: Nullable<Node> = node;
         while(parent) {
-            if(parent.metadata && parent.metadata.itemTokenId) return parent;
+            const metadata = parent.metadata as InstanceMetadata;
+            if(metadata && metadata.itemTokenId) return parent;
             parent = parent.parent;
         }
         return null;
     }
 
-    private getInstanceMetadata(node: Node): any {
+    private getInstanceMetadata(node: Node): InstanceMetadata | null {
         const root = this.getInstanceRoot(node);
-        if(root) return root.metadata;
+        if(root) return root.metadata as InstanceMetadata;
         return null;
     }
 
@@ -153,7 +155,7 @@ Remove item: Del`;
 
         if(!metadata) return;
 
-        const itemMetadata = await Metadata.getItemMetadata(metadata.itemTokenId);
+        const itemMetadata = await Metadata.getItemMetadata(metadata.itemTokenId.toNumber());
         
         var rect = new Rectangle();
         rect.widthInPixels = 110;

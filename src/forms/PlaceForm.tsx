@@ -6,6 +6,8 @@ import {
     FormikErrors
 } from 'formik';
 import { Node, Nullable } from '@babylonjs/core';
+import { InstanceMetadata } from '../world/Place';
+import BigNumber from 'bignumber.js';
 
 interface PlaceFormValues {
     /*itemTitle: string;
@@ -23,7 +25,11 @@ type PlaceFormProps = {
 }
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
-    const initialValues: PlaceFormValues = { itemId: props.placedItem?.metadata.itemTokenId, itemAmount: 1, itemPrice: 0 };
+    const initialValues: PlaceFormValues = {
+        itemId: (props.placedItem?.metadata as InstanceMetadata).itemTokenId.toNumber(),
+        itemAmount: 1,
+        itemPrice: 0
+    };
 
     return (
         <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative'>
@@ -50,8 +56,9 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
 
                     // set amount and price on Node (item) metadata.
                     if (props.placedItem) {
-                        props.placedItem.metadata.itemAmount = values.itemAmount;
-                        props.placedItem.metadata.xtzPerItem = values.itemPrice;
+                        const metadata = props.placedItem.metadata as InstanceMetadata;
+                        metadata.itemAmount = new BigNumber(values.itemAmount);
+                        metadata.xtzPerItem = values.itemPrice;
                     }
 
                     actions.setSubmitting(false);
