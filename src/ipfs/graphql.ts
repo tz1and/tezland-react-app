@@ -1,5 +1,5 @@
 import Conf from "../Config";
-import { isDev } from "../tz/Utils";
+import { Logging } from "../utils/Logging";
 
 export async function fetchGraphQL(query: string, query_name: string, variables?: object) {
     const result = await fetch(
@@ -16,7 +16,7 @@ export async function fetchGraphQL(query: string, query_name: string, variables?
     
     const obj = await result.json();
     if(obj.errors) {
-        if(isDev()) console.log(obj.errors);
+        Logging.InfoDev(obj.errors)
         throw new Error("Query failed: " + obj.errors);
     }
 

@@ -1,17 +1,23 @@
-import { DataStorage } from "@babylonjs/core";
 import axios from "axios";
 import Conf from "../Config";
-import { isDev } from "../tz/Utils";
+import { FallbackStorage, IStorageProvider } from "../storage";
+import { Logging } from "../utils/Logging";
 
 export default class Metadata {
+    private static Storage: IStorageProvider = Metadata.GetStorageProvider();
+
+    private static GetStorageProvider(): IStorageProvider {
+        // Just create fallback storage for now.
+        return new FallbackStorage();
+    }
 
     private static async getMetadata(key: string, token_id: number, contract: string) {
         // Try to read the token metadata from storage.
-        let tokenMetadata = JSON.parse(DataStorage.ReadString(key, "{}"));
+        let tokenMetadata = Metadata.Storage.loadObject(key, "");
 
         // load from bcdhub if it doesn't exist
-        if(Object.keys(tokenMetadata).length === 0) {
-            if(isDev()) console.log("token metadata not known, reading from chain bcdhub");
+        if(!tokenMetadata) {
+            Logging.InfoDev("token metadata not known, reading from chain bcdhub");
 
             // todo: use fetch?
             const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${contract}&token_id=${token_id}`);
@@ -19,7 +25,7 @@ export default class Metadata {
 
             if(!tokenInfo) return undefined;
 
-            DataStorage.WriteString(key, JSON.stringify(tokenInfo));
+            Metadata.Storage.saveObject(key, "", tokenInfo);
             tokenMetadata = tokenInfo;
         }
 

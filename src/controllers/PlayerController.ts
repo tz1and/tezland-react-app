@@ -2,7 +2,7 @@ import { ActionManager, Camera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuild
 import assert from "assert";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
-import { isDev } from "../tz/Utils";
+import { Logging } from "../utils/Logging";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place from "../world/Place";
 import { World } from "../world/World";
@@ -242,7 +242,7 @@ export default class PlayerController {
         catch {
             this.currentItem = undefined;
 
-            if (isDev()) console.log("failed to load item");
+            Logging.InfoDev("failed to load item");
         }
     }
 

@@ -7,10 +7,11 @@ import { getFloat16 } from "@petamoriken/float16";
 
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { fromHexString, isDev, mutezToTez, pointIsInside } from "../tz/Utils";
+import { fromHexString, mutezToTez, pointIsInside } from "../tz/Utils";
 import { World } from "./World";
 import Metadata from "./Metadata";
 import { SimpleMaterial } from "@babylonjs/materials";
+import { Logging } from "../utils/Logging";
 
 
 export default class Place {
@@ -133,21 +134,21 @@ export default class Place {
                     },
                     () => {
                         this.world.playerController.setCurrentPlace(this);
-                        if(isDev()) console.log("entered place: " + this.placeId)
+                        Logging.InfoDev("entered place: " + this.placeId)
                     },
                 ),
             );
 
             await this.loadItems();
         } catch(e) {
-            if(isDev()) console.log("failed to load place " + this.placeId);
+            Logging.InfoDev("failed to load place " + this.placeId);
             console.log(e);
         }
     }
 
     public async loadItems() {
         if(!this.placeBounds) {
-            if(isDev()) console.log("place bounds don't exist: " + this.placeId);
+            Logging.InfoDev("place bounds don't exist: " + this.placeId);
             return;
         }
 
@@ -161,7 +162,7 @@ export default class Place {
         if(this.itemsNode) {
             this.itemsNode.dispose();
             this.itemsNode = null;
-            if(isDev()) console.log("cleared old items");
+            Logging.InfoDev("cleared old items");
         }
 
         // itemsNode must be in the origin.
@@ -211,7 +212,7 @@ export default class Place {
                     this.world.shadowGenerator.addShadowCaster(instance as Mesh);
 
                     if(!this.isInBounds(instance)) {
-                        if(isDev()) console.log("place doesn't fully contain object");
+                        Logging.InfoDev("place doesn't fully contain object");
                         instance.dispose();
                     }
                 }
@@ -232,12 +233,12 @@ export default class Place {
 
     public save() {
         if(!this.itemsNode) {
-            if(isDev()) console.log("can't save: items not loaded: " + this.placeId);
+            Logging.InfoDev("can't save: items not loaded: " + this.placeId);
             return;
         }
 
         if(!this.isOwned) {
-            if(isDev()) console.log("can't save: place not owned: " + this.placeId);
+            Logging.InfoDev("can't save: place not owned: " + this.placeId);
             return;
         }
 
@@ -256,7 +257,7 @@ export default class Place {
 
         if (add_children.length === 0 && remove_children.length === 0) {
             // TODO: probably should throw exceptions here.
-            if(isDev()) console.log("Nothing to save");
+            Logging.InfoDev("Nothing to save");
             return;
         }
 

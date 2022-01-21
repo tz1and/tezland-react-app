@@ -7,6 +7,7 @@ import { isDev, tezToMutez, toHexString } from "./Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
 import axios from "axios";
+import { Logging } from "../utils/Logging";
 
 
 class Contracts {
@@ -52,7 +53,7 @@ class Contracts {
     }
 
     public async initWallet() {
-      if(isDev()) console.log("trying to connect wallet");
+      Logging.InfoDev("trying to connect wallet")
       //const available = await TempleWallet.isAvailable();
       //if (!available) {
       //  throw new Error("Temple Wallet not installed");
@@ -163,7 +164,7 @@ class Contracts {
       
       // If they are not the same, reload from blockchain
       if(placeSequenceStore !== seqRes) {
-        if(isDev()) console.log("place items outdated, reading from chain");
+        Logging.InfoDev("place items outdated, reading from chain")
 
         const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
 
@@ -179,7 +180,7 @@ class Contracts {
 
         return place_data;
       } else { // Otherwise load items from storage
-        if(isDev()) console.log("reading place from local storage");
+        Logging.InfoDev("reading place from local storage")
         
         const placeItemsStore = DataStorage.ReadString(stItemsKey, "");
 
