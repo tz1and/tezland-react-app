@@ -213,6 +213,13 @@ export default class PlayerController {
 
             // set pickable false on the whole hierarchy.
             this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
+
+            // Scale object based on extent.
+            const {min, max} = this.tempObject.getHierarchyBoundingVectors(true);
+            const extent = max.subtract(min);
+            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+            const new_scale = 2 / extent_max; // Scale to 2 meters.
+            this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
             // throws an error for some reason.
             //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
 
