@@ -241,7 +241,7 @@ export default class PlayerController {
             this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
 
             // make sure picking gui goes away.
-            this.pickingGui.updatePickingGui(null, 0);
+            await this.pickingGui.updatePickingGui(null, 0);
         }
         catch {
             this.currentItem = undefined;
@@ -273,6 +273,7 @@ export default class PlayerController {
                 //this.tempObject.material!.alpha = 0.2;
             }
         } else if (hit) {
+            // TODO: await this somehow?
             this.pickingGui.updatePickingGui(hit.pickedMesh, hit.distance);
         }
     }

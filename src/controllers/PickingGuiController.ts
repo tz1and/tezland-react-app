@@ -138,6 +138,9 @@ Remove item: Del`;
         return this.getInstanceRoot(this.current_node);
     }
 
+    // TODO: probably shouldnt be async.
+    // instead we can keep the gui around and have an async function that updates it?
+    // probably would be better.
     async updatePickingGui(node: Nullable<TransformNode>, distance: number) {
         if(node === this.current_node) return;
 
