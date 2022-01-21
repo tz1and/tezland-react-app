@@ -152,9 +152,10 @@ Remove item: Del`;
             //this.infoGui = null;
 
             // TEMP
-            let control;
-            while(control = this.advancedTexture.getControlByName("ItemInfo")) {
+            let control = this.advancedTexture.getControlByName("ItemInfo");
+            while(control) {
                 control.dispose();
+                control = this.advancedTexture.getControlByName("ItemInfo");
             };
             this.infoGui = null;
         }
