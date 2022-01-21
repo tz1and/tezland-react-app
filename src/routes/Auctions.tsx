@@ -51,7 +51,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.reloadAuctions();
     }
 
-    private reloadAuctions() {
+    private reloadAuctions = () => {
         this.getAuctions(0).then((res) => {
             const more_data = res.length === this.fetchAmount;
             this.setState({
@@ -63,7 +63,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         });
     }
 
-    private fetchMoreData() {
+    private fetchMoreData = () => {
         if(this.firstFetchDone) {
             this.getAuctions(this.state.auction_offset).then((res) => {
                 const more_data = res.length === this.fetchAmount;
@@ -81,12 +81,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     render() {
-        let reloadAuctionsCallback = this.reloadAuctions.bind(this);
-
         var rows = [];
         for(const auction of this.state.auctions) {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice}
-                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId} reloadAuctions={reloadAuctionsCallback} />);
+                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId} reloadAuctions={this.reloadAuctions} />);
         }
 
         if(rows.length === 0) {
@@ -104,7 +102,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <InfiniteScroll
                         className="d-flex justify-content-left flex-wrap p-2"
                         dataLength={this.state.auctions.length} //This is important field to render the next data
-                        next={this.fetchMoreData.bind(this)}
+                        next={this.fetchMoreData}
                         hasMore={this.state.more_data}
                         loader={<h4>Loading...</h4>}
                         scrollThreshold={1}

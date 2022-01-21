@@ -182,7 +182,8 @@ export class World {
         var camera = new UniversalCamera("camera1", new Vector3(0, 2, -15), this.scene);
 
         // Camera props
-        camera.fov = 1.2;
+        camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;
+        camera.fov = 2;
         camera.minZ = 0.1;
 
         // Collision stuff

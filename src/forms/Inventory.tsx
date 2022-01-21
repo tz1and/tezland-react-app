@@ -70,7 +70,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         );
     }
 
-    private fetchMoreData() {
+    private fetchMoreData = () => {
         if(this.firstFetchDone) {
             this.loadInventory((res) => {
                 const more_data = res.balances.length === this.fetchAmount;
@@ -83,7 +83,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    handleClick(event: React.MouseEvent) {
+    handleClick = (event: React.MouseEvent) => {
         this.props.selectItemFromInventory(Number.parseInt(event.currentTarget.id));
     }
 
@@ -101,7 +101,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
             content = <div>Error: {error.message}</div>;
         } else {
             content = items.map(item => (
-                <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick.bind(this)}>
+                <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick}>
                     <img src={this.getThumbnailUrl(item.thumbnail_uri)} className="card-img-top" alt="..."/>
                     <div className="card-body">
                     <h5 className="card-title">{item.name}</h5>
@@ -121,7 +121,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                     style={{height: '75vh'}}
                     height='75vh'
                     dataLength={items.length} //This is important field to render the next data
-                    next={this.fetchMoreData.bind(this)}
+                    next={this.fetchMoreData}
                     hasMore={more_data}
                     loader={<h4>Loading...</h4>}
                     scrollThreshold={0.8}

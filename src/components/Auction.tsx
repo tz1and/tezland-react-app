@@ -79,7 +79,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         return current_price;
     }
 
-    private async bidOnAuction() {
+    private bidOnAuction = async () => {
         await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice(), () => {
             // Wait a little for the indexer to catch up.
             this.reloadInterval = setTimeout(() => {
@@ -155,7 +155,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     </p>
 
                     <Link to={`/explore?coordx=${this.state.placeCoords[0]}&coordz=${this.state.placeCoords[1]}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
-                    <button onClick={this.bidOnAuction.bind(this)} className="btn btn-primary btn-md w-100" disabled={!this.started}>
+                    <button onClick={this.bidOnAuction} className="btn btn-primary btn-md w-100" disabled={!this.started}>
                         {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>
                 </div>
             </div>
