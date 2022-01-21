@@ -81,7 +81,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
+                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
                                 <div id="amountHelp" className="form-text">The number of Items to place. Can't be more than the amount you own.</div>
                                 {touched.itemAmount && errors.itemAmount && <small className="text-danger">{errors.itemAmount}</small>}
                             </div>

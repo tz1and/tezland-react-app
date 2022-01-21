@@ -94,36 +94,40 @@ export default class PlayerController {
 
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
-            if (info.type === PointerEventTypes.POINTERDOWN) {
-                if(this.currentPlace && this.currentPlace.isOwned && this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
+            switch(info.type) {
+                case PointerEventTypes.POINTERDOWN:
+                    if(info.event.button === 0 && this.currentPlace && this.currentPlace.isOwned &&
+                        this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
-                    // TODO: move placing items into Place class.
-                    const parent = this.currentPlace.itemsNode;
-                    assert(parent);
+                        // TODO: move placing items into Place class.
+                        const parent = this.currentPlace.itemsNode;
+                        assert(parent);
 
-                    const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
-                    // Make sure item is place relative to place origin.
-                    newObject.position = this.tempObject.position.subtract(parent.position);
-                    newObject.rotationQuaternion = this.tempObjectRot.clone();
-                    newObject.scaling = this.tempObject.scaling.clone();
-                    newObject.metadata = {
-                        itemTokenId: new BigNumber(this.currentItem),
-                        placeId: this.currentPlace.placeId
-                    } as InstanceMetadata;
+                        const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
+                        // Make sure item is place relative to place origin.
+                        newObject.position = this.tempObject.position.subtract(parent.position);
+                        newObject.rotationQuaternion = this.tempObjectRot.clone();
+                        newObject.scaling = this.tempObject.scaling.clone();
+                        newObject.metadata = {
+                            itemTokenId: new BigNumber(this.currentItem),
+                            placeId: this.currentPlace.placeId
+                        } as InstanceMetadata;
 
-                    shadowGenerator.addShadowCaster(newObject);
+                        shadowGenerator.addShadowCaster(newObject);
+
+                        eventState.skipNextObservers = true;
+
+                        document.exitPointerLock();
+                        appControlfunctions.placeItem(newObject);
+                    }
+                    break;
+
+                case PointerEventTypes.POINTERWHEEL:
+                    const event = info.event as IWheelEvent;
+                    this.tempObjectOffsetY += event.deltaY * -0.001;
 
                     eventState.skipNextObservers = true;
-
-                    document.exitPointerLock();
-                    appControlfunctions.placeItem(newObject);
-                }
-            }
-            else if (info.type === PointerEventTypes.POINTERWHEEL) {
-                var event = info.event as IWheelEvent;
-                this.tempObjectOffsetY += event.deltaY * -0.001;
-
-                eventState.skipNextObservers = true;
+                    break;
             }
         }, undefined, true);
 

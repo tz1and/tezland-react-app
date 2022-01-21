@@ -140,15 +140,22 @@ Remove item: Del`;
 
     // TODO: probably shouldnt be async.
     // instead we can keep the gui around and have an async function that updates it?
-    // probably would be better.
+    // probably would be better. TEMP solution works for now.
     async updatePickingGui(node: Nullable<TransformNode>, distance: number) {
         if(node === this.current_node) return;
 
         this.current_node = node;
 
         if(this.infoGui) {
-            this.advancedTexture.removeControl(this.infoGui);
-            this.infoGui.dispose();
+            // OLD
+            //this.infoGui.dispose();
+            //this.infoGui = null;
+
+            // TEMP
+            let control;
+            while(control = this.advancedTexture.getControlByName("ItemInfo")) {
+                control.dispose();
+            };
             this.infoGui = null;
         }
 
@@ -160,7 +167,7 @@ Remove item: Del`;
 
         const itemMetadata = await Metadata.getItemMetadata(metadata.itemTokenId.toNumber());
         
-        var rect = new Rectangle();
+        var rect = new Rectangle("ItemInfo");
         rect.widthInPixels = 110;
         rect.heightInPixels = 110 * 3/4;
         rect.cornerRadius = 5;
