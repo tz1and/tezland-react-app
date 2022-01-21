@@ -1,26 +1,26 @@
 import React from 'react';
-import './App.css';
-import VirtualSpace from './components/VirtualSpace';
-import { MintFrom } from './forms/MintForm';
-import { PlaceForm } from './forms/PlaceForm';
-import { Inventory } from './forms/Inventory';
+import './Explore.css';
+import VirtualSpace from './VirtualSpace';
+import { MintFrom } from '../forms/MintForm';
+import { PlaceForm } from '../forms/PlaceForm';
+import { Inventory } from '../forms/Inventory';
 import { Node, Nullable } from '@babylonjs/core';
 
-type AppProps = {
+type ExploreProps = {
     // using `interface` is also ok
     //message: string;
 };
-type AppState = {
+type ExploreState = {
     show_form: string;
     dispaly_overlay: boolean;
     placedItem: Nullable<Node>;
     //count: number; // like this
 };
 
-class App extends React.Component<AppProps, AppState> {
+export default class Explore extends React.Component<ExploreProps, ExploreState> {
     private virtualSpaceRef = React.createRef<VirtualSpace>();
 
-    constructor(props: AppProps) {
+    constructor(props: ExploreProps) {
         super(props);
         this.state = {
             show_form: 'none',
@@ -98,5 +98,3 @@ class App extends React.Component<AppProps, AppState> {
         );
     }
 }
-
-export default App;
