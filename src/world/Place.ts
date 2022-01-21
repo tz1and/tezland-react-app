@@ -40,9 +40,8 @@ export default class Place {
     private owner: string;
 
     // TODO: misnomer: isOwnedOrOperated
-    private _isOwned: boolean;
-    get isOwned() { return this._isOwned; }
-    private set isOwned(val: boolean) { this._isOwned = val; }
+    get isOwned(): boolean { return this.owner === this.world.walletProvider.walletPHK(); }
+    private isOperated: boolean;
 
     constructor(placeId: number, world: World) {
         this.placeId = placeId;
@@ -51,8 +50,8 @@ export default class Place {
         this.placeGround = null;
         this.origin = new Vector3();
         this._itemsNode = null;
-        this._isOwned = false;
         this.owner = "";
+        this.isOperated = false;
     }
 
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
@@ -133,7 +132,10 @@ export default class Place {
             this.placeGround.receiveShadows = true;
 
             this.owner = await Contracts.getPlaceOwner(this.placeId);
-            this.isOwned = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
+            // TODO: maybe reload isOperated when you enter a place.
+            // OR EVEN BETTER. listen to walletChanged events and reload for all places.
+            // OR EVEN EVEN BETTER. listen for specific contract events.
+            this.isOperated = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
 
             this.world.playerController.playerTrigger.actionManager?.registerAction(
                 new ExecuteCodeAction(
