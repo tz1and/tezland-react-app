@@ -5,6 +5,7 @@ import { MintFrom } from '../forms/MintForm';
 import { PlaceForm } from '../forms/PlaceForm';
 import { Inventory } from '../forms/Inventory';
 import { Node, Nullable } from '@babylonjs/core';
+import { Instructions } from '../forms/Instructions';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -23,7 +24,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     constructor(props: ExploreProps) {
         super(props);
         this.state = {
-            show_form: 'none',
+            show_form: 'instructions',
             dispaly_overlay: true,
             placedItem: null
             // optional second annotation for better type inference
@@ -50,13 +51,13 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         // remove item if action was cancelled.
         if(cancelled && this.state.placedItem) this.state.placedItem.dispose();
 
-        this.setState({ show_form: 'none', dispaly_overlay: false, placedItem: null });
+        this.setState({ show_form: 'instructions', dispaly_overlay: false, placedItem: null });
 
         this.virtualSpaceRef.current?.lockControls();
     }
 
     selectItemFromInventory(id: number) {
-        this.setState({ show_form: 'none', dispaly_overlay: false });
+        this.setState({ show_form: 'instructions', dispaly_overlay: false });
 
         const curVS = this.virtualSpaceRef.current;
         if (curVS) {
@@ -67,32 +68,22 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
     render() {
         let closeFormCallback = this.closeForm.bind(this);
+
+        // TODO: probably could use router for overlay/forms.
         let form;
-        if (this.state.show_form === 'none') form = <div className="text-center">
-            <div id="app-overlay" onClick={() => closeFormCallback(true)}>
-                <p className='text-info App-logo-text'>[tz1aND]</p>
-                <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>
-                <p>
-                    Move: WASD<br />
-                    Look: MOUSE<br />
-                    Exit: ESCAPE<br />
-                </p>
-            </div>
-            <br /><br /><button className='btn btn-primary fs-4 px-4 py-2'>Connect Wallet</button>
-        </div>
+        if (this.state.show_form === 'instructions') form = <Instructions closeForm={closeFormCallback} />
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={closeFormCallback} />;
         else if (this.state.show_form === 'place') form = <PlaceForm closeForm={closeFormCallback} placedItem={this.state.placedItem} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={closeFormCallback} selectItemFromInventory={this.selectItemFromInventory.bind(this)} />;
 
         let overlay = this.state.dispaly_overlay === false ? null :
-            <header className="App-header">
+            <div className="Explore-overlay">
                 {form}
-            </header>
+            </div>
 
-        // TODO: probably could use router for overlay/forms.
         return (
-            <div className='App'>
-                <div className="App-overlay">{overlay}</div>
+            <div className='Explore'>
+                {overlay}
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{setOverlayDispaly: this.setOverlayDispaly.bind(this), loadForm: this.loadForm.bind(this), placeItem: this.placeItem.bind(this)}} />
             </div>
         );
