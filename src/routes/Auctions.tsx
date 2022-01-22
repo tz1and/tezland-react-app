@@ -30,10 +30,14 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     private fetchAmount: number = 8;
     private firstFetchDone: boolean = false;
 
-    private async getAuctions(offset: number) {
+    private async getAuctions(last: number) {
+        //query getAuctions($offset: Int!, $amount: Int!) {
+        //    dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
+        // Fetch with a less than to make sure we get don't
+        // load auctions twice because of new added and offset.
         const data = await fetchGraphQL(`
-            query getAuctions($offset: Int!, $amount: Int!) {
-                dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
+            query getAuctions($last: bigint!, $amount: Int!) {
+                dutchAuction(limit: $amount, where: {id: {_lt: $last}}, order_by: {id: desc}) {
                     endPrice
                     endTime
                     id
@@ -42,7 +46,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     startTime
                     tokenId
                 }
-            }`, "getAuctions", { amount: this.fetchAmount, offset: offset });
+            }`, "getAuctions", { amount: this.fetchAmount, last: last });
         
         return data.dutchAuction;
     }
@@ -51,8 +55,18 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.reloadAuctions();
     }
 
+    private removeFromAuctions = (auction_id: number) => {
+        const newAuctions: any[] = [];
+        for(const a of this.state.auctions) {
+            if(a.id !== auction_id) newAuctions.push(a);
+        }
+        this.setState({auctions: newAuctions});
+    }
+
     private reloadAuctions = () => {
-        this.getAuctions(0).then((res) => {
+        // TODO: first fetch should probably be by offset 0,
+        // but we can also just use a very large id.
+        this.getAuctions(10000000).then((res) => {
             const more_data = res.length === this.fetchAmount;
             this.setState({
                 auctions: res,
@@ -65,7 +79,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     private fetchMoreData = () => {
         if(this.firstFetchDone) {
-            this.getAuctions(this.state.auction_offset).then((res) => {
+            this.getAuctions(this.state.auctions[this.state.auctions.length-1].id).then((res) => {
                 const more_data = res.length === this.fetchAmount;
                 this.setState({
                     auctions: this.state.auctions.concat(res),
@@ -84,7 +98,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         var rows = [];
         for(const auction of this.state.auctions) {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice}
-                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId} reloadAuctions={this.reloadAuctions} />);
+                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
+                reloadAuctions={this.reloadAuctions} removeFromAuctions={this.removeFromAuctions} />);
         }
 
         if(rows.length === 0) {

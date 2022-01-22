@@ -22,6 +22,7 @@ export const OperationPending: React.FC<OperationPendingProps> = (props: Operati
             <div className="d-flex">
                 <div className="toast-body">
                     <p className='mb-2 fw-bolder'>Operation {title}</p>
+                    <hr/>
                     {body}<br/>Hash: <a className='link-light' href={'https://tzkt.io/' + props.data.hash} target='_blank' rel="noreferrer">{props.data.hash.substring(0, 23)}...</a>
                 </div>
                 { props.data.done ?
