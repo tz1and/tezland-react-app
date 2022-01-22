@@ -21,7 +21,9 @@ export type ITezosWalletProvider = {
     walletOperationDone(hash: string, success: boolean, message?: string): void;
 }
 
-// @ts-ignore
+// Ignore the following because I can't be bothered to fill
+// in the default that isn't used anyway.
+// @ts-expect-error
 const TezosWalletContext = createContext<ITezosWalletProvider>({
     /*connectWallet: () => { },
     disconnectWallet: () => { },

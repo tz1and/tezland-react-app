@@ -250,13 +250,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     }
 };
 
-
-// TODO: figure out how to properly to HOC in typescript.
+// inject useNavigate with a high order function component.
 //https://github.com/remix-run/react-router/issues/8146#issuecomment-947860640
-// @ts-expect-error
-function withNavigation(Component) {
-    // @ts-expect-error
-    return props => <Component {...props} navigate={useNavigate()} />;
-}
+function withNavigation <P>(Component: React.ComponentType<P>) {
+    return (props: P) => <Component {...props as P} navigate={useNavigate()} />;
+};
 
 export const CreateAuctionFormW = withNavigation(CreateAuctionForm);
