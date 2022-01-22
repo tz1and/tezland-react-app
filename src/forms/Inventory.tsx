@@ -12,7 +12,7 @@ type InventoryProps = {
 };
 
 type InventoryState = {
-    error?: Error;
+    error?: string;
     items: any[];
     //count: number; // like this
     //mount: HTMLDivElement | null;
@@ -51,7 +51,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     private loadInventory(callback: (res: any) => void) {
         if(!this.context.isWalletConnected()) {
             this.setState({
-                error: new Error("No wallet connected")
+                error: "No wallet connected.",
+                more_data: false
             });
             return;
         }
@@ -59,12 +60,10 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${this.context.walletPHK()}/token_balances?contract=${Conf.item_contract}&size=${this.fetchAmount}&offset=${this.state.item_offset}`)
         .then(res => res.json())
         .then(callback,
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
             (error) => {
                 this.setState({
-                    error: error
+                    error: error.message,
+                    more_data: false
                 });
             }
         );
@@ -96,24 +95,19 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     render() {
         const { error, items, more_data } = this.state;
 
-        let content;
-        if (error) {
-            content = <div>Error: {error.message}</div>;
-        } else {
-            content = items.map(item => (
-                <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick}>
-                    <img src={this.getThumbnailUrl(item.thumbnail_uri)} className="card-img-top" alt="..."/>
-                    <div className="card-body">
-                    <h5 className="card-title">{item.name}</h5>
-                    <p className="card-text">x{item.balance}</p>
-                    <p className="card-text"><small className="text-muted">Creator or so maybe</small></p>
-                    </div>
+        let content = error ? <h5 className='mt-3'>{error}</h5> : items.map(item => (
+            <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick}>
+                <img src={this.getThumbnailUrl(item.thumbnail_uri)} className="card-img-top" alt="..."/>
+                <div className="card-body">
+                <h5 className="card-title">{item.name}</h5>
+                <p className="card-text">x{item.balance}</p>
+                <p className="card-text"><small className="text-muted">Creator or so maybe</small></p>
                 </div>
-            ))
-        }
+            </div>
+        ))
 
         return (
-            <div className='p-4 m-4 bg-light border-0 rounded-3 text-dark position-relative w-75'>
+            <div className='p-4 m-4 mx-auto bg-light border-0 rounded-3 text-dark position-relative w-75'>
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)}/>
                 <h2>inventory</h2>
                 <InfiniteScroll
@@ -123,21 +117,12 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                     dataLength={items.length} //This is important field to render the next data
                     next={this.fetchMoreData}
                     hasMore={more_data}
-                    loader={<h4>Loading...</h4>}
+                    loader={<h5 className='mt-3'>Loading...</h5>}
                     scrollThreshold={0.8}
                 >
                     {content}
                 </InfiniteScroll>
             </div>
         );
-
-        /*<div className="card m-2" style={{width: '200px'}}>
-            <img src={imageBlob} className="card-img-top" width={200} height={200} alt="..."/>
-            <div className="card-body">
-            <h5 className="card-title">Card title</h5>
-            <p className="card-text">This is a wider</p>
-            <p className="card-text"><small className="text-muted">Last updated 3 mins ago</small></p>
-            </div>
-        </div>*/
     }
 }
