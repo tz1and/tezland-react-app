@@ -1,4 +1,4 @@
-import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
+import { Mesh, Node, Nullable, PointerEventTypes, TransformNode, Vector2, Vector3 } from "@babylonjs/core";
 
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import Contracts from "../tz/Contracts";
@@ -119,9 +119,9 @@ export default class PickingGuiController {
         rect.widthInPixels = 110;
         rect.heightInPixels = 110 * 3/4;
         rect.cornerRadius = 5;
-        rect.thickness = 2;
-        rect.color = "black";
-        rect.background = "white";
+        rect.thickness = 0;
+        rect.color = "white";
+        rect.background = "#5c636a";
         this.advancedTexture.addControl(rect);
         rect.linkWithMesh(node);
         rect.linkOffsetX = -200;
