@@ -121,7 +121,7 @@ export default class PickingGuiController {
         rect.cornerRadius = 5;
         rect.thickness = 0;
         rect.color = "white";
-        rect.background = "#5c636a";
+        rect.background = "#6c757d";
         this.advancedTexture.addControl(rect);
         rect.linkWithMesh(node);
         rect.linkOffsetX = -200;
