@@ -14,7 +14,7 @@ export default class PickingGuiController {
     private current_node: Nullable<TransformNode>;
 
     private infoGui: Nullable<Control>;
-    private hud: Control;
+    //private hud: Control;
 
     constructor(world: World) {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -53,8 +53,8 @@ export default class PickingGuiController {
         this.advancedTexture.addControl(circ);
 
         // HUD
-        this.hud = this.generateHUD();
-        this.advancedTexture.addControl(this.hud);
+        //this.hud = this.generateHUD();
+        //this.advancedTexture.addControl(this.hud);
 
         // crosshair
         /*var hor = new Rectangle();
@@ -70,7 +70,7 @@ export default class PickingGuiController {
         this.advancedTexture.addControl(vert);*/
     }
 
-    private generateHUD(): Control {
+    /*private generateHUD(): Control {
         var rect = new Rectangle();
         rect.widthInPixels = 120;
         rect.heightInPixels = 140;
@@ -85,7 +85,7 @@ export default class PickingGuiController {
         var panel = new StackPanel();
         panel.width = 0.90;
         panel.height = 0.95;
-        //panel.logLayoutCycleErrors = true; // TEMP*/
+        //panel.logLayoutCycleErrors = true; // TEMP
         rect.addControl(panel);
 
         /*var label = new TextBlock();
@@ -94,7 +94,7 @@ export default class PickingGuiController {
         label.width = 1;
         label.text = "Controls";
         label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
-        panel.addControl(label);*/
+        panel.addControl(label);* /
 
         var label = new TextBlock();
         label.fontSize = "10px";
@@ -114,7 +114,7 @@ Remove item: Del`;
         panel.addControl(label);
 
         return rect;
-    }
+    }*/
 
     // TODO: do I even need this?
     private getInstanceRoot(node: Nullable<Node>): Nullable<Node> {

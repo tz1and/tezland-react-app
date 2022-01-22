@@ -31,3 +31,23 @@
 #explore-instructions {
   font-size: calc(10px + 2vmin);
 }
+
+.glyphicon-stack {
+  display: inline-block;
+  height: 2em;
+  line-height: 2em;
+  position: relative;
+  vertical-align: middle;
+  width: 2.5em;
+}
+  
+.glyphicon-stack-1x {
+  font-size: 2em;
+}
+  
+.glyphicon-stack-1x, .glyphicon-stack-2x {
+  left: 0;
+  position: absolute;
+  text-align: center;
+  width: 100%;
+}

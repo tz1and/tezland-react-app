@@ -20,6 +20,7 @@ type ExploreState = {
 
 export default class Explore extends React.Component<ExploreProps, ExploreState> {
     private virtualSpaceRef = React.createRef<VirtualSpace>();
+    private help: JSX.Element;
 
     constructor(props: ExploreProps) {
         super(props);
@@ -30,6 +31,78 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             // optional second annotation for better type inference
             //count: 0,
         };
+
+        this.help = <div>
+            <div className='position-absolute bottom-0 start-0'>
+                <button className="btn btn-primary m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Show Control Help</button>
+            </div>
+
+            <div className="offcanvas offcanvas-start" tabIndex={-1} id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                <div className="offcanvas-header">
+                    <h4 id="offcanvasRightLabel">Control Help</h4>
+                    <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div className="offcanvas-body">
+                    <p>Keyboard and mouse controls:</p>
+                    <p>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">I</p>
+                        </span>
+                        Open inventory<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">M</p>
+                        </span>
+                        Mint item<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">C</p>
+                        </span>
+                        Clear item selection<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">U</p>
+                        </span>
+                        Save changes
+                    </p>
+
+                    <p>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-half glyphicon-stack-1x" style={{transform: "rotate(180deg)"}}></i>
+                        </span>
+                        Place item<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-half glyphicon-stack-1x"></i>
+                        </span>
+                        Get item<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">Q</p>
+                        </span>/
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">E</p>
+                        </span>
+                        Rotate item<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">R</p>
+                        </span>/
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">F</p>
+                        </span>
+                        Scale item<br/>
+                        <span className="glyphicon-stack m-1 ms-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <p className="glyphicon-stack-2x text-white">Del</p>
+                        </span>
+                        Remove item
+                    </p>
+                </div>
+            </div>
+        </div>
     }
 
     loadForm = (form_type: string) => {
@@ -74,14 +147,17 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'place') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm} selectItemFromInventory={this.selectItemFromInventory} />;
 
-        let overlay = this.state.dispaly_overlay === false ? null :
+        let overlay = !this.state.dispaly_overlay ? null :
             <div className="Explore-overlay">
                 {form}
             </div>
 
+        let controlInfo = !this.state.dispaly_overlay ? null : this.help;
+
         return (
             <div className='Explore'>
                 {overlay}
+                {controlInfo}
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{
                     setOverlayDispaly: this.setOverlayDispaly,
                     loadForm: this.loadForm,
