@@ -114,6 +114,9 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
     componentDidMount() {
         // set Interval
+        // NOTE: could figure out the exact time the price drops by granularity
+        // and wait until then. But probably better to update the progress bar
+        // every now and then.
         this.refreshInterval = setInterval(() => {
             this.updateTimeVars();
             this.setState({ updateCount: this.state.updateCount + 1 });
