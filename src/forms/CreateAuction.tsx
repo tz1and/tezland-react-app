@@ -75,20 +75,18 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     private panMapToPlace(place_id: number) {
         if(place_id < 0) return;
 
-        Metadata.Storage.open(() => {
-            Metadata.getPlaceMetadata(place_id).then((res) => {
-                const coords = res.token_info.center_coordinates;
-                const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
+        Metadata.getPlaceMetadata(place_id).then((res) => {
+            const coords = res.token_info.center_coordinates;
+            const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
 
-                const polygon = res.token_info.border_coordinates;
-                const placePoly: [number, number][] = []
-                for(const pos of polygon)
-                {
-                    placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
-                }
+            const polygon = res.token_info.border_coordinates;
+            const placePoly: [number, number][] = []
+            for(const pos of polygon)
+            {
+                placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
+            }
 
-                this.setState({ mapLocation: center_pos, placePoly: placePoly });
-            }, () => {})
+            this.setState({ mapLocation: center_pos, placePoly: placePoly });
         }, () => {});
     }
 

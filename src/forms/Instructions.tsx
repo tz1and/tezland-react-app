@@ -9,7 +9,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
     const context = useTezosWalletContext();
 
     return (
-        <div className="text-center">
+        <div className="text-center my-auto">
             <div id="explore-instructions" onClick={() => props.closeForm(false)}>
                 <p className='text-info App-logo-text'>[tz1aND]</p>
                 <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>

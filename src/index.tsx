@@ -21,11 +21,12 @@ Metadata.Storage.open(() => {
             <div className="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
                 <div className="d-flex">
                     <div className="toast-body">
-                        <p className='mb-2 fw-bolder'>Failed to open Database storage</p>
-                        The app may not work correctly.<br/>
-                        Check the Javascript console for more details.
+                        <p className='mb-3 fw-bolder'>Failed to open Database storage</p>
+                        The app may not function correctly.<br/><br/>
+                        Check the Javascript console for more details.<br/>
+                        It could also be your privacy settings (or a private tab).
                     </div>
-                    <button type="button" className="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" className="btn-close btn-close-white me-2 mt-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
         </div>)

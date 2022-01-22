@@ -10,14 +10,15 @@ export default class Metadata {
         const dbstorage = new DatabaseStorage();
         if(!dbstorage.isSupported)
             return new FallbackStorage();
-        else {
+        else return dbstorage;
+            // OLD: this is done in index.tsx now.
+            /*{
             dbstorage.open(() => {
                 Logging.InfoDev("Opened Database storage");
             }, () => {
                 Logging.Error("Failed to open database storage");
             });
-            return dbstorage;
-        }
+            return dbstorage;*/
     }
 
     private static async getMetadata(table: string, token_id: number, contract: string): Promise<any> {

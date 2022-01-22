@@ -32,7 +32,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
     };
 
     return (
-        <div className='p-4 bg-light border-0 rounded-3 text-dark position-relative'>
+        <div className='p-4 m-4 bg-light border-0 rounded-3 text-dark position-relative'>
             <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm(true)} />
             <h2>place Item</h2>
             <Formik

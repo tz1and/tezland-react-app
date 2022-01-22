@@ -25,7 +25,7 @@ export const OperationPending: React.FC<OperationPendingProps> = (props: Operati
                     {body}<br/>Hash: <a className='link-light' href={'https://tzkt.io/' + props.data.hash} target='_blank' rel="noreferrer">{props.data.hash.substring(0, 23)}...</a>
                 </div>
                 { props.data.done ?
-                    <button type="button" className="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> :
+                    <button type="button" className="btn-close btn-close-white me-2 mt-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> :
                     <div className="spinner-border text-white me-3 m-auto" role="status"></div>
                 }
             </div>
