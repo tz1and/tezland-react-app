@@ -2,6 +2,16 @@ import { Nullable } from "@babylonjs/core";
 import { Logging } from "../utils/Logging";
 import { IStorageProvider } from "./IStorageProvider";
 
+const databaseTables: string[] = [
+    "placeMetadata",
+    "placeItems",
+    "placeSeq",
+    "itemMetadata",
+    "itemPolycount"
+]
+
+const databaseVersion = databaseTables.length;
+
 export class DatabaseStorage implements IStorageProvider {
     public isSupported: boolean;
     private hasReachedQuota: boolean;
@@ -41,7 +51,7 @@ export class DatabaseStorage implements IStorageProvider {
                 //this._hasReachedQuota = false;
                 this.isSupported = true;
 
-                var request: IDBOpenDBRequest = this.idbFactory.open("tezland", 1);
+                var request: IDBOpenDBRequest = this.idbFactory.open("tezland", databaseVersion);
 
                 // Could occur if user is blocking the quota for the DB and/or doesn't grant access to IndexedDB
                 request.onerror = () => {
@@ -65,11 +75,10 @@ export class DatabaseStorage implements IStorageProvider {
                     this.db = (event.target as any).result;
                     if (this.db) {
                         try {
-                            this.db.createObjectStore("placeMetadata"); //, { keyPath: "key" });
-                            this.db.createObjectStore("placeItems"); //, { keyPath: "key" });
-                            this.db.createObjectStore("placeSeq"); //, { keyPath: "key" });
-                            this.db.createObjectStore("itemMetadata"); //, { keyPath: "key" });
-                            //this.db.createObjectStore("textures", { keyPath: "textureUrl" });
+                            for(const table of databaseTables) {
+                                if(!this.db.objectStoreNames.contains(table))
+                                    this.db.createObjectStore(table); //, { keyPath: "key" });
+                            }
                         } catch (ex: any) {
                             Logging.Error("Error while creating object stores. Exception: " + ex.message);
                             handleError();

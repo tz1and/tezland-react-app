@@ -11,4 +11,6 @@ export default class Conf {
     public static marketplaces_contract: string = process.env.REACT_APP_MARKETPLACES_CONTRACT;
     public static minter_contract: string = process.env.REACT_APP_MINTER_CONTRACT;
     public static dutch_auchtion_contract: string = process.env.REACT_APP_DUTCH_AUCTION_CONTRACT;
+
+    public static polycount_limit: number = parseInt(process.env.REACT_APP_POLYCOUNT_LIMIT);
 }

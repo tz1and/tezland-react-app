@@ -1,4 +1,4 @@
-import { Axis, Mesh, Ray, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Axis, Mesh, Ray, Vector3 } from "@babylonjs/core";
 import BigNumber from 'bignumber.js';
 
 export const pointIsInside = (point: Vector3, mesh: Mesh) => {
@@ -109,4 +109,14 @@ export const signedArea = (data: number[], start: number, end: number, dim: numb
       j = i;
   }
   return sum;
+}
+
+export const countPolygons = (meshes: AbstractMesh[]): number => {
+  let polycount = 0;
+  for(const m of meshes) {
+      m.updateFacetData();
+      polycount += m.facetNb;
+      m.disableFacetData();
+  }
+  return polycount;
 }

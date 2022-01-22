@@ -2,6 +2,7 @@ import React from 'react';
 import '@babylonjs/loaders/glTF';
 import { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh,
     Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
+import { countPolygons } from '../utils/Utils';
 
 
 type ModelPreviewProps = {
@@ -11,6 +12,7 @@ type ModelPreviewProps = {
 type ModelPreviewState = {
     loading: boolean;
     thumbnail: any;
+    polycount: number;
 };
 
 class PreviewScene {
@@ -39,6 +41,12 @@ class PreviewScene {
         this.previewObject = null;
     }
 
+    public destroy() {
+        // Destorying the engine should prbably be enough.
+        this.engine.dispose();
+        this.scene.dispose();
+    }
+
     private createScene() {
         var scene = new Scene(this.engine);
 
@@ -54,13 +62,13 @@ class PreviewScene {
         return scene;
     };
 
-    async loadObject(file?: File) {
+    async loadObject(file?: File): Promise<number> {
         if(this.previewObject) {
              this.previewObject.dispose();
              this.previewObject = null;
         }
 
-        if(!file) return;
+        if(!file) return 0;
 
         const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
         this.previewObject = result.meshes[0] as Mesh;
@@ -75,6 +83,10 @@ class PreviewScene {
         this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
         this.previewObject.position.y = -extent.y * new_scale / 2;
+
+        const polycount = countPolygons(result.meshes);
+
+        return polycount;
     }
 
     getScreenshot(): Promise<string> {
@@ -91,7 +103,8 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         this.state = {
             // optional second annotation for better type inference
             loading: false,
-            thumbnail: null
+            thumbnail: null,
+            polycount: 0,
             //count: 0,
             //mount: null
         };
@@ -105,13 +118,19 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         if(this.props.file !== prevProps.file) {
             // if file is not null and preview exists.
             if(this.preview) {
-                this.preview.loadObject(this.props.file);
+                this.preview.loadObject(this.props.file).then((res) => {
+                    this.setState({ polycount: res });
+                });
             }
         }
     }
 
     componentDidMount() {
         this.preview = new PreviewScene(this.mount!);
+    }
+
+    componentWillUnmount() {
+        if(this.preview) this.preview.destroy();
     }
 
     getThumbnail(): Promise<string> {

@@ -4,6 +4,8 @@ import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
+import { countPolygons } from '../utils/Utils';
+import { Logging } from '../utils/Logging';
 
 const ipfs_client = ipfs.create({ url: Conf.ipfs_url });
 
@@ -13,6 +15,14 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
     var mesh = scene.getMeshByName(`item${item_id}`);
     if(!mesh) {
         const itemMetadata = await Metadata.getItemMetadata(item_id.toNumber());
+        const itemCachedPolycount = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
+
+        // early out if we have a cached polycount
+        console.log(Conf.polycount_limit);
+        if(itemCachedPolycount !== null && itemCachedPolycount >= Conf.polycount_limit) {
+            Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
+            return null;
+        }
 
         // remove ipfs:// from uri
         const hash = itemMetadata.artifact_uri.slice(7);
@@ -49,9 +59,28 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         mesh.parent = scene.getTransformNodeByName("loadedItemCache");
         //mesh.setEnabled(false); // not needed, as loadedItemCache is disabled.
 
-        // Something funky going on with babylon 5 beta4, disabled objects are pickable now
-        // and you can't disable it.
-        //mesh.getChildMeshes(false).forEach((e) => e.isPickable = false );
+        // If we don't have a cache, calculate polycount and store it.
+        // TODO: this might not be good enough, since animated meshes don't have polygons?
+        // Could be a babylon beta bug.
+        if(itemCachedPolycount === null) {
+            const polycount = countPolygons(newMeshes.meshes);
+            Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", polycount);
+
+            if(polycount >= Conf.polycount_limit) {
+                Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
+
+                // clean up. seems a bit extreme, but whatevs.
+                for (const x of newMeshes.animationGroups) x.dispose();
+                for (const x of newMeshes.geometries) x.dispose();
+                for (const x of newMeshes.lights) x.dispose();
+                for (const x of newMeshes.meshes) x.dispose();
+                for (const x of newMeshes.particleSystems) x.dispose();
+                for (const x of newMeshes.skeletons) x.dispose();
+                for (const x of newMeshes.transformNodes) x.dispose();
+
+                return null;
+            }
+        }
     }
     //else console.log("mesh found in cache");
         

@@ -47,6 +47,9 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
 
                     if (!values.itemFile) {
                         errors.itemFile = 'No file selected'
+                    } else if (modelPreviewRef.current!.state.polycount > 1000000) {
+                        // This is just here to filter out some obvious trolls.
+                        errors.itemFile = 'Mesh has too many polygons.';
                     }
 
                     if (values.itemTitle.length === 0) {
