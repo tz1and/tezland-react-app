@@ -186,7 +186,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
                 }}
             >
                 {children}
-                <div className="toast-container position-fixed bottom-0 end-0 p-4" style={{zIndex: "1050"}}>{toasts}</div>
+                <div className="toast-container position-fixed bottom-0 end-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
             </TezosWalletContext.Provider>
         )
     }

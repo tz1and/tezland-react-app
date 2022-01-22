@@ -186,7 +186,11 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 touched,
                                 isSubmitting,
                                 handleChange
-                            }) => { return (
+                            }) => {
+                                // TODO: sort out the drop down mess...
+                                // when only one place is in the inventory, it can't be selected.
+
+                                return (
                                 <Form>
                                     <div className="mb-3">
                                         <label htmlFor="placeId" className="form-label">Place ID</label>
@@ -194,7 +198,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                             {!this.state.placeInventory ?
                                                 (<option value={-1}>Loading Place Inventory...</option>) :
                                                     this.state.placeInventory.length === 0 ?
-                                                        (<option value={-1}>No places in inventory.</option>) :
+                                                        (<option value={-1}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not conncted."}</option>) :
                                                             this.state.placeInventory.map((key) => (
                                                                 <option key={key.tokenId} value={key.tokenId}>Place #{key.tokenId}</option>
                                                             ))}
@@ -236,7 +240,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 
                     <div className='col-lg-4 col-md-6'>
                         <h2>Map Preview</h2>
-                        <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[500, 500]} zoom={2} attributionControl={false} dragging={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
+                        <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[500, 500]} zoom={2} attributionControl={false} dragging={true} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
                             <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url="/img/map.svg" />
                             <MapSetCenter center={this.state.mapLocation}/>
                             <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />

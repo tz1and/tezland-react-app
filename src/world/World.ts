@@ -132,7 +132,7 @@ export class World {
             divFps!.innerHTML = this.engine.getFps().toFixed() + " fps";
         });
 
-        canvas.addEventListener('resize', () => { this.engine.resize(); });
+        window.addEventListener('resize', () => { this.engine.resize(); });
     }
 
     public destroy() {

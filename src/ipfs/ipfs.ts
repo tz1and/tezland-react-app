@@ -18,7 +18,6 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         const itemCachedPolycount = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
 
         // early out if we have a cached polycount
-        console.log(Conf.polycount_limit);
         if(itemCachedPolycount !== null && itemCachedPolycount >= Conf.polycount_limit) {
             Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
             return null;
