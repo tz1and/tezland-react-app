@@ -252,8 +252,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 
 // inject useNavigate with a high order function component.
 //https://github.com/remix-run/react-router/issues/8146#issuecomment-947860640
-function withNavigation <P>(Component: React.ComponentType<P>) {
-    return (props: P) => <Component {...props as P} navigate={useNavigate()} />;
+function withNavigation <P>(Component: React.ComponentType<P>): React.FC<P> {
+    return props => <Component {...props} navigate={useNavigate()} />;
 };
 
 export const CreateAuctionFormW = withNavigation(CreateAuctionForm);
