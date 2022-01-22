@@ -14,6 +14,7 @@ import Metadata from '../world/Metadata';
 import { useNavigate } from 'react-router-dom';
 import { fetchGraphQL } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
+import { Logging } from '../utils/Logging';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -91,14 +92,19 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     private async fetchPlaces() {
         if(!this.context.isWalletConnected()) return [];
 
-        const data = await fetchGraphQL(`
-            query getPlaces($address: String!) {
-                placeTokenHolder(where: {holderId: {_eq: $address}}, order_by: {tokenId: asc}) {
-                    tokenId
-                }
-            }`, "getPlaces", { address: this.context.walletPHK() });
-        
-        return data.placeTokenHolder;
+        try {
+            const data = await fetchGraphQL(`
+                query getPlaces($address: String!) {
+                    placeTokenHolder(where: {holderId: {_eq: $address}}, order_by: {tokenId: asc}) {
+                        tokenId
+                    }
+                }`, "getPlaces", { address: this.context.walletPHK() });
+            
+            return data.placeTokenHolder;
+        } catch(e: any) {
+            Logging.InfoDev("failed to token holder: " + e.message);
+            return []
+        }
     }
 
     private updatePlacesAndMap() {

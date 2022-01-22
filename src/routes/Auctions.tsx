@@ -3,6 +3,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction from '../components/Auction'
 import { fetchGraphQL } from '../ipfs/graphql';
+import { Logging } from '../utils/Logging';
 
 type AuctionsProps = {}
 
@@ -32,20 +33,25 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // Fetch with a less than to make sure we get don't
         // load auctions twice because of new added and offset.
         // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
-        const data = await fetchGraphQL(`
-            query getAuctions($last: bigint!, $amount: Int!) {
-                dutchAuction(limit: $amount, where: {id: {_lt: $last}}, order_by: {id: desc}) {
-                    endPrice
-                    endTime
-                    id
-                    ownerId
-                    startPrice
-                    startTime
-                    tokenId
-                }
-            }`, "getAuctions", { amount: this.fetchAmount, last: last });
-        
-        return data.dutchAuction;
+        try {   
+            const data = await fetchGraphQL(`
+                query getAuctions($last: bigint!, $amount: Int!) {
+                    dutchAuction(limit: $amount, where: {id: {_lt: $last}}, order_by: {id: desc}) {
+                        endPrice
+                        endTime
+                        id
+                        ownerId
+                        startPrice
+                        startTime
+                        tokenId
+                    }
+                }`, "getAuctions", { amount: this.fetchAmount, last: last });
+            
+            return data.dutchAuction;
+        } catch(e: any) {
+            Logging.InfoDev("failed to fetch auctions: " + e.message);
+            return []
+        }
     }
 
     componentDidMount() {
