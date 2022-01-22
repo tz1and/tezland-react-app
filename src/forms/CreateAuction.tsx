@@ -159,7 +159,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                     errors.startPrice = 'Start price must be > 0.';
                                 }
             
-                                if (values.endPrice <= 0 || values.endPrice >= values.startPrice) {
+                                if (/*values.endPrice <= 0 ||*/ values.endPrice >= values.startPrice) {
                                     errors.endPrice = 'End price must be > 0 and < start price.';
                                 }
                               

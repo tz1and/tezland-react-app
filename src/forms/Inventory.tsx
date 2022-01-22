@@ -107,7 +107,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         ))
 
         return (
-            <div className='p-4 m-4 mx-auto bg-light border-0 rounded-3 text-dark position-relative w-75'>
+            <div className='p-4 m-4 mx-auto bg-light border-0 rounded-3 text-dark position-relative' style={{width: "75vw"}}>
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)}/>
                 <h2>inventory</h2>
                 <InfiniteScroll

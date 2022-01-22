@@ -124,11 +124,6 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         hasMore={this.state.more_data}
                         loader={<h4>Loading...</h4>}
                         scrollThreshold={1}
-                        endMessage={
-                            <div className="d-flex justify-content-left flex-wrap p-2">
-                                That's all of them.
-                            </div>
-                        }
                     >
                         {rows}
                     </InfiniteScroll>
