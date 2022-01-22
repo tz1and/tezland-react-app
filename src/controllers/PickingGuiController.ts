@@ -1,4 +1,4 @@
-import { Mesh, Node, Nullable, PointerEventTypes, TransformNode, Vector2, Vector3 } from "@babylonjs/core";
+import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
 
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import Contracts from "../tz/Contracts";

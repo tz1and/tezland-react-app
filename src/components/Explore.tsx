@@ -86,6 +86,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         return (
             <div className='Explore'>
+                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3'>{ "tz1aND v" + process.env.REACT_APP_VERSION}</small>
                 {overlay}
                 {controlInfo}
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{
