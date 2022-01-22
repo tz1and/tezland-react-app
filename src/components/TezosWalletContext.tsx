@@ -54,8 +54,8 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     componentDidMount() {
-        //this.enableInMemorySigner(); // or
-        this.initWallet(); // either
+        //this.enableInMemorySigner(); // DEV
+        this.initWallet();
     }
 
     // A convenience function to check if a wallet (or signer) is set up/connected.
