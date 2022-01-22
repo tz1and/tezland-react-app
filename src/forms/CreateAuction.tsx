@@ -54,8 +54,6 @@ type CreateAuctionFormState = {
     placeInventory?: any[]
 }
 
-// TODO: fetch owned places from landex and make a dropdown of places.
-
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
     private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48, startPrice: 0, endPrice: 0 };
 
@@ -171,9 +169,6 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 } catch(e: any) {
                                     this.setState({ error: e.message});
                                 }
-
-                                // clear error state TODO: needed?
-                                //this.setState({ error: ''});
 
                                 actions.setSubmitting(false);
                             }}

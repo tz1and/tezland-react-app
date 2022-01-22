@@ -52,6 +52,8 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                         errors.itemFile = 'Mesh has too many polygons.';
                     }
 
+                    // TODO: validate model! If it's valid and loads.
+
                     if (values.itemTitle.length === 0) {
                         errors.itemTitle = 'Title required'
                     }
@@ -69,8 +71,6 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                 onSubmit={async (values, actions) => {
                     // clear error state
                     state.error = '';
-
-                    // TODO: validate model! polycount, if it loads, etc.
 
                     try {
                         // check if wallet is connected first.

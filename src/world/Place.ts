@@ -39,7 +39,6 @@ export default class Place {
 
     private owner: string;
 
-    // TODO: misnomer: isOwnedOrOperated
     get isOwned(): boolean { return this.owner === this.world.walletProvider.walletPHK(); }
     private isOperated: boolean;
 

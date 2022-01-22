@@ -14,7 +14,6 @@ export default class PickingGuiController {
     private current_node: Nullable<TransformNode>;
 
     private infoGui: Nullable<Control>;
-    //private hud: Control;
 
     constructor(world: World) {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -52,10 +51,6 @@ export default class PickingGuiController {
         circ.color = "white";
         this.advancedTexture.addControl(circ);
 
-        // HUD
-        //this.hud = this.generateHUD();
-        //this.advancedTexture.addControl(this.hud);
-
         // crosshair
         /*var hor = new Rectangle();
         hor.widthInPixels = 10;
@@ -70,53 +65,6 @@ export default class PickingGuiController {
         this.advancedTexture.addControl(vert);*/
     }
 
-    /*private generateHUD(): Control {
-        var rect = new Rectangle();
-        rect.widthInPixels = 120;
-        rect.heightInPixels = 140;
-        //rect.cornerRadius = 5;
-        rect.thickness = 0;
-        //rect.color = "black";
-        //rect.background = "white";
-        rect.horizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
-        rect.verticalAlignment = StackPanel.VERTICAL_ALIGNMENT_BOTTOM;
-        this.advancedTexture.addControl(rect);
-
-        var panel = new StackPanel();
-        panel.width = 0.90;
-        panel.height = 0.95;
-        //panel.logLayoutCycleErrors = true; // TEMP
-        rect.addControl(panel);
-
-        /*var label = new TextBlock();
-        label.fontSize = "12px";
-        label.height = "16px";
-        label.width = 1;
-        label.text = "Controls";
-        label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
-        panel.addControl(label);* /
-
-        var label = new TextBlock();
-        label.fontSize = "10px";
-        label.height = 12 * 11 + "px";
-        label.width = 1;
-        label.text = `Open inventory: I
-Mint item: M
-Clear item selection: C
-Save changes: U
-
-Place item: Left Click
-Rotate item: Q/E
-Scale item: R/F
-Get item: Right click
-Remove item: Del`;
-        label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
-        panel.addControl(label);
-
-        return rect;
-    }*/
-
-    // TODO: do I even need this?
     private getInstanceRoot(node: Nullable<Node>): Nullable<Node> {
         let parent: Nullable<Node> = node;
         while(parent) {

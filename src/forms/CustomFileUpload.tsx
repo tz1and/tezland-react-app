@@ -1,7 +1,7 @@
 import React from 'react';
 
 // from https://github.com/formium/formik/issues/45
-//todo ,aybe use this: https://github.com/cds-snc/platform-forms-client/blob/main/components/forms/FileInput/FileInput.tsx
+//todo maybe use this: https://github.com/cds-snc/platform-forms-client/blob/main/components/forms/FileInput/FileInput.tsx
 
 const acceptedFileMimeTypes = ".gltf, model/gltf+json, .glb, model/gltf-binary";
 

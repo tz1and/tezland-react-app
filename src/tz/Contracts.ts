@@ -145,8 +145,6 @@ export class Contracts {
       const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
       const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
-      // TODO: removals
-
       const wallet_phk = walletProvider.walletPHK();
 
       // build remove item list

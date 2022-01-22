@@ -12,10 +12,6 @@ type AuctionsState = {
     more_data: boolean
 }
 
-// TODO: when new auction was added, it might add elements with duplicate keys.
-// find a way to avoid that. maybe a map?
-// With a map I can also remove an item in reloadAuctions
-
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     constructor(props: AuctionsProps) {
@@ -35,6 +31,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         //    dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
         // Fetch with a less than to make sure we get don't
         // load auctions twice because of new added and offset.
+        // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
         const data = await fetchGraphQL(`
             query getAuctions($last: bigint!, $amount: Int!) {
                 dutchAuction(limit: $amount, where: {id: {_lt: $last}}, order_by: {id: desc}) {

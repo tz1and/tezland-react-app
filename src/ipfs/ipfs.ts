@@ -36,8 +36,6 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         else throw new Error("Unsupported mimeType");
 
         // LoadAssetContainer?
-        // TODO: get mimetype from metadata
-        // TODO: store filetype in metadata!
         // TODO: figure out the proper way to stop animations.
         const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, plugin_ext);
 

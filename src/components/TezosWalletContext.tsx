@@ -40,8 +40,6 @@ type TezosWalletProviderState = {
     pendingOps: OperationPendingData[];
 }
 
-// TODO: fetch owned places from landex and make a dropdown of places.
-
 class TezosWalletProvider extends React.Component<TezosWalletProviderProps, TezosWalletProviderState> {
     private walletEventEmitter: EventEmitter;
 
@@ -112,8 +110,6 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         this.state.beaconWallet.getPKH().then((address) => {
             this.setState({ walletAddress: address });
         }, () => {
-            // TODO: have some global event handler all kinds of stuff can subscribe to
-            // on wallet connected.
             this.state.beaconWallet!
                 //.requestPermissions({ network: { type: NetworkType.MAINNET } }) // For mainnet
                 .requestPermissions({ network: { type: NetworkType.CUSTOM, name: "sandbox", rpcUrl: Conf.tezos_node } }) // for dev
