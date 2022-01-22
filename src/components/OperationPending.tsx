@@ -15,7 +15,7 @@ type OperationPendingProps = {
 export const OperationPending: React.FC<OperationPendingProps> = (props: OperationPendingProps) => {
     let color = props.data.done ? props.data.success ? "bg-success" : "bg-danger" : "bg-primary"
     let title = props.data.done ? props.data.success ? "succeeded" : "failed" : "pending"
-    let body = props.data.done ? props.data.success ? "Transaction finised successfully." : "Transaction failed: " + props.data.error : "Waiting for transaction to complete."
+    let body = props.data.done ? props.data.success ? "Transaction finished successfully." : "Transaction failed: " + props.data.error : "Waiting for transaction to complete."
 
     return (
         <div className={`toast align-items-center text-white ${color} border-0 show`} role="alert" aria-live="assertive" aria-atomic="true">
