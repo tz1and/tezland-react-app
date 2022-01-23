@@ -5,7 +5,7 @@ docker-up:
 	docker-compose up -d
 
 docker-down:
-	docker-compose down -v
+	docker-compose down
 
 docker-push:
 	docker save -o tezland-app-latest.tar tezland-app:latest
