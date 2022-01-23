@@ -488,7 +488,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const place_meta_files = await upload_places(places);
 
         console.log("upload places done");
-        console.log(place_meta_files);
 
         // Mint places
         let batch = this.context.tezosToolkit().wallet.batch();
