@@ -10,6 +10,7 @@ import Map from './routes/Map';
 import GenerateMap from './routes/GenerateMap';
 import { CreateAuctionFormW } from './forms/CreateAuction';
 import { TezosWalletProvider } from './components/TezosWalletContext'
+import { isDev } from './utils/Utils';
 
 //Contracts.initWallet();
 
@@ -28,7 +29,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="faq" element={<Faq />} />
                         <Route path="docs" element={<Docs />} />
                         <Route path="map" element={<Map />} />
-                        <Route path="genmap" element={<GenerateMap />} />
+                        {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                     </Route>
                     <Route path="/explore" element={<Explore />} />
                     <Route
