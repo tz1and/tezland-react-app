@@ -1,4 +1,3 @@
-import * as ipfs from 'ipfs-http-client';
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
@@ -6,8 +5,6 @@ import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { BlobLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
-
-const ipfs_client = ipfs.create({ url: Conf.ipfs_url });
 
 export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
@@ -36,7 +33,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
 
         // LoadAssetContainer?
         // TODO: figure out the proper way to stop animations.
-        const newMeshes = await SceneLoader.ImportMeshAsync('', 'http://localhost:8080/ipfs/', hash, scene, null, plugin_ext);
+        const newMeshes = await SceneLoader.ImportMeshAsync('', Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
 
         /*newMeshes.skeletons.forEach((sk) => {
             scene.removeSkeleton(sk);
@@ -103,22 +100,6 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
     return instance;
 }
 
-export async function download_file(url: string) {
-    return ipfs_client.get(url);
-}
-
-export async function upload_model(buffer: ArrayBuffer): Promise<string> {
-    const result = await ipfs_client.add(buffer);
-
-    return `ipfs://${result.path}`;
-}
-
-export async function upload_thumbnail(blob: Blob): Promise<string> {
-    const result = await ipfs_client.add(blob);
-
-    return `ipfs://${result.path}`;
-}
-
 type ItemMetadata = {
     description: string;
     minter: string;
@@ -129,7 +110,7 @@ type ItemMetadata = {
     formats: object[];
 }
 
-export function createItemTokenMetadata(metadata: ItemMetadata) {
+export function createItemTokenMetadata(metadata: ItemMetadata): string {
     // Process tags, trim, remove empty, etc.
     const tags_processed = new Array<string>();
     metadata.tags.split(';').forEach(tag => {
@@ -153,7 +134,7 @@ export function createItemTokenMetadata(metadata: ItemMetadata) {
     });
 }
 
-interface PlaceMetadata {
+type PlaceMetadata = {
     center_coordinates: number[];
     border_coordinates: number[][];
     description: string;
@@ -161,44 +142,58 @@ interface PlaceMetadata {
     name: string;
 }
 
-export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
-    return Buffer.from(
-        JSON.stringify({
-            name: metadata.name,
-            description: metadata.description,
-            minter: metadata.minter,
-            isTransferable: true,
-            isBooleanAmount: true,
-            shouldPreferSymbol: true,
-            symbol: 'Place',
-            //artifactUri: cid,
-            decimals: 0,
-            center_coordinates: metadata.center_coordinates,
-            border_coordinates: metadata.border_coordinates
-        })
-    )
+export function createPlaceTokenMetadata(metadata: PlaceMetadata): string {
+    return JSON.stringify({
+        name: metadata.name,
+        description: metadata.description,
+        minter: metadata.minter,
+        isTransferable: true,
+        isBooleanAmount: true,
+        shouldPreferSymbol: true,
+        symbol: 'Place',
+        //artifactUri: cid,
+        decimals: 0,
+        center_coordinates: metadata.center_coordinates,
+        border_coordinates: metadata.border_coordinates
+    })
 }
 
-export async function upload_places(places: Buffer[]): Promise<string[]> {
-    const files = [];
-    for(const file of places) { files.push({content: file}); }
+export async function upload_places(places: string[]): Promise<string[]> {
+    const uploaded_place_metadata: string[] = []
 
-    const addedFiles: string[] = [];
-    for await (const upload of ipfs_client.addAll(files/*, { progress: (prog) => console.log(`received: ${prog}`) }*/)) {
-        addedFiles.push(`ipfs://${upload.path}`);
+    // do batches of 20 or so
+    var count = 0;
+    var promises: Promise<Response>[] = []
+    for(const metadata of places) {
+        // Post here and wait for result
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: metadata
+        };
+        promises.push(fetch(Conf.backend_url + "/upload", requestOptions));
+
+        if(count >= 20) {
+            const responses = await Promise.all(promises);
+
+            for (const r of responses) {
+                const data = await r.json();
+
+                if(data.error) {
+                    throw new Error("Upload failed: " + data.error);
+                }
+                else if (data.metdata_uri) {
+                    uploaded_place_metadata.push(data.metdata_uri);
+                }
+                else throw new Error("Backend: malformed response");
+            }
+
+            promises = [];
+            count = 0;
+        }
+
+        count++;
     }
 
-    return addedFiles;
+    return uploaded_place_metadata;
 }
-
-/*export async function upload_place_metadata(minter_address: string, center: number[], border: number[][]): Promise<string> {
-    const result = await ipfs_client.add(createPlaceTokenMetadata({
-        identifier: "some-uuid",
-        description: "A nice place",
-        minter: minter_address,
-        center_coordinates: center,
-        border_coordinates: border
-    }));
-
-    return `ipfs://${result.path}`;
-}*/

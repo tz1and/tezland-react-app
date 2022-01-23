@@ -1,4 +1,4 @@
-import { createRef, useEffect } from "react";
+import React, { createRef } from "react";
 import { Svg } from "@svgdotjs/svg.js";
 import { Voronoi, BoundingBox, Site, Diagram } from 'voronoijs';
 import { Angle, Vector2 } from '@babylonjs/core'
@@ -10,11 +10,8 @@ import Prando from 'prando';
 import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { Matrix2D } from "@babylonjs/gui";
 import { signedArea, sleep } from "../utils/Utils";
-import { useTezosWalletContext } from "../components/TezosWalletContext";
+import TezosWalletContext from "../components/TezosWalletContext";
 
-type GenerateMapState = {
-    svg?: string;
-}
 
 class Land {
     public center: Vector2;
@@ -276,18 +273,32 @@ class ExclusionZone {
     }
 }
 
-export default function GenerateMap() {
-    const state: GenerateMapState = { }
+type GenerateMapState = {
+    svg?: string;
+}
 
-    const svgRef = createRef<SVGSVGElement>();
+type GenerateMapProps = {
 
-    const context = useTezosWalletContext();
+}
 
-    const downloadFile = () => {
-        if(!state.svg) return;
+export default class GenerateMap extends React.Component<GenerateMapProps, GenerateMapState> {
+    static contextType = TezosWalletContext;
+    context!: React.ContextType<typeof TezosWalletContext>;
+    
+    constructor(props: GenerateMapProps) {
+        super(props);
+        this.state = {
+
+        };
+    }
+
+    private svgRef = createRef<SVGSVGElement>();
+
+    private downloadFile = () => {
+        if(!this.state.svg) return;
 
         // create blob from data
-        const data = new Blob([state.svg], { type: 'image/svg+xml' });
+        const data = new Blob([this.state.svg], { type: 'image/svg+xml' });
         const downloadLink = window.URL.createObjectURL(data);
 
         // create download file link
@@ -306,7 +317,7 @@ export default function GenerateMap() {
         document.body.removeChild(link);
     }
 
-    const generateCircle = (sites: Site[], exclusion: ExclusionZone[],
+    private generateCircle = (sites: Site[], exclusion: ExclusionZone[],
         pos: Vector2, radius: number, rotate: number, points: number) => {
         sites.push({ id: sites.length, x: pos.x, y: pos.y});
 
@@ -325,7 +336,7 @@ export default function GenerateMap() {
         exclusion.push(new ExclusionZone(pos, radius * 1.5));
     }
 
-    const generateRandomSites = (sites: Site[], exclusion: ExclusionZone[], points: number, seed: number) => {
+    private generateRandomSites = (sites: Site[], exclusion: ExclusionZone[], points: number, seed: number) => {
         const prando = new Prando(seed);
 
         for(let i = 0; i < points; i++) {
@@ -343,7 +354,7 @@ export default function GenerateMap() {
         }
     }
 
-    const clipAgainst = (land: Land, poly: Polygon): Land[] => {
+    private clipAgainst = (land: Land, poly: Polygon): Land[] => {
 
         // TEMP: skip clip
         /*const nl = new Land();
@@ -376,7 +387,7 @@ export default function GenerateMap() {
         return [];
     }
 
-    const generateGrid = (land: Land, prando: Prando, draw: Svg): Polygon[] => {
+    private generateGrid = (land: Land, prando: Prando, draw: Svg): Polygon[] => {
         // TODO: New code using subdivided Rectangle
          // compute bounds
         /*let min = new Vector2(Infinity, Infinity);
@@ -444,9 +455,9 @@ export default function GenerateMap() {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const mintPlaces = async (land: Land[]) => {
-        const minterWallet = await context.tezosToolkit().wallet.at(Conf.minter_contract);
-        const walletphk = context.walletPHK();
+    private mintPlaces = async (land: Land[]) => {
+        const minterWallet = await this.context.tezosToolkit().wallet.at(Conf.minter_contract);
+        const walletphk = this.context.walletPHK();
 
         const places = []
 
@@ -476,8 +487,11 @@ export default function GenerateMap() {
         // eslint-disable-next-line no-unreachable
         const place_meta_files = await upload_places(places);
 
+        console.log("upload places done");
+        console.log(place_meta_files);
+
         // Mint places
-        let batch = context.tezosToolkit().wallet.batch();
+        let batch = this.context.tezosToolkit().wallet.batch();
         let batch_size = 0;
 
         for(const meta of place_meta_files) {
@@ -506,7 +520,7 @@ export default function GenerateMap() {
                 await sleep(10000);
                 console.log("done sleeping, preparing next batch");
 
-                batch = context.tezosToolkit().wallet.batch();
+                batch = this.context.tezosToolkit().wallet.batch();
                 batch_size = 0;
             }
         }
@@ -518,13 +532,13 @@ export default function GenerateMap() {
     }
 
     // Similar to componentDidMount and componentDidUpdate:
-    useEffect(() => {
+    componentDidMount() {
         const dim = 1000;
         const fillColor = '#d6f0ff';
         const strokeColor = '#3d8dba';
 
         // create canvas
-        const draw = new Svg(svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim)
+        const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim)
 
         draw.clear();
 
@@ -560,77 +574,77 @@ export default function GenerateMap() {
         // end old
 
         // generate central circle
-        generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
+        this.generateCircle(sites, exclusion, new Vector2(0, 0), 40, 0, 8);
 
         for(const s of sites) {
             noSplit.push(new Vector2(s.x, s.y));
         }
 
-        generateCircle(sites, exclusion, new Vector2(0, 0), 80, 0, 8);
+        this.generateCircle(sites, exclusion, new Vector2(0, 0), 80, 0, 8);
 
         // generate grid blocks
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(45).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(45).radians(), 4);
         }
 
         noSplit.push(new Vector2(395 - 65, 275));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 405), 65, Angle.FromDegrees(45).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(395 - 65 * i, 405), 65, Angle.FromDegrees(45).radians(), 4);
         }
 
         noSplit.push(new Vector2(395 - 65, 405));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 275), 65, Angle.FromDegrees(0).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 275), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
         noSplit.push(new Vector2(-395 + 65, 275));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 405), 65, Angle.FromDegrees(0).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 405), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
         noSplit.push(new Vector2(-395 + 65, 405));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, -275), 65, Angle.FromDegrees(0).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(395 - 65 * i, -275), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
         noSplit.push(new Vector2(395 - 65, -275));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(395 - 65 * i, -405), 65, Angle.FromDegrees(0).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(395 - 65 * i, -405), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
         noSplit.push(new Vector2(395 - 65, -405));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -275), 65, Angle.FromDegrees(45).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -275), 65, Angle.FromDegrees(45).radians(), 4);
         }
 
         noSplit.push(new Vector2(-395 + 65, -275));
 
         for (let i = 0; i < 4; ++i) {
-            generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -405), 65, Angle.FromDegrees(45).radians(), 4);
+            this.generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, -405), 65, Angle.FromDegrees(45).radians(), 4);
         }
 
         noSplit.push(new Vector2(-395 + 65, -405));
 
         // generate other circles
-        generateCircle(sites, exclusion, new Vector2(0, 275 + 65), 80, 0, 5);
-        generateCircle(sites, exclusion, new Vector2(0, -275 - 65), 80, Angle.FromDegrees(180).radians(), 5);
+        this.generateCircle(sites, exclusion, new Vector2(0, 275 + 65), 80, 0, 5);
+        this.generateCircle(sites, exclusion, new Vector2(0, -275 - 65), 80, Angle.FromDegrees(180).radians(), 5);
 
         noSplit.push(new Vector2(0, 275 + 65));
         noSplit.push(new Vector2(0, -275 - 65));
 
-        generateCircle(sites, exclusion, new Vector2(-275 - 65, 0), 90, 0, 6);
-        generateCircle(sites, exclusion, new Vector2(275 + 65, 0), 90, Angle.FromDegrees(90).radians(), 6);
+        this.generateCircle(sites, exclusion, new Vector2(-275 - 65, 0), 90, 0, 6);
+        this.generateCircle(sites, exclusion, new Vector2(275 + 65, 0), 90, Angle.FromDegrees(90).radians(), 6);
 
         noSplit.push(new Vector2(275 + 65, 0));
         noSplit.push(new Vector2(-275 - 65, 0));
 
-        generateRandomSites(sites, exclusion, 200, 663);
+        this.generateRandomSites(sites, exclusion, 200, 663);
  
         const diagram: Diagram = voronoi.compute(sites, bbox);
 
@@ -682,16 +696,16 @@ export default function GenerateMap() {
 
             //draw.polygon(land.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
 
-            const grid = generateGrid(land, prando, draw);
+            const grid = this.generateGrid(land, prando, draw);
 
             for (const poly of grid) {
-                const newland = clipAgainst(land, poly);
+                const newland = this.clipAgainst(land, poly);
 
                 // shrink then clip again to get rid of some of the weird ones
                 newland.forEach((l) => {
                     l.straightSkeleton(3);
                     if(l.isValid()) {
-                        const properLand = clipAgainst(l, poly);
+                        const properLand = this.clipAgainst(l, poly);
                         clippedLand.push(...properLand);
                     }
                 });
@@ -715,15 +729,17 @@ export default function GenerateMap() {
         }*/
 
         console.log("Number of places (incl invalid): ", clippedLand.length);
-        mintPlaces(clippedLand);
+        this.mintPlaces(clippedLand);
 
-        state.svg = draw.svg();
-    });
+        this.setState({svg: draw.svg()});
+    }
 
-    return (
-        <main className="container">
-            <button className="btn btn-primary" onClick={() => downloadFile()}>Download SVG</button>
-            <svg className="d-block" ref={svgRef}></svg>
-        </main>
-    );
+    render(): React.ReactNode {
+        return (
+            <main className="container">
+                <button className="btn btn-primary" onClick={() => this.downloadFile()}>Download SVG</button>
+                <svg className="d-block" ref={this.svgRef}></svg>
+            </main>
+        );
+    }
 };
