@@ -8,9 +8,10 @@ import {
 import CustomFileUpload from './CustomFileUpload'
 import ModelPreview from './ModelPreview'
 import Contracts from '../tz/Contracts'
-import { upload_model, upload_item_metadata, upload_thumbnail } from '../ipfs/ipfs'
-import { dataURItoBlob, getFileExt, readFileAsync } from '../utils/Utils';
+import { createItemTokenMetadata } from '../ipfs/ipfs';
+import { BlobLike, blobToBloblike, getFileExt } from '../utils/Utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
+import Conf from '../Config';
 
 interface MintFormValues {
     itemTitle: string;
@@ -76,14 +77,7 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                         // check if wallet is connected first.
                         if(!context.isWalletConnected()) throw new Error("No wallet connected");
 
-                        // read model file.
-                        const buffer = await readFileAsync(values.itemFile!);
-
-                        // upload model.
-                        const model_url = await upload_model(buffer);
-
-                        // TOOD: check modelPreviewRef.current
-                        const thumbnail_url = await upload_thumbnail(dataURItoBlob(await modelPreviewRef.current!.getThumbnail()));
+                        const thumbnail = await modelPreviewRef.current!.getThumbnail();
 
                         var mime_type;
                         const file_ext = getFileExt(values.itemFile!.name);
@@ -91,20 +85,43 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                         else if(file_ext === "gltf") mime_type = "model/gltf+json";
                         else throw new Error("Unsupported mimeType");
 
-                        // upload metadata.
-                        const metadata_url = await upload_item_metadata(
-                            context.walletPHK(), values.itemTitle,
-                            values.itemDescription, values.itemTags,
-                            model_url, thumbnail_url, mime_type);
+                        const metadata = createItemTokenMetadata({
+                            name: values.itemTitle,
+                            description: values.itemDescription,
+                            minter: context.walletPHK(),
+                            artifactUri: await blobToBloblike(values.itemFile!),
+                            thumbnailUri: { dataUri: thumbnail, type: "image/png" } as BlobLike,
+                            tags: values.itemTags,
+                            formats: [
+                                {
+                                    mimeType: mime_type
+                                }
+                            ]
+                        })
 
-                        // mint item.
-                        await Contracts.mintItem(context, metadata_url, values.itemRoyalties, values.itemAmount);
+                        // Post here and wait for result
+                        const requestOptions = {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: metadata
+                        };
+                        const response = await fetch(Conf.backend_url + "/upload", requestOptions)
+                        const data = await response.json();
 
-                        // when successful, close form.
-                        props.closeForm(false);
+                        if(data.error) {
+                            throw new Error("Upload failed: " + data.error);
+                        }
+                        else if (data.metdata_uri) {
+                            // mint item.
+                            await Contracts.mintItem(context, data.metdata_uri, values.itemRoyalties, values.itemAmount);
 
-                        // return to avoid setting properties after unmount.
-                        return;
+                            // when successful, close form.
+                            props.closeForm(false);
+
+                            // return to avoid setting properties after unmount.
+                            return;
+                        }
+                        else throw new Error("Backend: malformed response");
                     } catch(e: any) {
                         state.error = e.message;
                     }

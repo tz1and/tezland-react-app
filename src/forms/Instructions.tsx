@@ -20,7 +20,10 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
         <div className="text-center">
             <div className='position-fixed top-0 start-0 text-white mt-3 ms-3 fs-5'>
                 <button className='btn btn-outline-light fs-4' onClick={() => { nav("/"); } }><i className="bi bi-arrow-left"></i></button>
-                {button} {account}
+                <button className='btn btn-light ms-3 fs-4' onClick={() => { } }><i className="bi bi-gear-fill"></i></button>
+                {button}
+                
+                {account}
             </div>
             <div id="explore-instructions" onClick={() => props.closeForm(false)}>
                 <p className='text-info App-logo-text'>[tz1aND]</p>

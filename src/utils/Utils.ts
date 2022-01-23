@@ -90,6 +90,21 @@ export const dataURItoBlob = (dataURI: string): Blob => {
   return blob;
 }
 
+export type BlobLike = {
+  dataUri: string,
+  type: string
+}
+
+export const blobToBloblike = (blob: Blob): Promise<BlobLike> => {
+  return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = function () {
+          resolve({ dataUri: reader.result as string, type: blob.type });
+      };
+  });
+};
+
 export const truncate = (str: string, n: number, ellip?: string) => {
   return (str.length > n) ? str.substring(0, n-1) + (ellip ? ellip :'&hellip;') : str;
 };

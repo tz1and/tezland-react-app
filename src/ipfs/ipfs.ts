@@ -4,7 +4,7 @@ import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
-import { countPolygons } from '../utils/Utils';
+import { BlobLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 
 const ipfs_client = ipfs.create({ url: Conf.ipfs_url });
@@ -119,63 +119,38 @@ export async function upload_thumbnail(blob: Blob): Promise<string> {
     return `ipfs://${result.path}`;
 }
 
-interface ItemMetadata {
+type ItemMetadata = {
     description: string;
     minter: string;
     name: string;
-    modelUrl: string;
-    thumbnailUrl: string;
-    tags: string[];
+    artifactUri: BlobLike;
+    thumbnailUri: BlobLike;
+    tags: string; // unprocessed tags
     formats: object[];
 }
 
-function createItemTokenMetadata(metadata: ItemMetadata) {
-    // TODO: creators
-    
-    return Buffer.from(
-        JSON.stringify({
-            name: metadata.name,
-            description: metadata.description,
-            tags: metadata.tags,
-            minter: metadata.minter,
-            isTransferable: true,
-            isBooleanAmount: false,
-            shouldPreferSymbol: false,
-            symbol: 'Item',
-            artifactUri: metadata.modelUrl,
-            thumbnailUri: metadata.thumbnailUrl,
-            decimals: 0,
-            formats: metadata.formats
-        })
-    )
-}
-
-export async function upload_item_metadata(minter_address: string, name: string,
-    description: string, tags: string, model_url: string, thumbnail_url: string, mime_type: string): Promise<string> {
-
+export function createItemTokenMetadata(metadata: ItemMetadata) {
     // Process tags, trim, remove empty, etc.
     const tags_processed = new Array<string>();
-    tags.split(';').forEach(tag => {
+    metadata.tags.split(';').forEach(tag => {
         const trimmed = tag.trim();
         if(trimmed.length > 0) tags_processed.push(trimmed);
     });
-
-    const result = await ipfs_client.add(createItemTokenMetadata({
-        name: name,
-        description: description,
-        minter: minter_address,
-        modelUrl: model_url,
-        thumbnailUrl: thumbnail_url,
+    
+    return JSON.stringify({
+        name: metadata.name,
+        description: metadata.description,
         tags: tags_processed,
-        formats: [
-            {
-                mimeType: mime_type,
-                uri: model_url
-            }
-        ]
-    }));
-
-    return `ipfs://${result.path}`;
+        minter: metadata.minter,
+        isTransferable: true,
+        isBooleanAmount: false,
+        shouldPreferSymbol: false,
+        symbol: 'Item',
+        artifactUri: metadata.artifactUri,
+        thumbnailUri: metadata.thumbnailUri,
+        decimals: 0,
+        formats: metadata.formats
+    });
 }
 
 interface PlaceMetadata {

@@ -33,7 +33,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         };
     }
 
-    private fetchAmount: number = 50;
+    private fetchAmount: number = 25;
     private firstFetchDone: boolean = false;
 
     componentDidMount() {
