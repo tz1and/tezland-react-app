@@ -12,6 +12,7 @@ interface SettingsFormValues {
     itemDescription: string;
     itemTags: string;*/
     polygonLimit: number;
+    displayPlaceBounds: boolean;
     //itemFile: ArrayBuffer;
 }
 
@@ -27,7 +28,8 @@ type SettingsFormState = {
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     const state: SettingsFormState = { error: "" }
     const initialValues: SettingsFormValues = {
-        polygonLimit: AppSettings.getPolygonLimit()
+        polygonLimit: AppSettings.getPolygonLimit(),
+        displayPlaceBounds: AppSettings.getDisplayPlaceBounds()
     };
 
     return (
@@ -48,6 +50,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 onSubmit={(values, actions) => {
                     try {
                         AppSettings.setPolygonLimit(values.polygonLimit);
+                        AppSettings.setDisplayPlaceBounds(values.displayPlaceBounds);
 
                         props.closeForm(false);
 
@@ -69,10 +72,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                     return (
                         <Form>
                             <div className="mb-3">
-                                <label htmlFor="polygonLimit" className="form-label">Amount</label>
+                                <label htmlFor="polygonLimit" className="form-label">Polygon limit</label>
                                 <Field id="polygonLimit" name="polygonLimit" type="number" className="form-control" aria-describedby="polygonLimitHelp" disabled={isSubmitting} autoFocus={true} />
                                 <div id="polygonLimitHelp" className="form-text">Items with more polygons than the limit will not be displayed.</div>
                                 {touched.polygonLimit && errors.polygonLimit && <small className="text-danger">{errors.polygonLimit}</small>}
+                            </div>
+                            <div className="mb-3">
+                                <Field id="displayPlaceBounds" name="displayPlaceBounds" type="checkbox" className="form-check-input me-2" aria-describedby="displayPlaceBoundsHelp" disabled={isSubmitting}/>
+                                <label htmlFor="displayPlaceBounds" className="form-label">Display place bounds</label>
+                                <div id="displayPlaceBoundsHelp" className="form-text">Whether place boundaries should be drawn or not.</div>
                             </div>
                             {state.error.length > 0 && ( <small className='text-danger'>Saving settings failed: {state.error}</small> )}
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>save settings</button><br/>

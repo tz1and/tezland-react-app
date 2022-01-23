@@ -13,6 +13,7 @@ import Metadata from "./Metadata";
 import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
 import BigNumber from "bignumber.js";
+import AppSettings from "../storage/AppSettings";
 
 
 export type InstanceMetadata = {
@@ -124,6 +125,8 @@ export default class Place {
             // create bounds
             this.placeBounds = this.extrudeMeshFromShape(shape, 11, new Vector3(this.origin.x, 10, this.origin.z),
                 this.world.transparentGridMat);
+
+            this.placeBounds.visibility = +AppSettings.getDisplayPlaceBounds();
 
             // create ground
             this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this.origin.x, 0, this.origin.z),
