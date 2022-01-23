@@ -7,6 +7,7 @@ import { Inventory } from '../forms/Inventory';
 import { Node, Nullable } from '@babylonjs/core';
 import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
+import { SettingsForm } from '../forms/SettingsForm';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -49,6 +50,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     closeForm = (cancelled: boolean) => {
+        if(this.state.show_form === "settings") {
+            this.setState({ show_form: 'instructions', dispaly_overlay: true });
+            return;
+        }
+
         // remove item if action was cancelled.
         if(cancelled && this.state.placedItem) this.state.placedItem.dispose();
 
@@ -70,7 +76,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     render() {
         // TODO: maybe could use router for overlay/forms.
         let form;
-        if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} />
+        if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} />
+        else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
         else if (this.state.show_form === 'place') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm} selectItemFromInventory={this.selectItemFromInventory} />;

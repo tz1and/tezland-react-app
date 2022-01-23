@@ -5,6 +5,7 @@ import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { BlobLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
+import AppSettings from '../storage/AppSettings';
 
 export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
@@ -13,9 +14,10 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
     if(!mesh) {
         const itemMetadata = await Metadata.getItemMetadata(item_id.toNumber());
         const itemCachedPolycount = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
+        const polygonLimit = AppSettings.getPolygonLimit();
 
         // early out if we have a cached polycount
-        if(itemCachedPolycount !== null && itemCachedPolycount >= Conf.polycount_limit) {
+        if(itemCachedPolycount !== null && itemCachedPolycount >= polygonLimit) {
             Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
             return null;
         }
@@ -60,7 +62,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
             const polycount = countPolygons(newMeshes.meshes);
             Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", polycount);
 
-            if(polycount >= Conf.polycount_limit) {
+            if(polycount >= polygonLimit) {
                 Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
 
                 // clean up. seems a bit extreme, but whatevs.
