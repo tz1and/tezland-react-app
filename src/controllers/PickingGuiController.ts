@@ -116,8 +116,8 @@ export default class PickingGuiController {
         const itemMetadata = await Metadata.getItemMetadata(metadata.itemTokenId.toNumber());
         
         var rect = new Rectangle("ItemInfo");
-        rect.widthInPixels = 110;
-        rect.heightInPixels = 110 * 3/4;
+        rect.widthInPixels = 115;
+        rect.heightInPixels = 115 * 3/4;
         rect.cornerRadius = 5;
         rect.thickness = 0;
         rect.color = "white";
@@ -127,8 +127,8 @@ export default class PickingGuiController {
         rect.linkOffsetX = -200;
 
         var panel = new StackPanel();
-        panel.width = 0.9;
-        panel.height = 0.9;
+        panel.width = 0.85;
+        panel.height = 0.85;
         //panel.logLayoutCycleErrors = true; // TEMP*/
         rect.addControl(panel);
 
