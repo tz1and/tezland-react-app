@@ -92,6 +92,9 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     private async fetchPlaces() {
         if(!this.context.isWalletConnected()) return [];
 
+        // TODO: hasura limits to 100 results.
+        // Maybe need to keep fetching.
+
         try {
             const data = await fetchGraphQL(`
                 query getPlaces($address: String!) {
