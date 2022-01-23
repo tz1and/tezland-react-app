@@ -1,11 +1,24 @@
-version: "3.9"
+version: "3.7"
 
 services:
 
   tezland-app:
     container_name: tezland-app
+    image: tezland-app:latest
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 18080:80
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/:ro
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
