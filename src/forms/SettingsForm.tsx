@@ -96,8 +96,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 <div id="displayPlaceBoundsHelp" className="form-text">Whether place boundaries should be drawn or not.</div>
                             </div>
                             {state.error.length > 0 && ( <small className='text-danger'>Saving settings failed: {state.error}</small> )}
-                            <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>save settings</button><br/>
-                            <small>Note: You may have to reload after changing settings.</small>
+                            <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>save settings</button>
+                            <div className='bg-info p-2 text-dark rounded small text-center'>Note: You may have to reload after changing settings.</div>
                         </Form>
                     )
                 }}
