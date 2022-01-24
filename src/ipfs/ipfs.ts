@@ -6,6 +6,45 @@ import BigNumber from 'bignumber.js';
 import { BlobLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import AppSettings from '../storage/AppSettings';
+import * as ipfs from 'ipfs-http-client';
+
+
+const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway, headers: { mode: 'no-cors' } });
+
+export async function get_root_file_from_dir(uri: string): Promise<string> {
+    // if it's a directory path, get the root file
+    // and use that to mint.
+    /*{
+        name: '',
+        path: 'bafyreiftf7wxhhgiku2d67fioedsuqk2puqppxcmwouivg5bhrzxgqeyyy',
+        size: 0,
+        cid: CID(bafkreig7nr6vskty3xiagvwbrkz3nbjuefc2fi7xslsoegdspgrtzmq5um), <<<<<<<<<<<<<= THIS
+        type: 'file' <<<<<<<<<<<<<= THIS
+    }*/
+
+    // TODO: I don't actually know if that works because it gets blocked by cors.
+    // RIP
+    try {
+        var found = uri;
+        for await(const entry of ipfs_client.ls(uri)) {
+            console.log(entry)
+
+            console.log(entry.type);
+            console.log(entry.cid);
+            console.log(entry.name);
+            console.log(entry.path);
+
+            if(entry.type === 'file') {
+                found = entry.cid.toString();
+            }
+        }
+
+        return found;
+    } catch(e: any) {
+        Logging.InfoDev("Failed to get root file from dir: " + e.message);
+        return uri;
+    }
+}
 
 export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
@@ -177,6 +216,9 @@ export async function upload_places(places: string[]): Promise<string[]> {
 
         if(count >= 20) {
             const responses = await Promise.all(promises);
+
+            // TODO: get file from dir
+            //const fileUri = await get_root_file_from_dir(data.metdata_uri);
 
             for (const r of responses) {
                 const data = await r.json();
