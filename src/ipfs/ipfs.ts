@@ -9,9 +9,9 @@ import AppSettings from '../storage/AppSettings';
 import * as ipfs from 'ipfs-http-client';
 
 
-const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway, headers: { mode: 'no-cors' } });
+const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway});
 
-export async function get_root_file_from_dir(uri: string): Promise<string> {
+export async function get_root_file_from_dir(cid: string, uri: string): Promise<string> {
     // if it's a directory path, get the root file
     // and use that to mint.
     /*{
@@ -23,19 +23,14 @@ export async function get_root_file_from_dir(uri: string): Promise<string> {
     }*/
 
     // TODO: I don't actually know if that works because it gets blocked by cors.
-    // RIP
+    // Tried it in backend and with local IPFS, seems to work.
+    console.log("get_root_file_from_dir: ", cid, uri)
     try {
         var found = uri;
-        for await(const entry of ipfs_client.ls(uri)) {
-            console.log(entry)
-
-            console.log(entry.type);
-            console.log(entry.cid);
-            console.log(entry.name);
-            console.log(entry.path);
-
+        for await(const entry of ipfs_client.ls(cid)) {
+            //console.log(entry)
             if(entry.type === 'file') {
-                found = entry.cid.toString();
+                found = "ipfs://" + entry.cid.toString();
             }
         }
 
@@ -217,17 +212,17 @@ export async function upload_places(places: string[]): Promise<string[]> {
         if(count >= 20) {
             const responses = await Promise.all(promises);
 
-            // TODO: get file from dir
-            //const fileUri = await get_root_file_from_dir(data.metdata_uri);
-
             for (const r of responses) {
                 const data = await r.json();
 
                 if(data.error) {
                     throw new Error("Upload failed: " + data.error);
                 }
-                else if (data.metdata_uri) {
-                    uploaded_place_metadata.push(data.metdata_uri);
+                else if (data.metdata_uri && data.cid) {
+                    // Try and get the file from directory.
+                    const fileUri = await get_root_file_from_dir(data.cid, data.metdata_uri);
+
+                    uploaded_place_metadata.push(fileUri);
                 }
                 else throw new Error("Backend: malformed response");
             }

@@ -111,9 +111,9 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                         if(data.error) {
                             throw new Error("Upload failed: " + data.error);
                         }
-                        else if (data.metdata_uri) {
-                            // Try and get the file Uri
-                            const fileUri = await get_root_file_from_dir(data.metdata_uri);
+                        else if (data.metdata_uri && data.cid) {
+                            // Try and get the file from directory.
+                            const fileUri = await get_root_file_from_dir(data.cid, data.metdata_uri);
 
                             // mint item.
                             await Contracts.mintItem(context, fileUri, values.itemRoyalties, values.itemAmount);
