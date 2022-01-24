@@ -19,7 +19,7 @@ import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 //import { isDev } from "../tz/Utils";
-import Grid2D, { WorldGridAccessor } from "../utils/Grid2D";
+import Grid2D, { Tuple, WorldGridAccessor } from "../utils/Grid2D";
 import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 
@@ -293,8 +293,8 @@ export class World {
             //console.log(playerPos);
 
             // search coords in world
-            const minWorld: [number, number] = [playerPos.x - placeDrawDistance, playerPos.z - placeDrawDistance];
-            const maxWorld: [number, number] = [playerPos.x + placeDrawDistance, playerPos.z + placeDrawDistance];
+            const minWorld: Tuple = [playerPos.x - placeDrawDistance, playerPos.z - placeDrawDistance];
+            const maxWorld: Tuple = [playerPos.x + placeDrawDistance, playerPos.z + placeDrawDistance];
 
             //console.log(minWorld, maxWorld);
 

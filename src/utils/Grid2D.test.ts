@@ -1,6 +1,6 @@
 import { AssertionError } from 'assert';
 import 'jest';
-import Grid2D, { WorldGridAccessor } from './Grid2D';
+import Grid2D, { Tuple, WorldGridAccessor } from './Grid2D';
 
 test('contruction', () => {
     const gridNumber: Grid2D<number> = new Grid2D([10, 10]);
@@ -34,7 +34,7 @@ test('get/set', () => {
 
 test('WorldGridAccessor even', () => {
     //const gridNumber: Grid2D<number> = new Grid2D([10, 10]);
-    const gridSize: [number, number] = [4, 4];
+    const gridSize: Tuple = [4, 4];
     const worldAccessor: WorldGridAccessor = new WorldGridAccessor([1000, 1000], [500, 500]);
 
     expect(worldAccessor.accessor([0, 0], gridSize)).toStrictEqual([2, 2]);
@@ -58,7 +58,7 @@ test('WorldGridAccessor even', () => {
 
 test('WorldGridAccessor odd', () => {
     //const gridNumber: Grid2D<number> = new Grid2D([10, 10]);
-    const gridSize: [number, number] = [5, 5];
+    const gridSize: Tuple = [5, 5];
     const worldAccessor: WorldGridAccessor = new WorldGridAccessor([1000, 1000], [500, 500]);
 
     expect(worldAccessor.accessor([0, 0], gridSize)).toStrictEqual([2, 2]);
