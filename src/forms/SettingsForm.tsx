@@ -13,6 +13,7 @@ interface SettingsFormValues {
     itemTags: string;*/
     polygonLimit: number;
     displayPlaceBounds: boolean;
+    drawDistance: number
     //itemFile: ArrayBuffer;
 }
 
@@ -29,7 +30,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     const state: SettingsFormState = { error: "" }
     const initialValues: SettingsFormValues = {
         polygonLimit: AppSettings.getPolygonLimit(),
-        displayPlaceBounds: AppSettings.getDisplayPlaceBounds()
+        displayPlaceBounds: AppSettings.getDisplayPlaceBounds(),
+        drawDistance: AppSettings.getDrawDistance(),
     };
 
     return (
@@ -44,6 +46,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                     if (values.polygonLimit < 1000) {
                         errors.polygonLimit = 'Polygon limit invalid';
                     }
+
+                    if (values.drawDistance < 50) {
+                        errors.drawDistance = 'Draw distance invalid';
+                    }
                   
                     return errors;
                 }}
@@ -51,6 +57,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                     try {
                         AppSettings.setPolygonLimit(values.polygonLimit);
                         AppSettings.setDisplayPlaceBounds(values.displayPlaceBounds);
+                        AppSettings.setDrawDistance(values.drawDistance);
 
                         props.closeForm(false);
 
@@ -76,6 +83,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 <Field id="polygonLimit" name="polygonLimit" type="number" className="form-control" aria-describedby="polygonLimitHelp" disabled={isSubmitting} autoFocus={true} />
                                 <div id="polygonLimitHelp" className="form-text">Items with more polygons than the limit will not be displayed.</div>
                                 {touched.polygonLimit && errors.polygonLimit && <small className="text-danger">{errors.polygonLimit}</small>}
+                            </div>
+                            <div className="mb-3">
+                                <label htmlFor="drawDistance" className="form-label">Draw distance</label>
+                                <Field id="drawDistance" name="drawDistance" type="number" className="form-control" aria-describedby="drawDistanceHelp" disabled={isSubmitting} />
+                                <div id="drawDistanceHelp" className="form-text">The draw distance, you know.</div>
+                                {touched.drawDistance && errors.drawDistance && <small className="text-danger">{errors.drawDistance}</small>}
                             </div>
                             <div className="mb-3">
                                 <Field id="displayPlaceBounds" name="displayPlaceBounds" type="checkbox" className="form-check-input me-2" aria-describedby="displayPlaceBoundsHelp" disabled={isSubmitting}/>

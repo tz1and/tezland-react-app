@@ -18,4 +18,14 @@ export default class AppSettings {
     static setDisplayPlaceBounds(enable: boolean) {
         localStorage.setItem("tezland:settings:displayPlaceBounds", enable.toString());
     }
+
+    static getDrawDistance(): number {
+        const drawDistance = localStorage.getItem("tezland:settings:drawDistance");
+        return drawDistance ? parseInt(drawDistance) : 200;
+    }
+
+    // throws QuotaExceededError
+    static setDrawDistance(dist: number) {
+        localStorage.setItem("tezland:settings:drawDistance", dist.toString());
+    }
 }

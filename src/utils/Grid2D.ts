@@ -57,6 +57,17 @@ export default class Grid2D<T> {
         return this.grid[pos[0]][pos[1]];
     }
 
+    public getOrAdd(pos: [number, number], createCallback: () => T): T {
+        const val = this.get(pos);
+        if(val !== undefined)
+            return val;
+        else {
+            const newVal = createCallback()
+            this.set(pos, newVal);
+            return newVal;
+        }
+    }
+
     // Alternative with an accessor
     public setA(a: GridAccessor, pos: [number, number], value: T) {
         this.set(a.accessor(pos, this.size), value);
@@ -67,15 +78,7 @@ export default class Grid2D<T> {
     }
 
     public getOrAddA(a: GridAccessor, pos: [number, number], createCallback: () => T): T {
-        const cell = a.accessor(pos, this.size);
-        const val = this.get(cell);
-        if(val !== undefined)
-            return val;
-        else {
-            const newVal = createCallback()
-            this.set(cell, newVal);
-            return newVal;
-        }
+        return this.getOrAdd(a.accessor(pos, this.size), createCallback);
     }
 
     public static max(a: [number, number], b: [number, number]) {

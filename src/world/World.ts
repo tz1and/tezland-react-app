@@ -21,9 +21,10 @@ import { ITezosWalletProvider } from "../components/TezosWalletContext";
 //import { isDev } from "../tz/Utils";
 import Grid2D, { WorldGridAccessor } from "../utils/Grid2D";
 import Metadata from "./Metadata";
+import AppSettings from "../storage/AppSettings";
 
 
-const placeDrawDistance = 200;
+const placeDrawDistance = AppSettings.getDrawDistance();
 const worldUpdateDistance = 10;
 
 
