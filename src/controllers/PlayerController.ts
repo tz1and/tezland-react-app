@@ -193,6 +193,11 @@ export default class PlayerController {
         }, KeyboardEventTypes.KEYDOWN);
     }
 
+    // returns new Vector3
+    public getPosition(): Vector3 {
+        return this.camera.position.clone();
+    }
+
     public setCurrentPlace(place: Place) {
         this.currentPlace = place;
     }
