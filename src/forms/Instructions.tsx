@@ -28,7 +28,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
             </div>
             <div id="explore-instructions" onClick={() => props.closeForm(false)}>
                 <p className='text-info App-logo-text'>[tz1aND]</p>
-                <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to play</p>
+                <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to enter</p>
                 <p>
                     Move: WASD<br />
                     Look: MOUSE<br />
