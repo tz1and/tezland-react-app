@@ -24,7 +24,6 @@ export default class PlayerController {
 
     readonly playerTrigger: Mesh;
 
-    private beforeRenderer: () => void;
     /*private handleKeyUp: (e: KeyboardEvent) => void;
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
@@ -55,8 +54,7 @@ export default class PlayerController {
         this.playerTrigger.isVisible = false;
         this.playerTrigger.actionManager = new ActionManager(this.scene);
 
-        this.beforeRenderer = () => { this.updateController() };
-        this.scene.registerBeforeRender(this.beforeRenderer);
+        this.scene.registerAfterRender(this.updateController.bind(this));
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         var pointerlockchange = () => {
@@ -193,9 +191,9 @@ export default class PlayerController {
         }, KeyboardEventTypes.KEYDOWN);
     }
 
-    // returns new Vector3
+    // important, returns a ref to the actual position!
     public getPosition(): Vector3 {
-        return this.camera.position.clone();
+        return this.camera.position;
     }
 
     public setCurrentPlace(place: Place) {

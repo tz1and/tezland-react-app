@@ -26,13 +26,18 @@ export type InstanceMetadata = {
 }
 
 
+export type PlaceId = number;
+
+
 export default class Place {
     readonly placeId: number;
     private world: World;
 
     private placeBounds: Nullable<Mesh>;
     private placeGround: Nullable<Mesh>;
-    private origin: Vector3;
+
+    private _origin: Vector3;
+    get origin(): Vector3 { return this._origin.clone(); }
 
     private _itemsNode: Nullable<TransformNode>;
     get itemsNode() { return this._itemsNode; }
@@ -48,10 +53,17 @@ export default class Place {
         this.world = world;
         this.placeBounds = null;
         this.placeGround = null;
-        this.origin = new Vector3();
+        this._origin = new Vector3();
         this._itemsNode = null;
         this.owner = "";
         this.isOperated = false;
+    }
+
+    public dispose() {
+        // TODO: have some flag if it's loading right now or something.
+        this.placeBounds?.dispose();
+        this.placeGround?.dispose();
+        this.itemsNode?.dispose();
     }
 
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
@@ -111,7 +123,7 @@ export default class Place {
             polygon.position.y += 10;*/
 
             // Using ExtrudePolygon
-            this.origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
+            this._origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
 
             var shape = new Array<Vector3>();
             placeMetadata.token_info.border_coordinates.forEach((v: Array<number>) => {
