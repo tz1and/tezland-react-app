@@ -165,7 +165,7 @@ export default class PickingGuiController {
         label.fontSize = "8px";
         label.height = "32px";
         label.width = 1;
-        label.text = !isSaved ? "Press U to save." : forSale ? "Right-click to get this item." : "Not for sale.";
+        label.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not for sale.";
         label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
         panel.addControl(label);
 
