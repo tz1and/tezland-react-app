@@ -1,6 +1,6 @@
 import { AssertionError } from 'assert';
 import 'jest';
-import Grid2D, { GridBenchmark, Tuple, WorldGridAccessor } from './Grid2D';
+import Grid2D, { Grid1D, GridBenchmark, Tuple, WorldGridAccessor } from './Grid2D';
 
 test('contruction', () => {
     const gridNumber: Grid2D<number> = new Grid2D([10, 10]);
@@ -94,10 +94,17 @@ test('get/set WorldGridAccessor', () => {
 });
 
 test('run benchmark', () => {
-    const bench = new GridBenchmark(new Grid2D<number>([1, 1]));
+    const bench_2d = new GridBenchmark(new Grid2D<number>([1, 1]));
 
-    bench.run([10,10]);
-    bench.run([100,100]);
-    bench.run([1000,1000]);
-    bench.run([10000,10000]);
+    bench_2d.run([10,10]);
+    bench_2d.run([100,100]);
+    bench_2d.run([1000,1000]);
+    bench_2d.run([10000,10000]);
+
+    const bench_1d = new GridBenchmark(new Grid1D<number>([1, 1]));
+
+    bench_1d.run([10,10]);
+    bench_1d.run([100,100]);
+    bench_1d.run([1000,1000]);
+    bench_1d.run([10000,10000]);
 });

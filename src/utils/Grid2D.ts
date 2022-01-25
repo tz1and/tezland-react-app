@@ -30,7 +30,7 @@ export interface GridAccessor {
 }
 
 
-class BaseGrid2D<T> {
+class BaseGrid<T> {
     constructor(size: Tuple) {
         this._size = size;
     }
@@ -49,7 +49,14 @@ class BaseGrid2D<T> {
     }
 
     public getOrAdd(pos: Tuple, createCallback: () => T): T {
-        throw new Error("not implemented")
+        const val = this.get(pos);
+        if(val !== undefined)
+            return val;
+        else {
+            const newVal = createCallback()
+            this.set(pos, newVal);
+            return newVal;
+        }
     }
 
     // Alternative with an accessor
@@ -79,7 +86,8 @@ class BaseGrid2D<T> {
 }
 
 
-export default class Grid2D<T> extends BaseGrid2D<T> {
+// Lazy 2D grid. Probably the best choice for now.
+export default class Grid2D<T> extends BaseGrid<T> {
     constructor(size: Tuple) {
         super(size);
 
@@ -90,7 +98,7 @@ export default class Grid2D<T> extends BaseGrid2D<T> {
         }
     }
 
-    protected _grid: T[][] = [];
+    private _grid: T[][] = [];
     getGrid(): T[][] { return this._grid; }
 
     // TODO: asserts are slow!
@@ -109,15 +117,40 @@ export default class Grid2D<T> extends BaseGrid2D<T> {
         return this._grid[pos[0]][pos[1]];
     }
 
-    public override getOrAdd(pos: Tuple, createCallback: () => T): T {
-        const val = this.get(pos);
-        if(val !== undefined)
-            return val;
-        else {
-            const newVal = createCallback()
-            this.set(pos, newVal);
-            return newVal;
-        }
+    public override clear() {
+        this._grid = [];
+    }
+}
+
+
+// Lazy 1D grid. It's pretty slow.
+export class Grid1D<T> extends BaseGrid<T> {
+    constructor(size: Tuple) {
+        super(size);
+
+        this.w = size[0];
+        this._grid.length = size[0]*size[1];
+    }
+
+    private w: number;
+
+    private _grid: T[] = [];
+    getGrid(): T[] { return this._grid; }
+
+    // TODO: asserts are slow!
+
+    // Set grid cell at pos
+    public override set(pos: Tuple, value: T) {
+        assert(pos[0] >= 0 && pos[0] < this._size[0]);
+        assert(pos[1] >= 0 && pos[1] < this._size[1]);
+        this._grid[pos[1] * this.w + pos[0]] = value;
+    };
+
+    // Get grid cell at pos
+    public override get(pos: Tuple): T | undefined {
+        assert(pos[0] >= 0 && pos[0] < this._size[0]);
+        assert(pos[1] >= 0 && pos[1] < this._size[1]);
+        return this._grid[pos[1] * this.w + pos[0]];
     }
 
     public override clear() {
@@ -127,11 +160,11 @@ export default class Grid2D<T> extends BaseGrid2D<T> {
 
 
 export class GridBenchmark {
-    constructor(grid: BaseGrid2D<number>) {
-        this.gridConstructor = grid.constructor as (size: Tuple) => BaseGrid2D<number>;
+    constructor(grid: BaseGrid<number>) {
+        this.gridConstructor = grid.constructor;
     }
 
-    private gridConstructor: (size: Tuple) => BaseGrid2D<number>;
+    private gridConstructor: Function;
 
     private benchmark(name: string, fn: () => void) {
         try {
@@ -144,7 +177,7 @@ export class GridBenchmark {
         }
     }
 
-    private stress_grid_write(g: BaseGrid2D<number>, size: Tuple) {
+    private stress_grid_write(g: BaseGrid<number>, size: Tuple) {
         // Fill it with 1's
         var w = size[0]-1, h = size[1]-1;
         for(var x=w; x>=0; x--) {
@@ -154,7 +187,7 @@ export class GridBenchmark {
         }
     }
 
-    private stress_grid_read(g: BaseGrid2D<number>, size: Tuple) {
+    private stress_grid_read(g: BaseGrid<number>, size: Tuple) {
         // Read all the 1's
         var w = size[0]-1, h = size[1]-1;
         for(var x=w; x>=0; x--) {
@@ -165,14 +198,16 @@ export class GridBenchmark {
     }
 
     private stress_full(size: Tuple) {
-        let a: BaseGrid2D<number>;
+        let a: BaseGrid<number>;
+        const name = this.gridConstructor.name;
         // @ts-expect-error
-        this.benchmark('create ' + size, () => { a = new this.gridConstructor(size); });
-        this.benchmark('write ' + size, () => { this.stress_grid_write(a, size); });
-        this.benchmark('read ' + size, () => { this.stress_grid_read(a, size); });
+        this.benchmark(name + ' create ' + size, () => { a = new this.gridConstructor(size); });
+        this.benchmark(name + ' write ' + size, () => { this.stress_grid_write(a, size); });
+        this.benchmark(name + ' read ' + size, () => { this.stress_grid_read(a, size); });
     }
 
     public run(size: Tuple) {
-        this.benchmark('total ' + size, () => { this.stress_full(size); });
+        const name = this.gridConstructor.name;
+        this.benchmark(name + ' total ' + size, () => { this.stress_full(size); });
     }
 }
