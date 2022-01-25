@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchGraphQL } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { Logging } from '../utils/Logging';
+import assert from 'assert';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -41,8 +42,8 @@ interface CreateAuctionFormValues {
     itemTags: string;*/
     placeId: number;
     duration: number;
-    startPrice: number;
-    endPrice: number;
+    startPrice?: number;
+    endPrice?: number;
     //itemFile: ArrayBuffer;
 }
 
@@ -56,7 +57,7 @@ type CreateAuctionFormState = {
 }
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
-    private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48, startPrice: 0, endPrice: 0 };
+    private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48/*, startPrice: 0, endPrice: 0*/ };
 
     static contextType = TezosWalletContext;
     context!: React.ContextType<typeof TezosWalletContext>;
@@ -158,11 +159,11 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                     errors.duration = 'Duration must be more than 0 and less than 720h.'
                                 }
                               
-                                if (values.startPrice <= 0) {
+                                if (!values.startPrice || values.startPrice <= 0) {
                                     errors.startPrice = 'Start price must be > 0.';
                                 }
             
-                                if (/*values.endPrice <= 0 ||*/ values.endPrice >= values.startPrice) {
+                                if (!values.startPrice || !values.endPrice || /*values.endPrice <= 0 ||*/ values.endPrice >= values.startPrice) {
                                     errors.endPrice = 'End price must be > 0 and < start price.';
                                 }
                               
@@ -170,6 +171,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                             }}
                             onSubmit={async (values, actions) => {
                                 try {
+                                    assert(values.startPrice);
+                                    assert(values.endPrice);
                                     await DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration,
                                         // @ts-expect-error
                                         () => { this.props.navigate("/auctions", { replace: true }) });
@@ -249,7 +252,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                             <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                             <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
                         </MapContainer>
-                        <small>Note: The the Place will be transferred to the auction contract. Auctions can be cancelled, but please make sure you really intend to create the auction.</small>
+                        <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The the Place will be transferred to the auction contract. Auctions can be cancelled, but please make sure you really intend to create the auction.</div>
+                        <div className='bg-info bg-warning p-3 text-dark rounded small'>If the place you are auctioning has items in it, you will not be able to access them after creating the auction. But their ownership does not transfer with the place.</div>
                     </div>
                     <div className='col-lg-2 col-md-0'></div>
                 </div>

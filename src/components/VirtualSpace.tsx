@@ -19,7 +19,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
   static contextType = TezosWalletContext;
   context!: React.ContextType<typeof TezosWalletContext>;
   
-  private mount: HTMLCanvasElement | null;
+  private mount = React.createRef<HTMLCanvasElement>();
   private world: World | null;
 
   constructor(props: VirtualSpaceProps) {
@@ -29,7 +29,6 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
       //count: 0,
       //mount: null
     };
-    this.mount = null
     this.world = null;
   }
 
@@ -39,17 +38,21 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
   }
 
   lockControls() {
-    // request pointer lock.
-    this.mount?.requestPointerLock();
-    // focus on canvas for keyboard input to work.
-    this.mount?.focus();
-    //this.world?.fpsControls.camControls.lock();
+    if(this.mount.current) {
+      // request pointer lock.
+      this.mount.current.requestPointerLock();
+      // focus on canvas for keyboard input to work.
+      this.mount.current.focus();
+      //this.world?.fpsControls.camControls.lock();
+    }
   }
 
   componentDidMount() {
-    this.world = new World(this.mount!, this.props.appControl, this.context);
+    if(this.mount.current) {
+      this.world = new World(this.mount.current, this.props.appControl, this.context);
 
-    this.world.loadWorld();
+      this.world.loadWorld();
+    }
   }
 
   componentWillUnmount() {
@@ -61,7 +64,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
   render() {
     return (
-      <canvas id="renderCanvas" touch-action="none" ref={ref => (this.mount = ref)} ></canvas>
+      <canvas id="renderCanvas" touch-action="none" ref={this.mount} ></canvas>
     )
   }
 }

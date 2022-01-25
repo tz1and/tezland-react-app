@@ -95,7 +95,7 @@ class PreviewScene {
 }
 
 class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState> {
-    private mount: HTMLCanvasElement | null;
+    private mount = React.createRef<HTMLCanvasElement>();
     private preview: PreviewScene | null;
 
     constructor(props: ModelPreviewProps) {
@@ -108,7 +108,6 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
             //count: 0,
             //mount: null
         };
-        this.mount = null
         this.preview = null;
       }
 
@@ -126,7 +125,9 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     }
 
     componentDidMount() {
-        this.preview = new PreviewScene(this.mount!);
+        if(this.mount.current) {
+            this.preview = new PreviewScene(this.mount.current);
+        }
     }
 
     componentWillUnmount() {
@@ -143,7 +144,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     render() {
         return (
         <div>
-            <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={ref => (this.mount = ref)} ></canvas><br/>
+            <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas><br/>
             <small>The image will be used for the preview thumbnail.<br/><br/>
 
             Use the mouse to control the view.<br/><br/>
