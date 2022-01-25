@@ -36,7 +36,11 @@ export default class PickingGuiController {
                     if(metadata && metadata.xtzPerItem !== 0) {
                         document.exitPointerLock();
                         Contracts.getItem(this.world.walletProvider, metadata.placeId, metadata.id.toNumber(), metadata.xtzPerItem,
-                            () => { world.places.get(metadata.placeId)?.loadItems(); });
+                            () => {
+                                // TODO: does this really need to be called here?
+                                // subscription should handle it.
+                                world.places.get(metadata.placeId)?.loadItems(true);
+                            });
                     }
 
                     eventState.skipNextObservers = true;
@@ -121,6 +125,7 @@ export default class PickingGuiController {
         rect.cornerRadius = 5;
         rect.thickness = 0;
         rect.color = "white";
+        rect.alpha = 0.95;
         rect.background = "#6c757d";
         this.advancedTexture.addControl(rect);
         rect.linkWithMesh(node);

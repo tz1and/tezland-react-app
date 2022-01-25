@@ -2,7 +2,6 @@ import React from 'react';
 import { World } from '../world/World'
 import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
-import { sleep } from '../utils/Utils';
 import TezosWalletContext from './TezosWalletContext';
 
 type VirtualSpaceProps = {

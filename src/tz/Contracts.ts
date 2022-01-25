@@ -5,16 +5,16 @@ import { tezToMutez, toHexString } from "../utils/Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
 import axios from "axios";
-import { Logging } from "../utils/Logging";
 import Metadata from "../world/Metadata";
 import { InstanceMetadata } from "../world/Place";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
+import { Logging } from "../utils/Logging";
 
 
 export class Contracts {
-    private marketplaces: Contract | null;
+    public marketplaces: Contract | null;
     private places: Contract | null;
     private minter: Contract | null;
 
@@ -22,6 +22,25 @@ export class Contracts {
         this.marketplaces = null;
         this.places = null;
         this.minter = null;
+    }
+
+    public async subscribeToPlaceChanges(walletProvider: ITezosWalletProvider) {
+      if(!this.marketplaces)
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
+
+      walletProvider.tezosToolkit().setProvider({ config: { shouldObservableSubscriptionRetry: true, streamerPollingIntervalMilliseconds: 5000 } });
+    
+      try {
+        const placesOperation = {
+          and: [{ destination: Conf.marketplaces_contract }, { kind: 'transaction' }]
+        }
+    
+        const sub = walletProvider.tezosToolkit().stream.subscribeOperation(placesOperation);
+        return sub;
+      }
+      catch (e) {
+        Logging.Error(e);
+      }
     }
 
     public async getPlaceOwner(place_id: number): Promise<string> {
@@ -108,13 +127,11 @@ export class Contracts {
       return await this.places.contractViews.count_tokens().executeView({viewCaller: this.places.address});
     }
 
-    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number): Promise<any> {
-      // use get_stored_items on-chain view.
+    public async hasPlaceUpdated(walletProvider: ITezosWalletProvider, place_id: number): Promise<boolean> {
       if(!this.marketplaces)
         this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
 
       const stSeqKey = "placeSeq";
-      const stItemsKey = "placeItems";
 
       // Read sequence number from storage and contract
       const placeSequenceStore = await Metadata.Storage.loadObject(place_id, stSeqKey);
@@ -122,7 +139,21 @@ export class Contracts {
       
       // If they are not the same, reload from blockchain
       if(placeSequenceStore !== seqRes) {
-        //Logging.InfoDev("place items outdated, reading from chain")
+        Metadata.Storage.saveObject(place_id, stSeqKey, seqRes);
+        return true;
+      }
+      else return false;
+    }
+
+    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, placeUpdated: boolean): Promise<any> {
+      // use get_stored_items on-chain view.
+      if(!this.marketplaces)
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
+
+      const stItemsKey = "placeItems";
+      
+      if(placeUpdated) {
+        Logging.InfoDev("place items outdated, reading from chain")
 
         const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
 
@@ -135,11 +166,10 @@ export class Contracts {
 
         // TODO: await save?
         Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
-        Metadata.Storage.saveObject(place_id, stSeqKey, seqRes);
 
         return place_data;
       } else { // Otherwise load items from storage
-        //Logging.InfoDev("reading place from local storage")
+        Logging.InfoDev("reading place from local storage")
         
         const placeItemsStore = await Metadata.Storage.loadObject(place_id, stItemsKey);
 

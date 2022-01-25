@@ -24,6 +24,9 @@ import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
+import { OperationContent, Subscription } from "@taquito/taquito";
+import { OperationContentsAndResultTransaction } from '@taquito/rpc'
+import { ParameterSchema } from '@taquito/michelson-encoder'
 
 
 const placeDrawDistance = AppSettings.getDrawDistance();
@@ -51,6 +54,7 @@ export class World {
     readonly worldGridAccessor: WorldGridAccessor;
     private gridCreateCallback = () => { return new Set<PlaceId>() }
 
+    private subscription?: Subscription<OperationContent>;
 
     constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
         // Get the canvas element from the DOM.
@@ -154,13 +158,48 @@ export class World {
         window.addEventListener('resize', () => { this.engine.resize(); });
 
         this.scene.registerAfterRender(this.updateWorld.bind(this));
+
+        this.registerPlacesSubscription();
+    }
+
+    // TODO: move the subscription stuff into it's own class?
+    private async registerPlacesSubscription() {
+        this.subscription = await Contracts.subscribeToPlaceChanges(this.walletProvider);
+        this.subscription?.on('data', this.placeSubscriptionCallback);
+    }
+
+    private unregisterPlacesSubscription() {
+        this.subscription?.off("data", this.placeSubscriptionCallback);
+    }
+
+    private placeSubscriptionCallback = (d: OperationContent) => {
+        console.log(d);
+        const tContent = d as OperationContentsAndResultTransaction;
+
+        if (tContent.parameters) {
+            const ep = tContent.parameters.entrypoint;
+            if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items") {
+                try {
+                    const schema = new ParameterSchema(Contracts.marketplaces!.entrypoints.entrypoints[ep])
+                    const params = schema.Execute(tContent.parameters.value);
+
+                    this.fetchPlace(params.lot_id.toNumber());
+                }
+                catch (e) {
+                    Logging.InfoDev("Failed to parse parameters.");
+                    Logging.InfoDev(e);
+                }
+            }
+        }
     }
 
     public destroy() {
-        // Destorying the engine should prbably be enough.
+        this.unregisterPlacesSubscription();
+
         this.worldGrid.clear();
         this.places.clear();
 
+        // Destorying the engine should prbably be enough.
         this.engine.dispose();
         this.scene.dispose();
     }
@@ -284,7 +323,7 @@ export class World {
     private async loadPlace(placeId: PlaceId, placeMetadata: any) {
         if(this.places.has(placeId)) {
             // reload place
-            this.places.get(placeId)!.loadItems();
+            this.places.get(placeId)!.loadItems(true);
         }
         else {
             const new_place = new Place(placeId, this);

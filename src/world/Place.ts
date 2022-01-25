@@ -9,7 +9,6 @@ import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
 import { fromHexString, mutezToTez, pointIsInside } from "../utils/Utils";
 import { World } from "./World";
-import Metadata from "./Metadata";
 import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
 import BigNumber from "bignumber.js";
@@ -91,6 +90,7 @@ export default class Place {
         return poly;
     }
 
+    // TODO: be smarter about loading items. don't reload everthing, maybe.
     public async load(placeMetadata: any) {
         try {
             //let startTime = performance.now()
@@ -168,7 +168,7 @@ export default class Place {
 
             //console.log(`generating place took ${performance.now() - startTime} milliseconds`)
 
-            await this.loadItems();
+            await this.loadItems(false);
 
             //console.log(`Call to load took ${performance.now() - startTime} milliseconds`)
         } catch(e) {
@@ -177,14 +177,19 @@ export default class Place {
         }
     }
 
-    public async loadItems() {
+    // isUpdate should pretty much always be true unless called from Place.load()
+    public async loadItems(isUpdate: boolean) {
         if(!this.placeBounds) {
             Logging.InfoDev("place bounds don't exist: " + this.placeId);
             return;
         }
 
+        const placeHasUpdated = await Contracts.hasPlaceUpdated(this.world.walletProvider, this.placeId);
+
+        if(isUpdate && !placeHasUpdated) return;
+
         // Load items
-        const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId);
+        const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, placeHasUpdated);
 
         if(this.placeGround)
             (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
@@ -306,7 +311,9 @@ export default class Place {
         }
 
         Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
-            this.loadItems();
+            // TODO: does this really need to be called here?
+            // subscription should handle it.
+            this.loadItems(true);
         });
     }
 
