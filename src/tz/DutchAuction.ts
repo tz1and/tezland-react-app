@@ -38,7 +38,7 @@ export default class DutchAuction {
                 kind: OpKind.TRANSACTION,
                 ...auctionsWallet.methodsObject.create({
                     token_id: placeId, start_price: tezToMutez(startPrice), end_price: tezToMutez(endPrice),
-                    start_time: start_time.toString(), end_time: end_time.toString()
+                    start_time: start_time.toString(), end_time: end_time.toString(), fa2: Conf.place_contract
                 }).toTransferParams()
             }
         ]);
