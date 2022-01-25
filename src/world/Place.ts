@@ -301,7 +301,7 @@ export default class Place {
     }
 
     public save() {
-        if(!this.tempItemsNode) {
+        if(!this.tempItemsNode || !this.itemsNode) {
             Logging.InfoDev("can't save: items not loaded: " + this.placeId);
             return;
         }
@@ -312,15 +312,22 @@ export default class Place {
         }
 
         // try to save items.
-        const children = this.tempItemsNode.getChildren();
+        const tempChildren = this.tempItemsNode.getChildren();
         const add_children = new Array<Node>();
+
+        tempChildren.forEach((child) => {
+            const metadata = child.metadata as InstanceMetadata;
+            if(metadata.id === undefined) {
+                add_children.push(child);
+            }
+        });
+
+        const children = this.itemsNode.getChildren();
         const remove_children = new Array<Node>();
 
         children.forEach((child) => {
             const metadata = child.metadata as InstanceMetadata;
-            if(metadata.id === undefined) {
-                add_children.push(child);
-            } else if(metadata.markForRemoval === true) {
+            if(metadata.markForRemoval === true) {
                 remove_children.push(child);
             }
         });
