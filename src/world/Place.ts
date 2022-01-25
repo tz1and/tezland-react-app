@@ -91,10 +91,9 @@ export default class Place {
         return poly;
     }
 
-    public async load() {
+    public async load(placeMetadata: any) {
         try {
             //let startTime = performance.now()
-            let placeMetadata = await Metadata.getPlaceMetadata(this.placeId);
 
             // create mat
             /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
@@ -174,7 +173,7 @@ export default class Place {
             //console.log(`Call to load took ${performance.now() - startTime} milliseconds`)
         } catch(e) {
             Logging.InfoDev("failed to load place " + this.placeId);
-            console.log(e);
+            Logging.InfoDev(e);
         }
     }
 

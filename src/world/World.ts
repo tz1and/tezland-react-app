@@ -23,6 +23,7 @@ import Grid2D, { Tuple, WorldGridAccessor } from "../utils/Grid2D";
 import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
+import { Logging } from "../utils/Logging";
 
 
 const placeDrawDistance = AppSettings.getDrawDistance();
@@ -241,7 +242,7 @@ export class World {
 
         // Load all the places. Slowly.
         for(let i = 0; i < placeCount; ++i) {
-            await this.loadPlace(i);
+            await this.fetchPlace(i);
         }
     };
 
@@ -249,29 +250,49 @@ export class World {
     // loadPlace should be definite. add another functio
     // that initially adds all places or soemthing.
     // Then go over this agiain.
-    public async loadPlace(placeId: PlaceId) {
-        if(this.places.has(placeId)) {
-            // reload place
-            this.places.get(placeId)!.loadItems();
-        }
-        else {
+    // distingquish between fetchPlace and loadPlace
+    private async fetchPlace(placeId: PlaceId) {
+        try {
             // If the place isn't in the grid yet, add it.
-            let placeMetadata = await Metadata.getPlaceMetadata(placeId);
-            const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
-            const set = this.worldGrid.getOrAddA(this.worldGridAccessor, [origin.x, origin.z], this.gridCreateCallback);
-            if(!set.has(placeId)) {
-                set.add(placeId);
+            var placeMetadata = await Metadata.getPlaceMetadata(placeId);
+            if (placeMetadata === undefined) {
+                Logging.InfoDev("No metadata for place: " + placeId);
+                return;
             }
+
+            const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
 
             // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
             if(player_pos.subtract(origin).length() < placeDrawDistance) {
-                console.log("load place");
-                const new_place = new Place(placeId, this);
-                await new_place.load();
-                
-                this.places.set(placeId, new_place);
+                await this.loadPlace(placeId, placeMetadata);
             }
+
+            // add to grid AFTER loading.
+            const set = this.worldGrid.getOrAddA(this.worldGridAccessor, [origin.x, origin.z], this.gridCreateCallback);
+            if(!set.has(placeId)) {
+                set.add(placeId);
+            }
+        }
+        catch(e) {
+            Logging.InfoDev("Error fetching place: " + placeId);
+            Logging.InfoDev(e);
+            Logging.InfoDev(placeMetadata);
+        }
+    }
+
+    private async loadPlace(placeId: PlaceId, placeMetadata: any) {
+        if(this.places.has(placeId)) {
+            // reload place
+            Logging.InfoDev("reload place");
+            this.places.get(placeId)!.loadItems();
+        }
+        else {
+            Logging.InfoDev("load place");
+            const new_place = new Place(placeId, this);
+            await new_place.load(placeMetadata);
+            
+            this.places.set(placeId, new_place);
         }
     }
 
@@ -332,7 +353,7 @@ export class World {
                                 const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
                                 if(playerPos.subtract(origin).length() < placeDrawDistance) {
                                     // todo: add to pending updates instead.
-                                    this.loadPlace(id);
+                                    this.loadPlace(id, placeMetadata);
                                 }
                             });
                         })
