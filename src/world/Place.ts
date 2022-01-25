@@ -255,7 +255,7 @@ export default class Place {
                     this.world.shadowGenerator.addShadowCaster(instance as Mesh);
 
                     if(!this.isInBounds(instance)) {
-                        Logging.InfoDev("place doesn't fully contain object");
+                        Logging.Warn("place doesn't fully contain object: " + element.id);
                         instance.dispose();
                     }
                 }

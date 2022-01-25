@@ -284,11 +284,9 @@ export class World {
     private async loadPlace(placeId: PlaceId, placeMetadata: any) {
         if(this.places.has(placeId)) {
             // reload place
-            Logging.InfoDev("reload place");
             this.places.get(placeId)!.loadItems();
         }
         else {
-            Logging.InfoDev("load place");
             const new_place = new Place(placeId, this);
             await new_place.load(placeMetadata);
             
