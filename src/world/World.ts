@@ -22,6 +22,7 @@ import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Grid2D, { Tuple, WorldGridAccessor } from "../utils/Grid2D";
 import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
+import Contracts from "../tz/Contracts";
 
 
 const placeDrawDistance = AppSettings.getDrawDistance();
@@ -232,6 +233,18 @@ export class World {
         return camera;
     }
 
+    // TODO: add a list of pending places to load.
+    public async loadWorld() {
+        const placeCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
+
+        console.log("world has " + placeCount + " places.");
+
+        // Load all the places. Slowly.
+        for(let i = 0; i < placeCount; ++i) {
+            await this.loadPlace(i);
+        }
+    };
+
     // TODO: metadata gets re-loaded too often.
     // loadPlace should be definite. add another functio
     // that initially adds all places or soemthing.
@@ -242,16 +255,15 @@ export class World {
             this.places.get(placeId)!.loadItems();
         }
         else {
-            // If the place isn't in the grid yet, add it
+            // If the place isn't in the grid yet, add it.
             let placeMetadata = await Metadata.getPlaceMetadata(placeId);
             const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
             const set = this.worldGrid.getOrAddA(this.worldGridAccessor, [origin.x, origin.z], this.gridCreateCallback);
             if(!set.has(placeId)) {
-                console.log("add to set");
                 set.add(placeId);
             }
 
-            // Figure out by distance to player if the place should load
+            // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
             if(player_pos.subtract(origin).length() < placeDrawDistance) {
                 console.log("load place");
@@ -259,7 +271,7 @@ export class World {
                 await new_place.load();
                 
                 this.places.set(placeId, new_place);
-            } else console.log("skip place");
+            }
         }
     }
 

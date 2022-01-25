@@ -48,20 +48,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
   componentDidMount() {
     this.world = new World(this.mount!, this.props.appControl, this.context);
 
-    (async () => {
-      // this is all really temporary anyway.
-      if(!this.world) return;
-
-      await sleep(1000);
-
-      await this.world.loadPlace(0);
-      await this.world.loadPlace(1);
-      await this.world.loadPlace(2);
-      await this.world.loadPlace(3);
-
-      //for(let i = 4; i < 86; ++i)
-      //  await this.world.loadPlace(i);
-    })();
+    this.world.loadWorld();
   }
 
   componentWillUnmount() {

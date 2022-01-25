@@ -4,6 +4,9 @@ import assert from "assert";
 export type Tuple = [number, number];
 
 
+// See: https://github.com/shazow/grid-benchmark.js
+
+
 export class WorldGridAccessor implements GridAccessor {
     constructor(worldSize: Tuple, worldOffset: Tuple) {
         this.worldSize = worldSize;

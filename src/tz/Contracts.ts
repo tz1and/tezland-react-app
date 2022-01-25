@@ -100,6 +100,14 @@ export class Contracts {
       this.handleOperation(walletProvider, get_item_op, callback);
     }
 
+    public async countPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
+      // use get_stored_items on-chain view.
+      if(!this.places)
+        this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
+
+      return await this.places.contractViews.count_tokens().executeView({viewCaller: this.places.address});
+    }
+
     public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number): Promise<any> {
       // use get_stored_items on-chain view.
       if(!this.marketplaces)
