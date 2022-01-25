@@ -131,11 +131,11 @@ export default class PlayerController {
                     
                     // Rotate
                     case "KeyE":
-                        this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), Math.PI / 20);
+                        this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), Math.PI / 32);
                         break;
                     
                     case "KeyQ":
-                        this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), -Math.PI / 20);
+                        this.tempObject?.rotateAround(new Vector3(), new Vector3(0,1,0), -Math.PI / 32);
                         break;
                     
                     // Save place
