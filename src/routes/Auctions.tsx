@@ -112,7 +112,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         return (
             <main>
                 <div className="container text-start pt-4">
-                    <h1>Active Land Auctions</h1>
+                    <h1>Active Place Auctions</h1>
                     <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price.<br/>Auctions can be cancelled by the creator before it's bought.</p>
                     <p>Price drops once every 60 seconds.</p>
                     <Link to='/auctions/create' className='btn btn-primary'>Create Auction</Link>

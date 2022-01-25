@@ -15,7 +15,7 @@ export default function Frontpage() {
 
                     <ul className="nav me-auto mb-2 justify-content-center mb-md-0">
                         <li><Link to="/" className="nav-link px-2">Home</Link></li>
-                        <li><Link to="/auctions" className="nav-link px-2">Land Auctions</Link></li>
+                        <li><Link to="/auctions" className="nav-link px-2">Place Auctions</Link></li>
                         <li><Link to="/faq" className="nav-link px-2">FAQ</Link></li>
                         {/*<li><Link to="/docs" className="nav-link px-2">Docs</Link></li>*/}
                         <li><Link to="/map" className="nav-link px-2">Map</Link></li>

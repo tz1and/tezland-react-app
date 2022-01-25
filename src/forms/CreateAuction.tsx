@@ -246,7 +246,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 
                     <div className='col-lg-4 col-md-6'>
                         <h2>Map Preview</h2>
-                        <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[500, 500]} zoom={2} attributionControl={false} dragging={true} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the land">
+                        <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[500, 500]} zoom={2} attributionControl={false} dragging={true} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the Place">
                             <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url="/img/map.svg" />
                             <MapSetCenter center={this.state.mapLocation}/>
                             <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
