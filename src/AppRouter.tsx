@@ -12,7 +12,6 @@ import { CreateAuctionFormW } from './forms/CreateAuction';
 import { TezosWalletProvider } from './components/TezosWalletContext'
 import { isDev } from './utils/Utils';
 
-//Contracts.initWallet();
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
     return (

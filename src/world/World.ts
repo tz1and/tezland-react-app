@@ -9,7 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, FreeCamera, Material, Node, UniversalCamera } from "@babylonjs/core";
+import { Database, FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -29,7 +29,6 @@ const worldUpdateDistance = 10;
 
 
 export class World {
-    readonly camera: FreeCamera;
     readonly scene: Scene;
     
     private engine: Engine;
@@ -85,8 +84,6 @@ export class World {
                 this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
             });
         }*/
-
-        this.camera = this.initCamera();
 
         // Create a default material
         this.defaultMaterial = new SimpleMaterial("defaulMat", this.scene);
@@ -145,7 +142,8 @@ export class World {
             pointerInfo.skipOnPointerObservable = true;
         });*/
 
-        this.playerController = new PlayerController(this.camera, this, this.shadowGenerator, canvas, appControlfunctions);
+        const camera = this.initCamera();
+        this.playerController = new PlayerController(camera, this, this.shadowGenerator, canvas, appControlfunctions);
         this.lastUpdatePosition = this.playerController.getPosition().clone();
 
         // Render every frame
@@ -154,11 +152,15 @@ export class World {
             if(divFps) divFps.innerHTML = this.engine.getFps().toFixed() + " fps";
         });
 
-        window.addEventListener('resize', () => { this.engine.resize(); });
+        window.addEventListener('resize', this.onResize);
 
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
         this.registerPlacesSubscription();
+    }
+
+    private onResize = () => {
+        this.engine.resize();
     }
 
     // TODO: move the subscription stuff into it's own class?
@@ -169,6 +171,7 @@ export class World {
 
     private unregisterPlacesSubscription() {
         this.subscription?.off("data", this.placeSubscriptionCallback);
+        this.subscription = undefined;
     }
 
     private placeSubscriptionCallback = (d: OperationContent) => {
@@ -192,7 +195,9 @@ export class World {
         }
     }
 
-    public destroy() {
+    public dispose() {
+        window.removeEventListener('resize', this.onResize);
+        
         this.unregisterPlacesSubscription();
 
         this.worldGrid.clear();
@@ -202,7 +207,6 @@ export class World {
 
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
-        this.scene.dispose();
     }
 
     private debugWorld() {

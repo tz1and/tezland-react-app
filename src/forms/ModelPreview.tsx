@@ -41,7 +41,7 @@ class PreviewScene {
         this.previewObject = null;
     }
 
-    public destroy() {
+    public dispose() {
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
         this.scene.dispose();
@@ -130,7 +130,10 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     }
 
     componentWillUnmount() {
-        if(this.preview) this.preview.destroy();
+        if(this.preview) {
+            this.preview.dispose();
+            this.preview = null;
+        }
     }
 
     getThumbnail(): Promise<string> {

@@ -3,6 +3,7 @@ import { World } from '../world/World'
 import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
+import assert from 'assert';
 
 type VirtualSpaceProps = {
   appControl: AppControlFunctions;
@@ -33,7 +34,8 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
   }
 
   setInventoryItem(id: number) {
-    this.world?.playerController.setCurrentItem(id);
+    assert(this.world);
+    this.world.playerController.setCurrentItem(id);
   }
 
   lockControls() {
@@ -52,7 +54,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
   componentWillUnmount() {
     if(this.world) {
-      this.world.destroy();
+      this.world.dispose();
       this.world = null;
     }
   }

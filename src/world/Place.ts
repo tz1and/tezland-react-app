@@ -70,9 +70,16 @@ export default class Place {
         // TODO: null world!
         // TODO: have some flag if it's loading right now or something.
         this.placeBounds?.dispose();
+        this.placeBounds = null;
+
         this.placeGround?.dispose();
+        this.placeGround = null;
+
         this.itemsNode?.dispose();
+        this.itemsNode = null;
+
         this.tempItemsNode?.dispose();
+        this.tempItemsNode = null;
     }
 
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
