@@ -73,10 +73,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
   render() {
     return (
-      <div className='VirtualSpace'>
-        <canvas id="renderCanvas" touch-action="none" ref={ref => (this.mount = ref)} ></canvas>
-        <div id="fps">0</div>
-      </div>
+      <canvas id="renderCanvas" touch-action="none" ref={ref => (this.mount = ref)} ></canvas>
     )
   }
 }

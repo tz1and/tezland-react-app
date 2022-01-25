@@ -8,6 +8,7 @@ import { Node, Nullable } from '@babylonjs/core';
 import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
+import AppSettings from '../storage/AppSettings';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -17,6 +18,7 @@ type ExploreState = {
     show_form: string;
     dispaly_overlay: boolean;
     placedItem: Nullable<Node>;
+    showFps: boolean; // should be a prop?
     //count: number; // like this
 };
 
@@ -28,7 +30,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         this.state = {
             show_form: 'instructions',
             dispaly_overlay: true,
-            placedItem: null
+            placedItem: null,
+            showFps: AppSettings.getShowFps()
             // optional second annotation for better type inference
             //count: 0,
         };
@@ -93,7 +96,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         return (
             <div className='Explore'>
-                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3'>{ "tz1aND v" + process.env.REACT_APP_VERSION}</small>
+                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1aND v" + process.env.REACT_APP_VERSION}</small>
+                {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}
                 {controlInfo}
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{

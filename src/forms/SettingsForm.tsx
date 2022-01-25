@@ -13,7 +13,8 @@ interface SettingsFormValues {
     itemTags: string;*/
     polygonLimit: number;
     displayPlaceBounds: boolean;
-    drawDistance: number
+    drawDistance: number;
+    showFps: boolean;
     //itemFile: ArrayBuffer;
 }
 
@@ -32,6 +33,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         polygonLimit: AppSettings.getPolygonLimit(),
         displayPlaceBounds: AppSettings.getDisplayPlaceBounds(),
         drawDistance: AppSettings.getDrawDistance(),
+        showFps: AppSettings.getShowFps()
     };
 
     return (
@@ -58,6 +60,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         AppSettings.setPolygonLimit(values.polygonLimit);
                         AppSettings.setDisplayPlaceBounds(values.displayPlaceBounds);
                         AppSettings.setDrawDistance(values.drawDistance);
+                        AppSettings.setShowFps(values.showFps);
 
                         props.closeForm(false);
 
@@ -94,6 +97,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 <Field id="displayPlaceBounds" name="displayPlaceBounds" type="checkbox" className="form-check-input me-2" aria-describedby="displayPlaceBoundsHelp" disabled={isSubmitting}/>
                                 <label htmlFor="displayPlaceBounds" className="form-label">Display place bounds</label>
                                 <div id="displayPlaceBoundsHelp" className="form-text">Whether place boundaries should be drawn or not.</div>
+                            </div>
+                            <div className="mb-3">
+                                <Field id="showFps" name="showFps" type="checkbox" className="form-check-input me-2" aria-describedby="showFpsHelp" disabled={isSubmitting}/>
+                                <label htmlFor="showFps" className="form-label">Show FPS</label>
+                                <div id="showFpsHelp" className="form-text">Show frames per second.</div>
                             </div>
                             {state.error.length > 0 && ( <small className='text-danger'>Saving settings failed: {state.error}</small> )}
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>save settings</button>

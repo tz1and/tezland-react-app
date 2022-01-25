@@ -28,4 +28,14 @@ export default class AppSettings {
     static setDrawDistance(dist: number) {
         localStorage.setItem("tezland:settings:drawDistance", dist.toString());
     }
+
+    static getShowFps(): boolean {
+        const showFps = localStorage.getItem("tezland:settings:showFps");
+        return showFps ? (showFps === 'true') : true;
+    }
+
+    // throws QuotaExceededError
+    static setShowFps(enable: boolean) {
+        localStorage.setItem("tezland:settings:showFps", enable.toString());
+    }
 }

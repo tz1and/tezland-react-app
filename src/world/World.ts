@@ -146,7 +146,7 @@ export class World {
         // Render every frame
         this.engine.runRenderLoop(() => {
             this.scene.render();
-            divFps!.innerHTML = this.engine.getFps().toFixed() + " fps";
+            if(divFps) divFps.innerHTML = this.engine.getFps().toFixed() + " fps";
         });
 
         window.addEventListener('resize', () => { this.engine.resize(); });
