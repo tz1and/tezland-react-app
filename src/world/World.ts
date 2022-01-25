@@ -285,7 +285,7 @@ export class World {
         console.log("world has " + placeCount + " places.");
 
         // Load all the places. Slowly.
-        for(let i = 0; i < placeCount; ++i) {
+        for(let i = 0; i < 4; ++i) {
             await this.fetchPlace(i);
         }
     };
