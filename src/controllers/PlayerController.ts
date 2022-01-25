@@ -11,8 +11,8 @@ import PickingGuiController from "./PickingGuiController";
 
 
 export default class PlayerController {
-    private camera: Camera;
-    private scene: Scene;
+    private camera: Nullable<Camera>;
+    private scene: Nullable<Scene>;
     private shadowGenerator: ShadowGenerator;
 
     private tempObject: Nullable<Mesh>;
@@ -20,7 +20,7 @@ export default class PlayerController {
     private tempObjectRot: Quaternion;
     //private state: ControllerState;
 
-    private pickingGui: PickingGuiController;
+    private pickingGui: Nullable<PickingGuiController>;
 
     readonly playerTrigger: Mesh;
 
@@ -58,6 +58,8 @@ export default class PlayerController {
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         var pointerlockchange = () => {
+            assert(this.camera);
+
             var controlEnabled = document.pointerLockElement || null;
             
             // If the user is already locked
@@ -80,6 +82,7 @@ export default class PlayerController {
                 case PointerEventTypes.POINTERDOWN:
                     if(info.event.button === 0 && this.currentPlace && this.currentPlace.isOwned &&
                         this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
+                        assert(this.scene);
 
                         // TODO: move placing items into Place class.
                         const parent = this.currentPlace.tempItemsNode;
@@ -160,6 +163,7 @@ export default class PlayerController {
                         break;
 
                     case 'Delete': // Mark item for deletion
+                        assert(this.pickingGui);
                         const current_item = this.pickingGui.getCurrentItem();
                         if(current_item) {
                             const metadata = current_item.metadata as InstanceMetadata;
@@ -191,8 +195,20 @@ export default class PlayerController {
         }, KeyboardEventTypes.KEYDOWN);
     }
 
+    public dispose() {
+        this.pickingGui?.dispose();
+        this.pickingGui = null;
+
+        this.tempObject = null;
+        this.currentPlace = null;
+        // TODO: shadowgen?
+
+        this.scene = null;
+    }
+
     // important, returns a ref to the actual position!
     public getPosition(): Vector3 {
+        assert(this.camera);
         return this.camera.position;
     }
 
@@ -201,6 +217,9 @@ export default class PlayerController {
     }
 
     public async setCurrentItem(item_id?: number) {
+        assert(this.pickingGui);
+        assert(this.scene);
+
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();
@@ -249,6 +268,9 @@ export default class PlayerController {
     }
 
     private updateController() {
+        assert(this.pickingGui);
+        assert(this.camera);
+        assert(this.scene);
         //const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
         // update player trigger mesh position.

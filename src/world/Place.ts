@@ -67,6 +67,7 @@ export default class Place {
     }
 
     public dispose() {
+        // TODO: null world!
         // TODO: have some flag if it's loading right now or something.
         this.placeBounds?.dispose();
         this.placeGround?.dispose();

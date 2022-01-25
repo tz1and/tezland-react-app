@@ -1,6 +1,7 @@
 import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
 
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
+import assert from "assert";
 import Contracts from "../tz/Contracts";
 import { truncate } from "../utils/Utils";
 import Metadata from "../world/Metadata";
@@ -9,13 +10,15 @@ import { World } from "../world/World";
 
 export default class PickingGuiController {
 
-    private world: World;
-    private advancedTexture: AdvancedDynamicTexture;
+    private world: Nullable<World>;
+    private advancedTexture: Nullable<AdvancedDynamicTexture>;
     private current_node: Nullable<TransformNode>;
 
     private infoGui: Nullable<Control>;
 
     constructor(world: World) {
+        assert(world);
+
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         // todo: get size from canvas?
         this.advancedTexture.idealHeight = 1920;
@@ -30,6 +33,7 @@ export default class PickingGuiController {
         this.world.scene.onPointerObservable.add(async (info, eventState) => {
             // button 2 is right click.
             if (info.type === PointerEventTypes.POINTERDOWN && info.event.button === 2) {
+                assert(this.world);
                 if(this.current_node) {
                     const metadata = this.getInstanceMetadata(this.current_node);
 
@@ -69,6 +73,17 @@ export default class PickingGuiController {
         this.advancedTexture.addControl(vert);*/
     }
 
+    public dispose() {
+        this.world = null;
+        this.current_node = null;
+
+        this.advancedTexture?.dispose();
+        this.advancedTexture = null;
+
+        this.infoGui?.dispose()
+        this.infoGui = null;
+    }
+
     private getInstanceRoot(node: Nullable<Node>): Nullable<Node> {
         let parent: Nullable<Node> = node;
         while(parent) {
@@ -93,6 +108,8 @@ export default class PickingGuiController {
     // instead we can keep the gui around and have an async function that updates it?
     // probably would be better. TEMP solution works for now.
     async updatePickingGui(node: Nullable<TransformNode>, distance: number) {
+        assert(this.advancedTexture);
+
         if(node === this.current_node) return;
 
         this.current_node = node;

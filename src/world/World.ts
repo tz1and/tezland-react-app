@@ -7,18 +7,12 @@ import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
-
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
-
-//import { QuakeController } from "../Controllers/QuakeController";
 import PlayerController from "../controllers/PlayerController";
-
-//import "@babylonjs/core/Meshes/meshBuilder";
-import { Database, FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
+import { Database, FreeCamera, Material, Node, UniversalCamera } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
-//import { isDev } from "../tz/Utils";
 import Grid2D, { Tuple, WorldGridAccessor } from "../utils/Grid2D";
 import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
@@ -27,6 +21,7 @@ import { Logging } from "../utils/Logging";
 import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
+//import { isDev } from "../utils/Utils";
 
 
 const placeDrawDistance = AppSettings.getDrawDistance();
@@ -53,6 +48,10 @@ export class World {
     readonly worldGrid: Grid2D<Set<PlaceId>>;
     readonly worldGridAccessor: WorldGridAccessor;
     private gridCreateCallback = () => { return new Set<PlaceId>() }
+
+    private lastUpdatePosition: Vector3;
+    // TODO
+    //private queuedPlaceUpdates: PlaceId[] = [];
 
     private subscription?: Subscription<OperationContent>;
 
@@ -199,6 +198,8 @@ export class World {
         this.worldGrid.clear();
         this.places.clear();
 
+        this.playerController.dispose();
+
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
         this.scene.dispose();
@@ -332,10 +333,6 @@ export class World {
             this.places.set(placeId, new_place);
         }
     }
-
-    private lastUpdatePosition: Vector3;
-    // TODO
-    //private queuedPlaceUpdates: PlaceId[] = [];
 
     // TODO: go over this again.
     public updateWorld() {

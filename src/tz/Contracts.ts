@@ -153,7 +153,7 @@ export class Contracts {
       const stItemsKey = "placeItems";
       
       if(placeUpdated) {
-        Logging.InfoDev("place items outdated, reading from chain")
+        //Logging.InfoDev("place items outdated, reading from chain")
 
         const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({viewCaller: this.marketplaces.address});
 
@@ -169,7 +169,7 @@ export class Contracts {
 
         return place_data;
       } else { // Otherwise load items from storage
-        Logging.InfoDev("reading place from local storage")
+        //Logging.InfoDev("reading place from local storage")
         
         const placeItemsStore = await Metadata.Storage.loadObject(place_id, stItemsKey);
 
