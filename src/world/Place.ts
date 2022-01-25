@@ -38,9 +38,16 @@ export default class Place {
     private _origin: Vector3;
     get origin(): Vector3 { return this._origin.clone(); }
 
+    // All saved items are stored in this.
     private _itemsNode: Nullable<TransformNode>;
     get itemsNode() { return this._itemsNode; }
     private set itemsNode(val: Nullable<TransformNode>) { this._itemsNode = val; }
+
+    // Unsaved items are stored in here.
+    // TODO: this really is a crutch. should be smarter about clearing items.
+    private _tempItemsNode: Nullable<TransformNode>;
+    get tempItemsNode() { return this._tempItemsNode; }
+    private set tempItemsNode(val: Nullable<TransformNode>) { this._tempItemsNode = val; }
 
     private owner: string;
 
@@ -54,6 +61,7 @@ export default class Place {
         this.placeGround = null;
         this._origin = new Vector3();
         this._itemsNode = null;
+        this._tempItemsNode = null;
         this.owner = "";
         this.isOperated = false;
     }
@@ -63,6 +71,7 @@ export default class Place {
         this.placeBounds?.dispose();
         this.placeGround?.dispose();
         this.itemsNode?.dispose();
+        this.tempItemsNode?.dispose();
     }
 
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
@@ -143,6 +152,10 @@ export default class Place {
             this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this.origin.x, 0, this.origin.z),
                 new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
             this.placeGround.receiveShadows = true;
+
+            // create temp items node
+            this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
+            this.tempItemsNode.position = this.origin.clone();
 
             this.owner = await Contracts.getPlaceOwner(this.placeId);
             // TODO: maybe reload isOperated when you enter a place.
@@ -280,7 +293,7 @@ export default class Place {
     }
 
     public save() {
-        if(!this.itemsNode) {
+        if(!this.tempItemsNode) {
             Logging.InfoDev("can't save: items not loaded: " + this.placeId);
             return;
         }
@@ -291,7 +304,7 @@ export default class Place {
         }
 
         // try to save items.
-        const children = this.itemsNode.getChildren();
+        const children = this.tempItemsNode.getChildren();
         const add_children = new Array<Node>();
         const remove_children = new Array<Node>();
 
@@ -313,6 +326,15 @@ export default class Place {
         Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
             // TODO: does this really need to be called here?
             // subscription should handle it.
+            if(this.tempItemsNode) {
+                this.tempItemsNode.dispose();
+                Logging.InfoDev("cleared temp items");
+
+                // create NEW temp items node
+                this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
+                this.tempItemsNode.position = this.origin.clone();
+            }
+
             this.loadItems(true);
         });
     }

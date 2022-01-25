@@ -82,7 +82,7 @@ export default class PlayerController {
                         this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
                         // TODO: move placing items into Place class.
-                        const parent = this.currentPlace.itemsNode;
+                        const parent = this.currentPlace.tempItemsNode;
                         assert(parent);
 
                         const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
