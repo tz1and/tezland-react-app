@@ -299,8 +299,8 @@ export class World {
             //console.log(minWorld, maxWorld);
 
             // search coords in cells
-            const minCell = Grid2D.max([0, 0], this.worldGridAccessor.accessor(minWorld, this.worldGrid.size));
-            const maxCell = Grid2D.min(this.worldGrid.size, this.worldGridAccessor.accessor(maxWorld, this.worldGrid.size));
+            const minCell = Grid2D.max([0, 0], this.worldGridAccessor.accessor(minWorld, this.worldGrid.getSize()));
+            const maxCell = Grid2D.min(this.worldGrid.getSize(), this.worldGridAccessor.accessor(maxWorld, this.worldGrid.getSize()));
 
             //console.log(minCell, maxCell);
 

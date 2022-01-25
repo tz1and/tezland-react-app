@@ -1,15 +1,15 @@
 import { AssertionError } from 'assert';
 import 'jest';
-import Grid2D, { Tuple, WorldGridAccessor } from './Grid2D';
+import Grid2D, { GridBenchmark, Tuple, WorldGridAccessor } from './Grid2D';
 
 test('contruction', () => {
     const gridNumber: Grid2D<number> = new Grid2D([10, 10]);
 
-    expect(gridNumber.size).toStrictEqual([10, 10]);
-    expect(gridNumber.grid.length).toBe(10);
-    expect(gridNumber.grid[0].length).toBe(10);
+    expect(gridNumber.getSize()).toStrictEqual([10, 10]);
+    expect(gridNumber.getGrid().length).toBe(10);
+    expect(gridNumber.getGrid()[0].length).toBe(10);
     
-    expect(gridNumber.grid[0][0]).toBe(undefined);
+    expect(gridNumber.getGrid()[0][0]).toBe(undefined);
 });
 
 test('get/set', () => {
@@ -91,4 +91,13 @@ test('get/set WorldGridAccessor', () => {
     expect(() => gridNumber.setA(worldAccessor, [-499.999, -499.999], 17)).not.toThrow(AssertionError);
     expect(gridNumber.getA(worldAccessor, [-499.999, -499.999])).toBe(17);
     expect(gridNumber.getA(worldAccessor, [-401, -401])).toBe(17);
+});
+
+test('run benchmark', () => {
+    const bench = new GridBenchmark(new Grid2D<number>([1, 1]));
+
+    bench.run([10,10]);
+    bench.run([100,100]);
+    bench.run([1000,1000]);
+    bench.run([10000,10000]);
 });
