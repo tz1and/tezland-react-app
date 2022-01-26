@@ -41,23 +41,46 @@ export async function get_root_file_from_dir(cid: string, uri: string): Promise<
     }
 }
 
+export async function get_file_size(cid: string): Promise<number> {
+    try {
+        console.log("aboot to call the thing");
+        // @deprecated find a better library and use: dag stat <CID>
+        // also, possibly need to get file from dir.
+        const stat = await ipfs_client.object.stat(ipfs.CID.parse(cid));
+        return stat.CumulativeSize;
+    } catch(e: any) {
+        Logging.InfoDev("Failed to get file size: " + e.message);
+        return 0; // TODO: assume large or small? or throw?
+    }
+}
+
 export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
     var mesh = scene.getMeshByName(`item${item_id}`);
     if(!mesh) {
         const itemMetadata = await Metadata.getItemMetadata(item_id.toNumber());
-        const itemCachedPolycount = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
+        const itemCachedStats = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
         const polygonLimit = AppSettings.getPolygonLimit();
 
-        // early out if we have a cached polycount
-        if(itemCachedPolycount !== null && itemCachedPolycount >= polygonLimit) {
+        // remove ipfs:// from uri
+        const hash = itemMetadata.artifact_uri.slice(7);
+
+        // Check file size, if too large, eatly out and write to db.
+        const fileSize = itemCachedStats !== null ? itemCachedStats.fileSize : (await get_file_size(hash));
+        if(fileSize > AppSettings.getFileSizeLimit()) {
+            // write polycount -1 to indicate we havent checked polycount yet.
+            Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", {polyCount: -1, fileSize: fileSize});
+            Logging.Warn("Item " + item_id + " file exceeds size limits. Ignoring.");
+            return null;
+        }
+
+        // early out if the cached polycount is > -1 and >= polygonLimit.
+        if(itemCachedStats !== null && itemCachedStats.polyCount >= 0 && itemCachedStats.polyCount >= polygonLimit) {
             Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
             return null;
         }
 
-        // remove ipfs:// from uri
-        const hash = itemMetadata.artifact_uri.slice(7);
         const mime_type = itemMetadata.formats[0].mimeType;
 
         let plugin_ext;
@@ -92,9 +115,9 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         // If we don't have a cache, calculate polycount and store it.
         // TODO: this might not be good enough, since animated meshes don't have polygons?
         // Could be a babylon beta bug.
-        if(itemCachedPolycount === null) {
+        if(itemCachedStats === null || itemCachedStats.polyCount < 0) {
             const polycount = countPolygons(newMeshes.meshes);
-            Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", polycount);
+            Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", {polyCount: polycount, fileSize: fileSize});
 
             if(polycount >= polygonLimit) {
                 Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");

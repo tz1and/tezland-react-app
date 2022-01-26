@@ -38,4 +38,14 @@ export default class AppSettings {
     static setShowFps(enable: boolean) {
         localStorage.setItem("tezland:settings:showFps", enable.toString());
     }
+
+    static getFileSizeLimit(): number {
+        const fileSizeLimit = localStorage.getItem("tezland:settings:fileSizeLimit");
+        return fileSizeLimit ? parseInt(fileSizeLimit) : 67108864;
+    }
+
+    // throws QuotaExceededError
+    static setFileSizeLimit(limit: number) {
+        localStorage.setItem("tezland:settings:fileSizeLimit", limit.toString());
+    }
 }
