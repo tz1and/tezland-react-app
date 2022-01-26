@@ -29,7 +29,7 @@ export default class Metadata {
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from chain bcdhub");
 
-            // todo: use fetch?
+            // TODO: use fetch?
             const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${contract}&token_id=${token_id}`);
             const tokenInfo = responseP.data[0];
 

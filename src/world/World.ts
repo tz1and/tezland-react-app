@@ -347,27 +347,18 @@ export class World {
             const start_time = performance.now();
             this.lastUpdatePosition = playerPos.clone();
 
-            // TODO: get grid cells in certain radius and load/unload places.
-
-            //console.log("places in map before: ", this.places.size);
+            // Check all loaded places for distance and remove.
             this.places.forEach((v, k) => {
                 // Multiply draw distance with small factor here to avoid imprecision and all that
                 if(playerPos.subtract(v.origin).length() > placeDrawDistance * 1.02) {
                     this.places.delete(k);
                     v.dispose();
-                    //removals.push(k)
-                    //console.log("place removed from map");
                 }
             });
-            //console.log("places in map after: ", this.places.size);
-
-            //console.log(playerPos);
 
             // search coords in world
             const minWorld: Tuple = [playerPos.x - placeDrawDistance, playerPos.z - placeDrawDistance];
             const maxWorld: Tuple = [playerPos.x + placeDrawDistance, playerPos.z + placeDrawDistance];
-
-            //console.log(minWorld, maxWorld);
 
             // search coords in cells
             const minCell = Grid2D.max([0, 0], this.worldGridAccessor.accessor(minWorld, this.worldGrid.getSize()));
@@ -375,18 +366,17 @@ export class World {
 
             //console.log(minCell, maxCell);
 
-            // iterate over all places in all cells and see if they need to be loaded.
+            // iterate over all places in all found cells and see if they need to be loaded.
             //var counter = 0;
-            // TODO: min/max with grid size
             for(let j = minCell[1]; j < maxCell[1]; ++j)
                 for(let i = minCell[0]; i < maxCell[0]; ++i) {
                     const set = this.worldGrid.get([i, j])
                     if (set) {
                         set.forEach((id) => {
                             //counter++;
-                            // early out
+                            // early out if loaded
                             if(this.places.has(id)) return;
-                            // maybe load
+                            // maybe load, depending on distance
                             Metadata.getPlaceMetadata(id).then((placeMetadata) => {
                                 const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
                                 if(playerPos.subtract(origin).length() < placeDrawDistance) {
@@ -398,8 +388,8 @@ export class World {
                     }
                 }
 
-            const end_time = performance.now();
-            console.log("updateWorld took " + (end_time - start_time).toFixed(2) + "ms");
+            const elapsed = performance.now() - start_time;
+            console.log("updateWorld took " + elapsed.toFixed(2) + "ms");
             //console.log("checked places: " + counter);
         }
     }

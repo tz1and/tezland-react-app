@@ -67,7 +67,6 @@ export default class Place {
     }
 
     public dispose() {
-        // TODO: null world!
         // TODO: have some flag if it's loading right now or something.
         this.placeBounds?.dispose();
         this.placeBounds = null;
@@ -112,32 +111,6 @@ export default class Place {
         try {
             //let startTime = performance.now()
 
-            // create mat
-            /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
-            transparent_mat.alpha = 0.2;
-            //transparent_mat.disableLighting = true;
-            //transparent_mat.backFaceCulling = false;
-            transparent_mat.diffuseColor.set(0.2, 0.2, 0.8);*/
-            //transparent_mat.wireframe = true;
-
-            // Using polygon mesh builder (only 2D)
-            /*// convert to path
-            var poly_path = new Array<Vector2>();
-            tokenInfo.border_coordinates.forEach((v: Array<number>) => {
-                //poly_path.push(Vector3.FromArray(v));
-                poly_path.push(new Vector2(v[0], v[2]));
-            });
-
-            // TODO: make sure the place coordinates are going right around!
-            poly_path = poly_path.reverse();
-
-            console.log(poly_path);
-
-            const polygon_triangulation = new PolygonMeshBuilder("name", poly_path, this.scene, earcut);
-            const polygon = polygon_triangulation.build(false, 11);
-            polygon.material = transparent_mat;
-            polygon.position.y += 10;*/
-
             // Using ExtrudePolygon
             this._origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
 
@@ -149,7 +122,6 @@ export default class Place {
             // TODO: make sure the place coordinates are going right around!
             shape = shape.reverse();
 
-            // TODO: store place build height in metadata!
             // create bounds
             this.placeBounds = this.extrudeMeshFromShape(shape, 11, new Vector3(this.origin.x, 10, this.origin.z),
                 this.world.transparentGridMat);
@@ -276,7 +248,7 @@ export default class Place {
                         itemAmount: new BigNumber(item_amount)
                     } as InstanceMetadata;
 
-                    // todo: for all submeshes/instances, whatever
+                    // TODO: for all submeshes/instances, whatever
                     //instance.checkCollisions = true;
                     this.world.shadowGenerator.addShadowCaster(instance as Mesh);
 
@@ -339,8 +311,6 @@ export default class Place {
         }
 
         Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
-            // TODO: does this really need to be called here?
-            // subscription should handle it.
             if(this.tempItemsNode) {
                 this.tempItemsNode.dispose();
                 Logging.InfoDev("cleared temp items");
@@ -350,6 +320,8 @@ export default class Place {
                 this.tempItemsNode.position = this.origin.clone();
             }
 
+            // TODO: does this really need to be called here?
+            // subscription should handle it.
             this.loadItems(true);
         });
 
