@@ -10,6 +10,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import AppRouter from './AppRouter';
 import Metadata from './world/Metadata';
+import { Notification } from './components/Notification';
 
 
 // TODO: find a better way to do this, see todo.
@@ -17,18 +18,11 @@ Metadata.Storage.open(() => {
     renderApp();
 }, () => {
     renderApp(
-        (<div className="position-fixed bottom-0 start-0 p-4" style={{zIndex: "1050"}}>
-            <div className="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
-                <div className="d-flex">
-                    <div className="toast-body">
-                        <p className='mb-3 fw-bolder'>Failed to open Database storage</p>
-                        The app may not function correctly.<br/><br/>
-                        Check the Javascript console for more details.<br/>
-                        It could also be your privacy settings (or a private tab).
-                    </div>
-                    <button type="button" className="btn-close btn-close-white me-2 mt-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
+        (<div className="toast-container position-fixed bottom-0 start-50 translate-middle-x p-4" style={{zIndex: "1050"}}>
+            <Notification data={{
+                title: "Failed to open Database storage",
+                body: "The app may not function correctly.\n\nCheck the Javascript console for more details. It could also be your privacy settings (or a private tab).",
+                type: 'danger' }}/>
         </div>)
     );
 })

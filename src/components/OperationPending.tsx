@@ -5,7 +5,6 @@ export type OperationPendingData = {
     done: boolean,
     success?: boolean,
     error?: string
-    //closeForm(cancelled: boolean): void;
 }
 
 type OperationPendingProps = {
