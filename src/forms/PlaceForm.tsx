@@ -95,7 +95,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                 {touched.itemPrice && errors.itemPrice && <small className="text-danger">{errors.itemPrice}</small>}
                             </div>
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>
-                            <small>Note: Placed Items are transferred to the World contract,<br/> but are retrievable only by you (the owner) and a potential buyer.</small>
+                            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>Placed Items are transferred to the World contract,but are<br/>retrievable only by you (the owner) or a potential new owner.</div>
                         </Form>
                     )
                 }}

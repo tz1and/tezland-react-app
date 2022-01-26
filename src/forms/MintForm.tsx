@@ -187,7 +187,8 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                                     <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} mint Item</button>
                                 </div>
                                 <div className='col'>
-                                    <ModelPreview file={values.itemFile} ref={modelPreviewRef} /><br/>
+                                    <ModelPreview file={values.itemFile} ref={modelPreviewRef} />
+                                    <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
                                     {state.error.length > 0 && ( <small className='text-danger'>Minting failed: {state.error}</small> )}
                                 </div>
                             </div>

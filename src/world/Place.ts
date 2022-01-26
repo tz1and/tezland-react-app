@@ -300,15 +300,15 @@ export default class Place {
         //this.octree = this.scene.createOrUpdateSelectionOctree();
     }
 
-    public save() {
+    public save(): boolean {
         if(!this.tempItemsNode || !this.itemsNode) {
             Logging.InfoDev("can't save: items not loaded: " + this.placeId);
-            return;
+            return false;
         }
 
         if(!this.isOwned) {
             Logging.InfoDev("can't save: place not owned: " + this.placeId);
-            return;
+            return false;
         }
 
         // try to save items.
@@ -335,7 +335,7 @@ export default class Place {
         if (add_children.length === 0 && remove_children.length === 0) {
             // TODO: probably should throw exceptions here.
             Logging.InfoDev("Nothing to save");
-            return;
+            return false;
         }
 
         Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
@@ -352,6 +352,8 @@ export default class Place {
 
             this.loadItems(true);
         });
+
+        return true;
     }
 
     public isInBounds(object: Node) {

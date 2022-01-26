@@ -116,7 +116,7 @@ export default class PlayerController {
         }, undefined, true);
 
         // Keyboard controls. Save, remove, place, mint, whatever.
-        this.scene.onKeyboardObservable.add((kbInfo, eventState) => {
+        this.scene.onKeyboardObservable.add((kbInfo) => {
             if(kbInfo.type === KeyboardEventTypes.KEYDOWN){
                 // TEMP: switch item in inventory
                 switch(kbInfo.event.code) {
@@ -141,9 +141,8 @@ export default class PlayerController {
                     // Save place
                     case "KeyU":
                         if(this.currentPlace) {
-                            // exit pointer lock and send operation.
-                            document.exitPointerLock();
-                            this.currentPlace.save();
+                            if(this.currentPlace.save())
+                                document.exitPointerLock();
                         }
                         break;
                     

@@ -144,13 +144,12 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     render() {
         return (
         <div>
-            <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas><br/>
-            <small>The image will be used for the preview thumbnail.<br/><br/>
-
-            Use the mouse to control the view.<br/><br/>
-            Mouse wheel: zoom<br/>
-            Left mouse: rotate<br/>
-            Right mouse: pan<br/></small>
+            <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas>
+            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
+                Use the mouse to control the view.<br/><br/>
+                Mouse wheel: zoom<br/>
+                Left mouse: rotate<br/>
+                Right mouse: pan</div>
         </div>);
     }
 }

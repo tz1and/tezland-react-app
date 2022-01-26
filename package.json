@@ -1,6 +1,6 @@
 {
   "name": "tezland-react-app",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "dependencies": {
     "@babylonjs/core": "^5.0.0-beta.4",
