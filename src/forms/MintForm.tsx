@@ -8,7 +8,7 @@ import {
 import CustomFileUpload from './CustomFileUpload'
 import ModelPreview from './ModelPreview'
 import Contracts from '../tz/Contracts'
-import { createItemTokenMetadata, get_root_file_from_dir } from '../ipfs/ipfs';
+import { createItemTokenMetadata } from '../ipfs/ipfs';
 import { BlobLike, blobToBloblike, getFileExt } from '../utils/Utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import Conf from '../Config';
@@ -112,11 +112,8 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                             throw new Error("Upload failed: " + data.error);
                         }
                         else if (data.metdata_uri && data.cid) {
-                            // Try and get the file from directory.
-                            const fileUri = await get_root_file_from_dir(data.cid, data.metdata_uri);
-
                             // mint item.
-                            await Contracts.mintItem(context, fileUri, values.itemRoyalties, values.itemAmount);
+                            await Contracts.mintItem(context, data.metdata_uri, values.itemRoyalties, values.itemAmount);
 
                             // when successful, close form.
                             props.closeForm(false);
