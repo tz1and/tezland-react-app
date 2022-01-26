@@ -9,7 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, FreeCamera, Material, UniversalCamera } from "@babylonjs/core";
+import { Database, Material } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -142,8 +142,7 @@ export class World {
             pointerInfo.skipOnPointerObservable = true;
         });*/
 
-        const camera = this.initCamera();
-        this.playerController = new PlayerController(camera, this, this.shadowGenerator, canvas, appControlfunctions);
+        this.playerController = new PlayerController(this, this.shadowGenerator, canvas, appControlfunctions);
         this.lastUpdatePosition = this.playerController.getPosition().clone();
 
         // Render every frame
@@ -241,41 +240,6 @@ export class World {
         player.checkCollisions = true;
         player.ellipsoid.set(0.5, 0.5, 0.5);
         this.shadowGenerator.addShadowCaster(player);
-    }
-
-    private initCamera(): FreeCamera {
-        // This creates and positions a free camera (non-mesh)
-        var camera = new UniversalCamera("camera1", new Vector3(0, 2, -15), this.scene);
-
-        // Camera props
-        camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;
-        camera.fov = 2;
-        camera.minZ = 0.1;
-
-        // Collision stuff
-        camera.checkCollisions = true;
-        camera.applyGravity = true;
-        camera.ellipsoid = new Vector3(0.5, 0.9, 0.5);
-
-        // Set movement keys
-        camera.keysLeft = [65 /*w*/, 37 /*left arrow*/];
-        camera.keysRight = [68 /*d*/, 39 /*right arrow*/];
-        camera.keysUp = [87 /*w*/, 38 /*up arrow*/];
-        camera.keysDown = [83 /*s*/, 40 /*down arrow*/];
-        //camera.keysUpward = [32 /*space*/]; // that's not actually jumping.
-        camera.speed = 0.2;
-        //this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
-        //camera.inertia = 0.5;
-        //camera.angularSensibility = 2;
-        //this.camera.checkCollisions = false;
-
-        // This targets the camera to scene origin
-        //camera.setTarget(Vector3.Zero());
-
-        // This attaches the camera to the canvas
-        //camera.attachControl(canvas, true);
-
-        return camera;
     }
 
     // TODO: add a list of pending places to load.

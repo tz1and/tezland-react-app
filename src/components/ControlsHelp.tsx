@@ -38,6 +38,10 @@ export const ControlsHelp: React.FC<ControlsHelpProps> = (props: ControlsHelpPro
                         </span>
                         Move (arrow keys as well)<br/>
                         <span className="glyphicon-stack m-1 mx-0 me-1">
+                            <i className="bi bi-arrow-up-square-fill glyphicon-stack-1x"></i>
+                        </span>
+                        Sprint (left shift)<br/>
+                        <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-mouse-fill glyphicon-stack-1x"></i>
                         </span>
                         Look

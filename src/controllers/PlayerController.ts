@@ -1,4 +1,4 @@
-import { ActionManager, Camera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, Vector3 } from "@babylonjs/core";
+import { ActionManager, FreeCamera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, UniversalCamera, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import BigNumber from "bignumber.js";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
@@ -10,8 +10,11 @@ import { World } from "../world/World";
 import PickingGuiController from "./PickingGuiController";
 
 
+const PlayerWalkSpeed = 0.1;
+const PlayerSprintSpeed = PlayerWalkSpeed * 1.3;
+
 export default class PlayerController {
-    private camera: Camera;
+    private camera: FreeCamera;
     private scene: Scene;
     private shadowGenerator: ShadowGenerator;
 
@@ -33,8 +36,7 @@ export default class PlayerController {
 
     private onPointerlockchange: () => void;
 
-    constructor(camera: Camera, world: World, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
-        this.camera = camera;
+    constructor(world: World, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         this.scene = world.scene;
         this.shadowGenerator = shadowGenerator;
         this.currentPlace = null;
@@ -42,6 +44,7 @@ export default class PlayerController {
         this.tempObjectOffsetY = 0;
         this.tempObjectRot = new Quaternion();
         this.pickingGui = new PickingGuiController(world);
+        this.camera = this.initCamera();
 
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
@@ -113,11 +116,19 @@ export default class PlayerController {
                     eventState.skipNextObservers = true;
                     break;
             }
-        }, undefined, true);
+        }, PointerEventTypes.POINTERDOWN | PointerEventTypes.POINTERWHEEL, true);
 
         // Keyboard controls. Save, remove, place, mint, whatever.
         this.scene.onKeyboardObservable.add((kbInfo) => {
-            if(kbInfo.type === KeyboardEventTypes.KEYDOWN){
+            if(kbInfo.type === KeyboardEventTypes.KEYUP) {
+                switch(kbInfo.event.code) {
+                    // Scale
+                    case "ShiftLeft":
+                        this.camera.speed = PlayerWalkSpeed;
+                        break;
+                }
+            }
+            else if(kbInfo.type === KeyboardEventTypes.KEYDOWN) {
                 // TEMP: switch item in inventory
                 switch(kbInfo.event.code) {
                     // Scale
@@ -160,6 +171,10 @@ export default class PlayerController {
                         this.setCurrentItem();
                         break;
 
+                    case 'ShiftLeft': // Enable sprint
+                        this.camera.speed = PlayerSprintSpeed;
+                        break;
+
                     case 'Delete': // Mark item for deletion
                         const current_item = this.pickingGui.getCurrentItem();
                         if(current_item) {
@@ -180,7 +195,42 @@ export default class PlayerController {
                         break;
                 }
             }
-        }, KeyboardEventTypes.KEYDOWN);
+        }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
+    }
+
+    private initCamera(): FreeCamera {
+        // This creates and positions a free camera (non-mesh)
+        var camera = new UniversalCamera("camera1", new Vector3(0, 2, 0), this.scene);
+
+        // Camera props
+        camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;
+        camera.fov = 2;
+        camera.minZ = 0.1;
+
+        // Collision stuff
+        camera.checkCollisions = true;
+        camera.applyGravity = true;
+        camera.ellipsoid = new Vector3(0.5, 0.9, 0.5);
+
+        // Set movement keys
+        camera.keysLeft = [65 /*w*/, 37 /*left arrow*/];
+        camera.keysRight = [68 /*d*/, 39 /*right arrow*/];
+        camera.keysUp = [87 /*w*/, 38 /*up arrow*/];
+        camera.keysDown = [83 /*s*/, 40 /*down arrow*/];
+        //camera.keysUpward = [32 /*space*/]; // that's not actually jumping.
+        camera.speed = PlayerWalkSpeed;
+        //this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
+        //camera.inertia = 0.5;
+        //camera.angularSensibility = 2;
+        //this.camera.checkCollisions = false;
+
+        // This targets the camera to scene origin
+        //camera.setTarget(Vector3.Zero());
+
+        // This attaches the camera to the canvas
+        //camera.attachControl(canvas, true);
+
+        return camera;
     }
 
     public dispose() {
