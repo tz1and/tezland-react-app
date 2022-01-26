@@ -1,6 +1,7 @@
 import React from 'react';
 
 export type NotificationData = {
+    id: string
     title: string,
     body: string,
     type: 'warning' | 'danger' | 'info' | 'success'
@@ -12,9 +13,11 @@ type NotificationProps = {
 
 export const Notification: React.FC<NotificationProps> = (props: NotificationProps) => {
     let color = "bg-" + props.data.type;
+    let textColor = props.data.type === "info" || props.data.type === "warning" ? "text-dark" : "text-white";
+    //let textColor = "text-white";
 
     return (
-        <div className={`toast align-items-center border-0 show text-white ${color}`} role="alert" aria-live="assertive" aria-atomic="true">
+        <div className={`toast align-items-center border-0 show ${textColor} ${color}`} role="alert" aria-live="assertive" aria-atomic="true">
             <div className="d-flex">
                 <div className="toast-body flex-grow-1" style={{whiteSpace: "pre-wrap"}}>
                     <p className='mb-2 fw-bolder'>{props.data.title}</p>

@@ -55,7 +55,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     private progress: number = 0;
 
     private refreshInterval: NodeJS.Timeout | null = null;
-    private reloadInterval: NodeJS.Timeout | null = null;
+    private reloadTimeout: NodeJS.Timeout | null = null;
 
     private updateTimeVars() {
         this.current_time = Math.floor(Date.now() / 1000);
@@ -83,7 +83,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     private bidOnAuction = async () => {
         await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice(), () => {
             // Wait a little for the indexer to catch up.
-            this.reloadInterval = setTimeout(() => {
+            this.reloadTimeout = setTimeout(() => {
                 this.props.removeFromAuctions(this.props.auctionId);
             }, 2000);
         });
@@ -128,7 +128,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     componentWillUnmount() {
         // Clear the interval right before component unmount
         if(this.refreshInterval) clearInterval(this.refreshInterval);
-        if(this.reloadInterval) clearInterval(this.reloadInterval);
+        if(this.reloadTimeout) clearInterval(this.reloadTimeout);
     }
 
     render() {

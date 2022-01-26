@@ -20,6 +20,7 @@ Metadata.Storage.open(() => {
     renderApp(
         (<div className="toast-container position-fixed bottom-0 start-50 translate-middle-x p-4" style={{zIndex: "1050"}}>
             <Notification data={{
+                id: "storageFailure",
                 title: "Failed to open Database storage",
                 body: "The app may not function correctly.\n\nCheck the Javascript console for more details. It could also be your privacy settings (or a private tab).",
                 type: 'danger' }}/>

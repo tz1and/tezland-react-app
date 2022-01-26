@@ -29,6 +29,7 @@ const worldUpdateDistance = 10;
 
 
 export class World {
+    readonly appControlFunctions: AppControlFunctions;
     readonly scene: Scene;
     
     private engine: Engine;
@@ -55,6 +56,7 @@ export class World {
     private subscription?: Subscription<OperationContent>;
 
     constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
+        this.appControlFunctions = appControlfunctions;
         // Get the canvas element from the DOM.
         const canvas = mount;
         const divFps = document.getElementById("fps");

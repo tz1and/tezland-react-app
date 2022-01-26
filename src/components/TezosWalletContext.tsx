@@ -149,6 +149,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
 
             this.setState({pendingOps: this.state.pendingOps});
 
+            // warnign: dangling timeout.
             setTimeout(() => {
                 this.removePendingOpetation(hash);
             }, 30000);

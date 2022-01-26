@@ -9,6 +9,7 @@ import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
 import AppSettings from '../storage/AppSettings';
+import { Notification, NotificationData } from './Notification';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -19,6 +20,7 @@ type ExploreState = {
     dispaly_overlay: boolean;
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
+    notifications: NotificationData[];
     //count: number; // like this
 };
 
@@ -31,7 +33,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             show_form: 'instructions',
             dispaly_overlay: true,
             placedItem: null,
-            showFps: AppSettings.getShowFps()
+            showFps: AppSettings.getShowFps(),
+            notifications: []
             // optional second annotation for better type inference
             //count: 0,
         };
@@ -76,6 +79,19 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }
     }
 
+    addNotification = (data: NotificationData) => {
+        this.setState({ notifications: this.state.notifications.concat(data) });
+
+        // warnign: dangling timeout
+        setTimeout(() => {
+            const newNotifications: NotificationData[] = [];
+            for(const p of this.state.notifications) {
+                if(p.id !== data.id) newNotifications.push(p);
+            }
+            this.setState({notifications: newNotifications});
+        }, 10000);
+    }
+
     render() {
         // TODO: maybe could use router for overlay/forms.
         let form;
@@ -94,16 +110,20 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         let controlInfo = !this.state.dispaly_overlay ? null : <ControlsHelp/>;
 
+        let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
+
         return (
             <div className='Explore'>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1aND v" + process.env.REACT_APP_VERSION}</small>
                 {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}
                 {controlInfo}
+                <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{
                     setOverlayDispaly: this.setOverlayDispaly,
                     loadForm: this.loadForm,
-                    placeItem: this.placeItem
+                    placeItem: this.placeItem,
+                    addNotification: this.addNotification,
                 }} />
             </div>
         );

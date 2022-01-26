@@ -197,6 +197,8 @@ export default class Place {
         // itemsNode must be in the origin.
         this.itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
         this.itemsNode.position = this.origin.clone();
+        
+        const outOfBounds: number[] = [];
 
         //items.forEach(async (element: any) => {
         for (const element of items.stored_items) {
@@ -247,7 +249,7 @@ export default class Place {
                     this.world.shadowGenerator.addShadowCaster(instance as Mesh);
 
                     if(!this.isInBounds(instance)) {
-                        Logging.Warn("place doesn't fully contain object: " + element.id);
+                        outOfBounds.push(new BigNumber(element.id).toNumber());
                         instance.dispose();
                     }
                 }
@@ -256,6 +258,16 @@ export default class Place {
                 Logging.InfoDev("Failed to load placed item: ", e);
             }
         };
+
+        if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
+            this.world.appControlFunctions.addNotification({
+                id: "oobItems" + this.placeId,
+                title: "Out of bounds items!",
+                body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
+                type: 'warning'
+            })
+            Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
+        }
 
         //this.octree = this.scene.createOrUpdateSelectionOctree();
     }
