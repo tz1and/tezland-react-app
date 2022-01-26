@@ -12,6 +12,7 @@ interface SettingsFormValues {
     itemDescription: string;
     itemTags: string;*/
     polygonLimit: number;
+    modelFileSizeLimit: number; // in MB
     displayPlaceBounds: boolean;
     drawDistance: number;
     showFps: boolean;
@@ -31,6 +32,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     const state: SettingsFormState = { error: "" }
     const initialValues: SettingsFormValues = {
         polygonLimit: AppSettings.getPolygonLimit(),
+        modelFileSizeLimit: AppSettings.getFileSizeLimit() / 1024 / 1024, // should be in MB
         displayPlaceBounds: AppSettings.getDisplayPlaceBounds(),
         drawDistance: AppSettings.getDrawDistance(),
         showFps: AppSettings.getShowFps()
@@ -49,6 +51,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         errors.polygonLimit = 'Polygon limit invalid';
                     }
 
+                    if (values.modelFileSizeLimit < 1) {
+                        errors.modelFileSizeLimit = 'Model file size invalid';
+                    }
+
                     if (values.drawDistance < 50) {
                         errors.drawDistance = 'Draw distance invalid';
                     }
@@ -58,6 +64,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 onSubmit={(values, actions) => {
                     try {
                         AppSettings.setPolygonLimit(values.polygonLimit);
+                        AppSettings.setFileSizeLimit(parseInt((values.modelFileSizeLimit * 1024 * 1024).toFixed(0)));
                         AppSettings.setDisplayPlaceBounds(values.displayPlaceBounds);
                         AppSettings.setDrawDistance(values.drawDistance);
                         AppSettings.setShowFps(values.showFps);
@@ -86,6 +93,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 <Field id="polygonLimit" name="polygonLimit" type="number" className="form-control" aria-describedby="polygonLimitHelp" disabled={isSubmitting} autoFocus={true} />
                                 <div id="polygonLimitHelp" className="form-text">Items with more polygons than the limit will not be displayed.</div>
                                 {touched.polygonLimit && errors.polygonLimit && <small className="text-danger">{errors.polygonLimit}</small>}
+                            </div>
+                            <div className="mb-3">
+                                <label htmlFor="modelFileSizeLimit" className="form-label">Polygon limit (in MiB)</label>
+                                <Field id="modelFileSizeLimit" name="modelFileSizeLimit" type="number" className="form-control" aria-describedby="modelFileSizeLimitHelp" disabled={isSubmitting} autoFocus={true} />
+                                <div id="modelFileSizeLimitHelp" className="form-text">Items models larger than this won't be displayed.</div>
+                                {touched.modelFileSizeLimit && errors.modelFileSizeLimit && <small className="text-danger">{errors.modelFileSizeLimit}</small>}
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="drawDistance" className="form-label">Draw distance</label>
