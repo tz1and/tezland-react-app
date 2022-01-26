@@ -180,15 +180,6 @@ export default class PlayerController {
                         break;
                 }
             }
-
-            /*switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYDOWN:
-                    console.log("KEY DOWN: ", kbInfo.event.code);
-                    break;
-                case KeyboardEventTypes.KEYUP:
-                    console.log("KEY UP: ", kbInfo.event.code);
-                    break;
-            }*/
         }, KeyboardEventTypes.KEYDOWN);
     }
 

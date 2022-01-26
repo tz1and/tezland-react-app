@@ -107,8 +107,6 @@ export class Contracts {
     public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number, callback?: () => void) {
       const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
 
-      //console.log(place_id, item_id, xtz_per_item);
-
       // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
       if(!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 

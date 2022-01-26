@@ -159,11 +159,11 @@ export default class Place {
                 ),
             );
 
-            //console.log(`generating place took ${performance.now() - startTime} milliseconds`)
+            //LoggingDev.InfoDev(`generating place took ${performance.now() - startTime} milliseconds`)
 
             await this.loadItems(false);
 
-            //console.log(`Call to load took ${performance.now() - startTime} milliseconds`)
+            //LoggingDev.InfoDev(`Call to load took ${performance.now() - startTime} milliseconds`)
         } catch(e) {
             Logging.InfoDev("failed to load place " + this.placeId);
             Logging.InfoDev(e);
@@ -215,9 +215,7 @@ export default class Place {
             const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
             
             try {
-                //console.log(item_coords);
-
-                const uint8array: Uint8Array = fromHexString(item_coords);//new TextEncoder().encode(item_coords);
+                const uint8array: Uint8Array = fromHexString(item_coords);
                 const view = new DataView(uint8array.buffer);
                 // 4 floats for quat, 1 float scale, 3 floats pos = 16 bytes
                 const quat = new Quaternion(getFloat16(view, 0), getFloat16(view, 2), getFloat16(view, 4), getFloat16(view, 6));
@@ -227,10 +225,6 @@ export default class Place {
                 const instance = await ipfs.download_item(item_id, this.world.scene, this.itemsNode);
 
                 if(instance) {
-                    //console.log(quat);
-                    //console.log(scale);
-                    //console.log(pos);
-
                     /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
                     instance.parent = this.itemsNode;
                     instance.rotationQuaternion = quat;
@@ -259,13 +253,7 @@ export default class Place {
                 }
             }
             catch(e) {
-                /*console.log(item_coords.length);
-                var hex = item_coords.split("")
-                    .map((c: string) => c.charCodeAt(0).toString(16).padStart(2, "0"))
-                    .join("");
-
-                console.log(hex);
-                console.log(item_coords);*/
+                Logging.InfoDev("Failed to load placed item: ", e);
             }
         };
 

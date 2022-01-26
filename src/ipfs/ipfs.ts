@@ -103,7 +103,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
             }
         }
     }
-    //else console.log("mesh found in cache");
+    //else Logging.InfoDev("mesh found in cache");
         
     // clone
     const instance = mesh.instantiateHierarchy(parent);

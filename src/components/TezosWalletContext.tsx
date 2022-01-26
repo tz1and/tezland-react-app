@@ -78,8 +78,6 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     public initWallet() {
-        //console.log("called initWallet");
-
         const options: DAppClientOptions = {
             name: isDev() ? 'TezlandApp-dev' : 'TezlandApp',
             //preferredNetwork: NetworkType.MAINNET, // For mainnet
@@ -104,7 +102,6 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     public connectWallet = () => {
-        //console.log("called connectWallet");
         if (!this.state.beaconWallet) return;
 
         this.state.beaconWallet.getPKH().then((address) => {
@@ -119,7 +116,6 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     public disconnectWallet = () => {
-        //console.log("called disconnectWallet");
         if (!this.state.beaconWallet) return;
 
         // NOte: when using disconnect, on reaload you

@@ -51,9 +51,6 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     return errors;
                 }}
                 onSubmit={(values, actions) => {
-                    //console.log({ values, actions });
-                    //alert(JSON.stringify(values, null, 2));
-
                     // set amount and price on Node (item) metadata.
                     if (props.placedItem) {
                         const metadata = props.placedItem.metadata as InstanceMetadata;
