@@ -33,7 +33,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         const polygonLimit = AppSettings.getPolygonLimit();
 
         // remove ipfs:// from uri
-        const hash = itemMetadata.artifact_uri.slice(7);
+        const hash = itemMetadata.artifactUri.slice(7);
 
         // Check file size, if too large, eatly out and write to db.
         const fileSize = itemCachedStats !== null ? itemCachedStats.fileSize : (await get_file_size(hash));
@@ -50,7 +50,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
             return null;
         }
 
-        const mime_type = itemMetadata.formats[0].mimeType;
+        const mime_type = itemMetadata.mimeType;
 
         let plugin_ext;
         if (mime_type === "model/gltf-binary")

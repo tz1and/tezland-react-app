@@ -62,7 +62,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                         description
                         artifactUri
                         metadataFetched
-                        mime
+                        mimeType
                         royalties
                         supply
                         thumbnailUri

@@ -163,7 +163,7 @@ export default class PickingGuiController {
         label.fontSize = "8px";
         label.height = "16px";
         label.width = 1;
-        label.text = `By: ${truncate(itemMetadata.token_info.minter, 16, '\u2026')}`;
+        label.text = `By: ${truncate(itemMetadata.minterId, 16, '\u2026')}`;
         label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
         panel.addControl(label);
 

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Conf from "../Config";
+import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
 
@@ -21,33 +22,56 @@ export default class Metadata {
             return dbstorage;*/
     }
 
-    private static async getMetadata(table: string, token_id: number, contract: string): Promise<any> {
+    public static async getPlaceMetadata(token_id: number): Promise<any> {
         // Try to read the token metadata from storage.
-        let tokenMetadata = await Metadata.Storage.loadObject(token_id, table);
+        let tokenMetadata = await Metadata.Storage.loadObject(token_id, "placeMetadata");
 
         // load from bcdhub if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from chain bcdhub");
 
             // TODO: use fetch?
-            const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${contract}&token_id=${token_id}`);
+            const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${Conf.place_contract}&token_id=${token_id}`);
             const tokenInfo = responseP.data[0];
 
             if(!tokenInfo) return undefined;
 
             // TODO: await store?
-            Metadata.Storage.saveObject(token_id, table, tokenInfo);
+            Metadata.Storage.saveObject(token_id, "placeMetadata", tokenInfo);
             tokenMetadata = tokenInfo;
         }
 
         return tokenMetadata;
     }
 
-    public static async getPlaceMetadata(place_id: number): Promise<any> {
-        return Metadata.getMetadata("placeMetadata", place_id, Conf.place_contract);
-    }
+    public static async getItemMetadata(token_id: number): Promise<any> {
+        // Try to read the token metadata from storage.
+        let tokenMetadata = await Metadata.Storage.loadObject(token_id, "itemMetadata");
 
-    public static async getItemMetadata(item_id: number): Promise<any> {
-        return Metadata.getMetadata("itemMetadata", item_id, Conf.item_contract);
+        // load from bcdhub if it doesn't exist
+        if(!tokenMetadata) {
+            Logging.InfoDev("token metadata not known, reading from chain bcdhub");
+
+            const data = await fetchGraphQL(`
+                query getItemTokenMetadata($id: bigint!) {
+                    itemToken(where: { id: { _eq: $id } }) {
+                        id
+                        name
+                        description
+                        thumbnailUri
+                        artifactUri
+                        minterId
+                        mimeType
+                        royalties
+                        supply
+                    }
+                }`, "getItemTokenMetadata", { id: token_id });
+
+            // TODO: await store?
+            Metadata.Storage.saveObject(token_id, "itemMetadata", data.itemToken[0]);
+            tokenMetadata = data.itemToken[0];
+        }
+
+        return tokenMetadata;
     }
 }
