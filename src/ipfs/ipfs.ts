@@ -62,15 +62,8 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         // LoadAssetContainer?
         const newMeshes = await SceneLoader.ImportMeshAsync('', Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
 
-        /*newMeshes.skeletons.forEach((sk) => {
-            scene.removeSkeleton(sk);
-            sk.dispose();
-        })
-
-        newMeshes.animationGroups.forEach((ag) => {
-            scene.removeAnimationGroup(ag);
-            ag.dispose();
-        })*/
+        // Make sure to stop all animations.
+        newMeshes.animationGroups.forEach((ag) => { ag.stop(); })
 
         // get the root mesh
         mesh = newMeshes.meshes[0] as Mesh;
