@@ -10,8 +10,8 @@ import { World } from "../world/World";
 import PickingGuiController from "./PickingGuiController";
 
 
-const PlayerWalkSpeed = 0.1;
-const PlayerSprintSpeed = PlayerWalkSpeed * 1.3;
+const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
+const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
 
 export default class PlayerController {
     private camera: FreeCamera;
@@ -183,8 +183,8 @@ export default class PlayerController {
                         this.setCurrentItem();
                         break;
 
-                    case 'ShiftLeft': // Enable sprint
-                        this.camera.speed = PlayerSprintSpeed;
+                    case 'ShiftLeft': // Enable jog
+                        this.camera.speed = PlayerJogSpeed;
                         break;
 
                     case 'Delete': // Mark item for deletion
@@ -256,7 +256,10 @@ export default class PlayerController {
         // TODO: shadowgen?
     }
 
-    // important, returns a ref to the actual position!
+    /**
+     * Important: returns a ref to the player position!
+     * @returns Vector3
+     */
     public getPosition(): Vector3 {
         return this.camera.position;
     }
@@ -312,6 +315,22 @@ export default class PlayerController {
             Logging.InfoDev("failed to load item");
         }
     }
+
+    // Some code to measure travel speed, because babylonjs is so
+    // excitingly vague.
+    /*private lastDistanceUpdate: number = 0;
+    private lastPos: Vector3 = new Vector3();
+
+    private measureTravelSpeed() {
+        const now = performance.now();
+        const elapsed = now - this.lastDistanceUpdate;
+        if(elapsed > 1000) {
+            this.lastDistanceUpdate = now;
+            const travelled = this.lastPos.subtract(this.getPosition()).length();
+            this.lastPos = this.getPosition().clone();
+            console.log(`Travelled ${travelled}m in ${elapsed}ms`);
+        }
+    }*/
 
     private updateController() {
         //const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
