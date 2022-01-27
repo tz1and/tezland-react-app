@@ -24,7 +24,6 @@ import { ParameterSchema } from '@taquito/michelson-encoder'
 //import { isDev } from "../utils/Utils";
 
 
-const placeDrawDistance = AppSettings.getDrawDistance();
 const worldUpdateDistance = 10;
 
 
@@ -49,6 +48,7 @@ export class World {
     readonly worldGridAccessor: WorldGridAccessor;
     private gridCreateCallback = () => { return new Set<PlaceId>() }
 
+    private placeDrawDistance = AppSettings.getDrawDistance();
     private lastUpdatePosition: Vector3;
     // TODO
     //private queuedPlaceUpdates: PlaceId[] = [];
@@ -276,7 +276,7 @@ export class World {
 
             // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
-            if(player_pos.subtract(origin).length() < placeDrawDistance) {
+            if(player_pos.subtract(origin).length() < this.placeDrawDistance) {
                 await this.loadPlace(placeId, placeMetadata);
             }
 
@@ -322,15 +322,15 @@ export class World {
                 // Check all loaded places for distance and remove.
                 this.places.forEach((v, k) => {
                     // Multiply draw distance with small factor here to avoid imprecision and all that
-                    if(playerPos.subtract(v.origin).length() > placeDrawDistance * 1.02) {
+                    if(playerPos.subtract(v.origin).length() > this.placeDrawDistance * 1.02) {
                         this.places.delete(k);
                         v.dispose();
                     }
                 });
 
                 // search coords in world
-                const minWorld: Tuple = [playerPos.x - placeDrawDistance, playerPos.z - placeDrawDistance];
-                const maxWorld: Tuple = [playerPos.x + placeDrawDistance, playerPos.z + placeDrawDistance];
+                const minWorld: Tuple = [playerPos.x - this.placeDrawDistance, playerPos.z - this.placeDrawDistance];
+                const maxWorld: Tuple = [playerPos.x + this.placeDrawDistance, playerPos.z + this.placeDrawDistance];
 
                 // search coords in cells
                 const minCell = Grid2D.max([0, 0], this.worldGridAccessor.accessor(minWorld, this.worldGrid.getSize()));
@@ -351,7 +351,7 @@ export class World {
                                 // maybe load, depending on distance
                                 Metadata.getPlaceMetadata(id).then((placeMetadata) => {
                                     const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
-                                    if(playerPos.subtract(origin).length() < placeDrawDistance) {
+                                    if(playerPos.subtract(origin).length() < this.placeDrawDistance) {
                                         // todo: add to pending updates instead.
                                         this.loadPlace(id, placeMetadata);
                                     }
