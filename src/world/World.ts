@@ -150,7 +150,9 @@ export class World {
         // Render every frame
         this.engine.runRenderLoop(() => {
             this.scene.render();
-            if(divFps) divFps.innerHTML = this.engine.getFps().toFixed() + " fps";
+            const frameId = this.engine.frameId;
+            if (divFps && frameId > 0 && frameId % 5 === 0)
+                divFps.innerHTML = this.engine.getFps().toFixed() + " fps";
         });
 
         window.addEventListener('resize', this.onResize);

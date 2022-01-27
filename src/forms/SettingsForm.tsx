@@ -95,7 +95,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 {touched.polygonLimit && errors.polygonLimit && <small className="text-danger">{errors.polygonLimit}</small>}
                             </div>
                             <div className="mb-3">
-                                <label htmlFor="modelFileSizeLimit" className="form-label">Polygon limit (in MiB)</label>
+                                <label htmlFor="modelFileSizeLimit" className="form-label">Model file size limit (in MiB)</label>
                                 <Field id="modelFileSizeLimit" name="modelFileSizeLimit" type="number" className="form-control" aria-describedby="modelFileSizeLimitHelp" disabled={isSubmitting} autoFocus={true} />
                                 <div id="modelFileSizeLimitHelp" className="form-text">Items models larger than this won't be displayed.</div>
                                 {touched.modelFileSizeLimit && errors.modelFileSizeLimit && <small className="text-danger">{errors.modelFileSizeLimit}</small>}

@@ -8,7 +8,7 @@ import { Logging } from '../utils/Logging';
 type AuctionsProps = {}
 
 type AuctionsState = {
-    auctions: any[],
+    auctions: any[], // TODO use a map. See Inventory.
     auction_offset: number,
     more_data: boolean
 }

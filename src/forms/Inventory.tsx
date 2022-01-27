@@ -3,6 +3,9 @@ import './Inventory.css';
 import Conf from '../Config'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import TezosWalletContext from '../components/TezosWalletContext';
+import { Logging } from '../utils/Logging';
+import { fetchGraphQL } from '../ipfs/graphql';
+import { truncate } from '../utils/Utils';
 
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
@@ -13,7 +16,6 @@ type InventoryProps = {
 
 type InventoryState = {
     error?: string;
-    items: any[];
     //count: number; // like this
     //mount: HTMLDivElement | null;
     item_offset: number,
@@ -27,20 +29,21 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     constructor(props: InventoryProps) {
         super(props);
         this.state = {
-            items: [],
             item_offset: 0,
             more_data: true
         };
     }
 
-    private fetchAmount: number = 25;
+    private fetchAmount: number = 20;
     private firstFetchDone: boolean = false;
 
+    private itemMap: Map<number, any> = new Map();
+
     componentDidMount() {
-        this.loadInventory((res) => {
-            const more_data = res.balances.length === this.fetchAmount;
+        this.fetchInventory().then((res) => {
+            for (const r of res) this.itemMap.set(r.token.id, r);
+            const more_data = res.length === this.fetchAmount;
             this.setState({
-                items: res.balances,
                 item_offset: this.fetchAmount,
                 more_data: more_data
             });
@@ -48,33 +51,40 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         })
     }
 
-    private loadInventory(callback: (res: any) => void) {
-        if(!this.context.isWalletConnected()) {
-            this.setState({
-                error: "No wallet connected.",
-                more_data: false
-            });
-            return;
+    private async fetchInventory() {
+        try {   
+            const data = await fetchGraphQL(`
+                query getInventory($address: String!, $offset: Int!, $amount: Int!) {
+                    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
+                      quantity
+                      token {
+                        id
+                        description
+                        artifactUri
+                        metadataFetched
+                        mime
+                        royalties
+                        supply
+                        thumbnailUri
+                        name
+                        minterId
+                      }
+                    }
+                  }`, "getInventory", { address: this.context.walletPHK(), amount: this.fetchAmount, offset: this.state.item_offset });
+            
+            return data.itemTokenHolder;
+        } catch(e: any) {
+            Logging.InfoDev("failed to fetch inventory: " + e.message);
+            return []
         }
-
-        fetch(`${Conf.bcd_url}/v1/account/${Conf.tezos_network}/${this.context.walletPHK()}/token_balances?contract=${Conf.item_contract}&size=${this.fetchAmount}&offset=${this.state.item_offset}`)
-        .then(res => res.json())
-        .then(callback,
-            (error) => {
-                this.setState({
-                    error: error.message,
-                    more_data: false
-                });
-            }
-        );
     }
 
     private fetchMoreData = () => {
         if(this.firstFetchDone) {
-            this.loadInventory((res) => {
-                const more_data = res.balances.length === this.fetchAmount;
+            this.fetchInventory().then((res) => {
+                for (const r of res) this.itemMap.set(r.token.id, r);
+                const more_data = res.length === this.fetchAmount;
                 this.setState({
-                    items: this.state.items.concat(res.balances),
                     item_offset: this.state.item_offset + this.fetchAmount,
                     more_data: more_data
                 });
@@ -87,24 +97,28 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     }
 
     private getThumbnailUrl(url: string | undefined): string {
-        if(url) return "http://localhost:8080/ipfs/" + url.slice(7);
+        if(url) return `${Conf.ipfs_gateway}/ipfs/${url.slice(7)}`;
 
         return "/img/missing_thumbnail.png";
     }
 
     render() {
-        const { error, items, more_data } = this.state;
+        const { error, more_data } = this.state;
 
-        let content = error ? <h5 className='mt-3'>{error}</h5> : items.map(item => (
-            <div className="card m-2 inventory-item" key={item.token_id} id={item.token_id} onClick={this.handleClick}>
-                <img src={this.getThumbnailUrl(item.thumbnail_uri)} className="card-img-top" alt="..."/>
+        const items: JSX.Element[] = []
+         if (!error) this.itemMap.forEach(item => items.push(
+            <div className="card m-2 inventory-item" key={item.token.id} id={item.token.id} onClick={this.handleClick}>
+                <img src={this.getThumbnailUrl(item.token.thumbnailUri)} className="card-img-top" alt="..."/>
                 <div className="card-body">
-                <h5 className="card-title">{item.name}</h5>
-                <p className="card-text">x{item.balance}</p>
-                <p className="card-text"><small className="text-muted">Creator or so maybe</small></p>
+                <h5 className="card-title">{item.token.name !== "" ? truncate(item.token.name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
+                <p className="card-text">x{item.quantity}</p>
+                <p className="card-text small m-0">Minter: </p>
+                <p className="card-text small text-muted">{truncate(item.token.minterId, 16, '\u2026')}</p>
                 </div>
             </div>
         ))
+
+        let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 
         return (
             <div className='p-4 m-4 mx-auto bg-light bg-gradient border-0 rounded-3 text-dark position-relative' style={{width: "75vw"}}>
@@ -119,7 +133,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                     next={this.fetchMoreData}
                     hasMore={more_data}
                     loader={<h5 className='mt-3'>Loading...</h5>}
-                    scrollThreshold={0.8}
+                    scrollThreshold={0.9}
                 >
                     {content}
                 </InfiniteScroll>
