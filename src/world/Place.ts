@@ -127,6 +127,8 @@ export default class Place {
                 this.world.transparentGridMat);
 
             this.placeBounds.visibility = +AppSettings.getDisplayPlaceBounds();
+            // Call getHierarchyBoundingVectors to force updating the bounding info!
+            this.placeBounds.getHierarchyBoundingVectors();
 
             // create ground
             this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this.origin.x, 0, this.origin.z),
