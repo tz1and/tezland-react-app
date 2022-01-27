@@ -44,7 +44,7 @@ export class Contracts {
     }
 
     public async getPlaceOwner(place_id: number): Promise<string> {
-      // todo: use fetch?
+      // todo: use indexer
       const responseP = await axios.get(`${Conf.bcd_url}/v1/contract/${Conf.tezos_network}/${Conf.place_contract}/transfers?token_id=${place_id}&size=1`);
       const transferInfo = responseP.data;
 

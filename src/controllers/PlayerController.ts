@@ -34,7 +34,8 @@ export default class PlayerController {
     private currentPlace: Nullable<Place>;
     private currentItem?: number;
 
-    private onPointerlockchange: () => void;
+    private onPointerlockChange: () => void;
+    private onPointerlockError: () => void;
 
     constructor(world: World, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         this.scene = world.scene;
@@ -62,7 +63,7 @@ export default class PlayerController {
         this.scene.registerAfterRender(this.updateController.bind(this));
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
-        this.onPointerlockchange = () => {
+        this.onPointerlockChange = () => {
             var controlEnabled = document.pointerLockElement || null;
             
             // If the user is already locked
@@ -76,8 +77,15 @@ export default class PlayerController {
             }
         };
 
+        // Catch pointerlock errors to not get stuck
+        this.onPointerlockError = () => {
+            Logging.Warn("Pointerlock request failed.");
+            appControlfunctions.loadForm('instructions');
+        };
+
         // Attach events to the document
-        document.addEventListener("pointerlockchange", this.onPointerlockchange, false);
+        document.addEventListener("pointerlockchange", this.onPointerlockChange, false);
+        document.addEventListener("pointerlockerror", this.onPointerlockError, false);
 
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
@@ -234,7 +242,8 @@ export default class PlayerController {
     }
 
     public dispose() {
-        document.removeEventListener("pointerlockchange", this.onPointerlockchange, false);
+        document.removeEventListener("pointerlockchange", this.onPointerlockChange, false);
+        document.removeEventListener("pointerlockerror", this.onPointerlockError, false);
 
         this.pickingGui.dispose();
 
