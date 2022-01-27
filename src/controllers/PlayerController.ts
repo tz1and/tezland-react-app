@@ -68,10 +68,14 @@ export default class PlayerController {
             
             // If the user is already locked
             if (!controlEnabled) {
+                // blur canvas to stop keyboard events.
+                canvas.blur();
                 this.camera.detachControl(canvas);
                 this.isPointerLocked = false;
                 appControlfunctions.setOverlayDispaly(true);
             } else {
+                // focus on canvas for keyboard input to work.
+                canvas.focus();
                 this.camera.attachControl(canvas);
                 this.isPointerLocked = true;
             }
@@ -79,11 +83,11 @@ export default class PlayerController {
 
         // Catch pointerlock errors to not get stuck
         this.onPointerlockError = () => {
-            Logging.Warn("Pointerlock request failed.");
+            Logging.Error("Pointerlock request failed.");
             appControlfunctions.loadForm('instructions');
         };
 
-        // Attach events to the document
+        // add pointerlock event listeners
         document.addEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.addEventListener("pointerlockerror", this.onPointerlockError, false);
 

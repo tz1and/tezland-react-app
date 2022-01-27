@@ -4,6 +4,7 @@ import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
+import { Logging } from '../utils/Logging';
 
 type VirtualSpaceProps = {
     appControl: AppControlFunctions;
@@ -38,28 +39,22 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     }
 
     lockControls() {
-        if (this.mount.current) {
-            // request pointer lock.
-            this.mount.current.requestPointerLock();
-            // focus on canvas for keyboard input to work.
-            this.mount.current.focus();
-            //this.world?.fpsControls.camControls.lock();
-        }
+        // Well, it seems requestPointerLock can return a promise.
+        // Try to handle it. To not get a top level DOM exception.
+        // Sneaky Chrome...
+        const promise: unknown = this.mount.current?.requestPointerLock();
+        if (promise instanceof Promise) promise.catch((e: DOMException) => { Logging.DirDev(e); })
     }
 
     componentDidMount() {
-        if (this.mount.current) {
-            this.world = new World(this.mount.current, this.props.appControl, this.context);
-
-            this.world.loadWorld();
-        }
+        assert(this.mount.current);
+        this.world = new World(this.mount.current, this.props.appControl, this.context);
+        this.world.loadWorld();
     }
 
     componentWillUnmount() {
-        if (this.world) {
-            this.world.dispose();
-            this.world = null;
-        }
+        this.world?.dispose();
+        this.world = null;
     }
 
     render() {
