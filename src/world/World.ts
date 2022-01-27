@@ -272,7 +272,7 @@ export class World {
                 return;
             }
 
-            const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
+            const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
 
             // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
@@ -350,7 +350,7 @@ export class World {
                                 if(this.places.has(id)) return;
                                 // maybe load, depending on distance
                                 Metadata.getPlaceMetadata(id).then((placeMetadata) => {
-                                    const origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
+                                    const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
                                     if(playerPos.subtract(origin).length() < placeDrawDistance) {
                                         // todo: add to pending updates instead.
                                         this.loadPlace(id, placeMetadata);

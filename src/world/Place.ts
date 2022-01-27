@@ -112,10 +112,10 @@ export default class Place {
             //let startTime = performance.now()
 
             // Using ExtrudePolygon
-            this._origin = Vector3.FromArray(placeMetadata.token_info.center_coordinates);
+            this._origin = Vector3.FromArray(placeMetadata.centerCoordinates);
 
             var shape = new Array<Vector3>();
-            placeMetadata.token_info.border_coordinates.forEach((v: Array<number>) => {
+            placeMetadata.borderCoordinates.forEach((v: Array<number>) => {
                 shape.push(Vector3.FromArray(v));
             });
 

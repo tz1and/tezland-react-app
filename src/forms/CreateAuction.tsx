@@ -42,8 +42,8 @@ interface CreateAuctionFormValues {
     itemTags: string;*/
     placeId: number;
     duration: number;
-    startPrice?: number;
-    endPrice?: number;
+    startPrice: number;
+    endPrice: number;
     //itemFile: ArrayBuffer;
 }
 
@@ -57,7 +57,7 @@ type CreateAuctionFormState = {
 }
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
-    private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48/*, startPrice: 0, endPrice: 0*/ };
+    private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48, startPrice: 2, endPrice: 1 };
 
     static contextType = TezosWalletContext;
     context!: React.ContextType<typeof TezosWalletContext>;
@@ -76,10 +76,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         if(place_id < 0) return;
 
         Metadata.getPlaceMetadata(place_id).then((res) => {
-            const coords = res.token_info.center_coordinates;
+            const coords = res.centerCoordinates;
             const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
 
-            const polygon = res.token_info.border_coordinates;
+            const polygon = res.borderCoordinates;
             const placePoly: [number, number][] = []
             for(const pos of polygon)
             {

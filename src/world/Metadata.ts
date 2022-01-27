@@ -1,5 +1,3 @@
-import axios from "axios";
-import Conf from "../Config";
 import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
@@ -28,17 +26,29 @@ export default class Metadata {
 
         // load from bcdhub if it doesn't exist
         if(!tokenMetadata) {
-            Logging.InfoDev("token metadata not known, reading from chain bcdhub");
+            Logging.InfoDev("token metadata not known, reading from indexer");
 
-            // TODO: use fetch?
-            const responseP = await axios.get(`${Conf.bcd_url}/v1/tokens/${Conf.tezos_network}/metadata?contract=${Conf.place_contract}&token_id=${token_id}`);
-            const tokenInfo = responseP.data[0];
+            const data = await fetchGraphQL(`
+                query getPlaceTokenMetadata($id: bigint!) {
+                    placeToken(where: { id: { _eq: $id } }) {
+                        id
+                        name
+                        description
+                        borderCoordinates
+                        centerCoordinates
+                        thumbnailUri
+                        minterId
+                    }
+                }`, "getPlaceTokenMetadata", { id: token_id });
 
-            if(!tokenInfo) return undefined;
+            // fix up border and center coords
+            const placeToken = data.placeToken[0];
+            placeToken.borderCoordinates = JSON.parse(placeToken.borderCoordinates);
+            placeToken.centerCoordinates = JSON.parse(placeToken.centerCoordinates);
 
             // TODO: await store?
-            Metadata.Storage.saveObject(token_id, "placeMetadata", tokenInfo);
-            tokenMetadata = tokenInfo;
+            Metadata.Storage.saveObject(token_id, "placeMetadata", placeToken);
+            tokenMetadata = placeToken;
         }
 
         return tokenMetadata;
@@ -50,7 +60,7 @@ export default class Metadata {
 
         // load from bcdhub if it doesn't exist
         if(!tokenMetadata) {
-            Logging.InfoDev("token metadata not known, reading from chain bcdhub");
+            Logging.InfoDev("token metadata not known, reading from indexer");
 
             const data = await fetchGraphQL(`
                 query getItemTokenMetadata($id: bigint!) {

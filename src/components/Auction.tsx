@@ -91,10 +91,10 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
     private panMapToPlace(place_id: number) {
         Metadata.getPlaceMetadata(place_id).then((res) => {
-            const coords = res.token_info.center_coordinates;
+            const coords = res.centerCoordinates;
             const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
 
-            const polygon = res.token_info.border_coordinates;
+            const polygon = res.borderCoordinates;
             const placePoly: [number, number][] = [];
             const areaPoly: number[] = [];
             for(const pos of polygon)
