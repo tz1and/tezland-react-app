@@ -80,8 +80,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     public initWallet() {
         const options: DAppClientOptions = {
             name: isDev() ? 'TezlandApp-dev' : 'TezlandApp',
-            //preferredNetwork: NetworkType.MAINNET, // For mainnet
-            preferredNetwork: NetworkType.CUSTOM, // for dev
+            preferredNetwork: isDev() ? NetworkType.CUSTOM : NetworkType.MAINNET,
             appUrl: "https://www.tz1and.com",
             iconUrl: "https://www.tz1and.com/logo192.png",
             /*eventHandlers: {
