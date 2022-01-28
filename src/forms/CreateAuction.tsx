@@ -120,7 +120,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     }
 
     onIdChange(e: React.ChangeEvent<any>) {
-        const place_id = e.target.value;
+        const place_id = parseInt(e.target.value);
 
         this.panMapToPlace(place_id);
     };
