@@ -36,26 +36,30 @@ type TezosWalletProviderState = {
     tezos: TezosToolkit,
     beaconWallet?: BeaconWallet,
     walletAddress?: string,
-    useInMemorySigner: boolean,
-    pendingOps: OperationPendingData[];
+    pendingOps: OperationPendingData[],
+    walletEventEmitter: EventEmitter
 }
 
+// For development only.
+const useInMemorySigner = false;
+
 class TezosWalletProvider extends React.Component<TezosWalletProviderProps, TezosWalletProviderState> {
-    private walletEventEmitter: EventEmitter;
 
     constructor(props: TezosWalletProviderProps) {
         super(props);
-        this.walletEventEmitter = new EventEmitter();
         this.state = {
             tezos: new TezosToolkit(Conf.tezos_node),
-            useInMemorySigner: false,
-            pendingOps: []
+            pendingOps: [],
+            walletEventEmitter: new EventEmitter()
         };
     }
 
     componentDidMount() {
-        //this.enableInMemorySigner(); // DEV
-        this.initWallet();
+        this.setupWallet();
+    }
+
+    componentWillUnmount() {
+        this.state.walletEventEmitter.removeAllListeners();
     }
 
     // A convenience function to check if a wallet (or signer) is set up/connected.
@@ -74,15 +78,16 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     public walletEvents = (): EventEmitter => {
-        return this.walletEventEmitter;
+        return this.state.walletEventEmitter;
     }
 
-    public initWallet() {
+    public setupBeaconWallet() {
+        const appUrl = isDev() ? "http://localhost:3006" : process.env.PUBLIC_URL;
         const options: DAppClientOptions = {
-            name: isDev() ? 'TezlandApp-dev' : 'TezlandApp',
+            name: isDev() ? 'tz1aND-dev' : 'tz1aND',
             preferredNetwork: isDev() ? NetworkType.CUSTOM : NetworkType.MAINNET,
-            appUrl: "https://www.tz1and.com",
-            iconUrl: "https://www.tz1and.com/logo192.png",
+            appUrl: appUrl,
+            iconUrl: appUrl + "/logo192.png",
             /*eventHandlers: {
               PERMISSION_REQUEST_SUCCESS: {
                 handler: async (data: any) => {
@@ -95,7 +100,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
             this.state.tezos.setWalletProvider(this.state.beaconWallet);
 
             this.state.beaconWallet!.getPKH().then((address) => {
-                this.setState({ walletAddress: address }, () => this.walletEventEmitter.emit("walletChange"));
+                this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange"));
             }, () => { });
         });
     }
@@ -110,7 +115,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
                 //.requestPermissions({ network: { type: NetworkType.MAINNET } }) // For mainnet
                 .requestPermissions({ network: { type: NetworkType.CUSTOM, name: "sandbox", rpcUrl: Conf.tezos_node } }) // for dev
                 .then((_) => this.state.beaconWallet!.getPKH())
-                .then((address) => this.setState({ walletAddress: address }, () => this.walletEventEmitter.emit("walletChange")));
+                .then((address) => this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange")));
         })
     }
 
@@ -121,17 +126,20 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         // get a "invalid hex string" error. report it?
         //this.beaconWallet.disconnect();
         this.state.beaconWallet.clearActiveAccount();
-        this.setState({ walletAddress: undefined }, () => this.walletEventEmitter.emit("walletChange"))
+        this.setState({ walletAddress: undefined }, () => this.state.walletEventEmitter.emit("walletChange"))
     }
 
-    private enableInMemorySigner() {
-        // NOTE: these are KNOWN account keys.
-        // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
-        // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt
-        InMemorySigner.fromSecretKey('edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq').then((signer) => {
-          this.state.tezos.setProvider({signer});
-          signer.publicKeyHash().then((pkh) => this.setState({ walletAddress: pkh, useInMemorySigner: true }));
-        })
+    private setupWallet() {
+        if(useInMemorySigner) {
+            // NOTE: these are KNOWN account keys.
+            // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
+            // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt
+            InMemorySigner.fromSecretKey('edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq').then((signer) => {
+                this.state.tezos.setProvider({signer});
+                signer.publicKeyHash().then((pkh) => this.setState({ walletAddress: pkh }, () => this.state.walletEventEmitter.emit("walletChange")));
+            })
+        }
+        else this.setupBeaconWallet();
     }
 
     // Transaction overlay stuff
