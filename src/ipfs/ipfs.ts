@@ -7,6 +7,7 @@ import { BlobLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import AppSettings from '../storage/AppSettings';
 import * as ipfs from 'ipfs-http-client';
+import assert from 'assert';
 
 
 const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway});
@@ -155,16 +156,17 @@ export function createItemTokenMetadata(metadata: ItemMetadata): string {
 }
 
 type PlaceMetadata = {
-    center_coordinates: number[];
-    border_coordinates: number[][];
+    centerCoordinates?: number[];
+    borderCoordinates?: number[][];
     description: string;
     minter: string;
     name: string;
+    placeType: "exterior" | "interior";
 }
 
-export function createPlaceTokenMetadata(metadata: PlaceMetadata): string {
-    return JSON.stringify({
-        name: metadata.name,
+export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
+    const full_metadata: any = {
+        identifier: metadata.name,
         description: metadata.description,
         minter: metadata.minter,
         isTransferable: true,
@@ -173,9 +175,17 @@ export function createPlaceTokenMetadata(metadata: PlaceMetadata): string {
         symbol: 'Place',
         //artifactUri: cid,
         decimals: 0,
-        center_coordinates: metadata.center_coordinates,
-        border_coordinates: metadata.border_coordinates
-    })
+        placeType: metadata.placeType
+    }
+
+    if (metadata.placeType === "exterior") {
+        assert(metadata.borderCoordinates);
+        assert(metadata.centerCoordinates);
+        full_metadata.centerCoordinates = metadata.centerCoordinates;
+        full_metadata.borderCoordinates = metadata.borderCoordinates;
+    }
+    
+    return JSON.stringify(full_metadata);
 }
 
 export async function upload_places(places: string[]): Promise<string[]> {

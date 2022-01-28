@@ -474,8 +474,9 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 name: `Place #${places.length}`,
                 description: `${curr.area().toFixed(2)} \u33A1`,
                 minter: walletphk,
-                center_coordinates: [centroid.x, 0, centroid.y],
-                border_coordinates: pointsrel
+                centerCoordinates: [centroid.x, 0, centroid.y],
+                borderCoordinates: pointsrel,
+                placeType: "exterior"
             }));
         };
 
