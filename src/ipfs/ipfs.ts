@@ -158,6 +158,7 @@ export function createItemTokenMetadata(metadata: ItemMetadata): string {
 type PlaceMetadata = {
     centerCoordinates?: number[];
     borderCoordinates?: number[][];
+    buildHeight?: number;
     description: string;
     minter: string;
     name: string;
@@ -181,8 +182,10 @@ export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
     if (metadata.placeType === "exterior") {
         assert(metadata.borderCoordinates);
         assert(metadata.centerCoordinates);
+        assert(metadata.buildHeight);
         full_metadata.centerCoordinates = metadata.centerCoordinates;
         full_metadata.borderCoordinates = metadata.borderCoordinates;
+        full_metadata.buildHeight = metadata.buildHeight;
     }
     
     return JSON.stringify(full_metadata);

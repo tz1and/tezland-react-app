@@ -38,6 +38,9 @@ export default class Place {
     private _origin: Vector3;
     get origin(): Vector3 { return this._origin.clone(); }
 
+    private _buildHeight: number;
+    get buildHeight(): number { return this._buildHeight; }
+
     // All saved items are stored in this.
     private _itemsNode: Nullable<TransformNode>;
     get itemsNode() { return this._itemsNode; }
@@ -60,6 +63,7 @@ export default class Place {
         this.placeBounds = null;
         this.placeGround = null;
         this._origin = new Vector3();
+        this._buildHeight = 0;
         this._itemsNode = null;
         this._tempItemsNode = null;
         this.owner = "";
@@ -113,6 +117,7 @@ export default class Place {
 
             // Using ExtrudePolygon
             this._origin = Vector3.FromArray(placeMetadata.centerCoordinates);
+            this._buildHeight = placeMetadata.buildHeight;
 
             var shape = new Array<Vector3>();
             placeMetadata.borderCoordinates.forEach((v: Array<number>) => {
@@ -123,7 +128,7 @@ export default class Place {
             shape = shape.reverse();
 
             // create bounds
-            this.placeBounds = this.extrudeMeshFromShape(shape, 11, new Vector3(this.origin.x, 10, this.origin.z),
+            this.placeBounds = this.extrudeMeshFromShape(shape, this.buildHeight + 1, new Vector3(this.origin.x, this.buildHeight, this.origin.z),
                 this.world.transparentGridMat);
 
             this.placeBounds.visibility = +AppSettings.getDisplayPlaceBounds();
