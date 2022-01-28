@@ -8,6 +8,7 @@ import Faq from './routes/Faq';
 import Docs from './routes/Docs';
 import Map from './routes/Map';
 import GenerateMap from './routes/GenerateMap';
+import PageNotFound from './routes/PageNotFound';
 import { CreateAuctionFormW } from './forms/CreateAuction';
 import { TezosWalletProvider } from './components/TezosWalletContext'
 import { isDev } from './utils/Utils';
@@ -29,16 +30,9 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="docs" element={<Docs />} />
                         <Route path="map" element={<Map />} />
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
+                        <Route path="*" element={<PageNotFound />}/>
                     </Route>
                     <Route path="/explore" element={<Explore />} />
-                    <Route
-                        path="*"
-                        element={
-                            <main style={{ padding: "1rem" }}>
-                                <p>There's nothing here!</p>
-                            </main>
-                        }
-                    />
                 </Routes>
             </BrowserRouter>
         </TezosWalletProvider>
