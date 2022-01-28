@@ -48,7 +48,7 @@ export default function Faq() {
         const items: JSX.Element[] = []
 
         cat.items.forEach((item: any, itemIdx: number) => {
-            items.push(<div className="accordion-item">
+            items.push(<div className="accordion-item" key={itemIdx}>
                 <h2 className="accordion-header" id={`panel-heading-${cat.id}-${itemIdx}`}>
                     <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target={`#panel-collapse-${cat.id}-${itemIdx}`} aria-expanded="false" aria-controls={`panel-collapse-${cat.id}-${itemIdx}`}>
                         {item.question}
@@ -63,7 +63,7 @@ export default function Faq() {
         });
 
         
-        categories.push(<div className="col col-xxl-8 ">
+        categories.push(<div className="col col-xxl-8 " key={cat.id}>
             <h2 className="ps-2 pt-3">{cat.title}</h2>
             <div className="accordion" id="accordionPanelsStayOpenExample">
                 {items}
