@@ -1,11 +1,11 @@
 docker-build:
-	docker-compose build
+	docker-compose build --no-cache
 
 docker-up:
 	docker-compose up -d
 
 docker-down:
-	docker-compose down
+	docker-compose down -v
 
 docker-push:
 	docker save -o tezland-app-latest.tar tezland-app:latest
