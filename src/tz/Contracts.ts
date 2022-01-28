@@ -26,13 +26,13 @@ export class Contracts {
 
     public async subscribeToPlaceChanges(walletProvider: ITezosWalletProvider) {
       if(!this.marketplaces)
-        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
       walletProvider.tezosToolkit().setProvider({ config: { shouldObservableSubscriptionRetry: true, streamerPollingIntervalMilliseconds: 5000 } });
     
       try {
         const placesOperation = {
-          and: [{ destination: Conf.marketplaces_contract }, { kind: 'transaction' }]
+          and: [{ destination: Conf.world_contract }, { kind: 'transaction' }]
         }
     
         const sub = walletProvider.tezosToolkit().stream.subscribeOperation(placesOperation);
@@ -105,7 +105,7 @@ export class Contracts {
     }
 
     public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number, callback?: () => void) {
-      const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
+      const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
       // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
       if(!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
@@ -127,7 +127,7 @@ export class Contracts {
 
     public async hasPlaceUpdated(walletProvider: ITezosWalletProvider, place_id: number): Promise<boolean> {
       if(!this.marketplaces)
-        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
       const stSeqKey = "placeSeq";
 
@@ -146,7 +146,7 @@ export class Contracts {
     public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, placeUpdated: boolean): Promise<any> {
       // use get_stored_items on-chain view.
       if(!this.marketplaces)
-        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.marketplaces_contract);
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
       const stItemsKey = "placeItems";
       
@@ -178,7 +178,7 @@ export class Contracts {
     }
 
     public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: () => void) {
-      const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.marketplaces_contract);
+      const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
       const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
       const wallet_phk = walletProvider.walletPHK();
