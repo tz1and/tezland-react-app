@@ -34,6 +34,7 @@ export default class Metadata {
                         id
                         name
                         description
+                        placeType
                         borderCoordinates
                         centerCoordinates
                         thumbnailUri
