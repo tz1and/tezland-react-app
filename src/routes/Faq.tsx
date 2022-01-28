@@ -5,16 +5,22 @@ const faqData = [
         items: [
             {
                 question: "Are the smart contracts audited?",
-                answer: "No, not yet. I was as careful as can be. The contract source code is available on my GitHub: ",
+                answer: "No, not yet. You know what that means.\n\nI was as careful as can be, wrote test and all that. The contract source code is available on my GitHub: ",
                 link: "https://github.com/852Kerfunkle/tezland-contracts"
             },
             {
-                question: "Is this open source?",
+                question: "Is this project open source?",
                 answer: "The contracts are, so is the indexer. While the dApp isn't open source at the time of writing, I intend to open it up after some time."
             },
             {
-                question: "Got a roadmap?",
-                answer: "I have plenty of ideas for things to add, the Item data in the contracts is extensible and the contracts are upgradeable."
+                question: "Is there a roadmap?",
+                answer: `I have plenty of ideas for things to add, the Item data in the contracts is extensible and the contracts are upgradeable.
+                
+The next thing I'd like to do is 'multiplayer', so you can see and interact with others in the world. Maybe avatars?`
+            },
+            {
+                question: "Ever expanding, really?",
+                answer: "That's the plan, yes. At a pace that is sensible and technically feasible. Keep in mind that there are always new technical limitations to be overcome."
             },
             {
                 question: "How is the name pronounced?",
@@ -34,7 +40,9 @@ const faqData = [
                 question: "And the 'tz1aND Items' token?",
                 answer: `These are the Items you can mint, collect and show off in your Place in the virtual world.
 
-A fungible multi-token. The Items data is stored on IPFS. The Item token also has a burn function, if you ever feel like burning some tokens.`
+A fungible multi-token. The Item data is stored on IPFS.
+
+The Items contract also has a burn function, if you ever feel like burning some tokens.`
             },
             {
                 question: "There's this 'tz1aND DAO' token...",
@@ -42,13 +50,19 @@ A fungible multi-token. The Items data is stored on IPFS. The Item token also ha
 
 Eventually, you will be able to use the DAO token to vote on proposals.
 
-Until the cut-off date, everyone participating get's tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens, to ensure I get a decent voting power.
+Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens, to ensure I get a decent voting power.
 
 Feel free to add liquidity, I (probably) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             },
             {
-                question: "Can you share a Place?",
-                answer: `Yes!\n\nYou can allow others to place their Items on in your Place by adding them them as operatos on your Place token.`
+                question: "Can I share my place with a spouse/friend/stranger I met online?",
+                answer: `Yes! You can!
+
+You can allow others to place their Items on in your Place by adding them them as operators on your Place token. They will also be able to remove items, but Items belong to who placed them.
+
+Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!
+
+A word of caution: Operators have the power to transfer your Place token! I'm not responsible for broken friendships.`
             }
         ]
     },
@@ -57,12 +71,16 @@ Feel free to add liquidity, I (probably) won't dump my tokens. But know that thi
         id: 'other',
         items: [
             {
-                question: "Who's on the team?",
-                answer: "Just me right now, feel free to involve yourself!"
-            },
-            {
                 question: "I saw a mint function and I think this is a rug!",
                 answer: `You must be in some kind of parallel universe right now.`
+            },
+            {
+                question: "Who's on the team?",
+                answer: "Only me right now, feel free to involve yourself!"
+            },
+            {
+                question: "Have you heard of Cryptovoxels?",
+                answer: "Hi Ben! How's it going?"
             }
         ]
     }
