@@ -9,13 +9,17 @@ const faqData = [
                 link: "https://github.com/852Kerfunkle/tezland-contracts"
             },
             {
+                question: "Is this open source?",
+                answer: "The contracts are, so is the indexer. While the dApp isn't open source at the time of writing, I intend to open it up after some time."
+            },
+            {
                 question: "Got a roadmap?",
                 answer: "I have plenty of ideas for things to add, the Item data in the contracts is extensible and the contracts are upgradeable."
             },
             {
                 question: "How is the name pronounced?",
-                answer: "It's teee-zeee-one-and. But only if you are dope. For everyone else it's Tezland."
-            },
+                answer: "It's teee-zeee-one-and. Joke. It's Tezland."
+            }
         ]
     },
     {
@@ -23,18 +27,42 @@ const faqData = [
         id: 'token',
         items: [
             {
-                question: "I saw a mint function and I think this is a rug.",
-                answer: `You must be in some kind of parallel universe right now.`
+                question: "What's the 'tz1aND Places' token?",
+                answer: `It represents the Places you can own on tz1aND.\n\nIt's a non-fungible multi-token.`
+            },
+            {
+                question: "And the 'tz1aND Items' token?",
+                answer: `These are the Items you can mint, collect and show off in your Place in the virtual world.
+
+A fungible multi-token. The Items data is stored on IPFS. The Item token also has a burn function, if you ever feel like burning some tokens.`
+            },
+            {
+                question: "There's this 'tz1aND DAO' token...",
+                answer: `The plan is to transition this into some sorf of community project, a 'decentralized autonomous organization', if you will.
+
+Eventually, you will be able to use the DAO token to vote on proposals.
+
+Until the cut-off date, everyone participating get's tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens, to ensure I get a decent voting power.
+
+Feel free to add liquidity, I (probably) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
+            },
+            {
+                question: "Can you share a Place?",
+                answer: `Yes!\n\nYou can allow others to place their Items on in your Place by adding them them as operatos on your Place token.`
             }
         ]
     },
     {
-        title: 'Team',
-        id: 'team',
+        title: 'Other/Fun',
+        id: 'other',
         items: [
             {
                 question: "Who's on the team?",
-                answer: "Oh, it's just me."
+                answer: "Just me right now, feel free to involve yourself!"
+            },
+            {
+                question: "I saw a mint function and I think this is a rug!",
+                answer: `You must be in some kind of parallel universe right now.`
             }
         ]
     }
@@ -55,7 +83,7 @@ export default function Faq() {
                     </button>
                 </h2>
                 <div id={`panel-collapse-${cat.id}-${itemIdx}`} className="accordion-collapse collapse" aria-labelledby={`panel-heading-${cat.id}-${itemIdx}`}>
-                    <div className="accordion-body">
+                    <div className="accordion-body" style={{whiteSpace: "pre-wrap"}}>
                         {item.answer} {item.link ? <a href={item.link} target="_blank" rel="noreferrer">{item.link}</a> : null}
                     </div>
                 </div>
