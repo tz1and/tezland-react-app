@@ -144,7 +144,8 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         return (
             <div className="m-3 Auction">
                 <div className='p-3 position-relative'>
-                    {this.context.isWalletConnected() && this.props.owner === this.context.walletPHK() ? <button onClick={this.cancelAuction} className="position-absolute btn btn-danger btn-sm mt-1">Cancel</button> : null}
+                    {(this.context.isWalletConnected() && this.props.owner === this.context.walletPHK()) &&
+                        <button onClick={this.cancelAuction} className="position-absolute btn btn-outline-danger btn-sm mt-1">Cancel</button>}
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
                     <h4 className="text-center mb-0">Place #{this.props.tokenId}</h4>
                     <small className='text-center d-block mb-0'>Auction #{this.props.auctionId}</small>

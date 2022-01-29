@@ -242,7 +242,9 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         {touched.endPrice && errors.endPrice && <small className="text-danger">{errors.endPrice}</small>}
                                     </div>
                                     <div className="form-text mb-3">There is a 2.5% fee on successful swap.</div>
-                                    <button type="submit" className="btn btn-primary mb-3" disabled={this.state.pending || isSubmitting || !isValid}>{isSubmitting || this.state.pending && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
+                                    <button type="submit" className="btn btn-primary mb-3" disabled={this.state.pending || isSubmitting || !isValid}>
+                                        {(isSubmitting || this.state.pending) && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} Create Auction
+                                    </button><br/>
                                     {this.state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {this.state.error}</span> )}
                                 </Form>
                             )}}
