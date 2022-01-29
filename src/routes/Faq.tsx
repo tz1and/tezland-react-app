@@ -50,7 +50,9 @@ The Items contract also has a burn function, if you ever feel like burning some 
 
 Eventually, you will be able to use the DAO token to vote on proposals.
 
-Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens, to ensure I get a decent voting power.
+Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 30% of all minted DAO tokens, to ensure I get a decent voting power.
+
+These 30% may also be distributed to other people getting involved.
 
 Feel free to add liquidity, I (probably) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             },
@@ -80,7 +82,7 @@ A word of caution: Operators have the power to transfer your Place token! I am n
             },
             {
                 question: "Have you heard of Cryptovoxels?",
-                answer: "Hi Ben! How's it going?"
+                answer: "Hi Ben! How's it going? Let's grab a riggers some time :)"
             }
         ]
     }

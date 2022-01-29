@@ -103,21 +103,23 @@ export default class PlayerController {
                         assert(parent);
 
                         const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
-                        // Make sure item is place relative to place origin.
-                        newObject.position = this.tempObject.position.subtract(parent.position);
-                        newObject.rotationQuaternion = this.tempObjectRot.clone();
-                        newObject.scaling = this.tempObject.scaling.clone();
-                        newObject.metadata = {
-                            itemTokenId: new BigNumber(this.currentItem),
-                            placeId: this.currentPlace.placeId
-                        } as InstanceMetadata;
+                        if(newObject) {
+                            // Make sure item is place relative to place origin.
+                            newObject.position = this.tempObject.position.subtract(parent.position);
+                            newObject.rotationQuaternion = this.tempObjectRot.clone();
+                            newObject.scaling = this.tempObject.scaling.clone();
+                            newObject.metadata = {
+                                itemTokenId: new BigNumber(this.currentItem),
+                                placeId: this.currentPlace.placeId
+                            } as InstanceMetadata;
 
-                        shadowGenerator.addShadowCaster(newObject);
+                            shadowGenerator.addShadowCaster(newObject);
 
-                        eventState.skipNextObservers = true;
+                            eventState.skipNextObservers = true;
 
-                        document.exitPointerLock();
-                        appControlfunctions.placeItem(newObject);
+                            document.exitPointerLock();
+                            appControlfunctions.placeItem(newObject);
+                        }
                     }
                     break;
 
@@ -280,39 +282,42 @@ export default class PlayerController {
 
         try {
             this.tempObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, null) as Mesh;
-            this.tempObject.rotationQuaternion = this.tempObjectRot;
+            if(this.tempObject) {
+                this.tempObject.rotationQuaternion = this.tempObjectRot;
 
-            // set pickable false on the whole hierarchy.
-            this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
+                // set pickable false on the whole hierarchy.
+                this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
 
-            // Scale object based on extent.
-            const {min, max} = this.tempObject.getHierarchyBoundingVectors(true);
-            const extent = max.subtract(min);
-            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
-            const new_scale = 2 / extent_max; // Scale to 2 meters.
-            this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-            // throws an error for some reason.
-            //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
+                // Scale object based on extent.
+                const {min, max} = this.tempObject.getHierarchyBoundingVectors(true);
+                const extent = max.subtract(min);
+                const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+                const new_scale = 2 / extent_max; // Scale to 2 meters.
+                this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+                // throws an error for some reason.
+                //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
 
-            /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
-            //transparent_mat.alpha = 0.2;
-            //transparent_mat.disableLighting = true;
-            //transparent_mat.backFaceCulling = false;
-            transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
+                /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
+                //transparent_mat.alpha = 0.2;
+                //transparent_mat.disableLighting = true;
+                //transparent_mat.backFaceCulling = false;
+                transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
 
-            this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
-            this.tempObject.material = transparent_mat;
-            this.tempObject.isPickable = false;
-            //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
-            this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
+                this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
+                this.tempObject.material = transparent_mat;
+                this.tempObject.isPickable = false;
+                //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
+                this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
 
-            // make sure picking gui goes away.
-            await this.pickingGui.updatePickingGui(null, 0);
+                // make sure picking gui goes away.
+                await this.pickingGui.updatePickingGui(null, 0);
+            }
+            else this.currentItem = undefined;
         }
-        catch {
+        catch(e) {
             this.currentItem = undefined;
 
-            Logging.InfoDev("failed to load item");
+            Logging.InfoDev("failed to load item: " + e);
         }
     }
 

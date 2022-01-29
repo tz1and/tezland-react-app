@@ -94,7 +94,8 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                             tags: values.itemTags,
                             formats: [
                                 {
-                                    mimeType: mime_type
+                                    mimeType: mime_type,
+                                    fileSize: values.itemFile!.size
                                 }
                             ]
                         })

@@ -1,6 +1,7 @@
 import { AbstractMesh, Axis, Mesh, Ray, Vector3 } from "@babylonjs/core";
 import BigNumber from 'bignumber.js';
 
+
 export const pointIsInside = (point: Vector3, mesh: Mesh) => {
     const boundInfo = mesh.getBoundingInfo();
     if(!boundInfo.intersectsPoint(point))
@@ -134,4 +135,14 @@ export const countPolygons = (meshes: AbstractMesh[]): number => {
       m.disableFacetData();
   }
   return polycount;
+}
+
+export const getUrlFileSizeHead = async (url: string): Promise<number> => {
+  const response = await fetch(url, { method: 'HEAD'});
+
+  const contentLength = response.headers.get("content-length");
+  if(contentLength)
+    return parseInt(contentLength);
+
+  throw new Error("content-length not in response");
 }

@@ -24,7 +24,6 @@
     "earcut": "^2.2.3",
     "formik": "^2.2.9",
     "history": "^5.2.0",
-    "ipfs-http-client": "^55.0.0",
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
     "polygon-clipping": "^0.15.3",

@@ -74,6 +74,7 @@ export default class Metadata {
                         artifactUri
                         minterId
                         mimeType
+                        fileSize
                         royalties
                         supply
                     }

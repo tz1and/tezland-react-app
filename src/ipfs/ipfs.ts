@@ -3,14 +3,13 @@ import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
-import { BlobLike, countPolygons } from '../utils/Utils';
+import { BlobLike, countPolygons, getUrlFileSizeHead } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import AppSettings from '../storage/AppSettings';
-import * as ipfs from 'ipfs-http-client';
 import assert from 'assert';
 
 
-const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway});
+/*const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway });
 
 export async function get_file_size(cid: string): Promise<number> {
     try {
@@ -19,10 +18,10 @@ export async function get_file_size(cid: string): Promise<number> {
         const stat = await ipfs_client.object.stat(ipfs.CID.parse(cid));
         return stat.CumulativeSize;
     } catch(e: any) {
-        Logging.InfoDev("Failed to get file size: " + e.message);
+        Logging.Warn("Failed to get file size: " + e.message);
         return 0; // TODO: assume large or small? or throw?
     }
-}
+}*/
 
 export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
@@ -36,19 +35,38 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         // remove ipfs:// from uri
         const hash = itemMetadata.artifactUri.slice(7);
 
-        // Check file size, if too large, eatly out and write to db.
-        const fileSize = itemCachedStats !== null ? itemCachedStats.fileSize : (await get_file_size(hash));
-        if(fileSize > AppSettings.getFileSizeLimit()) {
-            // write polycount -1 to indicate we havent checked polycount yet.
-            Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", {polyCount: -1, fileSize: fileSize});
-            Logging.Warn("Item " + item_id + " file exceeds size limits. Ignoring.");
+        // early out if file size in metadata is missing.
+        if(!itemMetadata.fileSize) {
+            Logging.Warn("Item " + item_id + " metadata is missing fileSize. Ignoring.");
             return null;
         }
 
-        // early out if the cached polycount is > -1 and >= polygonLimit.
-        if(itemCachedStats !== null && itemCachedStats.polyCount >= 0 && itemCachedStats.polyCount >= polygonLimit) {
-            Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
-            return null;
+        var fileSize = 34359738368;
+        // early out if cached stats exceed limits
+        if(itemCachedStats) {
+            fileSize = itemCachedStats.fileSize;
+
+            // early out if the cached fileSize is > sizeLimit.
+            if(itemCachedStats.fileSize > AppSettings.getFileSizeLimit()) {
+                Logging.Warn("Item " + item_id + " exceeds size limits. Ignoring.");
+                return null;
+            }
+
+            // early out if the cached polycount is > -1 and >= polygonLimit.
+            if(itemCachedStats.polyCount >= 0 && itemCachedStats.polyCount >= polygonLimit) {
+                Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
+                return null;
+            }
+        }
+        // If no cached stats, get file size from url
+        else {
+            // Item metadata may be lying. Lets make sure.
+            fileSize = await getUrlFileSizeHead(Conf.ipfs_gateway + '/ipfs/' + hash);
+            if(fileSize > AppSettings.getFileSizeLimit()) {
+                Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", {polyCount: -1, fileSize: fileSize});
+                Logging.Warn("Item " + item_id + " file exceeds size limits. Ignoring.");
+                return null;
+            }
         }
 
         const mime_type = itemMetadata.mimeType;
