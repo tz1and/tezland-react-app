@@ -53,7 +53,8 @@ type CreateAuctionFormState = {
     error: string,
     mapLocation: [number, number],
     placePoly: [number, number][],
-    placeInventory?: any[]
+    placeInventory?: any[],
+    pending: boolean // workaround until handleOperation has a failed state-
 }
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
@@ -68,7 +69,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         this.state = {
             error: '',
             mapLocation: [500, 500],
-            placePoly: []
+            placePoly: [],
+            pending: false
         };
     }
 
@@ -179,9 +181,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         // @ts-expect-error
                                         () => { this.props.navigate("/auctions", { replace: true }) });
 
+                                    this.setState({ pending: true });
                                     return;
                                 } catch(e: any) {
-                                    this.setState({ error: e.message});
+                                    this.setState({ error: e.message });
                                 }
 
                                 actions.setSubmitting(false);
@@ -239,7 +242,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         {touched.endPrice && errors.endPrice && <small className="text-danger">{errors.endPrice}</small>}
                                     </div>
                                     <div className="form-text mb-3">There is a 2.5% fee on successful swap.</div>
-                                    <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
+                                    <button type="submit" className="btn btn-primary mb-3" disabled={this.state.pending || isSubmitting || !isValid}>{isSubmitting || this.state.pending && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} Create Auction</button><br/>
                                     {this.state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {this.state.error}</span> )}
                                 </Form>
                             )}}
