@@ -10,7 +10,6 @@ export default function Frontpage() {
                 <div className="col-lg-6 mx-auto">
                     <p className="lead mb-4">Lorem ipsum let's build a piece of art. Expanding, not based on scarcity.</p>
                     <div className="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
-                        {/*<a href="#" className="btn btn-primary btn-lg px-4 me-sm-3">Buy CMERE</a>*/}
                         <Link to="/explore" target="_blank" className="btn btn-primary btn-lg px-4 me-sm-3">Explore</Link>
                         <Link to="/faq" className="btn btn-outline-secondary btn-lg px-4">Learn More</Link>
                     </div>
@@ -60,7 +59,7 @@ export default function Frontpage() {
 
             <div className="container my-5 text-center">
                 <div className="p-5 align-items-center rounded-3 border shadow-lg bg-dark text-white bg-whitelist">
-                    <h1 className="display-5 fw-bold">Buy a Place</h1>
+                    <h1 className="display-5 fw-bold">Get a Place</h1>
                     <div className="col-lg-10 mx-auto">
                         <p className="lead">If there are any available right now :)</p>
                         <p className="lead">I did consider making Places free. Think of it as supporting development and paying the bills.</p>
