@@ -19,6 +19,10 @@ const faqData = [
 The next thing I'd like to do is 'multiplayer', so you can see and interact with others in the world. Maybe avatars?`
             },
             {
+                question: "What types of NFTs are supported?",
+                answer: "For now, only 3D models in GLTF format, but expect other multimedia content to follow. Images and audio."
+            },
+            {
                 question: "Ever expanding, really?",
                 answer: "That's the plan, yes. At a pace that is sensible and technically feasible. Keep in mind that there are always new technical limitations to be overcome.\n\nMostly web browsers..."
             },
@@ -34,7 +38,7 @@ The next thing I'd like to do is 'multiplayer', so you can see and interact with
         items: [
             {
                 question: "What's the 'tz1aND Places' token?",
-                answer: `It represents the Places you can own on tz1aND.\n\nIt's a non-fungible multi-token.`
+                answer: `It represents the Places you can own on tz1aND. For now only exteriors, but interiors are planned.\n\nIt's a non-fungible multi-token.`
             },
             {
                 question: "And the 'tz1aND Items' token?",
@@ -50,9 +54,9 @@ The Items contract also has a burn function, if you ever feel like burning some 
 
 Eventually, you will be able to use the DAO token to vote on proposals.
 
-Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 30% of all minted DAO tokens, to ensure I get a decent voting power.
+Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens, to ensure I get a decent voting power.
 
-These 30% may also be distributed to other people getting involved.
+These 20% may also be distributed to other people getting involved.
 
 Feel free to add liquidity, I (probably) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             },
@@ -82,7 +86,7 @@ A word of caution: Operators have the power to transfer your Place token! I am n
             },
             {
                 question: "Have you heard of Cryptovoxels?",
-                answer: "Hi Ben! How's it going? Let's grab a riggers some time :)"
+                answer: "Hi Ben! How's it going? Let's grab some riggers some time :)"
             }
         ]
     }
