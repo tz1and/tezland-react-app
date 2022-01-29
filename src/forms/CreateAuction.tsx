@@ -114,8 +114,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     private updatePlacesAndMap() {
         this.fetchPlaces().then((result) => {
             this.setState({ placeInventory: result });
-            if(result.length > 0)
+            if(result.length > 0) {
                 this.panMapToPlace(result[0].tokenId);
+                this.initialValues.placeId = result[0].tokenId;
+            }
         })
     }
 
