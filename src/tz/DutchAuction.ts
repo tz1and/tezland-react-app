@@ -66,5 +66,16 @@ export default class DutchAuction {
         const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
 
         Contracts.handleOperation(walletProvider, bid_op, callback);
-      }
+    }
+
+    static async cancelAuction(walletProvider: ITezosWalletProvider, auction_id: number, callback?: () => void) {
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
+  
+        // note: this is also checked in Auction, probably don't have to recheck, but better safe.
+        if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
+  
+        const cancel_op = await auctionsWallet.methodsObject.cancel(auction_id).send();
+
+        Contracts.handleOperation(walletProvider, cancel_op, callback);
+    }
 }
