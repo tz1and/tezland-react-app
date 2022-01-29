@@ -36,6 +36,8 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         const hash = itemMetadata.artifactUri.slice(7);
 
         // early out if file size in metadata is missing.
+        // NOTE: can't really be missing as default in indexer db is 34359738368.
+        // but indexer may change in the future...
         if(!itemMetadata.fileSize) {
             Logging.Warn("Item " + item_id + " metadata is missing fileSize. Ignoring.");
             return null;
