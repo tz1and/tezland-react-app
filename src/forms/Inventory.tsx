@@ -37,7 +37,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     private fetchAmount: number = 20;
     private firstFetchDone: boolean = false;
 
-    private itemMap: Map<number, any> = new Map();
+    private itemMap: Map<number, any> = new Map(); // TODO: map should belong to state!
 
     componentDidMount() {
         this.fetchInventory().then((res) => {

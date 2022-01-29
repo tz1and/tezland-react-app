@@ -5,8 +5,8 @@ const faqData = [
         items: [
             {
                 question: "Are the smart contracts audited?",
-                answer: "No, not yet. You know what that means.\n\nI was as careful as can be, wrote test and all that. The contract source code is available on my GitHub: ",
-                link: "https://github.com/852Kerfunkle/tezland-contracts"
+                answer: "No, not yet. You know what that means.\n\nI was as careful as can be, wrote test and all that. The contract source code is available on GitHub: ",
+                link: "https://github.com/tz1aND"
             },
             {
                 question: "Is this project open source?",
@@ -20,7 +20,7 @@ The next thing I'd like to do is 'multiplayer', so you can see and interact with
             },
             {
                 question: "Ever expanding, really?",
-                answer: "That's the plan, yes. At a pace that is sensible and technically feasible. Keep in mind that there are always new technical limitations to be overcome."
+                answer: "That's the plan, yes. At a pace that is sensible and technically feasible. Keep in mind that there are always new technical limitations to be overcome.\n\nMostly web browsers..."
             },
             {
                 question: "How is the name pronounced?",
@@ -62,7 +62,7 @@ You can allow others to place their Items on in your Place by adding them them a
 
 Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!
 
-A word of caution: Operators have the power to transfer your Place token! I'm not responsible for broken friendships.`
+A word of caution: Operators have the power to transfer your Place token! I am not responsible for broken marriages.`
             }
         ]
     },
