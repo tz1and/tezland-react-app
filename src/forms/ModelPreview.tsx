@@ -5,6 +5,7 @@ import { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh,
 import { countPolygons } from '../utils/Utils';
 
 
+// TODO: add a callback to call when model was loaded (or failed).
 type ModelPreviewProps = {
     file?: File;
 };
@@ -45,6 +46,10 @@ class PreviewScene {
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
         this.scene.dispose();
+    }
+
+    public setBgColor(color: string) {
+        this.scene.clearColor = Color4.FromHexString(color);
     }
 
     private createScene() {
@@ -145,6 +150,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         return (
         <div>
             <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas>
+            <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#503333" onChange={(col) => this.preview?.setBgColor(col.target.value)}/></p>
             <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
                 Use the mouse to control the view.<br/><br/>
                 Mouse wheel: zoom<br/>
