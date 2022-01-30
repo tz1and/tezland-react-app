@@ -114,8 +114,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 <div className="container text-start pt-4">
                     <h1>Active Place Auctions</h1>
                     <p>This is the <i>primary</i> (newly minted Places will end up here) and a secondary (everyone can create auctions) marketplace for Places.</p>
-                    <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price.<br/>Auctions can be cancelled by the creator before it's bought.</p>
-                    <p>Price drops once every 60 seconds.</p>
+                    <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price.<br/>Auctions can be cancelled by the creator before a bid.</p>
+                    <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
                     <Link to='/auctions/create' className='btn btn-primary'>Create Auction</Link>
                     <hr/>
                     <InfiniteScroll

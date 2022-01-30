@@ -241,7 +241,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
                                         {touched.endPrice && errors.endPrice && <small className="text-danger">{errors.endPrice}</small>}
                                     </div>
-                                    <div className="form-text mb-3">There is a 2.5% fee on successful swap.</div>
+                                    <div className="form-text mb-3">There is a 2.5% management fee on successful bids.</div>
                                     <button type="submit" className="btn btn-primary mb-3" disabled={this.state.pending || isSubmitting || !isValid}>
                                         {(isSubmitting || this.state.pending) && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} Create Auction
                                     </button><br/>

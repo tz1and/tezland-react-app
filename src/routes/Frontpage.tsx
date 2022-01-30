@@ -45,7 +45,7 @@ export default function Frontpage() {
                     </div>
                     <div className="col-lg-6">
                         <h1 className="display-5 fw-bold lh-1 mb-3">Ever Expanding</h1>
-                        <p className="lead">The world will be expanded at a pace that makes sense and new Places will become available regularly.</p>
+                        <p className="lead">The World will be expanded at a pace that makes sense and new Places will become available regularly.</p>
                     </div>
                 </div>
             </div>

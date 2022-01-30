@@ -88,11 +88,12 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                     <span className="input-group-text">{'\uA729'}</span>
                                     <Field id="itemPrice" name="itemPrice" type="number" className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
                                 </div>
-                                <div id="priceHelp" className="form-text">The price for each item. Set 0&#42793; if not for sale.<br/>There is a 2.5% fee on successful swap.</div>
+                                <div id="priceHelp" className="form-text">The price for each item. Set 0&#42793; if not for sale.</div>
                                 {touched.itemPrice && errors.itemPrice && <small className="text-danger">{errors.itemPrice}</small>}
                             </div>
+                            <div className="form-text mb-3">There is a 2.5% management fee on successful bids.</div>
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>
-                            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>Placed Items are transferred to the World contract,but are<br/>retrievable only by you (the owner) or a potential new owner.</div>
+                            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>Placed Items are transferred to the World contract, but are<br/>retrievable only by you (the owner) or a potential new owner.</div>
                         </Form>
                     )
                 }}
