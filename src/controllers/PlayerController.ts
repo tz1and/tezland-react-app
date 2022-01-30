@@ -218,7 +218,7 @@ export default class PlayerController {
 
         // Camera props
         camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;
-        camera.fov = 2;
+        camera.fov = 1.65806; // ~95 deg.
         camera.minZ = 0.1;
 
         // Collision stuff
