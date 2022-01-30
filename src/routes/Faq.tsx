@@ -53,11 +53,9 @@ The Items contract also has a burn function, if you ever feel like burning some 
 
 Eventually, you will be able to use the DAO token to vote on proposals.
 
-Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens, to ensure I get a decent voting power.
+Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team fund.
 
-These 20% may also be distributed to other people getting involved.
-
-Feel free to add liquidity, I (probably) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
+Feel free to add liquidity, I (probably XD) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             },
             {
                 question: "Can I share my place with a spouse/friend/stranger I met online?",
@@ -67,7 +65,7 @@ You can allow others to place their Items on in your Place by adding them them a
 
 Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
 
-<b className="text-danger">A word of caution</b>: Operators have the power to transfer your Place token! I am not responsible for broken marriages.</span>
+<b className="bg-danger text-white p-1 px-2 rounded-1 d-inline-block mb-1"><i className="bi bi-exclamation-triangle-fill"></i> A word of caution!</b><br/>Operators have the power to transfer your Place token! I am not responsible for broken marriages and ruined friendships.</span>
             }
         ]
     },
