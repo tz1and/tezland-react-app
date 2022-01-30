@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Formik,
     Form,
     Field,
-    FormikErrors
+    FormikErrors,
+    ErrorMessage
 } from 'formik';
 import CustomFileUpload from './CustomFileUpload'
 import ModelPreview from './ModelPreview'
@@ -12,6 +13,7 @@ import { createItemTokenMetadata } from '../ipfs/ipfs';
 import { BlobLike, blobToBloblike, getFileExt } from '../utils/Utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import Conf from '../Config';
+import AppSettings from '../storage/AppSettings';
 
 interface MintFormValues {
     itemTitle: string;
@@ -27,15 +29,19 @@ type MintFormProps = {
 }
 
 type MintFormState = {
-    error: string
+    error: string;
+    modelLimitWarning: string;
 }
 
+// todo: make this a class component...
 export const MintFrom: React.FC<MintFormProps> = (props) => {
     const initialValues: MintFormValues = { itemTitle: "", itemDescription: "", itemTags: "", itemAmount: 1, itemRoyalties: 10 };
-    const state: MintFormState = { error: "" }
+    const [formState, setFormState] = useState({ error: "", modelLimitWarning: "" } as  MintFormState);
     const modelPreviewRef = React.createRef<ModelPreview>();
     
     const context = useTezosWalletContext();
+
+    const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
@@ -48,15 +54,27 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
 
                     if (!values.itemFile) {
                         errors.itemFile = 'No file selected'
-                    } else if (modelPreviewRef.current!.state.polycount > 1000000) {
+                    } else if (modelPreviewRef.current!.state.polycount > 10000000) {
                         // This is just here to filter out some obvious trolls.
                         errors.itemFile = 'Mesh has too many polygons.';
                     }
 
-                    // TODO: validate model! If it's valid and loads.
+                    // TODO: validate model! If it's valid and loaded, etc.
+
+                    // Model limits warning
+                    if(values.itemFile) {
+                        let modelLimitWarning = '';
+                        if(modelPreviewRef.current!.state.polycount > AppSettings.defaults.polygonLimit)
+                            modelLimitWarning = 'Exceeds default polygon limit. It may not be displayed.';
+
+                        if(values.itemFile.size > AppSettings.defaults.fileSizeLimit)
+                            modelLimitWarning = 'Exceeds default file size limit. It may not be displayed.';
+
+                        setFormState({ modelLimitWarning: modelLimitWarning, error: formState.error });
+                    }
 
                     if (values.itemTitle.length === 0) {
-                        errors.itemTitle = 'Title required'
+                        errors.itemTitle = 'Title required';
                     }
                   
                     if (values.itemRoyalties < 0 || values.itemRoyalties > 25) {
@@ -71,7 +89,7 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                 }}
                 onSubmit={async (values, actions) => {
                     // clear error state
-                    state.error = '';
+                    setFormState({ modelLimitWarning: formState.modelLimitWarning, error: '' });
 
                     try {
                         // check if wallet is connected first.
@@ -124,7 +142,7 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                         }
                         else throw new Error("Backend: malformed response");
                     } catch(e: any) {
-                        state.error = e.message;
+                        setFormState({ modelLimitWarning: formState.modelLimitWarning, error: e.message });
                     }
 
                     actions.setSubmitting(false);
@@ -151,12 +169,14 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                                         <label htmlFor="itemFile" className="form-label">3D Model file</label>
                                         <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
                                         <div id="fileHelp" className="form-text">Only gltf models are supported.</div>
-                                        {touched.itemFile && errors.itemFile && <small className="text-danger">{errors.itemFile}</small>}
+                                        <ErrorMessage name="itemFile" children={errorDisplay}/>
+                                        {touched.itemFile && formState.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1">
+                                            <i className="bi bi-exclamation-triangle-fill"></i> {formState.modelLimitWarning}</small>}
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="itemTitle" className="form-label">Title</label>
                                         <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
-                                        {touched.itemTitle && errors.itemTitle && <small className="text-danger">{errors.itemTitle}</small>}
+                                        <ErrorMessage name="itemTitle" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="itemDescription" className="form-label">Description</label>
@@ -171,7 +191,7 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                                         <label htmlFor="itemAmount" className="form-label">Amount</label>
                                         <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
                                         <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
-                                        {touched.itemAmount && errors.itemAmount && <small className="text-danger">{errors.itemAmount}</small>}
+                                        <ErrorMessage name="itemAmount" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
@@ -180,14 +200,14 @@ export const MintFrom: React.FC<MintFormProps> = (props) => {
                                             <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
                                         </div>
                                         <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
-                                        {touched.itemRoyalties && errors.itemRoyalties && <small className="text-danger">{errors.itemRoyalties}</small>}
+                                        <ErrorMessage name="itemRoyalties" children={errorDisplay}/>
                                     </div>
                                     <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} mint Item</button>
                                 </div>
                                 <div className='col'>
                                     <ModelPreview file={values.itemFile} ref={modelPreviewRef} />
                                     <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
-                                    {state.error.length > 0 && ( <small className='text-danger'>Minting failed: {state.error}</small> )}
+                                    {formState.error.length > 0 && ( <small className='text-danger'>Minting failed: {formState.error}</small> )}
                                 </div>
                             </div>
                         </Form>
