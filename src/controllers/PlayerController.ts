@@ -30,7 +30,7 @@ export default class PlayerController {
     /*private handleKeyUp: (e: KeyboardEvent) => void;
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
-    private isPointerLocked: boolean = false;
+    private isPointerLocked: boolean = false; // TODO: still needed for something?
     private currentPlace: Nullable<Place>;
     private currentItem?: number;
 
@@ -138,7 +138,7 @@ export default class PlayerController {
                 switch(kbInfo.event.code) {
                     // Scale
                     case "ShiftLeft":
-                        this.camera.speed = PlayerWalkSpeed;
+                        this.camera.speed = PlayerJogSpeed;
                         break;
                 }
             }
@@ -186,7 +186,7 @@ export default class PlayerController {
                         break;
 
                     case 'ShiftLeft': // Enable jog
-                        this.camera.speed = PlayerJogSpeed;
+                        this.camera.speed = PlayerWalkSpeed;
                         break;
 
                     case 'Delete': // Mark item for deletion
@@ -232,7 +232,7 @@ export default class PlayerController {
         camera.keysUp = [87 /*w*/, 38 /*up arrow*/];
         camera.keysDown = [83 /*s*/, 40 /*down arrow*/];
         //camera.keysUpward = [32 /*space*/]; // that's not actually jumping.
-        camera.speed = PlayerWalkSpeed;
+        camera.speed = PlayerJogSpeed;
         //this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
         //camera.inertia = 0.5;
         //camera.angularSensibility = 2;
