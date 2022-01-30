@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json ./
 COPY yarn.lock ./
 COPY tsconfig.json ./
+COPY .env.production.local ./
 COPY src ./src
 COPY public ./public
 
