@@ -214,11 +214,11 @@ export default class Place {
             // Set prototype to make sure BigNumbers get recognised.
             // See here: https://github.com/MikeMcl/bignumber.js/issues/245
             Object.setPrototypeOf(element.id, BigNumber.prototype);
-            Object.setPrototypeOf(element.data.item.item_id, BigNumber.prototype);
+            Object.setPrototypeOf(element.data.item.token_id, BigNumber.prototype);
             Object.setPrototypeOf(element.data.item.xtz_per_item, BigNumber.prototype);
             Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
 
-            const item_id = new BigNumber(element.data.item.item_id);
+            const token_id = new BigNumber(element.data.item.token_id);
             const item_coords = element.data.item.item_data;
             const item_amount = element.data.item.item_amount;
             const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
@@ -231,7 +231,7 @@ export default class Place {
                 const scale = getFloat16(view, 8);
                 const pos = new Vector3(getFloat16(view, 10), getFloat16(view, 12), getFloat16(view, 14));
 
-                const instance = await ipfs.download_item(item_id, this.world.scene, this.itemsNode);
+                const instance = await ipfs.download_item(token_id, this.world.scene, this.itemsNode);
 
                 if(instance) {
                     /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
@@ -246,7 +246,7 @@ export default class Place {
                     instance.metadata = {
                         id: new BigNumber(element.id),
                         placeId: this.placeId,
-                        itemTokenId: item_id,
+                        itemTokenId: token_id,
                         xtzPerItem: xtz_per_item,
                         itemAmount: new BigNumber(item_amount)
                     } as InstanceMetadata;

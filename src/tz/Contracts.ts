@@ -195,7 +195,7 @@ export class Contracts {
       add.forEach( (item) => {
         const mesh = item as Mesh;
         const metadata = mesh.metadata as InstanceMetadata;
-        const item_id = metadata.itemTokenId;
+        const token_id = metadata.itemTokenId;
         const item_amount = metadata.itemAmount;
         const item_price = tezToMutez(metadata.xtzPerItem);
         const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
@@ -215,21 +215,21 @@ export class Contracts {
         setFloat16(view, 14, mesh.position.z);
         const item_data = toHexString(array);
 
-        add_item_list.push({item: {token_id: item_id, token_amount: item_amount, xtz_per_token: item_price, item_data: item_data}});
+        add_item_list.push({item: {token_id: token_id, token_amount: item_amount, xtz_per_token: item_price, item_data: item_data}});
 
-        item_set.add(item_id);
+        item_set.add(token_id);
       });
 
       // build operator add/remove lists
       const operator_adds: object[] = [];
       const operator_removes: object[] = [];
 
-      item_set.forEach((item_id) => {
+      item_set.forEach((token_id) => {
         operator_adds.push({
           add_operator: {
               owner: wallet_phk,
               operator: marketplacesWallet.address,
-              token_id: item_id
+              token_id: token_id
           }
         });
   
@@ -237,7 +237,7 @@ export class Contracts {
           remove_operator: {
               owner: wallet_phk,
               operator: marketplacesWallet.address,
-              token_id: item_id
+              token_id: token_id
           }
         });
       });
