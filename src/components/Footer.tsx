@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Conf from "../Config";
 
 export default function Frontpage() {
     return (
@@ -7,7 +8,8 @@ export default function Frontpage() {
                 <div className="col-6 col-md">
                     {/*<img src="/logo192.png" width="64" height="64" /><br /><br />*/}
                     [tz1aND]
-                    <small className="d-block mb-3 text-muted">© 2022</small>
+                    <small className="d-block mb-4 text-muted">© 2022</small>
+                    <small className="d-block text-muted">v{Conf.app_version}</small>
                 </div>
                 <div className="col-6 col-md">
                     <h5>Virtual World</h5>

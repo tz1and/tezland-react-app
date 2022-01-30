@@ -1,5 +1,8 @@
 // @ts-nocheck
 export default class Conf {
+    public static public_url: string = process.env.PUBLIC_URL;
+    public static app_version: string = process.env.REACT_APP_VERSION;
+
     public static tezos_node: string = process.env.REACT_APP_TEZOS_NODE;
     public static bcd_url: string = process.env.REACT_APP_BCD_URL;
     public static ipfs_gateway: string = process.env.REACT_APP_IPFS_GATEWAY;

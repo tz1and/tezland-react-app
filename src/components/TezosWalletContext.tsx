@@ -82,7 +82,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     public setupBeaconWallet() {
-        const appUrl = isDev() ? "http://localhost:3006" : process.env.PUBLIC_URL;
+        const appUrl = isDev() ? "http://localhost:3006" : Conf.public_url;
         const options: DAppClientOptions = {
             name: isDev() ? 'tz1aND-dev' : 'tz1aND',
             preferredNetwork: isDev() ? NetworkType.CUSTOM : NetworkType.MAINNET,

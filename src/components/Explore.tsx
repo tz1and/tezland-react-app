@@ -10,6 +10,7 @@ import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
 import AppSettings from '../storage/AppSettings';
 import { Notification, NotificationData } from './Notification';
+import Conf from '../Config';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -114,7 +115,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         return (
             <div className='Explore'>
-                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1aND v" + process.env.REACT_APP_VERSION}</small>
+                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1aND v" + Conf.app_version}</small>
                 {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}
                 {controlInfo}
