@@ -23,4 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 
 # notes and stuff
+assets/
 TODO.txt

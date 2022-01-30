@@ -5,8 +5,7 @@ const faqData = [
         items: [
             {
                 question: "Are the smart contracts audited?",
-                answer: "No, not yet. You know what that means.\n\nI was as careful as can be, wrote test and all that. The contract source code is available on GitHub: ",
-                link: "https://github.com/tz1aND"
+                answer: <span>No, not yet. You know what that means.<br/><br/>I was as careful as can be, wrote test and all that. The contract source code is available on <a target="_blank" rel="noreferrer" href="https://github.com/tz1aND">GitHub</a>.</span>
             },
             {
                 question: "Is this project open source?",
@@ -62,13 +61,13 @@ Feel free to add liquidity, I (probably) won't dump my tokens. But know that thi
             },
             {
                 question: "Can I share my place with a spouse/friend/stranger I met online?",
-                answer: `Yes! You can!
+                answer: <span>Yes! You can!<br/><br/>
 
-You can allow others to place their Items on in your Place by adding them them as operators on your Place token. They will also be able to remove items, but Items belong to who placed them.
+You can allow others to place their Items on in your Place by adding them them as operators on your Place token. They will also be able to remove items, but Items belong to who placed them.<br/><br/>
 
-Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!
+Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
 
-A word of caution: Operators have the power to transfer your Place token! I am not responsible for broken marriages.`
+<b className="text-danger">A word of caution</b>: Operators have the power to transfer your Place token! I am not responsible for broken marriages.</span>
             }
         ]
     },
@@ -108,7 +107,7 @@ export default function Faq() {
                 </h2>
                 <div id={`panel-collapse-${cat.id}-${itemIdx}`} className="accordion-collapse collapse" aria-labelledby={`panel-heading-${cat.id}-${itemIdx}`}>
                     <div className="accordion-body" style={{whiteSpace: "pre-wrap"}}>
-                        {item.answer} {item.link ? <a href={item.link} target="_blank" rel="noreferrer">{item.link}</a> : null}
+                        {item.answer}
                     </div>
                 </div>
             </div>);

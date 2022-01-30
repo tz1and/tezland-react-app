@@ -10,6 +10,7 @@ Makefile
 # ignore project specific
 node_modules/
 build/
+assets/
 
 # env files
 .env*
