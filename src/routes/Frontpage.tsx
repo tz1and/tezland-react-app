@@ -73,7 +73,7 @@ export default function Frontpage() {
                         <p className="lead">If there are any available right now :)</p>
                         <p className="lead">I did consider making Places free. Think of it as supporting development and paying the bills.</p>
                         <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                            <Link to="/auctions" className="btn btn-primary btn-lg px-4 gap-3">List Auctions</Link>
+                            <Link to="/auctions" className="btn btn-light btn-lg mt-3 px-4">List Auctions</Link>
                         </div>
                     </div>
                 </div>
