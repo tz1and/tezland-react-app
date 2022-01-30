@@ -4,7 +4,6 @@ import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
-import axios from "axios";
 import Metadata from "../world/Metadata";
 import { InstanceMetadata } from "../world/Place";
 import BigNumber from "bignumber.js";
@@ -45,8 +44,8 @@ export class Contracts {
 
     public async getPlaceOwner(place_id: number): Promise<string> {
       // todo: use indexer
-      const responseP = await axios.get(`${Conf.bcd_url}/v1/contract/${Conf.tezos_network}/${Conf.place_contract}/transfers?token_id=${place_id}&size=1`);
-      const transferInfo = responseP.data;
+      const responseP = await fetch(`${Conf.bcd_url}/v1/contract/${Conf.tezos_network}/${Conf.place_contract}/transfers?token_id=${place_id}&size=1`);
+      const transferInfo = await responseP.json();
 
       if(transferInfo.total > 0) return transferInfo.transfers[0].to;
 
