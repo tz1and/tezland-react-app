@@ -1,5 +1,5 @@
 //import { Link } from 'react-router-dom';
-import { MapContainer, Marker, Popup, ImageOverlay, Circle } from 'react-leaflet'
+import { MapContainer, ImageOverlay } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
 
 // gotta do this little dance to make sure the markers are displayed properly.
