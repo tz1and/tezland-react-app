@@ -1,7 +1,16 @@
 export default class AppSettings {
+
+    static defaults = {
+        polygonLimit: 10000,
+        fileSizeLimit: 16777216, // 16 Mb
+        drawDistance: 200,
+        displacPlaceBounds: true,
+        showFps: true,
+    };
+
     static getPolygonLimit(): number {
         const polygonLimit = localStorage.getItem("tezland:settings:polygonLimit");
-        return polygonLimit ? parseInt(polygonLimit) : 20000;
+        return polygonLimit ? parseInt(polygonLimit) : this.defaults.polygonLimit;
     }
 
     // throws QuotaExceededError
@@ -11,7 +20,7 @@ export default class AppSettings {
 
     static getDisplayPlaceBounds(): boolean {
         const displacPlaceBounds = localStorage.getItem("tezland:settings:displayPlaceBounds");
-        return displacPlaceBounds ? (displacPlaceBounds === 'true') : true;
+        return displacPlaceBounds ? (displacPlaceBounds === 'true') : this.defaults.displacPlaceBounds;
     }
 
     // throws QuotaExceededError
@@ -21,7 +30,7 @@ export default class AppSettings {
 
     static getDrawDistance(): number {
         const drawDistance = localStorage.getItem("tezland:settings:drawDistance");
-        return drawDistance ? parseInt(drawDistance) : 200;
+        return drawDistance ? parseInt(drawDistance) : this.defaults.drawDistance;
     }
 
     // throws QuotaExceededError
@@ -31,7 +40,7 @@ export default class AppSettings {
 
     static getShowFps(): boolean {
         const showFps = localStorage.getItem("tezland:settings:showFps");
-        return showFps ? (showFps === 'true') : true;
+        return showFps ? (showFps === 'true') : this.defaults.showFps;
     }
 
     // throws QuotaExceededError
@@ -41,7 +50,7 @@ export default class AppSettings {
 
     static getFileSizeLimit(): number {
         const fileSizeLimit = localStorage.getItem("tezland:settings:fileSizeLimit");
-        return fileSizeLimit ? parseInt(fileSizeLimit) : 67108864;
+        return fileSizeLimit ? parseInt(fileSizeLimit) : this.defaults.fileSizeLimit;
     }
 
     // throws QuotaExceededError
