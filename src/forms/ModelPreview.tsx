@@ -5,17 +5,6 @@ import { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh,
 import { countPolygons } from '../utils/Utils';
 
 
-// TODO: add a callback to call when model was loaded (or failed).
-type ModelPreviewProps = {
-    file?: File;
-};
-
-type ModelPreviewState = {
-    loading: boolean;
-    thumbnail: any;
-    polycount: number;
-};
-
 class PreviewScene {
 
     private engine: Engine;
@@ -67,7 +56,10 @@ class PreviewScene {
         return scene;
     };
 
-    async loadObject(file?: File): Promise<number> {
+    async loadObject(modelLoaded: ModelLoadedCallback, file?: File): Promise<number> {
+        // Tell the mint form the model is unloaded/false.
+        modelLoaded('none', 0, 0);
+
         if(this.previewObject) {
              this.previewObject.dispose();
              this.previewObject = null;
@@ -75,29 +67,54 @@ class PreviewScene {
 
         if(!file) return 0;
 
-        const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
-        this.previewObject = result.meshes[0] as Mesh;
+        try {
+            const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
+            this.previewObject = result.meshes[0] as Mesh;
 
-        const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
-        const extent = max.subtract(min);
+            const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
+            const extent = max.subtract(min);
 
-        const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
 
-        // Scale and move object based on extent.
-        const new_scale = 6 / extent_max;
-        this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+            // Scale and move object based on extent.
+            const new_scale = 6 / extent_max;
+            this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-        this.previewObject.position.y = -extent.y * new_scale / 2;
+            this.previewObject.position.y = -extent.y * new_scale / 2;
 
-        const polycount = countPolygons(result.meshes);
+            const polycount = countPolygons(result.meshes);
 
-        return polycount;
+            // Model loaded successfully.
+            modelLoaded('success', file.size, polycount);
+
+            return polycount;
+        }
+        catch {
+            modelLoaded('failed', 0, 0);
+
+            return 0;
+        }
     }
 
     getScreenshot(): Promise<string> {
         return Tools.CreateScreenshotAsync(this.engine, this.scene.activeCamera!, 350);
     }
 }
+
+export type ModelLoadingState = 'none' | 'success' | 'failed';
+type ModelLoadedCallback = (loadingState: ModelLoadingState, modelFileSize: number, polyCount: number) => void;
+
+// TODO: add a callback to call when model was loaded (or failed).
+type ModelPreviewProps = {
+    file?: File;
+    modelLoaded: ModelLoadedCallback;
+};
+
+type ModelPreviewState = {
+    loading: boolean;
+    thumbnail: any;
+    polycount: number;
+};
 
 class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState> {
     private mount = React.createRef<HTMLCanvasElement>();
@@ -122,7 +139,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         if(this.props.file !== prevProps.file) {
             // if file is not null and preview exists.
             if(this.preview) {
-                this.preview.loadObject(this.props.file).then((res) => {
+                this.preview.loadObject(this.props.modelLoaded, this.props.file).then((res) => {
                     this.setState({ polycount: res });
                 });
             }

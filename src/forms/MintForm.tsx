@@ -7,7 +7,7 @@ import {
     ErrorMessage
 } from 'formik';
 import CustomFileUpload from './CustomFileUpload'
-import ModelPreview from './ModelPreview'
+import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
 import { BlobLike, blobToBloblike, getFileExt } from '../utils/Utils';
@@ -30,6 +30,7 @@ type MintFormProps = {
 
 type MintFormState = {
     error: string;
+    modelLoadingState: ModelLoadingState;
     modelLimitWarning: string;
 }
 
@@ -44,11 +45,27 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         super(props);
         this.state = {
             error: "",
+            modelLoadingState: "none",
             modelLimitWarning: ""
         };
     }
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
+
+    private modelLoaded = (loadingState: ModelLoadingState, modelFileSize: number, polyCount: number) => {
+        // Model limits warning
+        if(loadingState === "success") {
+            let modelLimitWarning = '';
+            if(polyCount > AppSettings.defaults.polygonLimit)
+                modelLimitWarning = 'Exceeds default polygon limit. It may not be displayed.';
+
+            if(modelFileSize > AppSettings.defaults.fileSizeLimit)
+                modelLimitWarning = 'Exceeds default file size limit. It may not be displayed.';
+
+            this.setState({ modelLimitWarning: modelLimitWarning, modelLoadingState: loadingState });
+        }
+        else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState });
+    }
 
     render(): React.ReactNode {
         return (
@@ -61,24 +78,16 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                         const errors: FormikErrors<MintFormValues> = {};
 
                         if (!values.itemFile) {
-                            errors.itemFile = 'No file selected'
-                        } else if (this.modelPreviewRef.current!.state.polycount > 10000000) {
+                            errors.itemFile = 'No file selected';
+                        } else {
+                            // this is "delayed" because it depends on async state...
+                            // TODO: improve, somehow.
+                            if(this.state.modelLoadingState === "failed")
+                                errors.itemFile = 'Model file failed to load.';
+
                             // This is just here to filter out some obvious trolls.
-                            errors.itemFile = 'Mesh has too many polygons.';
-                        }
-
-                        // TODO: validate model! If it's valid and loaded, etc.
-
-                        // Model limits warning
-                        if(values.itemFile) {
-                            let modelLimitWarning = '';
-                            if(this.modelPreviewRef.current!.state.polycount > AppSettings.defaults.polygonLimit)
-                                modelLimitWarning = 'Exceeds default polygon limit. It may not be displayed.';
-
-                            if(values.itemFile.size > AppSettings.defaults.fileSizeLimit)
-                                modelLimitWarning = 'Exceeds default file size limit. It may not be displayed.';
-
-                            this.setState({ modelLimitWarning: modelLimitWarning });
+                            if (this.modelPreviewRef.current!.state.polycount > 10000000)
+                                errors.itemFile = 'Mesh has too many polygons.';
                         }
 
                         if (values.itemTitle.length === 0) {
@@ -124,7 +133,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                         fileSize: values.itemFile!.size
                                     }
                                 ]
-                            })
+                            });
 
                             // Post here and wait for result
                             const requestOptions = {
@@ -160,7 +169,6 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                     {({
                         values,
                         isSubmitting,
-                        errors,
                         touched,
                         isValid
                         /*errors,
@@ -213,7 +221,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                         <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} mint Item</button>
                                     </div>
                                     <div className='col'>
-                                        <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} />
+                                        <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} modelLoaded={this.modelLoaded} />
                                         <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
                                         {this.state.error.length > 0 && ( <small className='text-danger'>Minting failed: {this.state.error}</small> )}
                                     </div>
