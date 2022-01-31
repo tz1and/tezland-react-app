@@ -27,7 +27,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
                 {account}
             </div>
             <div id="explore-instructions" onClick={() => props.closeForm(false)}>
-                <p className='text-info App-logo-text'>[tz1aND]</p>
+                <img src="/logo_header.png" className='mb-4' style={{filter: "invert(1)", height: "calc(20px + 8vmin)"}} alt="tz1and" />
                 <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to enter</p>
                 <p>
                     Move: WASD<br />
