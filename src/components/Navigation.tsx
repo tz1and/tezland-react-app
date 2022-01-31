@@ -8,9 +8,8 @@ export default function Frontpage() {
         <header className="sticky-top p-3 bg-white text-dark">
             <div className="container">
                 <div className="d-flex flex-wrap align-items-center justify-content-start">
-                    <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none me-5">
-                        <img className="me-3" src="/logo192.png" alt="" width="40" height="40" />
-                        <span className="fs-4">[tz1aND]</span>
+                    <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none me-3">
+                        <img src="/logo_header.png" alt="tz1and" height="40" />
                     </Link>
 
                     <ul className="nav me-auto mb-2 justify-content-center mb-md-0">
