@@ -61,11 +61,11 @@ Feel free to add liquidity, I (probably XD) won't dump my tokens. But know that 
                 question: "Can I share my place with a spouse/friend/stranger I met online?",
                 answer: <span>Yes! You can!<br/><br/>
 
-You can allow others to place their Items on in your Place by adding them them as operators on your Place token. They will also be able to remove items, but Items belong to who placed them.<br/><br/>
+You can allow others to place their Items on in your Place by adding them them as operators on your Place <b><i>in the World contract</i></b>. They will also be able to remove items, but Items belong to who placed them.<br/><br/>
 
 Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
 
-<b className="bg-danger text-white p-1 px-2 rounded-1 d-inline-block mb-1"><i className="bi bi-exclamation-triangle-fill"></i> A word of caution!</b><br/>Operators have the power to transfer your Place token! I am not responsible for broken marriages and ruined friendships.</span>
+The World contract has it's own set of operators, like FA2 operators, but there is nothing to worry about, it does not grant any other rights than placing and removing Items. No potential for broken marriages or ruined friendships. :)</span>
             }
         ]
     },

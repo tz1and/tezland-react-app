@@ -69,11 +69,11 @@ export class Contracts {
       // check if wallet is connected before calling walletPHK
       if(!walletProvider.isWalletConnected()) return false;
 
-      if(!this.places)
-        this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
+      if(!this.marketplaces)
+        this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
       // use is_operator on-chain view.
-      const isOperatorRes = await this.places.contractViews.is_operator({ operator: walletProvider.walletPHK(), owner: owner, token_id: place_id }).executeView({viewCaller: this.places.address});
+      const isOperatorRes = await this.marketplaces.contractViews.is_operator({ operator: walletProvider.walletPHK(), owner: owner, token_id: place_id }).executeView({viewCaller: this.marketplaces.address});
 
       return isOperatorRes;
     }

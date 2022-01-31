@@ -52,9 +52,8 @@ export default class Place {
     get tempItemsNode() { return this._tempItemsNode; }
     private set tempItemsNode(val: Nullable<TransformNode>) { this._tempItemsNode = val; }
 
+    get isOwnedOrOperated(): boolean { return this.isOperated; }
     private owner: string;
-
-    get isOwned(): boolean { return this.owner === this.world.walletProvider.walletPHK(); }
     private isOperated: boolean;
 
     constructor(placeId: number, world: World) {
@@ -285,8 +284,8 @@ export default class Place {
             return false;
         }
 
-        if(!this.isOwned) {
-            Logging.InfoDev("can't save: place not owned: " + this.placeId);
+        if(!this.isOwnedOrOperated) {
+            Logging.InfoDev("can't save: place not owned or operated: " + this.placeId);
             return false;
         }
 
