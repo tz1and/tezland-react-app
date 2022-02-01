@@ -118,7 +118,6 @@ export class Contracts {
     }
 
     public async countPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
-        // use get_stored_items on-chain view.
         if (!this.places)
             this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
 
@@ -144,16 +143,16 @@ export class Contracts {
     }
 
     public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, placeUpdated: boolean): Promise<any> {
-        // use get_stored_items on-chain view.
+        // use get_place_data on-chain view.
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
         const stItemsKey = "placeItems";
 
         if (placeUpdated) {
-            //Logging.InfoDev("place items outdated, reading from chain")
+            Logging.InfoDev("place items outdated, reading from chain")
 
-            const result = await this.marketplaces.contractViews.get_stored_items(place_id).executeView({ viewCaller: this.marketplaces.address });
+            const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
 
             const foreachPairs: { id: number; data: object }[] = [];
             result.stored_items.forEach((val: object, key: number) => {
@@ -167,7 +166,7 @@ export class Contracts {
 
             return place_data;
         } else { // Otherwise load items from storage
-            //Logging.InfoDev("reading place from local storage")
+            Logging.InfoDev("reading place from local storage")
 
             const placeItemsStore = await Metadata.Storage.loadObject(place_id, stItemsKey);
 
