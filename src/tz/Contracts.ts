@@ -27,7 +27,10 @@ export class Contracts {
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
-        walletProvider.tezosToolkit().setProvider({ config: { shouldObservableSubscriptionRetry: true, streamerPollingIntervalMilliseconds: 5000 } });
+        walletProvider.tezosToolkit().setProvider({ config: {
+            shouldObservableSubscriptionRetry: true,
+            streamerPollingIntervalMilliseconds: 20000
+        } });
 
         try {
             const placesOperation = {
