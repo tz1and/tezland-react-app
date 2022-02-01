@@ -159,8 +159,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                     errors.placeId = 'Place ID invalid.';
                                 }
             
-                                if (values.duration <= 0 || values.duration > 720) {
-                                    errors.duration = 'Duration must be more than 0 and less than 720h.'
+                                if (values.duration * 3600 <= 60 || values.duration > 720) {
+                                    errors.duration = 'Duration must be more than 60s and less than 720h.'
                                 }
                               
                                 if (!values.startPrice || values.startPrice <= 0) {

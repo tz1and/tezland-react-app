@@ -21,7 +21,7 @@ export default class DutchAuction {
 
         const current_time = Math.floor(Date.now() / 1000);
         const start_time = (Math.floor(current_time / 60) + 1) * 60; // begins at the next full minute.
-        const end_time = start_time + duration * 3600; // hours to seconds
+        const end_time = Math.floor(start_time + duration * 3600); // hours to seconds
 
         const batch = walletProvider.tezosToolkit().wallet.batch([
             {
