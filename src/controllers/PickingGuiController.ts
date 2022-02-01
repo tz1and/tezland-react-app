@@ -173,7 +173,7 @@ export default class PickingGuiController {
         label.fontSize = "8px";
         label.height = "10px";
         label.width = 1;
-        label.text = !forSale && isSaved ? "" : `${metadata.itemAmount} Items - ${metadata.xtzPerItem === 0 ? "Not for sale" : metadata.xtzPerItem + " \uA729"}`;
+        label.text = !forSale && isSaved ? "" : `${metadata.itemAmount} Items - ${metadata.xtzPerItem === 0 ? "Not swappable." : metadata.xtzPerItem + " \uA729"}`;
         label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
         panel.addControl(label);
 
@@ -181,7 +181,7 @@ export default class PickingGuiController {
         label.fontSize = "8px";
         label.height = "32px";
         label.width = 1;
-        label.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not for sale.";
+        label.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not swappable.";
         label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
         panel.addControl(label);
 
