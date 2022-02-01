@@ -3,7 +3,8 @@ import {
     Formik,
     Form,
     Field,
-    FormikErrors
+    FormikErrors,
+    ErrorMessage
 } from 'formik';
 import { Node, Nullable } from '@babylonjs/core';
 import { InstanceMetadata } from '../world/Place';
@@ -31,6 +32,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
         itemPrice: 0
     };
 
+    const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
+
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
             <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm(true)} />
@@ -40,7 +43,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                 validate = {(values) => {
                     const errors: FormikErrors<PlaceFormValues> = {};
                   
-                    if (values.itemPrice < 0) {
+                    if (values.itemPrice !== 0 && values.itemPrice < 0.000001) {
                         errors.itemPrice = 'Price invalid';
                     }
 
@@ -64,8 +67,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                 }}
             >
                 {({
-                    errors,
-                    touched,
+                    setFieldValue,
                     isSubmitting,
                     isValid
                 }) => {
@@ -80,7 +82,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
                                 <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
                                 <div id="amountHelp" className="form-text">The number of Items to place. Can't be more than the amount you own.</div>
-                                {touched.itemAmount && errors.itemAmount && <small className="text-danger">{errors.itemAmount}</small>}
+                                <ErrorMessage name="itemAmount" children={errorDisplay}/>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemPrice" className="form-label">Price</label>
@@ -88,8 +90,9 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                     <span className="input-group-text">{'\uA729'}</span>
                                     <Field id="itemPrice" name="itemPrice" type="number" className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
                                 </div>
-                                <div id="priceHelp" className="form-text">The price for each item. Set 0&#42793; if not for sale.</div>
-                                {touched.itemPrice && errors.itemPrice && <small className="text-danger">{errors.itemPrice}</small>}
+                                <div id="priceHelp" className="form-text">The price for each Item. Set 0&#42793; if you don't want to swap.<br/>
+                                For <i>freebies</i>, <button type="button" className="btn btn-sm btn-link p-0 m-0 align-baseline" onClick={() => setFieldValue('itemPrice', 0.000001)}>set 0.000001&#42793;</button>.</div>
+                                <ErrorMessage name="itemPrice" children={errorDisplay}/>
                             </div>
                             <div className="form-text mb-3">There is a 2.5% management fee on successful swaps.</div>
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>
