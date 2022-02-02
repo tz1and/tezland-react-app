@@ -9,7 +9,7 @@ const faqData = [
             },
             {
                 question: "Is this project open source?",
-                answer: "The contracts are, so is the indexer. While the dApp isn't open source at the time of writing, I intend to open it up after some time."
+                answer: "The contracts are, so is the indexer. While the app itself isn't, at the time of writing, I intend to open it up after some time."
             },
             {
                 question: "Is there a roadmap?",
@@ -43,7 +43,9 @@ The World contract has it's own set of operators, like FA2 operators, but there 
                 question: "I'm trying to mint an Item and it tells me it might not be displayed.",
                 answer: `Well, there have to be some limits for this to work. If there are only a few multi-million polygon meshes in the world, it wouldn't.
 
-The limits aren't strictly enforced, can be overridden in the settings and they are chosen conservatively to begin with. Depending on how things will go, they might be increased.
+The default limits aren't strictly enforced, they can be overridden in the settings, and are chosen conservatively to begin with. Depending on how things will go, they might be increased.
+
+Until then, lowpoly has a nice aesthetic :)
 
 I'll probably also add a "visit single Place" option, where you can link people to your place and it will load all the crazy stuff you put in there.`
             }
