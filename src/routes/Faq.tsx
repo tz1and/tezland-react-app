@@ -88,6 +88,10 @@ Feel free to add liquidity, I (probably XD - joke) won't dump my tokens. But kno
                 answer: "It's teee-zeee-one-and. Joke. It's Tezland."
             },
             {
+                question: "Who made the logo? It's pretty good!",
+                answer: <span>Fiyin made the logo. Follow him on Twitter: <a href="https://www.twitter.com/FiyinOdebunmi" rel="noreferrer" target="_blank" >twitter.com/FiyinOdebunmi</a></span>
+            },
+            {
                 question: "I saw a mint function and I think this is a rug!",
                 answer: `You must be in some kind of parallel universe right now.`
             },

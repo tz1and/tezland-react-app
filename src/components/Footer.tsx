@@ -37,7 +37,7 @@ export default function Frontpage() {
                     </ul>
                 </div>
                 <div className="col-6 col-md">
-                    <h5>Socials</h5>
+                    <h5>Community</h5>
                     <ul className="list-unstyled text-small">
                         <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://discord.gg/fbpy4QdzSp">Discord</a></li>
                         {/*<li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://t.me/TODO">Telegram</a></li>
