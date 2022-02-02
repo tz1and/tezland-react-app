@@ -4,7 +4,8 @@ import {
     Form,
     Field,
     FormikErrors,
-    ErrorMessage
+    ErrorMessage,
+    FormikProps
 } from 'formik';
 import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
@@ -37,6 +38,7 @@ type MintFormState = {
 export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     private initialValues: MintFormValues = { itemTitle: "", itemDescription: "", itemTags: "", itemAmount: 1, itemRoyalties: 10 };
     private modelPreviewRef = React.createRef<ModelPreview>();
+    private formikRef = React.createRef<FormikProps<MintFormValues>>();
 
     static contextType = TezosWalletContext;
     context!: React.ContextType<typeof TezosWalletContext>;
@@ -65,6 +67,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             this.setState({ modelLimitWarning: modelLimitWarning, modelLoadingState: loadingState });
         }
         else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState });
+
+        this.formikRef.current?.validateField("itemFile")
     }
 
     render(): React.ReactNode {
@@ -73,6 +77,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />
                 <h2>mint Item</h2>
                 <Formik
+                    innerRef={this.formikRef}
                     initialValues={this.initialValues}
                     validate = {(values) => {
                         const errors: FormikErrors<MintFormValues> = {};
