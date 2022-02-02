@@ -5,7 +5,7 @@ const faqData = [
         items: [
             {
                 question: "Are the smart contracts audited?",
-                answer: <span>No, not yet. You know what that means.<br/><br/>I was as careful as can be, wrote test and all that. The contract source code is available on <a target="_blank" rel="noreferrer" href="https://github.com/tz1aND">GitHub</a>.</span>
+                answer: <span>No, not yet. You know what that means.<br/><br/>I was as careful as can be, wrote test and all that. The contract source code is available on <a target="_blank" rel="noreferrer" href="https://github.com/tz1and">GitHub</a>.</span>
             },
             {
                 question: "Is this project open source?",
@@ -36,11 +36,11 @@ The next thing I'd like to do is 'multiplayer', so you can see and interact with
         id: 'token',
         items: [
             {
-                question: "What's the 'tz1aND Places' token?",
-                answer: `It represents the Places you can own on tz1aND. For now only exteriors, but interiors are planned.\n\nIt's a non-fungible multi-token.`
+                question: "What's the 'tz1and Places' token?",
+                answer: `It represents the Places you can own on tz1and. For now only exteriors, but interiors are planned.\n\nIt's a non-fungible multi-token.`
             },
             {
-                question: "And the 'tz1aND Items' token?",
+                question: "And the 'tz1and Items' token?",
                 answer: `These are the Items you can mint, collect and show off in your Place in the virtual world.
 
 A fungible multi-token. The Item data is stored on IPFS.
@@ -48,7 +48,7 @@ A fungible multi-token. The Item data is stored on IPFS.
 The Items contract also has a burn function, if you ever feel like burning some tokens.`
             },
             {
-                question: "There's this 'tz1aND DAO' token...",
+                question: "There's this 'tz1and DAO' token...",
                 answer: `The plan is to transition this into some sorf of community project, a 'decentralized autonomous organization', if you will.
 
 Eventually, you will be able to use the DAO token to vote on proposals.

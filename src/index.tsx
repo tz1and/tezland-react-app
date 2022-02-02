@@ -11,6 +11,7 @@ import './index.css';
 import AppRouter from './AppRouter';
 import Metadata from './world/Metadata';
 import { Notification } from './components/Notification';
+import { sleep } from './utils/Utils';
 
 
 // TODO: find a better way to do this, see todo.
@@ -28,6 +29,18 @@ Metadata.Storage.open(() => {
     );
 })
 
+const renderCallback = () => {
+    sleep(500).then(() => {
+        const loader = document.getElementById('loader-container')
+        if(!loader) return;
+
+        loader.classList.add("hidden");
+        sleep(500).then(() => {
+            loader.remove();
+        });
+    });
+}
+
 const renderApp = (element?: JSX.Element) => {
     ReactDOM.render(
         <React.StrictMode>
@@ -35,7 +48,8 @@ const renderApp = (element?: JSX.Element) => {
                 {element}
             </AppRouter>
         </React.StrictMode>,
-        document.getElementById('root')
+        document.getElementById('root'),
+        renderCallback
     );
 }
 
