@@ -23,7 +23,7 @@ export default function Frontpage() {
                     <h5>Resources</h5>
                     <ul className="list-unstyled text-small">
                         {/*<li><Link className="link-secondary" to="/docs">Documentation</Link></li>*/}
-                        <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://www.github.com">GitHub</a></li>
+                        <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://www.github.com/tz1and">GitHub</a></li>
                     </ul>
                 </div>
                 <div className="col-6 col-md">
