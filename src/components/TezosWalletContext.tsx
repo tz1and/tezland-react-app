@@ -133,7 +133,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
     }
 
     private setupWallet() {
-        if(useInMemorySigner) {
+        if(isDev() && useInMemorySigner) {
             // NOTE: these are KNOWN account keys.
             // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
             // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt

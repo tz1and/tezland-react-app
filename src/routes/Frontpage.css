@@ -1,0 +1,4 @@
+.link-progress {
+    cursor: progress !important;
+    pointer-events: unset !important;
+}
