@@ -75,8 +75,6 @@ Eventually, you will be able to use the DAO token to vote on proposals.
 
 Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team vote-fund.
 
-To be perfectly honest, as long as the project hasn't transitioned to a DAO, I'll be paying myself from the management fees.
-
 Feel free to add liquidity, I (probably XD - joke) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             }
         ]
