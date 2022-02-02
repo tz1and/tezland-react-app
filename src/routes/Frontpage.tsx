@@ -8,7 +8,7 @@ export default function Frontpage() {
                 <div className="col-lg-6 mx-auto">
                     <p className="lead mb-4">Lorem ipsum... let's build a piece of art. Expanding, not based on scarcity.</p>
                     <div className="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
-                        <Link to="/explore" className="btn btn-primary btn-lg px-4 me-sm-3 shadow">Explore</Link>
+                        <Link to="/explore" className="btn btn-primary btn-lg disabled px-4 me-sm-3 shadow">Explore (soon&trade;)</Link>
                         <Link to="/faq" className="btn btn-outline-secondary btn-lg px-4 shadow-sm">Learn More</Link>
                     </div>
                 </div>
