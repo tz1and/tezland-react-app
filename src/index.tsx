@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import $ from 'jquery'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { createPopper } from '@popperjs/core'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import 'bootstrap/dist/js/bootstrap.bundle.min';
+import 'bootstrap';
 
 import React from 'react';
 import ReactDOM from 'react-dom';

@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
-import { truncate } from "../utils/Utils";
 import './Navigation.css';
-import { useTezosWalletContext } from "./TezosWalletContext";
+import WalletWidget from "./WalletWidget";
 
 export default function Frontpage() {
-    const context = useTezosWalletContext()
     return (
         <header className="sticky-top py-3 bg-white text-dark">
             <div className="container px-0">
@@ -22,15 +20,7 @@ export default function Frontpage() {
                         <li><Link to="/explore" className="nav-link px-2">Explore</Link></li>
                     </ul>
 
-                    {/*<Link to="/explore" className="btn btn-primary mb-auto">Explore</Link>*/}
-                    { context.isWalletConnected() ?
-                        <div className="btn-group" role="group" aria-label="Basic example">
-                            <button className="btn btn-dark mb-auto ms-3 px-2"><i className="bi bi-wallet2"></i></button>
-                            <button className="btn btn-outline-dark mb-auto px-2">{truncate(context.walletPHK(), 10, '\u2026')}</button>
-                            <button className="btn btn-primary mb-auto" onClick={() => context.disconnectWallet()}>Disonnect Wallet</button>
-                        </div> :
-                        <button className="btn btn-success mb-auto ms-3" onClick={() => context.connectWallet()}>Connect Wallet</button>
-                    }
+                    <WalletWidget/>
                 </div>
             </div>
         </header>
