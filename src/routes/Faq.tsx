@@ -38,6 +38,14 @@ You can allow others to place their Items on in your Place by adding them them a
 Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
 
 The World contract has it's own set of operators, like FA2 operators, but there is nothing to worry about, it does not grant any other rights than placing and removing Items. No potential for broken marriages or ruined friendships. :)</span>
+            },
+            {
+                question: "I'm trying to mint an Item and it tells me it might not be displayed.",
+                answer: `Well, there have to be some limits for this to work. If there are only a few multi-million polygon meshes in the world, it wouldn't.
+
+The limits aren't strictly enforced, can be overridden in the settings and they are chosen conservatively to begin with. Depending on how things will go, they might be increased.
+
+I'll probably also add a "visit single Place" option, where you can link people to your place and it will load all the crazy stuff you put in there.`
             }
         ]
     },
@@ -63,7 +71,9 @@ The Items contract also has an owner-only burn function, if you ever feel like b
 
 Eventually, you will be able to use the DAO token to vote on proposals.
 
-Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team fund.
+Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team vote-fund.
+
+To be perfectly honest, as long as the project hasn't transitioned to a DAO, I'll be paying myself from the management fees.
 
 Feel free to add liquidity, I (probably XD - joke) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             }

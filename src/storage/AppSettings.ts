@@ -1,8 +1,8 @@
 export default class AppSettings {
 
     static defaults = {
-        polygonLimit: 10000,
-        fileSizeLimit: 16777216, // 16 Mb
+        polygonLimit: 3072,
+        fileSizeLimit: 6291456, // 6 Mb
         drawDistance: 200,
         displacPlaceBounds: true,
         showFps: true,
