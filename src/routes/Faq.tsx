@@ -18,7 +18,7 @@ const faqData = [
 The next thing I'd like to do is 'multiplayer', so you can see and interact with others in the world. Maybe avatars?`
             },
             {
-                question: "What types of NFTs are supported?",
+                question: "What types of content is supported?",
                 answer: "For now, only 3D models in GLTF format, but expect other multimedia content to follow. Images and audio."
             },
             {
@@ -26,8 +26,18 @@ The next thing I'd like to do is 'multiplayer', so you can see and interact with
                 answer: "That's the plan, yes. At a pace that is sensible and technically feasible. Keep in mind that there are always new technical limitations to be overcome.\n\nMostly web browsers..."
             },
             {
-                question: "How is the name pronounced?",
-                answer: "It's teee-zeee-one-and. Joke. It's Tezland."
+                question: "Can I show off other NFTs in my Place, not just tz1and Items?",
+                answer: "Yes, but not initially. The World contract has support for this.\n\nIt will be enabled at some point, it needs to implemented in the app."
+            },
+            {
+                question: "Can I share my place with a spouse/friend/stranger I met online?",
+                answer: <span>Yes! You can!<br/><br/>
+
+You can allow others to place their Items on in your Place by adding them them as operators on your Place <b><i>in the World contract</i></b>. They will also be able to remove items, but Items belong to who placed them.<br/><br/>
+
+Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
+
+The World contract has it's own set of operators, like FA2 operators, but there is nothing to worry about, it does not grant any other rights than placing and removing Items. No potential for broken marriages or ruined friendships. :)</span>
             }
         ]
     },
@@ -43,9 +53,9 @@ The next thing I'd like to do is 'multiplayer', so you can see and interact with
                 question: "And the 'tz1and Items' token?",
                 answer: `These are the Items you can mint, collect and show off in your Place in the virtual world.
 
-A fungible multi-token. The Item data is stored on IPFS.
+A semi-fungible multi-token. The Item (meta)data is stored on IPFS.
 
-The Items contract also has a burn function, if you ever feel like burning some tokens.`
+The Items contract also has an owner-only burn function, if you ever feel like burning some tokens.`
             },
             {
                 question: "There's this 'tz1and DAO' token...",
@@ -55,17 +65,7 @@ Eventually, you will be able to use the DAO token to vote on proposals.
 
 Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team fund.
 
-Feel free to add liquidity, I (probably XD) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
-            },
-            {
-                question: "Can I share my place with a spouse/friend/stranger I met online?",
-                answer: <span>Yes! You can!<br/><br/>
-
-You can allow others to place their Items on in your Place by adding them them as operators on your Place <b><i>in the World contract</i></b>. They will also be able to remove items, but Items belong to who placed them.<br/><br/>
-
-Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
-
-The World contract has it's own set of operators, like FA2 operators, but there is nothing to worry about, it does not grant any other rights than placing and removing Items. No potential for broken marriages or ruined friendships. :)</span>
+Feel free to add liquidity, I (probably XD - joke) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
             }
         ]
     },
@@ -73,6 +73,10 @@ The World contract has it's own set of operators, like FA2 operators, but there 
         title: 'Other/Fun',
         id: 'other',
         items: [
+            {
+                question: "How is the name pronounced?",
+                answer: "It's teee-zeee-one-and. Joke. It's Tezland."
+            },
             {
                 question: "I saw a mint function and I think this is a rug!",
                 answer: `You must be in some kind of parallel universe right now.`

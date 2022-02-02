@@ -1,6 +1,4 @@
-//import { Link } from "react-router-dom";
 import { Link } from 'react-router-dom';
-import './Frontpage.css';
 
 export default function Frontpage() {
     return (
