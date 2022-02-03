@@ -18,7 +18,7 @@ const faqData = [
 The next thing I'd like to do is 'multiplayer', so you can see and interact with others in the world. Maybe avatars?`
             },
             {
-                question: "What types of content is supported?",
+                question: "What types of content are supported?",
                 answer: "For now, only 3D models in GLTF format, but expect other multimedia content to follow. Images and audio."
             },
             {
