@@ -12,6 +12,7 @@ import AppRouter from './AppRouter';
 import Metadata from './world/Metadata';
 import { Notification } from './components/Notification';
 import { sleep } from './utils/Utils';
+import Conf from './Config';
 
 
 // TODO: find a better way to do this, see todo.
@@ -42,10 +43,20 @@ const renderCallback = () => {
 }
 
 const renderApp = (element?: JSX.Element) => {
+    const testnetNotify = Conf.tezos_network === "hangzhounet" ?
+        <div className="toast-container position-fixed bottom-0 start-50 translate-middle-x p-4" style={{zIndex: "1050"}}>
+            <Notification data={{
+                id: "liveOnTestnet",
+                title: "Live on testnet",
+                body: <span>tz1and is live on the testnet!<br/><br/>To give it a try, grab an account <a href="https://teztnets.xyz/hangzhounet-faucet" target="_blank" rel="noreferrer">from the faucet</a> and import it in TempleWallet.</span>,
+                type: 'info' }}/>
+        </div> : null
+
     ReactDOM.render(
         <React.StrictMode>
             <AppRouter>
                 {element}
+                {testnetNotify}
             </AppRouter>
         </React.StrictMode>,
         document.getElementById('root'),

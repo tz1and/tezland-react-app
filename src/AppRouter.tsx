@@ -1,10 +1,10 @@
 import React from 'react'; // we need this to make JSX compile
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-/*import Explore from './components/Explore';
+import Explore from './components/Explore';
 import Auctions from './routes/Auctions';
 import { CreateAuctionFormW } from './forms/CreateAuction';
-import Map from './routes/Map';*/
-import ComingSoon from './routes/ComingSoon';
+import Map from './routes/Map';
+//import ComingSoon from './routes/ComingSoon';
 import SiteLayout from './routes/SiteLayout';
 import Frontpage from './routes/Frontpage';
 import Faq from './routes/Faq';
@@ -24,25 +24,18 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                     <Route path="/" element={<SiteLayout />}>
                         <Route path="" element={<Frontpage />} />
 
-                        {/* TEMP: actual routes */}
-                        {/*<Route path="auctions">
+                        <Route path="auctions">
                             <Route path="" element={<Auctions />} />
                             <Route path="create" element={<CreateAuctionFormW />} />
                         </Route>
-                        <Route path="map" element={<Map />} />*/}
-
-                        {/* TEMP: coming soon */}
-                        <Route path="auctions" element={<ComingSoon />} />
-                        <Route path="map" element={<ComingSoon />} />
-                        <Route path="explore" element={<ComingSoon />} />
+                        <Route path="map" element={<Map />} />
 
                         <Route path="docs" element={<Docs />} />
                         <Route path="faq" element={<Faq />} />
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                         <Route path="*" element={<PageNotFound />}/>
                     </Route>
-                    {/* TEMP: actual explore routes */}
-                    {/*<Route path="/explore" element={<Explore />} />*/}
+                    <Route path="/explore" element={<Explore />} />
                 </Routes>
             </BrowserRouter>
         </TezosWalletProvider>
