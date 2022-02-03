@@ -3,7 +3,7 @@ import React from 'react';
 export type NotificationData = {
     id: string
     title: string,
-    body: string,
+    body: string | JSX.Element,
     type: 'warning' | 'danger' | 'info' | 'success'
 }
 
