@@ -187,7 +187,7 @@ type PlaceMetadata = {
 
 export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
     const full_metadata: any = {
-        identifier: metadata.name,
+        name: metadata.name,
         description: metadata.description,
         minter: metadata.minter,
         isTransferable: true,
@@ -226,7 +226,8 @@ export async function upload_places(places: string[]): Promise<string[]> {
         };
         promises.push(fetch(Conf.backend_url + "/upload", requestOptions));
 
-        if(count >= 20) {
+        // TODO: This is borken. when metadata is empty, some promises stay unresolved...
+        if(count >= 1) {
             const responses = await Promise.all(promises);
 
             for (const r of responses) {

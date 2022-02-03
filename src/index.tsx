@@ -43,7 +43,7 @@ const renderCallback = () => {
 }
 
 const renderApp = (element?: JSX.Element) => {
-    const testnetNotify = Conf.tezos_network === "hangzhounet" ?
+    const testnetNotify = Conf.tezos_network === "hangzhou2net" ?
         <div className="toast-container position-fixed bottom-0 start-50 translate-middle-x p-4" style={{zIndex: "1050"}}>
             <Notification data={{
                 id: "liveOnTestnet",

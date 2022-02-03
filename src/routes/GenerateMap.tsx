@@ -684,7 +684,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const clippedLand: Land[] = []
 
         let land_limit_counter = 0;
-        let land_limit = Infinity;
+        const land_limit = Infinity;
         for(const land of landArray) {
             if(land_limit_counter > land_limit) break;
 

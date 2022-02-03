@@ -84,7 +84,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
 
     private static getNetworkType() {
         if (Conf.tezos_network === "mainnet") return NetworkType.MAINNET;
-        else if (Conf.tezos_network === "hangzhounet") return NetworkType.HANGZHOUNET;
+        else if (Conf.tezos_network === "hangzhou2net") return NetworkType.HANGZHOUNET;
 
         assert(Conf.tezos_network === "sandboxnet");
         return NetworkType.CUSTOM;
