@@ -7,6 +7,7 @@ import { isDev } from "../utils/Utils";
 import { InMemorySigner } from "@taquito/signer";
 import EventEmitter from "events";
 import { OperationPending, OperationPendingData } from "./OperationPending";
+import assert from "assert";
 
 export type ITezosWalletProvider = {
     //setWalletAddress(walletAddress: string): void
@@ -81,11 +82,19 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         return this.state.walletEventEmitter;
     }
 
+    private static getNetworkType() {
+        if (Conf.tezos_network === "mainnet") return NetworkType.MAINNET;
+        else if (Conf.tezos_network === "hangzhounet") return NetworkType.HANGZHOUNET;
+
+        assert(Conf.tezos_network === "sandboxnet");
+        return NetworkType.CUSTOM;
+    }
+
     public setupBeaconWallet() {
         const appUrl = isDev() ? "http://localhost:3006" : Conf.public_url;
         const options: DAppClientOptions = {
             name: isDev() ? 'tz1and-dev' : 'tz1and',
-            preferredNetwork: isDev() ? NetworkType.CUSTOM : NetworkType.MAINNET,
+            preferredNetwork: TezosWalletProvider.getNetworkType(),
             appUrl: appUrl,
             iconUrl: appUrl + "/logo192.png",
             /*eventHandlers: {
@@ -114,7 +123,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
             this.state.beaconWallet!
                 //.requestPermissions({ network: { type: NetworkType.MAINNET } }) // For mainnet
                 .requestPermissions({ network: {
-                    type: isDev() ? NetworkType.CUSTOM : NetworkType.MAINNET,
+                    type: TezosWalletProvider.getNetworkType(),
                     name: Conf.tezos_network,
                     rpcUrl: Conf.tezos_node } }) // for dev
                 .then((_) => this.state.beaconWallet!.getPKH())
