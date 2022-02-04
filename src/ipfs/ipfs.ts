@@ -32,8 +32,8 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         const itemCachedStats = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
         const polygonLimit = AppSettings.getPolygonLimit();
 
-        // remove ipfs:// from uri
-        const hash = itemMetadata.artifactUri.slice(7);
+        // remove ipfs:// from uri. some gateways requre a / in the end.
+        const hash = itemMetadata.artifactUri.slice(7) + '/';
 
         // early out if file size in metadata is missing.
         // NOTE: can't really be missing as default in indexer db is 34359738368.
@@ -43,7 +43,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
             return null;
         }
 
-        var fileSize = 34359738368;
+        var fileSize = itemMetadata.fileSize;
         // early out if cached stats exceed limits
         if(itemCachedStats) {
             fileSize = itemCachedStats.fileSize;
@@ -60,8 +60,17 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
                 return null;
             }
         }
-        // If no cached stats, get file size from url
+        // TODO: while we can't do head requests to a gateway, rely on the item metadata.
         else {
+            // early out if the file size from metadata is > sizeLimit.
+            if(fileSize > AppSettings.getFileSizeLimit()) {
+                Logging.Warn("Item " + item_id + " exceeds size limits. Ignoring.");
+                return null;
+            }
+        }
+        // If no cached stats, get file size from url
+        // TODO: cloudfalre ipfs gateway doesn't like this
+        /*else {
             // Item metadata may be lying. Lets make sure.
             fileSize = await getUrlFileSizeHead(Conf.ipfs_gateway + '/ipfs/' + hash);
             if(fileSize > AppSettings.getFileSizeLimit()) {
@@ -69,7 +78,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
                 Logging.Warn("Item " + item_id + " file exceeds size limits. Ignoring.");
                 return null;
             }
-        }
+        }*/
 
         const mime_type = itemMetadata.mimeType;
 
@@ -79,6 +88,8 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         else if (mime_type === "model/gltf+json")
             plugin_ext = ".gltf";
         else throw new Error("Unsupported mimeType");
+
+        // TODO: download file, then load, better for babylon cache.
 
         // LoadAssetContainer?
         const newMeshes = await SceneLoader.ImportMeshAsync('', Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
