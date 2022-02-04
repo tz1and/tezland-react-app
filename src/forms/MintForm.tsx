@@ -58,10 +58,10 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         // Model limits warning
         if(loadingState === "success") {
             let modelLimitWarning = '';
-            if(polyCount > AppSettings.defaults.polygonLimit)
+            if(polyCount > AppSettings.polygonLimit.defaultValue)
                 modelLimitWarning = 'Exceeds default polygon limit. It may not be displayed.';
 
-            if(modelFileSize > AppSettings.defaults.fileSizeLimit)
+            if(modelFileSize > AppSettings.fileSizeLimit.defaultValue)
                 modelLimitWarning = 'Exceeds default file size limit. It may not be displayed.';
 
             this.setState({ modelLimitWarning: modelLimitWarning, modelLoadingState: loadingState });

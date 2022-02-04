@@ -34,7 +34,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             show_form: 'instructions',
             dispaly_overlay: true,
             placedItem: null,
-            showFps: AppSettings.getShowFps(),
+            showFps: AppSettings.showFps.value,
             notifications: []
             // optional second annotation for better type inference
             //count: 0,

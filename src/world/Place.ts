@@ -130,7 +130,7 @@ export default class Place {
             this.placeBounds = this.extrudeMeshFromShape(shape, this.buildHeight + 1, new Vector3(this.origin.x, this.buildHeight, this.origin.z),
                 this.world.transparentGridMat);
 
-            this.placeBounds.visibility = +AppSettings.getDisplayPlaceBounds();
+            this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
             // Call getHierarchyBoundingVectors to force updating the bounding info!
             this.placeBounds.getHierarchyBoundingVectors();
 

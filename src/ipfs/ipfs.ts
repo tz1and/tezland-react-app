@@ -3,7 +3,7 @@ import '@babylonjs/loaders/glTF';
 import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
-import { BlobLike, countPolygons, getUrlFileSizeHead } from '../utils/Utils';
+import { BlobLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import AppSettings from '../storage/AppSettings';
 import assert from 'assert';
@@ -30,7 +30,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
     if(!mesh) {
         const itemMetadata = await Metadata.getItemMetadata(item_id.toNumber());
         const itemCachedStats = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
-        const polygonLimit = AppSettings.getPolygonLimit();
+        const polygonLimit = AppSettings.polygonLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
         const hash = itemMetadata.artifactUri.slice(7) + '/';
@@ -49,7 +49,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
             fileSize = itemCachedStats.fileSize;
 
             // early out if the cached fileSize is > sizeLimit.
-            if(itemCachedStats.fileSize > AppSettings.getFileSizeLimit()) {
+            if(itemCachedStats.fileSize > AppSettings.fileSizeLimit.value) {
                 Logging.Warn("Item " + item_id + " exceeds size limits. Ignoring.");
                 return null;
             }
@@ -63,7 +63,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         // TODO: while we can't do head requests to a gateway, rely on the item metadata.
         else {
             // early out if the file size from metadata is > sizeLimit.
-            if(fileSize > AppSettings.getFileSizeLimit()) {
+            if(fileSize > AppSettings.fileSizeLimit.value) {
                 Logging.Warn("Item " + item_id + " exceeds size limits. Ignoring.");
                 return null;
             }

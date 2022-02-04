@@ -1,60 +1,55 @@
+interface IAppSetting<T> {
+    readonly defaultValue: T;
+
+    loadSetting(): T;
+
+    get value(): T;
+    set value(newVal: T);
+}
+
+type CtorFunc<T> = new(value?: any) => T
+
+class AppSetting<T extends Object> implements IAppSetting<T> {
+    private valCtor: CtorFunc<T>;
+    private _value: T;
+    readonly defaultValue: T;
+
+    private settingName: string;
+
+    constructor(settingName: string, defaultValue: T, ctr: CtorFunc<T>) {
+        this.settingName = settingName;
+        this.defaultValue = defaultValue;
+        this.valCtor = ctr;
+
+        this._value = this.loadSetting();
+    }
+
+    loadSetting(): T {
+        const res = localStorage.getItem("tezland:settings:" + this.settingName);
+        return res ? new this.valCtor(res) : this.defaultValue;
+    }
+
+    get value(): T {
+        return this._value;
+    }
+
+    set value(newVal: T) {
+        this._value = newVal;
+        localStorage.setItem("tezland:settings:" + this.settingName, this._value.toString());
+    }
+}
+
+const numberCtor = Number.prototype.constructor as CtorFunc<number>;
+const boolCtor = Number.prototype.constructor as CtorFunc<boolean>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const stringCtor = Number.prototype.constructor as CtorFunc<string>;
+
 export default class AppSettings {
+    static polygonLimit = new AppSetting<number>("polygonLimit", 3072, numberCtor);
+    static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, numberCtor); // MiB default.
 
-    static defaults = {
-        polygonLimit: 3072,
-        fileSizeLimit: 6291456, // 6 Mb
-        drawDistance: 200,
-        displacPlaceBounds: true,
-        showFps: true,
-    };
+    static drawDistance = new AppSetting<number>("drawDistance", 200, numberCtor);
 
-    static getPolygonLimit(): number {
-        const polygonLimit = localStorage.getItem("tezland:settings:polygonLimit");
-        return polygonLimit ? parseInt(polygonLimit) : this.defaults.polygonLimit;
-    }
-
-    // throws QuotaExceededError
-    static setPolygonLimit(limit: number) {
-        localStorage.setItem("tezland:settings:polygonLimit", limit.toString());
-    }
-
-    static getDisplayPlaceBounds(): boolean {
-        const displacPlaceBounds = localStorage.getItem("tezland:settings:displayPlaceBounds");
-        return displacPlaceBounds ? (displacPlaceBounds === 'true') : this.defaults.displacPlaceBounds;
-    }
-
-    // throws QuotaExceededError
-    static setDisplayPlaceBounds(enable: boolean) {
-        localStorage.setItem("tezland:settings:displayPlaceBounds", enable.toString());
-    }
-
-    static getDrawDistance(): number {
-        const drawDistance = localStorage.getItem("tezland:settings:drawDistance");
-        return drawDistance ? parseInt(drawDistance) : this.defaults.drawDistance;
-    }
-
-    // throws QuotaExceededError
-    static setDrawDistance(dist: number) {
-        localStorage.setItem("tezland:settings:drawDistance", dist.toString());
-    }
-
-    static getShowFps(): boolean {
-        const showFps = localStorage.getItem("tezland:settings:showFps");
-        return showFps ? (showFps === 'true') : this.defaults.showFps;
-    }
-
-    // throws QuotaExceededError
-    static setShowFps(enable: boolean) {
-        localStorage.setItem("tezland:settings:showFps", enable.toString());
-    }
-
-    static getFileSizeLimit(): number {
-        const fileSizeLimit = localStorage.getItem("tezland:settings:fileSizeLimit");
-        return fileSizeLimit ? parseInt(fileSizeLimit) : this.defaults.fileSizeLimit;
-    }
-
-    // throws QuotaExceededError
-    static setFileSizeLimit(limit: number) {
-        localStorage.setItem("tezland:settings:fileSizeLimit", limit.toString());
-    }
+    static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", true, boolCtor);
+    static showFps = new AppSetting<boolean>("showFps", true, boolCtor);
 }

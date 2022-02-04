@@ -48,7 +48,7 @@ export class World {
     readonly worldGridAccessor: WorldGridAccessor;
     private gridCreateCallback = () => { return new Set<PlaceId>() }
 
-    private placeDrawDistance = AppSettings.getDrawDistance();
+    private placeDrawDistance = AppSettings.drawDistance.value;
     private lastUpdatePosition: Vector3;
     // TODO
     //private queuedPlaceUpdates: PlaceId[] = [];

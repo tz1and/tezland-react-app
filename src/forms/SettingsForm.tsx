@@ -31,11 +31,11 @@ type SettingsFormState = {
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     const state: SettingsFormState = { error: "" }
     const initialValues: SettingsFormValues = {
-        polygonLimit: AppSettings.getPolygonLimit(),
-        modelFileSizeLimit: AppSettings.getFileSizeLimit() / 1024 / 1024, // should be in MB
-        displayPlaceBounds: AppSettings.getDisplayPlaceBounds(),
-        drawDistance: AppSettings.getDrawDistance(),
-        showFps: AppSettings.getShowFps()
+        polygonLimit: AppSettings.polygonLimit.value,
+        modelFileSizeLimit: AppSettings.fileSizeLimit.value / 1024 / 1024, // should be in MB
+        displayPlaceBounds: AppSettings.displayPlaceBounds.value,
+        drawDistance: AppSettings.drawDistance.value,
+        showFps: AppSettings.showFps.value
     };
 
     return (
@@ -63,11 +63,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 }}
                 onSubmit={(values, actions) => {
                     try {
-                        AppSettings.setPolygonLimit(values.polygonLimit);
-                        AppSettings.setFileSizeLimit(parseInt((values.modelFileSizeLimit * 1024 * 1024).toFixed(0)));
-                        AppSettings.setDisplayPlaceBounds(values.displayPlaceBounds);
-                        AppSettings.setDrawDistance(values.drawDistance);
-                        AppSettings.setShowFps(values.showFps);
+                        AppSettings.polygonLimit.value = values.polygonLimit;
+                        AppSettings.fileSizeLimit.value = parseInt((values.modelFileSizeLimit * 1024 * 1024).toFixed(0));
+                        AppSettings.displayPlaceBounds.value = values.displayPlaceBounds;
+                        AppSettings.drawDistance.value = values.drawDistance;
+                        AppSettings.showFps.value = values.showFps;
 
                         props.closeForm(false);
 
