@@ -143,11 +143,14 @@ export default class Place {
             this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
             this.tempItemsNode.position = this.origin.clone();
 
-            this.owner = await Contracts.getPlaceOwner(this.placeId);
-            // TODO: maybe reload isOperated when you enter a place.
-            // OR EVEN BETTER. listen to walletChanged events and reload for all places.
-            // OR EVEN EVEN BETTER. listen for specific contract events.
-            this.isOperated = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
+            // update owner and operator ansychronously
+            (async () => {
+                this.owner = await Contracts.getPlaceOwner(this.placeId);
+                // TODO: maybe reload isOperated when you enter a place.
+                // OR EVEN BETTER. listen to walletChanged events and reload for all places.
+                // OR EVEN EVEN BETTER. listen for specific contract events.
+                this.isOperated = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
+            })()
 
             this.world.playerController.playerTrigger.actionManager?.registerAction(
                 new ExecuteCodeAction(
@@ -167,7 +170,11 @@ export default class Place {
 
             //LoggingDev.InfoDev(`generating place took ${performance.now() - startTime} milliseconds`)
 
-            await this.loadItems(false);
+            // TODO:
+            // Problem with loading asynchronously is that meshes could be loaded into the scene twice.
+            // Needs to be fixed!
+            //await
+            this.loadItems(false);
 
             //LoggingDev.InfoDev(`Call to load took ${performance.now() - startTime} milliseconds`)
         } catch(e) {
