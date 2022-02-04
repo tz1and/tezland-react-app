@@ -22,6 +22,7 @@ type ExploreState = {
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[];
+    placeInfo : {placeId: number, owner: string, ownedOrOperated: boolean};
     //count: number; // like this
 };
 
@@ -35,7 +36,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             dispaly_overlay: true,
             placedItem: null,
             showFps: AppSettings.showFps.value,
-            notifications: []
+            notifications: [],
+            placeInfo: {placeId: 0, owner: '', ownedOrOperated: false}
             // optional second annotation for better type inference
             //count: 0,
         };
@@ -93,6 +95,14 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
+    updatePlaceInfo = (placeId: number, owner: string, ownedOrOperated: boolean) => {
+        this.setState({placeInfo: {
+            placeId: placeId,
+            owner: owner,
+            ownedOrOperated: ownedOrOperated
+        }});
+    }
+
     render() {
         // TODO: maybe could use router for overlay/forms.
         let form;
@@ -109,7 +119,17 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 </div>
             </div>
 
-        let controlInfo = !this.state.dispaly_overlay ? null : <ControlsHelp/>;
+        let controlInfo = this.state.dispaly_overlay ? <ControlsHelp/> : null;
+
+        console.log(this.state.placeInfo.ownedOrOperated)
+
+        let placeInfoOverlay = this.state.dispaly_overlay ? null :
+            <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
+                <h5>Place #{this.state.placeInfo.placeId}</h5>
+                <hr/>
+                Owner: {this.state.placeInfo.owner}<br/>
+                Permissions: {this.state.placeInfo.ownedOrOperated ? "Yes" : "No"}
+            </div>;
 
         let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 
@@ -119,12 +139,14 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}
                 {controlInfo}
+                {placeInfoOverlay}
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{
                     setOverlayDispaly: this.setOverlayDispaly,
                     loadForm: this.loadForm,
                     placeItem: this.placeItem,
                     addNotification: this.addNotification,
+                    updatePlaceInfo: this.updatePlaceInfo,
                 }} />
             </div>
         );

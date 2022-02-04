@@ -8,4 +8,5 @@ export type AppControlFunctions = {
     setOverlayDispaly(display: boolean): void;
     placeItem(node: Node): void;
     addNotification(data: NotificationData): void;
+    updatePlaceInfo(placeId: number, owner: string, ownedOrOperated: boolean): void;
 };

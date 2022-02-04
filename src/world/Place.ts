@@ -53,6 +53,7 @@ export default class Place {
     private set tempItemsNode(val: Nullable<TransformNode>) { this._tempItemsNode = val; }
 
     get isOwnedOrOperated(): boolean { return this.isOperated; }
+    get currentOwner(): string { return this.owner; }
     private owner: string;
     private isOperated: boolean;
 

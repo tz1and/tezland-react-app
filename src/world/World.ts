@@ -256,6 +256,12 @@ export class World {
         for(let i = 0; i < placeCount; ++i) {
             await this.fetchPlace(i);
         }
+
+        // TEMP: workaround as long as loading owner and owned is delayed.
+        const currentPlace = this.playerController.getCurrentPlace()
+        if(currentPlace)
+            this.appControlFunctions.updatePlaceInfo(currentPlace.placeId,
+                currentPlace.currentOwner, currentPlace.isOwnedOrOperated);
     };
 
     // TODO: metadata gets re-loaded too often.

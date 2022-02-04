@@ -92,6 +92,11 @@ export default class PlayerController {
         document.addEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.addEventListener("pointerlockerror", this.onPointerlockError, false);
 
+        this.setCurrentPlace = (place: Place) => {
+            this.currentPlace = place;
+            appControlfunctions.updatePlaceInfo(place.placeId, place.currentOwner, place.isOwnedOrOperated);
+        }
+
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
             switch(info.type) {
@@ -186,6 +191,15 @@ export default class PlayerController {
                         this.setCurrentItem();
                         break;
 
+                    /*case 'KeyB':
+                        chrome.bookmarks.create({
+                            title: "bookmarks.create() on MDN",
+                            url: "https://developer.mozilla.org/Add-ons/WebExtensions/API/bookmarks/create"
+                        }, () => {
+                            document.exitPointerLock();
+                        });
+                        break;*/
+
                     case 'ShiftLeft': // Enable jog
                         this.camera.speed = PlayerWalkSpeed;
                         break;
@@ -272,9 +286,9 @@ export default class PlayerController {
         return this.camera.position;
     }
 
-    public setCurrentPlace(place: Place) {
-        this.currentPlace = place;
-    }
+    public setCurrentPlace: (place: Place) => void;
+
+    public getCurrentPlace() { return this.currentPlace; }
 
     public async setCurrentItem(item_id?: number) {
         // remove old object.
