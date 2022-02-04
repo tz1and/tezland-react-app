@@ -45,6 +45,7 @@ const boolCtor = Boolean.prototype.constructor as CtorFunc<boolean>;
 const stringCtor = String.prototype.constructor as CtorFunc<string>;
 
 export default class AppSettings {
+    // general
     static polygonLimit = new AppSetting<number>("polygonLimit", 3072, numberCtor);
     static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, numberCtor); // MiB default.
 
@@ -53,5 +54,10 @@ export default class AppSettings {
     static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", true, boolCtor);
     static showFps = new AppSetting<boolean>("showFps", true, boolCtor);
 
+    // controls
     static mouseSensitivity = new AppSetting<number>("mouseSensitivity", 1, numberCtor);
+
+    // graphics
+    static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, boolCtor);
+    static enableShadows = new AppSetting<boolean>("enableShadows", true, boolCtor);
 }

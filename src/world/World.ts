@@ -10,7 +10,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, Material } from "@babylonjs/core";
+import { Database, Material, Nullable } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -39,7 +39,7 @@ export class World {
     private sunLight: DirectionalLight;
     
     readonly playerController: PlayerController;
-    readonly shadowGenerator: ShadowGenerator;
+    readonly shadowGenerator: Nullable<ShadowGenerator>;
 
     readonly places: Map<number, Place>;
 
@@ -71,7 +71,7 @@ export class World {
         this.places = new Map<number, Place>();
 
         // Associate a Babylon Engine to it.
-        this.engine = new Engine(canvas, true);
+        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value);
         this.engine.disableManifestCheck = true;
 
         // Allow cache on IndexedDB
@@ -157,14 +157,17 @@ export class World {
         //this.shadowGenerator.usePoissonSampling = true;
         this.shadowGenerator = csm;*/
 
-        this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
-        //this.shadowGenerator.autoCalcDepthBounds = true;
-        this.shadowGenerator.useExponentialShadowMap = true;
-        this.shadowGenerator.useBlurExponentialShadowMap = true;
-        //this.shadowGenerator.usePoissonSampling = true;
+        if (AppSettings.enableShadows.value) {
+            this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
+            //this.shadowGenerator.autoCalcDepthBounds = true;
+            this.shadowGenerator.useExponentialShadowMap = true;
+            this.shadowGenerator.useBlurExponentialShadowMap = true;
+            //this.shadowGenerator.usePoissonSampling = true;
 
-        // set shadow generator on player controller.
-        this.playerController.shadowGenerator = this.shadowGenerator;
+            // set shadow generator on player controller.
+            this.playerController.shadowGenerator = this.shadowGenerator;
+        }
+        else this.shadowGenerator = null;
 
         // Render every frame
         this.engine.runRenderLoop(() => {
@@ -243,26 +246,26 @@ export class World {
             sphere.position.z = Math.random() * 10 - 5;
             sphere.material = this.defaultMaterial;
             sphere.checkCollisions = true;
-            this.shadowGenerator.addShadowCaster(sphere);
+            this.shadowGenerator?.addShadowCaster(sphere);
         }
 
         var box = Mesh.CreateBox("sphere1", 2, this.scene);
         box.position.set(10, 1, 0);
         box.material = this.defaultMaterial;
         box.checkCollisions = true;
-        this.shadowGenerator.addShadowCaster(box);
+        this.shadowGenerator?.addShadowCaster(box);
 
         box = Mesh.CreateBox("sphere1", 2, this.scene);
         box.position.set(10, 3, 2);
         box.material = this.defaultMaterial;
         box.checkCollisions = true;
-        this.shadowGenerator.addShadowCaster(box);
+        this.shadowGenerator?.addShadowCaster(box);
 
         var player = Mesh.CreateBox("player", 1, this.scene);
         player.position.y = 10;
         player.checkCollisions = true;
         player.ellipsoid.set(0.5, 0.5, 0.5);
-        this.shadowGenerator.addShadowCaster(player);
+        this.shadowGenerator?.addShadowCaster(player);
     }
 
     // TODO: add a list of pending places to load.

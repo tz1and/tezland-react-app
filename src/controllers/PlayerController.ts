@@ -121,7 +121,7 @@ export default class PlayerController {
                                 placeId: this.currentPlace.placeId
                             } as InstanceMetadata;
 
-                            if (this.shadowGenerator) this.shadowGenerator.addShadowCaster(newObject);
+                            this.shadowGenerator?.addShadowCaster(newObject);
 
                             eventState.skipNextObservers = true;
 
@@ -330,7 +330,7 @@ export default class PlayerController {
                 this.tempObject.material = transparent_mat;
                 this.tempObject.isPickable = false;
                 //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
-                if (this.shadowGenerator) this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
+                this.shadowGenerator?.addShadowCaster(this.tempObject as Mesh);
 
                 // make sure picking gui goes away.
                 await this.pickingGui.updatePickingGui(null, 0);

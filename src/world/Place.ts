@@ -261,7 +261,7 @@ export default class Place {
 
                     // TODO: for all submeshes/instances, whatever
                     //instance.checkCollisions = true;
-                    this.world.shadowGenerator.addShadowCaster(instance as Mesh);
+                    this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
 
                     if(!this.isInBounds(instance)) {
                         outOfBounds.push(new BigNumber(element.id).toNumber());
