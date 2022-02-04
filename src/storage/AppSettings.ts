@@ -7,26 +7,26 @@ interface IAppSetting<T> {
     set value(newVal: T);
 }
 
-type CtorFunc<T> = new(value?: any) => T
+type ParseFunc<T> = (value: string) => T
 
 class AppSetting<T extends Object> implements IAppSetting<T> {
-    private valCtor: CtorFunc<T>;
+    private parseFunc: ParseFunc<T>;
     private _value: T;
     readonly defaultValue: T;
 
     private settingName: string;
 
-    constructor(settingName: string, defaultValue: T, ctr: CtorFunc<T>) {
+    constructor(settingName: string, defaultValue: T, parseFunc: ParseFunc<T>) {
         this.settingName = settingName;
         this.defaultValue = defaultValue;
-        this.valCtor = ctr;
+        this.parseFunc = parseFunc;
 
         this._value = this.loadSetting();
     }
 
     loadSetting(): T {
         const res = localStorage.getItem("tezland:settings:" + this.settingName);
-        return res ? new this.valCtor(res) : this.defaultValue;
+        return res ? this.parseFunc(res) : this.defaultValue;
     }
 
     get value(): T {
@@ -39,25 +39,25 @@ class AppSetting<T extends Object> implements IAppSetting<T> {
     }
 }
 
-const numberCtor = Number.prototype.constructor as CtorFunc<number>;
-const boolCtor = Boolean.prototype.constructor as CtorFunc<boolean>;
+const parseNumber: ParseFunc<number> = Number;
+const parseBool: ParseFunc<boolean> = (value: string) => value === 'true';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const stringCtor = String.prototype.constructor as CtorFunc<string>;
+const parseString: ParseFunc<string> = (value: string) => value;
 
 export default class AppSettings {
     // general
-    static polygonLimit = new AppSetting<number>("polygonLimit", 3072, numberCtor);
-    static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, numberCtor); // MiB default.
+    static polygonLimit = new AppSetting<number>("polygonLimit", 3072, parseNumber);
+    static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, parseNumber); // MiB default.
 
-    static drawDistance = new AppSetting<number>("drawDistance", 200, numberCtor);
+    static drawDistance = new AppSetting<number>("drawDistance", 200, parseNumber);
 
-    static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", true, boolCtor);
-    static showFps = new AppSetting<boolean>("showFps", true, boolCtor);
+    static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", true, parseBool);
+    static showFps = new AppSetting<boolean>("showFps", true, parseBool);
 
     // controls
-    static mouseSensitivity = new AppSetting<number>("mouseSensitivity", 1, numberCtor);
+    static mouseSensitivity = new AppSetting<number>("mouseSensitivity", 1, parseNumber);
 
     // graphics
-    static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, boolCtor);
-    static enableShadows = new AppSetting<boolean>("enableShadows", true, boolCtor);
+    static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);
+    static enableShadows = new AppSetting<boolean>("enableShadows", true, parseBool);
 }

@@ -28,8 +28,9 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
     })
 
     const copyLocationAddress = () => {
-        const loc = props.getCurrentLocation();
-        const address = window.location.host + window.location.pathname + "?coordx=" + loc[0].toFixed(2) + "&coordz=" + loc[1].toFixed(2);
+        const pos = props.getCurrentLocation();
+        const loc = window.location;
+        const address = loc.protocol + '//' + loc.host + loc.pathname + "?coordx=" + pos[0].toFixed(2) + "&coordz=" + pos[1].toFixed(2);
         navigator.clipboard.writeText(address);
     }
 
