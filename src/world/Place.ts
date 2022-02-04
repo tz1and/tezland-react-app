@@ -184,6 +184,7 @@ export default class Place {
     }
 
     // isUpdate should pretty much always be true unless called from Place.load()
+    // TODO: make sure it doesn't throw exception is potentially not caught.
     public async loadItems(isUpdate: boolean) {
         if(!this.placeBounds) {
             Logging.InfoDev("place bounds don't exist: " + this.placeId);
