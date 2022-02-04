@@ -3,6 +3,7 @@ import assert from "assert";
 import BigNumber from "bignumber.js";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
+import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place, { InstanceMetadata } from "../world/Place";
@@ -225,6 +226,11 @@ export default class PlayerController {
         camera.checkCollisions = true;
         camera.applyGravity = true;
         camera.ellipsoid = new Vector3(0.5, 0.9, 0.5);
+
+        // Sensibility
+        camera.angularSensibility = camera.angularSensibility / AppSettings.mouseSensitivity.value;
+        // TODO: inertia also affects movement...
+        //camera.inertia = 0;
 
         // Set movement keys
         camera.keysLeft = [65 /*w*/, 37 /*left arrow*/];

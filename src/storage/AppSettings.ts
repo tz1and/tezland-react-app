@@ -40,9 +40,9 @@ class AppSetting<T extends Object> implements IAppSetting<T> {
 }
 
 const numberCtor = Number.prototype.constructor as CtorFunc<number>;
-const boolCtor = Number.prototype.constructor as CtorFunc<boolean>;
+const boolCtor = Boolean.prototype.constructor as CtorFunc<boolean>;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const stringCtor = Number.prototype.constructor as CtorFunc<string>;
+const stringCtor = String.prototype.constructor as CtorFunc<string>;
 
 export default class AppSettings {
     static polygonLimit = new AppSetting<number>("polygonLimit", 3072, numberCtor);
@@ -52,4 +52,6 @@ export default class AppSettings {
 
     static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", true, boolCtor);
     static showFps = new AppSetting<boolean>("showFps", true, boolCtor);
+
+    static mouseSensitivity = new AppSetting<number>("mouseSensitivity", 1, numberCtor);
 }
