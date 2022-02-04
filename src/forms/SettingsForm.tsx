@@ -3,7 +3,8 @@ import {
     Formik,
     Form,
     Field,
-    FormikErrors
+    FormikErrors,
+    ErrorMessage
 } from 'formik';
 import AppSettings from '../storage/AppSettings';
 
@@ -48,6 +49,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         enableAntialiasing: AppSettings.enableAntialiasing.value,
         enableShadows: AppSettings.enableShadows.value
     };
+
+    const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
@@ -100,14 +103,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 }}
             >
                 {({
-                    errors,
-                    touched,
                     isSubmitting,
                     isValid
                 }) => {
                     return (
                         <Form>
-                            <ul className="nav nav-tabs" id="myTab" role="tablist">
+                            <ul className="nav nav-tabs mb-2" id="myTab" role="tablist">
                                 <li className="nav-item" role="presentation">
                                     <button className="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
                                 </li>
@@ -124,19 +125,19 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                         <label htmlFor="polygonLimit" className="form-label">Polygon limit</label>
                                         <Field id="polygonLimit" name="polygonLimit" type="number" className="form-control" aria-describedby="polygonLimitHelp" disabled={isSubmitting} autoFocus={true} />
                                         <div id="polygonLimitHelp" className="form-text">Items with more polygons than the limit will not be displayed.</div>
-                                        {touched.polygonLimit && errors.polygonLimit && <small className="text-danger">{errors.polygonLimit}</small>}
+                                        <ErrorMessage name="polygonLimit" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="modelFileSizeLimit" className="form-label">Model file size limit (in MiB)</label>
                                         <Field id="modelFileSizeLimit" name="modelFileSizeLimit" type="number" className="form-control" aria-describedby="modelFileSizeLimitHelp" disabled={isSubmitting} autoFocus={true} />
                                         <div id="modelFileSizeLimitHelp" className="form-text">Items models larger than this won't be displayed.</div>
-                                        {touched.modelFileSizeLimit && errors.modelFileSizeLimit && <small className="text-danger">{errors.modelFileSizeLimit}</small>}
+                                        <ErrorMessage name="modelFileSizeLimit" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="drawDistance" className="form-label">Draw distance</label>
                                         <Field id="drawDistance" name="drawDistance" type="number" className="form-control" aria-describedby="drawDistanceHelp" disabled={isSubmitting} />
                                         <div id="drawDistanceHelp" className="form-text">The draw distance, you know.</div>
-                                        {touched.drawDistance && errors.drawDistance && <small className="text-danger">{errors.drawDistance}</small>}
+                                        <ErrorMessage name="drawDistance" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <Field id="displayPlaceBounds" name="displayPlaceBounds" type="checkbox" className="form-check-input me-2" aria-describedby="displayPlaceBoundsHelp" disabled={isSubmitting}/>
@@ -154,16 +155,16 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                         <label htmlFor="mouseSensitivity" className="form-label">Mouse Sensitivity</label>
                                         <Field id="mouseSensitivity" name="mouseSensitivity" type="number" step={0.1} className="form-control" aria-describedby="mouseSensitivityHelp" disabled={isSubmitting} autoFocus={true} />
                                         <div id="mouseSensitivityHelp" className="form-text">How sensitive mouse look is.</div>
-                                        {touched.mouseSensitivity && errors.mouseSensitivity && <small className="text-danger">{errors.mouseSensitivity}</small>}
+                                        <ErrorMessage name="mouseSensitivity" children={errorDisplay}/>
                                     </div>
                                 </div>
                                 <div className="tab-pane fade" id="graphics" role="tabpanel" aria-labelledby="graphics-tab">
-                                    <div className="my-3">
+                                    <div className="mb-3">
                                         <Field id="enableAntialiasing" name="enableAntialiasing" type="checkbox" className="form-check-input me-2" aria-describedby="enableAntialiasingHelp" disabled={isSubmitting}/>
                                         <label htmlFor="enableAntialiasing" className="form-label">Enable antialiasing</label>
                                         <div id="enableAntialiasingHelp" className="form-text">Disable this if you have a slow graphics card.</div>
                                     </div>
-                                    <div className="my-3">
+                                    <div className="mb-3">
                                         <Field id="enableShadows" name="enableShadows" type="checkbox" className="form-check-input me-2" aria-describedby="enableShadowsHelp" disabled={isSubmitting}/>
                                         <label htmlFor="enableShadows" className="form-label">Enable shadows</label>
                                         <div id="enableShadowsHelp" className="form-text">Maybe helps to turn it off, who knows.</div>

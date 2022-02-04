@@ -3,7 +3,8 @@ import {
     Formik,
     Form,
     Field,
-    FormikErrors
+    FormikErrors,
+    ErrorMessage
 } from 'formik';
 import { MapContainer, ImageOverlay, useMap, Circle, Polygon } from 'react-leaflet'
 import L from 'leaflet';
@@ -143,6 +144,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
+    private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
+
     override render() {
         return (
             <div className="container text-start pt-4">
@@ -193,8 +196,6 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                             {({
                                 //values,
                                 isValid,
-                                errors,
-                                touched,
                                 isSubmitting,
                                 handleChange
                             }) => {
@@ -215,13 +216,13 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                                             ))}
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
-                                        {touched.placeId && errors.placeId && <small className="text-danger">{errors.placeId}</small>}
+                                        <ErrorMessage name="placeId" children={this.errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="duration" className="form-label">Duration (in hours)</label>
                                         <Field id="duration" name="duration" type="number" className="form-control" aria-describedby="durationHelp" disabled={isSubmitting} />
                                         <div id="durationHelp" className="form-text">Time, in hours, until end price is reached. Auction begins immediately.</div>
-                                        {touched.duration && errors.duration && <small className="text-danger">{errors.duration}</small>}
+                                        <ErrorMessage name="duration" children={this.errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="startPrice" className="form-label">Start Price</label>
@@ -230,7 +231,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                             <Field id="startPrice" name="startPrice" type="number" className="form-control" aria-describedby="startPriceHelp" disabled={isSubmitting} />
                                         </div>
                                         <div id="startPriceHelp" className="form-text">The starting price for the auction. Must be &gt; end price.</div>
-                                        {touched.startPrice && errors.startPrice && <small className="text-danger">{errors.startPrice}</small>}
+                                        <ErrorMessage name="startPrice" children={this.errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="endPrice" className="form-label">End Price</label>
@@ -239,7 +240,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                             <Field id="endPrice" name="endPrice" type="number" className="form-control" aria-describedby="endPriceHelp" disabled={isSubmitting} />
                                         </div>
                                         <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
-                                        {touched.endPrice && errors.endPrice && <small className="text-danger">{errors.endPrice}</small>}
+                                        <ErrorMessage name="endPrice" children={this.errorDisplay}/>
                                     </div>
                                     <div className="form-text mb-3">There is a 2.5% management fee on successful bids.</div>
                                     <button type="submit" className="btn btn-primary mb-3" disabled={this.state.pending || isSubmitting || !isValid}>

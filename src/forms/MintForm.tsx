@@ -177,7 +177,6 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                         touched,
                         isValid
                         /*errors,
-                        touched,
                         handleSubmit,
                         validating,
                         valid*/
