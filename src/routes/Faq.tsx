@@ -130,7 +130,7 @@ export default function Faq() {
         });
 
         
-        categories.push(<div className="col col-xxl-8 " key={cat.id}>
+        categories.push(<div className="col col-8 col-xl-6 col-xxl-4 flex-grow-1 flex-lg-grow-0" key={cat.id}>
             <h2 className="ps-2 pt-3">{cat.title}</h2>
             <div className="accordion" id="accordionPanelsStayOpenExample">
                 {items}
