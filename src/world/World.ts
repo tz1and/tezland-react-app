@@ -5,6 +5,7 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+//import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
@@ -87,6 +88,10 @@ export class World {
             });
         }*/
 
+        // create camera first
+        this.playerController = new PlayerController(this, canvas, appControlfunctions);
+        this.lastUpdatePosition = this.playerController.getPosition().clone();
+
         // Create a default material
         this.defaultMaterial = new SimpleMaterial("defaulMat", this.scene);
 
@@ -126,12 +131,6 @@ export class World {
         let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
 
-        this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
-        //this.shadowGenerator.autoCalcDepthBounds = true;
-        this.shadowGenerator.useExponentialShadowMap = true;
-        this.shadowGenerator.useBlurExponentialShadowMap = true;
-        //this.shadowGenerator.usePoissonSampling = true;
-
         let loadedItemCache = new TransformNode("loadedItemCache", this.scene);
         loadedItemCache.position.y = -200;
         loadedItemCache.setEnabled(false);
@@ -144,8 +143,28 @@ export class World {
             pointerInfo.skipOnPointerObservable = true;
         });*/
 
-        this.playerController = new PlayerController(this, this.shadowGenerator, canvas, appControlfunctions);
-        this.lastUpdatePosition = this.playerController.getPosition().clone();
+        // After, camera, lights, etc, the shadow generator
+        /*const csm = new CascadedShadowGenerator(1024, this.sunLight);
+        //csm.debug = true;
+        //csm.autoCalcDepthBounds = true;
+        csm.depthClamp = true;
+        csm.shadowMaxZ = 100;
+        csm.freezeShadowCastersBoundingInfo = true;
+        csm.splitFrustum();
+        //this.shadowGenerator.autoCalcDepthBounds = true;
+        //this.shadowGenerator.useExponentialShadowMap = true;
+        //this.shadowGenerator.useBlurExponentialShadowMap = true;
+        //this.shadowGenerator.usePoissonSampling = true;
+        this.shadowGenerator = csm;*/
+
+        this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
+        //this.shadowGenerator.autoCalcDepthBounds = true;
+        this.shadowGenerator.useExponentialShadowMap = true;
+        this.shadowGenerator.useBlurExponentialShadowMap = true;
+        //this.shadowGenerator.usePoissonSampling = true;
+
+        // set shadow generator on player controller.
+        this.playerController.shadowGenerator = this.shadowGenerator;
 
         // Render every frame
         this.engine.runRenderLoop(() => {

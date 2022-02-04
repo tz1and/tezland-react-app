@@ -17,7 +17,9 @@ const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
 export default class PlayerController {
     private camera: FreeCamera;
     private scene: Scene;
-    private shadowGenerator: ShadowGenerator;
+    private _shadowGenerator: Nullable<ShadowGenerator>;
+    public set shadowGenerator(sg: Nullable<ShadowGenerator>) { this._shadowGenerator = sg; }
+    public get shadowGenerator(): Nullable<ShadowGenerator> { return this._shadowGenerator; }
 
     private tempObject: Nullable<Mesh>;
     private tempObjectOffsetY: number;
@@ -38,9 +40,9 @@ export default class PlayerController {
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
 
-    constructor(world: World, shadowGenerator: ShadowGenerator, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
+    constructor(world: World, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
         this.scene = world.scene;
-        this.shadowGenerator = shadowGenerator;
+        this._shadowGenerator = null;
         this.currentPlace = null;
         this.tempObject = null;
         this.tempObjectOffsetY = 0;
@@ -119,7 +121,7 @@ export default class PlayerController {
                                 placeId: this.currentPlace.placeId
                             } as InstanceMetadata;
 
-                            shadowGenerator.addShadowCaster(newObject);
+                            if (this.shadowGenerator) this.shadowGenerator.addShadowCaster(newObject);
 
                             eventState.skipNextObservers = true;
 
@@ -235,6 +237,7 @@ export default class PlayerController {
         camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;
         camera.fov = 1.65806; // ~95 deg.
         camera.minZ = 0.1;
+        camera.maxZ = 2000;
 
         // Collision stuff
         camera.checkCollisions = true;
@@ -327,7 +330,7 @@ export default class PlayerController {
                 this.tempObject.material = transparent_mat;
                 this.tempObject.isPickable = false;
                 //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
-                this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
+                if (this.shadowGenerator) this.shadowGenerator.addShadowCaster(this.tempObject as Mesh);
 
                 // make sure picking gui goes away.
                 await this.pickingGui.updatePickingGui(null, 0);

@@ -103,10 +103,16 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }});
     }
 
+    getCurrentLocation = (): [number, number] => {
+        const curVS = this.virtualSpaceRef.current;
+        if (curVS) return curVS.getCurrentLocation();
+        return [0,0];
+    }
+
     render() {
         // TODO: maybe could use router for overlay/forms.
         let form;
-        if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} />
+        if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} />
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
         else if (this.state.show_form === 'place') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
@@ -120,8 +126,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             </div>
 
         let controlInfo = this.state.dispaly_overlay ? <ControlsHelp/> : null;
-
-        console.log(this.state.placeInfo.ownedOrOperated)
 
         let placeInfoOverlay = this.state.dispaly_overlay ? null :
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>

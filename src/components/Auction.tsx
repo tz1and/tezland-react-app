@@ -169,7 +169,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                         Duration: {this.duration / 3600}h
                     </p>
 
-                    <Link to={`/explore?coordx=${this.state.placeCoords[0]}&coordz=${this.state.placeCoords[1]}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
+                    <Link to={`/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
                     <button onClick={this.bidOnAuction} className="btn btn-primary btn-md w-100" disabled={!this.started}>
                         {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>
                 </div>
