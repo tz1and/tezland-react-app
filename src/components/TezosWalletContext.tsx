@@ -36,7 +36,7 @@ type TezosWalletProviderProps = {}
 type TezosWalletProviderState = {
     tezos: TezosToolkit,
     beaconWallet?: BeaconWallet,
-    walletAddress?: string,
+    walletAddress?: string | undefined,
     pendingOps: OperationPendingData[],
     walletEventEmitter: EventEmitter
 }

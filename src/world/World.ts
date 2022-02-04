@@ -54,7 +54,7 @@ export class World {
     // TODO
     //private queuedPlaceUpdates: PlaceId[] = [];
 
-    private subscription?: Subscription<OperationContent>;
+    private subscription?: Subscription<OperationContent> | undefined;
 
     constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
         this.appControlFunctions = appControlfunctions;

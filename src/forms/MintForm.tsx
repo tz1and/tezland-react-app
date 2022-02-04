@@ -22,7 +22,7 @@ interface MintFormValues {
     itemTags: string;
     itemAmount: number;
     itemRoyalties: number;
-    itemFile?: File;
+    itemFile?: File | undefined;
 }
 
 type MintFormProps = {

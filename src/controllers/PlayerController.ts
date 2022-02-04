@@ -33,9 +33,9 @@ export default class PlayerController {
     /*private handleKeyUp: (e: KeyboardEvent) => void;
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
-    private isPointerLocked: boolean = false; // TODO: still needed for something?
+    //private isPointerLocked: boolean = false; // TODO: still needed for something?
     private currentPlace: Nullable<Place>;
-    private currentItem?: number;
+    private currentItem?: number | undefined;
 
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
@@ -74,13 +74,13 @@ export default class PlayerController {
                 // blur canvas to stop keyboard events.
                 canvas.blur();
                 this.camera.detachControl(canvas);
-                this.isPointerLocked = false;
+                //this.isPointerLocked = false;
                 appControlfunctions.setOverlayDispaly(true);
             } else {
                 // focus on canvas for keyboard input to work.
                 canvas.focus();
                 this.camera.attachControl(canvas);
-                this.isPointerLocked = true;
+                //this.isPointerLocked = true;
             }
         };
 

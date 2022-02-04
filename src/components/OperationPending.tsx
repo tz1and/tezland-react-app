@@ -4,7 +4,7 @@ export type OperationPendingData = {
     hash: string,
     done: boolean,
     success?: boolean,
-    error?: string
+    error?: string | undefined
 }
 
 type OperationPendingProps = {

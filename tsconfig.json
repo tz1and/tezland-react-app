@@ -17,6 +17,7 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,

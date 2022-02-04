@@ -106,7 +106,7 @@ type ModelLoadedCallback = (loadingState: ModelLoadingState, modelFileSize: numb
 
 // TODO: add a callback to call when model was loaded (or failed).
 type ModelPreviewProps = {
-    file?: File;
+    file?: File | undefined;
     modelLoaded: ModelLoadedCallback;
 };
 
@@ -133,7 +133,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         this.preview = null;
       }
 
-      override componentDidUpdate(prevProps: ModelPreviewProps, prevState: ModelPreviewState) {
+      override componentDidUpdate(prevProps: ModelPreviewProps) {
         // did the file change?
         // if yes, update the preview.
         if(this.props.file !== prevProps.file) {

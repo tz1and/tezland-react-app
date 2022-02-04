@@ -1,8 +1,6 @@
 import React from 'react';
 
-type ControlsHelpProps = { }
-
-export const ControlsHelp: React.FC<ControlsHelpProps> = (props: ControlsHelpProps) => {
+export const ControlsHelp: React.FC<{}> = () => {
     return (
         <div>
             <div className='position-absolute bottom-0 start-0'>
