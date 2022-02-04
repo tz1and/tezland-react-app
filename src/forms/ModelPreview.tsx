@@ -133,7 +133,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         this.preview = null;
       }
 
-    componentDidUpdate(prevProps: ModelPreviewProps, prevState: ModelPreviewState) {
+      override componentDidUpdate(prevProps: ModelPreviewProps, prevState: ModelPreviewState) {
         // did the file change?
         // if yes, update the preview.
         if(this.props.file !== prevProps.file) {
@@ -146,13 +146,13 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         }
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         if(this.mount.current) {
             this.preview = new PreviewScene(this.mount.current);
         }
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         if(this.preview) {
             this.preview.dispose();
             this.preview = null;
@@ -163,7 +163,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         return this.preview!.getScreenshot();
     }
 
-    render() {
+    override render() {
         return (
         <div>
             <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas>

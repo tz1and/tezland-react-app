@@ -40,8 +40,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     private modelPreviewRef = React.createRef<ModelPreview>();
     private formikRef = React.createRef<FormikProps<MintFormValues>>();
 
-    static contextType = TezosWalletContext;
-    context!: React.ContextType<typeof TezosWalletContext>;
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: MintFormProps) {
         super(props);
@@ -71,7 +71,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         this.formikRef.current?.validateField("itemFile")
     }
 
-    render(): React.ReactNode {
+    override render(): React.ReactNode {
         return (
             <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />

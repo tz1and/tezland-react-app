@@ -17,8 +17,8 @@ type VirtualSpaceState = {
 };
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
-    static contextType = TezosWalletContext;
-    context!: React.ContextType<typeof TezosWalletContext>;
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
 
     private mount = React.createRef<HTMLCanvasElement>();
     private world: World | null;
@@ -52,18 +52,18 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         if (promise instanceof Promise) promise.catch((e: DOMException) => { Logging.DirDev(e); })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         assert(this.mount.current);
         this.world = new World(this.mount.current, this.props.appControl, this.context);
         this.world.loadWorld();
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.world?.dispose();
         this.world = null;
     }
 
-    render() {
+    override render() {
         return (
             <canvas id="renderCanvas" touch-action="none" ref={this.mount} ></canvas>
         )

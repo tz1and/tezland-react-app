@@ -19,6 +19,8 @@ export default function WalletWidget() {
                 popover.dispose();
             }
         }
+
+        return;
     })
 
     return (

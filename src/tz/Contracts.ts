@@ -43,6 +43,8 @@ export class Contracts {
         catch (e) {
             Logging.Error(e);
         }
+
+        return;
     }
 
     public async getPlaceOwner(place_id: number): Promise<string> {

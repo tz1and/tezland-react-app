@@ -23,8 +23,8 @@ type InventoryState = {
 };
 
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
-    static contextType = TezosWalletContext;
-    context!: React.ContextType<typeof TezosWalletContext>;
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: InventoryProps) {
         super(props);
@@ -39,7 +39,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private itemMap: Map<number, any> = new Map(); // TODO: map should belong to state!
 
-    componentDidMount() {
+    override componentDidMount() {
         this.fetchInventory().then((res) => {
             for (const r of res) this.itemMap.set(r.token.id, r);
             const more_data = res.length === this.fetchAmount;
@@ -102,7 +102,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         return "/img/missing_thumbnail.png";
     }
 
-    render() {
+    override render() {
         const { error, more_data } = this.state;
 
         const items: JSX.Element[] = []

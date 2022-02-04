@@ -25,6 +25,8 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
                 popover.dispose();
             }
         }
+
+        return;
     })
 
     const copyLocationAddress = () => {

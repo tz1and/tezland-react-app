@@ -55,11 +55,11 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         };
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.setupWallet();
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.state.walletEventEmitter.removeAllListeners();
     }
 
@@ -183,7 +183,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         this.setState({pendingOps: newPending});
     }
 
-    render() {
+    override render() {
         const { children } = this.props
 
         let toasts = this.state.pendingOps.map(v => { return <OperationPending data={v} key={v.hash} /> });

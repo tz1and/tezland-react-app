@@ -33,8 +33,8 @@ type AuctionState = {
 }
 
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
-    static contextType = TezosWalletContext;
-    context!: React.ContextType<typeof TezosWalletContext>;
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: AuctionProps) {
         super(props);
@@ -121,7 +121,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         // set Interval
         // NOTE: could figure out the exact time the price drops by granularity
         // and wait until then. But probably better to update the progress bar
@@ -134,13 +134,13 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         this.panMapToPlace(this.props.tokenId);
     }
     
-    componentWillUnmount() {
+    override componentWillUnmount() {
         // Clear the interval right before component unmount
         if(this.refreshInterval) clearInterval(this.refreshInterval);
         if(this.reloadTimeout) clearInterval(this.reloadTimeout);
     }
 
-    render() {
+    override render() {
         return (
             <div className="m-3 Auction">
                 <div className='p-3 position-relative'>

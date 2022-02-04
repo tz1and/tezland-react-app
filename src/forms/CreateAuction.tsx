@@ -60,8 +60,8 @@ type CreateAuctionFormState = {
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
     private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48, startPrice: 2, endPrice: 1 };
 
-    static contextType = TezosWalletContext;
-    context!: React.ContextType<typeof TezosWalletContext>;
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
     //declare context: React.ContextType<typeof TezosWalletContext>
 
     constructor(props: CreateAuctionFormProps) {
@@ -133,17 +133,17 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         this.updatePlacesAndMap();
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
 
         this.updatePlacesAndMap();
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
-    render() {
+    override render() {
         return (
             <div className="container text-start pt-4">
                 <div className='row'>

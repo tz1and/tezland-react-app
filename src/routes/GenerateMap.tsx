@@ -282,8 +282,8 @@ type GenerateMapProps = {
 }
 
 export default class GenerateMap extends React.Component<GenerateMapProps, GenerateMapState> {
-    static contextType = TezosWalletContext;
-    context!: React.ContextType<typeof TezosWalletContext>;
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: GenerateMapProps) {
         super(props);
@@ -533,7 +533,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     }
 
     // Similar to componentDidMount and componentDidUpdate:
-    componentDidMount() {
+    override componentDidMount() {
         const dim = 1000;
         const fillColor = '#d6f0ff';
         const strokeColor = '#3d8dba';
@@ -735,7 +735,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         this.setState({svg: draw.svg()});
     }
 
-    render(): React.ReactNode {
+    override render(): React.ReactNode {
         return (
             <main className="container">
                 <button className="btn btn-primary" onClick={() => this.downloadFile()}>Download SVG</button>

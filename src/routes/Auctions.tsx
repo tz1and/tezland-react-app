@@ -54,7 +54,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         }
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.reloadAuctions();
     }
 
@@ -97,7 +97,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         return Math.floor(Date.parse(t) / 1000);
     }
 
-    render() {
+    override render() {
         var rows = [];
         for(const auction of this.state.auctions) {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice}
