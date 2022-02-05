@@ -35,13 +35,12 @@ export default class MultiplayerClient extends EventEmitter {
     private connect(): WebSocket {
         assert(!this.otherPlayersNode);
 
-        // TODO: can throw! catch
         const ws = new WebSocket(Conf.multiplayer_url);
 
         this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.world.scene);
 
-        const walletPHK = this.world.walletProvider.walletPHK();
-        this.identity = walletPHK ? walletPHK : crypto.randomBytes(64).toString('hex');
+        this.identity = this.world.walletProvider.isWalletConnected() ?
+            this.world.walletProvider.walletPHK() : crypto.randomBytes(64).toString('hex');
 
         ws.onopen = () => {
             this.handshake();
