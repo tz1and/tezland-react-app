@@ -16,7 +16,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
     useEffect(() => {
         if(popoverRef.current) {
             const popover = new Popover(popoverRef.current, {
-                content: "Copied curent location!",
+                content: "Copied current location to clipboard!",
                 placement: 'bottom',
                 trigger: 'focus'
             });
