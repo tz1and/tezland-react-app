@@ -4,6 +4,7 @@ import BigNumber from "bignumber.js";
 //import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
+import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place, { InstanceMetadata } from "../world/Place";
@@ -182,6 +183,18 @@ export default class PlayerController {
                     case 'KeyM': // Opens the mint form
                         document.exitPointerLock();
                         appControlfunctions.loadForm('mint');
+                        break;
+
+                    case 'KeyP': // Opens the place properties form
+                        // TODO: check permissions.
+                        if(this.currentPlace) {
+                            Contracts.getItemsForPlaceView(world.walletProvider, this.currentPlace.placeId, false).then((res) => {
+                                assert(this.currentPlace);
+                                document.exitPointerLock();
+                                // NOTE: we just assume, placeInfo in Explore is up to date.
+                                appControlfunctions.editPlaceProperties('#' + res.place_props);
+                            })
+                        }
                         break;
 
                     case 'KeyI': // Opens the inventory

@@ -181,6 +181,18 @@ export class Contracts {
         //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
+    public async SavePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, place_id: number, owner: string, callback?: () => void) {
+        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+
+        // owner is optional.
+        let params: any = { lot_id: place_id, props: groundColor };
+        if(owner) params.owner = owner;
+
+        const save_props_op = await marketplacesWallet.methodsObject.set_place_props(params).send();
+
+        this.handleOperation(walletProvider, save_props_op, callback);
+    }
+
     public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: () => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);

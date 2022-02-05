@@ -4,7 +4,7 @@ import { Popover } from 'bootstrap';
 import { useEffect, useRef } from "react";
 
 export default function WalletWidget() {
-    const context = useTezosWalletContext()
+    const context = useTezosWalletContext();
 
     const popoverRef = useRef<HTMLButtonElement>(null)
     useEffect(() => {

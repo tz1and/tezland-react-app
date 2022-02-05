@@ -11,18 +11,21 @@ import { SettingsForm } from '../forms/SettingsForm';
 import AppSettings from '../storage/AppSettings';
 import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
+import { PlaceFropertiesForm } from '../forms/PlaceProperties';
+import { FromNames } from '../world/AppControlFunctions';
 
 type ExploreProps = {
     // using `interface` is also ok
     //message: string;
 };
 type ExploreState = {
-    show_form: string;
+    show_form: FromNames;
     dispaly_overlay: boolean;
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[];
-    placeInfo : {placeId: number, owner: string, ownedOrOperated: boolean};
+    placeInfo: {placeId: number, owner: string, ownedOrOperated: boolean};
+    groundColor: string;
     //count: number; // like this
 };
 
@@ -37,13 +40,14 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             placedItem: null,
             showFps: AppSettings.showFps.value,
             notifications: [],
-            placeInfo: {placeId: 0, owner: '', ownedOrOperated: false}
+            placeInfo: {placeId: 0, owner: '', ownedOrOperated: false},
+            groundColor: '#FFFFFF'
             // optional second annotation for better type inference
             //count: 0,
         };
     }
 
-    loadForm = (form_type: string) => {
+    loadForm = (form_type: FromNames) => {
         this.setState({ show_form: form_type, dispaly_overlay: true });
     }
 
@@ -55,11 +59,15 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     placeItem = (node: Node) => {
-        this.setState({ show_form: "place", dispaly_overlay: true, placedItem: node });
+        this.setState({ show_form: 'placeitem', dispaly_overlay: true, placedItem: node });
+    }
+
+    editPlaceProperties = (groundColor: string) => {
+        this.setState({ show_form: 'placeproperties', dispaly_overlay: true, groundColor: groundColor });
     }
 
     closeForm = (cancelled: boolean) => {
-        if(this.state.show_form === "settings") {
+        if(this.state.show_form === 'settings') {
             this.setState({ show_form: 'instructions', dispaly_overlay: true });
             return;
         }
@@ -115,8 +123,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} />
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
-        else if (this.state.show_form === 'place') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
+        else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm} selectItemFromInventory={this.selectItemFromInventory} />;
+        else if (this.state.show_form === 'placeproperties') form = <PlaceFropertiesForm closeForm={this.closeForm}
+            placeOwner={this.state.placeInfo.owner} placeId={this.state.placeInfo.placeId} groundColor={this.state.groundColor} />;
 
         let overlay = !this.state.dispaly_overlay ? null :
             <div className="Explore-overlay">
@@ -149,6 +159,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                     setOverlayDispaly: this.setOverlayDispaly,
                     loadForm: this.loadForm,
                     placeItem: this.placeItem,
+                    editPlaceProperties: this.editPlaceProperties,
                     addNotification: this.addNotification,
                     updatePlaceInfo: this.updatePlaceInfo,
                 }} />
