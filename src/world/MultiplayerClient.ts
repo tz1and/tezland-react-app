@@ -124,7 +124,7 @@ export default class MultiplayerClient extends EventEmitter {
 
         updates.forEach((u: any) => {
             // skip currently connected player.
-            if (this.world.walletProvider.walletPHK() === u.name) return;
+            if (this.identity === u.name) return;
 
             let p = this.otherPlayers.get(u.name);
             if(!p) {
