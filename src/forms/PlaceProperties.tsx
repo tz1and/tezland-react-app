@@ -53,7 +53,7 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
 
                     const bytes = colorToBytes(values.placeGroundColor)
                     if(bytes.length !== 6 /*|| not hex*/) {
-                        errors.placeGroundColor = "Ground color invalid";
+                        errors.placeGroundColor = "Ground color invalid.";
                     }
                   
                     return errors;

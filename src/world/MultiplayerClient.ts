@@ -5,6 +5,7 @@ import { World } from './World';
 import { Mesh, Nullable, TransformNode, Vector3 } from '@babylonjs/core';
 import { fromHexString, toHexString } from '../utils/Utils';
 import crypto from 'crypto';
+import { Logging } from '../utils/Logging';
 
 
 export default class MultiplayerClient extends EventEmitter {
@@ -40,7 +41,7 @@ export default class MultiplayerClient extends EventEmitter {
         this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.world.scene);
 
         this.identity = this.world.walletProvider.isWalletConnected() ?
-            this.world.walletProvider.walletPHK() : crypto.randomBytes(64).toString('hex');
+            this.world.walletProvider.walletPHK() : crypto.randomBytes(32).toString('hex');
 
         ws.onopen = () => {
             this.handshake();
@@ -51,14 +52,13 @@ export default class MultiplayerClient extends EventEmitter {
         };
 
         ws.onerror = (ev) => {
-            console.log('MultiplayerClient: Socket error: ', ev); // TODO: figure out how to get msg
+            Logging.InfoDev('MultiplayerClient: Socket error: ', ev); // TODO: figure out how to get msg
         };
 
         ws.onclose = () => {
-            console.log('MultiplayerClient: Socket closed. Reconnecting...');
-            // Emit reqHandled event, in case TradeBot is still waiting. TODO: fix this properly!
-            this.emit('reqHandled', []);
-            this._connected = false;
+            // If the other side closed.
+            this.disconnect(); // TODO: should call dispose here, not disconnect
+            Logging.InfoDev('Reconnecting...');
             setTimeout(() => { this.ws = this.connect() }, MultiplayerClient.reconnectInterval);
         };
 
@@ -105,7 +105,7 @@ export default class MultiplayerClient extends EventEmitter {
 
             if(res) this.ws.send(JSON.stringify(res));
         } catch(e) {
-            console.log("Failed to parse: " + e);
+            Logging.ErrorDev("Failed to parse: " + e);
         }
     }
 
@@ -126,6 +126,17 @@ export default class MultiplayerClient extends EventEmitter {
             // skip currently connected player.
             if (this.identity === u.name) return;
 
+            // handle disconnect messages.
+            if(u.dc === true) {
+                let p = this.otherPlayers.get(u.name);
+                if(p) {
+                    p.dispose();
+                    this.otherPlayers.delete(u.name);
+                }
+                return;
+            }
+
+            // otherwise it's an update
             let p = this.otherPlayers.get(u.name);
             if(!p) {
                 p = new OtherPlayer(u.name, this.otherPlayersNode!);
@@ -160,19 +171,21 @@ export default class MultiplayerClient extends EventEmitter {
         // server doesn't respond to update position
     }
 
-    // todo: rename dispose.
+    // todo: split into dispose/disconnect
     public disconnect() {
         // TODO: figure out if I need to close this...
         this.ws.onopen = null;
         this.ws.onmessage = null;
         this.ws.onerror = null;
         this.ws.onclose = null;
-        this.ws.close()
+        this.ws.close();
+        this._connected = false;
 
         this.otherPlayers.clear();
         this.otherPlayersNode?.dispose();
+        this.otherPlayersNode = null;
 
-        console.log('MultiplayerClient: Socket closed.');
+        Logging.LogDev('MultiplayerClient: Socket closed.');
     }
 }
 
@@ -195,6 +208,8 @@ class OtherPlayer {
         this.body.position.y = -0.85;
 
         this.tranformNode.parent = parent;
+
+        Logging.LogDev("MultiplayerClient: added player", name)
     }
 
     update(tranformData: string) {
@@ -203,5 +218,9 @@ class OtherPlayer {
         const view = new DataView(uints.buffer)
         this.tranformNode.position.set(view.getFloat32(0), view.getFloat32(4), view.getFloat32(8));
         this.head.rotation.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
+    }
+
+    dispose() {
+        this.tranformNode.dispose();
     }
 }
