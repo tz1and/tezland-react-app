@@ -230,7 +230,7 @@ export class World {
         window.removeEventListener('resize', this.onResize);
         
         this.unregisterPlacesSubscription();
-        this.multiClient?.disconnect();
+        this.multiClient?.disconnectAndDispose();
 
         this.worldGrid.clear();
         this.places.clear();

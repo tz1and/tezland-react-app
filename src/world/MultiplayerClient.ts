@@ -1,6 +1,6 @@
 import assert from 'assert';
 import Conf from '../Config';
-import EventEmitter from 'events';
+//import EventEmitter from 'events';
 import { World } from './World';
 import { Mesh, Nullable, TransformNode, Vector3 } from '@babylonjs/core';
 import { fromHexString, toHexString } from '../utils/Utils';
@@ -8,12 +8,13 @@ import crypto from 'crypto';
 import { Logging } from '../utils/Logging';
 
 
-export default class MultiplayerClient extends EventEmitter {
+export default class MultiplayerClient { //extends EventEmitter {
     public static UpdateInterval = 500;
 
     private ws: WebSocket;
     private world: World;
     private otherPlayersNode: Nullable<TransformNode>;
+    private otherPlayers: Map<string, OtherPlayer> = new Map();
 
     private _connected: boolean;
     get connected(): boolean { return this._connected; }
@@ -21,7 +22,7 @@ export default class MultiplayerClient extends EventEmitter {
     private identity?: string | undefined;
 
     constructor(world: World) {
-        super();
+        //super(); // event emitter
 
         this.world = world;
         this._connected = false;
@@ -57,8 +58,9 @@ export default class MultiplayerClient extends EventEmitter {
 
         ws.onclose = () => {
             // If the other side closed.
-            this.disconnect(); // TODO: should call dispose here, not disconnect
-            Logging.InfoDev('Reconnecting...');
+            this.dispose(); // TODO: should call dispose here, not disconnect
+            this._connected = false;
+            Logging.InfoDev('MultiplayerClient: Connection terminated. Reconnecting...');
             setTimeout(() => { this.ws = this.connect() }, MultiplayerClient.reconnectInterval);
         };
 
@@ -83,16 +85,12 @@ export default class MultiplayerClient extends EventEmitter {
                     break;
 
                 case "authenticated":
-                    res = null;
                     this._connected = true;
                     break;
 
-                case "auth-failed":
-                    this._connected = false;
-                    throw new Error("Authentication failed");
-
                 case "error":
-                    this.emit('reqHandled', []);
+                    Logging.Error(msgObj.desc);
+                    // server may close after sending error.
                     break;
 
                 case "position-updates":
@@ -104,8 +102,8 @@ export default class MultiplayerClient extends EventEmitter {
             }
 
             if(res) this.ws.send(JSON.stringify(res));
-        } catch(e) {
-            Logging.ErrorDev("Failed to parse: " + e);
+        } catch(err) {
+            Logging.Error("Error handling server response: " + err);
         }
     }
 
@@ -116,8 +114,6 @@ export default class MultiplayerClient extends EventEmitter {
             response: "OK"
         }
     }
-
-    private otherPlayers: Map<string, OtherPlayer> = new Map();
 
     private updateOtherPlayers(updates: any) {
         assert(this.otherPlayersNode);
@@ -171,19 +167,23 @@ export default class MultiplayerClient extends EventEmitter {
         // server doesn't respond to update position
     }
 
+    private dispose() {
+        this.otherPlayers.clear();
+        this.otherPlayersNode?.dispose();
+        this.otherPlayersNode = null;
+    }
+
     // todo: split into dispose/disconnect
-    public disconnect() {
+    public disconnectAndDispose() {
+        this.ws.close();
         // TODO: figure out if I need to close this...
         this.ws.onopen = null;
         this.ws.onmessage = null;
         this.ws.onerror = null;
         this.ws.onclose = null;
-        this.ws.close();
         this._connected = false;
 
-        this.otherPlayers.clear();
-        this.otherPlayersNode?.dispose();
-        this.otherPlayersNode = null;
+        this.dispose();
 
         Logging.LogDev('MultiplayerClient: Socket closed.');
     }
