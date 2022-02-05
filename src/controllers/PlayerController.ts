@@ -180,12 +180,14 @@ export default class PlayerController {
                         }
                         break;
                     
-                    case 'KeyM': // Opens the mint form
+                    // Opens the mint form
+                    case 'KeyM':
                         document.exitPointerLock();
                         appControlfunctions.loadForm('mint');
                         break;
 
-                    case 'KeyP': // Opens the place properties form
+                    // Opens the place properties form
+                    case 'KeyP':
                         // TODO: check permissions.
                         if(this.currentPlace) {
                             Contracts.getItemsForPlaceView(world.walletProvider, this.currentPlace.placeId, false).then((res) => {
@@ -197,12 +199,14 @@ export default class PlayerController {
                         }
                         break;
 
-                    case 'KeyI': // Opens the inventory
+                    // Opens the inventory
+                    case 'KeyI':
                         document.exitPointerLock();
                         appControlfunctions.loadForm('inventory');
                         break;
 
-                    case 'KeyC': // Clear item selection
+                    // Clear item selection
+                    case 'KeyC':
                         this.setCurrentItem();
                         break;
 

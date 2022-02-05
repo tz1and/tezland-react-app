@@ -4,12 +4,12 @@ export const ControlsHelp: React.FC<{}> = () => {
     return (
         <div>
             <div className='position-absolute bottom-0 start-0'>
-                <button className="btn btn-primary m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Show Control Help</button>
+                <button className="btn btn-primary m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Show Controls Help</button>
             </div>
 
             <div className="offcanvas offcanvas-start" tabIndex={-1} id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
                 <div className="offcanvas-header">
-                    <h4 id="offcanvasRightLabel">Control Help</h4>
+                    <h4 id="offcanvasRightLabel">Controls Help</h4>
                     <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
                 <div className="offcanvas-body">
