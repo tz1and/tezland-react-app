@@ -58,6 +58,11 @@ export const ControlsHelp: React.FC<{}> = () => {
                         Mint item<br/>
                         <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <span className="glyphicon-stack-2x text-white">P</span>
+                        </span>
+                        Edit Place properties<br/>
+                        <span className="glyphicon-stack m-1 mx-0 me-1">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
                             <span className="glyphicon-stack-2x text-white">C</span>
                         </span>
                         Clear item selection<br/>
