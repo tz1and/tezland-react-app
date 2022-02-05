@@ -26,6 +26,7 @@ interface MintFormValues {
 }
 
 type MintFormProps = {
+    closable?: boolean;
     closeForm(cancelled: boolean): void;
 }
 
@@ -39,6 +40,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     private initialValues: MintFormValues = { itemTitle: "", itemDescription: "", itemTags: "", itemAmount: 1, itemRoyalties: 10 };
     private modelPreviewRef = React.createRef<ModelPreview>();
     private formikRef = React.createRef<FormikProps<MintFormValues>>();
+    private isClosable: boolean;
 
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
@@ -50,6 +52,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             modelLoadingState: "none",
             modelLimitWarning: ""
         };
+
+        this.isClosable = this.props.closable === undefined ? true : this.props.closable;
     }
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -74,7 +78,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     override render(): React.ReactNode {
         return (
             <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
-                <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />
+                {this.isClosable && <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />}
                 <h2>mint Item</h2>
                 <Formik
                     innerRef={this.formikRef}
@@ -157,7 +161,9 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                 await Contracts.mintItem(this.context, data.metdata_uri, values.itemRoyalties, values.itemAmount);
 
                                 // when successful, close form.
-                                this.props.closeForm(false);
+                                if(this.isClosable) this.props.closeForm(false);
+
+                                // TODO: or redirect.
 
                                 // return to avoid setting properties after unmount.
                                 return;

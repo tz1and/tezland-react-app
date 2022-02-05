@@ -17,6 +17,7 @@ export default function Frontpage() {
                         <li><Link to="/faq" className="nav-link px-2">FAQ</Link></li>
                         {/*<li><Link to="/docs" className="nav-link px-2">Docs</Link></li>*/}
                         <li><Link to="/map" className="nav-link px-2">Map</Link></li>
+                        <li><Link to="/mint" className="nav-link px-2">Mint</Link></li>
                         <li><Link to="/explore" className="nav-link px-2">Explore</Link></li>
                     </ul>
 
