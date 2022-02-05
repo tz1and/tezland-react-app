@@ -22,6 +22,7 @@ import { Logging } from "../utils/Logging";
 import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
+import MultiplayerClient from "./MultiplayerClient";
 //import { isDev } from "../utils/Utils";
 
 
@@ -53,6 +54,8 @@ export class World {
     private lastUpdatePosition: Vector3;
     // TODO
     //private queuedPlaceUpdates: PlaceId[] = [];
+
+    private multiClient?: MultiplayerClient | undefined;
 
     private subscription?: Subscription<OperationContent> | undefined;
 
@@ -182,6 +185,9 @@ export class World {
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
         this.registerPlacesSubscription();
+
+        // TODO: on walletChanged event, disconnect and reconnect!
+        this.multiClient = new MultiplayerClient(this);
     }
 
     private onResize = () => {
@@ -224,6 +230,7 @@ export class World {
         window.removeEventListener('resize', this.onResize);
         
         this.unregisterPlacesSubscription();
+        this.multiClient?.disconnect();
 
         this.worldGrid.clear();
         this.places.clear();
@@ -334,8 +341,27 @@ export class World {
         }
     }
 
+    private lastMultiplayerUpdate: number = 0;
+
+    private updateMultiplayer() {
+        const now = performance.now();
+        const elapsed = now - this.lastMultiplayerUpdate;
+        if(elapsed > MultiplayerClient.UpdateInterval) {
+            this.lastMultiplayerUpdate = now;
+
+            if(this.multiClient && this.multiClient.connected) {
+                this.multiClient.updatePlayerPosition(
+                    this.playerController.getPosition(),
+                    this.playerController.getRotation()
+                );
+            }
+        }
+    }
+
     // TODO: go over this again.
     public updateWorld() {
+        this.updateMultiplayer();
+
         // Update world when player has moved a certain distance.
         const playerPos = this.playerController.getPosition();
         if(this.lastUpdatePosition.subtract(playerPos).length() > worldUpdateDistance)

@@ -9,6 +9,7 @@ export default class Conf {
     public static ipfs_gateway: string = process.env.REACT_APP_IPFS_GATEWAY;
     public static hasura_url: string = process.env.REACT_APP_HASURA_URL;
     public static backend_url: string = process.env.REACT_APP_BACKEND;
+    public static multiplayer_url: string = process.env.REACT_APP_MULTIPLAYER;
 
     public static item_contract: string = process.env.REACT_APP_ITEM_CONTRACT;
     public static place_contract: string = process.env.REACT_APP_PLACE_CONTRACT;

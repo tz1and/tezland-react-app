@@ -289,6 +289,14 @@ export default class PlayerController {
         return this.camera.position;
     }
 
+    /**
+     * Important: returns a ref to the player quaternion!
+     * @returns Vector3
+     */
+    public getRotation(): Vector3 {
+        return this.camera.rotation;
+    }
+
     public setCurrentPlace: (place: Place) => void;
 
     public getCurrentPlace() { return this.currentPlace; }
