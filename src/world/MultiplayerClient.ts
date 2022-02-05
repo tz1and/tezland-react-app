@@ -202,6 +202,6 @@ class OtherPlayer {
         const uints = fromHexString(tranformData);
         const view = new DataView(uints.buffer)
         this.tranformNode.position.set(view.getFloat32(0), view.getFloat32(4), view.getFloat32(8));
-        this.tranformNode.rotation.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
+        this.head.rotation.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
     }
 }
