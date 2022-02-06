@@ -318,14 +318,14 @@ export default class PlayerController {
 
     public getCurrentPlace() { return this.currentPlace; }
 
-    public async setCurrentItem(item_id?: number) {
+    public async setCurrentItem(token_id?: number) {
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();
             this.tempObject = null;
         }
 
-        this.currentItem = item_id;
+        this.currentItem = token_id;
         if (this.currentItem === undefined) return;
 
         try {

@@ -23,13 +23,13 @@ export async function get_file_size(cid: string): Promise<number> {
     }
 }*/
 
-export async function download_item(item_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
+export async function download_item(token_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
-    var mesh = scene.getMeshByName(`item${item_id}`);
+    var mesh = scene.getMeshByName(`item${token_id}`);
     if(!mesh) {
-        const itemMetadata = await Metadata.getItemMetadata(item_id.toNumber());
-        const itemCachedStats = await Metadata.Storage.loadObject(item_id.toNumber(), "itemPolycount");
+        const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
+        const itemCachedStats = await Metadata.Storage.loadObject(token_id.toNumber(), "itemPolycount");
         const polygonLimit = AppSettings.polygonLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
@@ -39,7 +39,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         // NOTE: can't really be missing as default in indexer db is 34359738368.
         // but indexer may change in the future...
         if(!itemMetadata.fileSize) {
-            Logging.Warn("Item " + item_id + " metadata is missing fileSize. Ignoring.");
+            Logging.Warn("Item " + token_id + " metadata is missing fileSize. Ignoring.");
             return null;
         }
 
@@ -50,13 +50,13 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
 
             // early out if the cached fileSize is > sizeLimit.
             if(itemCachedStats.fileSize > AppSettings.fileSizeLimit.value) {
-                Logging.Warn("Item " + item_id + " exceeds size limits. Ignoring.");
+                Logging.Warn("Item " + token_id + " exceeds size limits. Ignoring.");
                 return null;
             }
 
             // early out if the cached polycount is > -1 and >= polygonLimit.
             if(itemCachedStats.polyCount >= 0 && itemCachedStats.polyCount >= polygonLimit) {
-                Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
+                Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
                 return null;
             }
         }
@@ -64,7 +64,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         else {
             // early out if the file size from metadata is > sizeLimit.
             if(fileSize > AppSettings.fileSizeLimit.value) {
-                Logging.Warn("Item " + item_id + " exceeds size limits. Ignoring.");
+                Logging.Warn("Item " + token_id + " exceeds size limits. Ignoring.");
                 return null;
             }
         }
@@ -74,8 +74,8 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
             // Item metadata may be lying. Lets make sure.
             fileSize = await getUrlFileSizeHead(Conf.ipfs_gateway + '/ipfs/' + hash);
             if(fileSize > AppSettings.getFileSizeLimit()) {
-                Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", {polyCount: -1, fileSize: fileSize});
-                Logging.Warn("Item " + item_id + " file exceeds size limits. Ignoring.");
+                Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polyCount: -1, fileSize: fileSize});
+                Logging.Warn("Item " + token_id + " file exceeds size limits. Ignoring.");
                 return null;
             }
         }*/
@@ -99,7 +99,7 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
 
         // get the root mesh
         mesh = newMeshes.meshes[0] as Mesh;
-        mesh.name = `item${item_id}`;
+        mesh.name = `item${token_id}`;
 
         // then set original to be disabled
         mesh.parent = scene.getTransformNodeByName("loadedItemCache");
@@ -110,10 +110,10 @@ export async function download_item(item_id: BigNumber, scene: Scene, parent: Nu
         // Could be a babylon beta bug.
         if(itemCachedStats === null || itemCachedStats.polyCount < 0) {
             const polycount = countPolygons(newMeshes.meshes);
-            Metadata.Storage.saveObject(item_id.toNumber(), "itemPolycount", {polyCount: polycount, fileSize: fileSize});
+            Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polyCount: polycount, fileSize: fileSize});
 
             if(polycount >= polygonLimit) {
-                Logging.Warn("Item " + item_id + " has too many polygons. Ignoring.");
+                Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
 
                 // clean up. seems a bit extreme, but whatevs.
                 for (const x of newMeshes.animationGroups) x.dispose();
