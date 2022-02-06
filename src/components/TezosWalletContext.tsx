@@ -19,7 +19,7 @@ export type ITezosWalletProvider = {
     walletEvents: () => EventEmitter
 
     addWalletOperation(hash: string): void;
-    walletOperationDone(hash: string, success: boolean, message?: string): void;
+    walletOperationDone(hash: string, completed: boolean, message?: string): void;
 }
 
 // Ignore the following because I can't be bothered to fill
@@ -159,11 +159,11 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
         this.setState({ pendingOps: this.state.pendingOps.concat({hash: hash, done: false }) });
     }
 
-    public walletOperationDone = (hash: string, success: boolean, message?: string) => {
+    public walletOperationDone = (hash: string, completed: boolean, message?: string) => {
         const elem = this.state.pendingOps.find((v) => v.hash === hash);
         if(elem) {
             elem.done = true;
-            elem.success = success;
+            elem.success = completed;
             elem.error = message;
 
             this.setState({pendingOps: this.state.pendingOps});

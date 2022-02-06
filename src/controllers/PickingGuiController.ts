@@ -1,5 +1,4 @@
 import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
-
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import assert from "assert";
 import Contracts from "../tz/Contracts";
@@ -37,12 +36,10 @@ export default class PickingGuiController {
 
                     if(metadata && metadata.xtzPerItem !== 0) {
                         document.exitPointerLock();
-                        Contracts.getItem(this.world.walletProvider, metadata.placeId, metadata.id.toNumber(), metadata.xtzPerItem,
-                            () => {
-                                // TODO: does this really need to be called here?
-                                // subscription should handle it.
-                                world.places.get(metadata.placeId)?.loadItems(true);
-                            });
+                        Contracts.getItem(this.world.walletProvider, metadata.placeId, metadata.id.toNumber(), metadata.xtzPerItem, (completed: boolean) => {
+                            // NOTE: subscription handles this, but subscription could take a while to update.
+                            if(completed) world.places.get(metadata.placeId)?.loadItems(true);
+                        });
                     }
 
                     eventState.skipNextObservers = true;

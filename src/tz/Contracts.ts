@@ -93,7 +93,7 @@ export class Contracts {
         return this.isPlaceOperator(walletProvider, place_id, owner);
     }
 
-    public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: () => void) {
+    public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
@@ -109,7 +109,7 @@ export class Contracts {
         this.handleOperation(walletProvider, mint_item_op, callback);
     }
 
-    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number, callback?: () => void) {
+    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number, callback?: (completed: boolean) => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
@@ -181,7 +181,7 @@ export class Contracts {
         //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
-    public async SavePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, place_id: number, owner: string, callback?: () => void) {
+    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, place_id: number, owner: string, callback?: (completed: boolean) => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         // owner is optional.
@@ -193,7 +193,7 @@ export class Contracts {
         this.handleOperation(walletProvider, save_props_op, callback);
     }
 
-    public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: () => void) {
+    public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: (completed: boolean) => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
@@ -292,15 +292,15 @@ export class Contracts {
         this.handleOperation(walletProvider, batch_op, callback);
     }
 
-    public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: () => void) {
+    public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: (completed: boolean) => void) {
         walletProvider.addWalletOperation(op.opHash);
-        op.confirmation().then(() => {
-            walletProvider.walletOperationDone(op.opHash, true);
-
-            if (callback) callback();
-        }, (e: any) => {
-            walletProvider.walletOperationDone(op.opHash, false, e.message);
-        })
+        op.confirmation().then((result) => {
+            walletProvider.walletOperationDone(op.opHash, result.completed);
+            if (callback) callback(result.completed);
+        }).catch((reason: any) => {
+            walletProvider.walletOperationDone(op.opHash, false, reason.message);
+            if (callback) callback(false);
+        });
     }
 }
 

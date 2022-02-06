@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Formik,
     Form,
@@ -34,8 +34,10 @@ const colorToBytes = (color: string) => {
 
 export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) => {
     const context = useTezosWalletContext();
+
+    const [state, setState] = useState<PlaceFropertiesFormState>({error: ""});
     
-    const state: PlaceFropertiesFormState = { error: "" }
+    //const state: PlaceFropertiesFormState = { error: "" }
     const initialValues: PlaceFropertiesFormValues = {
         placeGroundColor: props.groundColor
     };
@@ -59,18 +61,16 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                     return errors;
                 }}
                 onSubmit={(values, actions) => {
-                    try {
-                        Contracts.SavePlaceProps(context, colorToBytes(values.placeGroundColor), props.placeId, props.placeOwner, () => {
+                    Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), props.placeId, props.placeOwner, (completed: boolean) => {
+                        actions.setSubmitting(false);
+
+                        if (completed) {
                             props.closeForm(false);
-                        });
+                            return;
+                        }
 
-                        return;
-                    }
-                    catch(e: any) {
-                        state.error = e.message;
-                    }
-
-                    actions.setSubmitting(false);
+                        setState({error: "Transaction failed"});
+                    });
                 }}
             >
                 {({
@@ -86,8 +86,8 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                                 <ErrorMessage name="placeGroundColor" children={errorDisplay}/>
                             </div>
                                     
-                            {state.error.length > 0 && ( <small className='text-danger'>Saving Place properties failed: {state.error}</small> )}
                             <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button>
+                            {state.error.length > 0 && ( <small className='text-danger'>Saving Place properties failed: {state.error}</small> )}
                         </Form>
                     )
                 }}
