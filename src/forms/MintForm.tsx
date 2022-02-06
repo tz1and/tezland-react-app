@@ -15,6 +15,7 @@ import { BlobLike, blobToBloblike, getFileExt } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
+import { FormTrisate, triHelper } from './FormUtils';
 
 interface MintFormValues {
     itemTitle: string;
@@ -31,7 +32,8 @@ type MintFormProps = {
 }
 
 type MintFormState = {
-    error: string;
+    error: string,
+    successState: FormTrisate,
     modelLoadingState: ModelLoadingState;
     modelLimitWarning: string;
 }
@@ -42,6 +44,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     private formikRef = React.createRef<FormikProps<MintFormValues>>();
     private isClosable: boolean;
 
+    private closeTimeout: NodeJS.Timeout | null = null;
+
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
     
@@ -49,11 +53,16 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         super(props);
         this.state = {
             error: "",
+            successState: -1,
             modelLoadingState: "none",
             modelLimitWarning: ""
         };
 
         this.isClosable = this.props.closable === undefined ? true : this.props.closable;
+    }
+
+    override componentWillUnmount() {
+        if(this.closeTimeout) clearInterval(this.closeTimeout);
     }
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -73,6 +82,50 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState });
 
         this.formikRef.current?.validateField("itemFile")
+    }
+
+    private async uploadAndMint(values: MintFormValues, callback?: (completed: boolean) => void) {
+        const thumbnail = await this.modelPreviewRef.current!.getThumbnail();
+
+        // TODO: validate mimeType in validation.
+        var mime_type;
+        const file_ext = getFileExt(values.itemFile!.name);
+        if(file_ext === "glb") mime_type = "model/gltf-binary";
+        else if(file_ext === "gltf") mime_type = "model/gltf+json";
+        else throw new Error("Unsupported mimeType");
+
+        const metadata = createItemTokenMetadata({
+            name: values.itemTitle,
+            description: values.itemDescription,
+            minter: this.context.walletPHK(),
+            artifactUri: await blobToBloblike(values.itemFile!),
+            thumbnailUri: { dataUri: thumbnail, type: "image/png" } as BlobLike,
+            tags: values.itemTags,
+            formats: [
+                {
+                    mimeType: mime_type,
+                    fileSize: values.itemFile!.size
+                }
+            ]
+        });
+
+        // Post here and wait for result
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: metadata
+        };
+        const response = await fetch(Conf.backend_url + "/upload", requestOptions)
+        const data = await response.json();
+
+        if(data.error) {
+            throw new Error("Upload failed: " + data.error);
+        }
+        else if (data.metdata_uri && data.cid) {
+            // mint item.
+            await Contracts.mintItem(this.context, data.metdata_uri, values.itemRoyalties, values.itemAmount, callback);
+        }
+        else throw new Error("Backend: malformed response");
     }
 
     override render(): React.ReactNode {
@@ -110,70 +163,32 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                         if (values.itemAmount < 1 || values.itemAmount > 10000) {
                             errors.itemAmount = 'Amount invalid';
                         }
+
+                        // revalidation clears trisate and error
+                        this.setState({error: "", successState: -1});
                     
                         return errors;
                     }}
                     onSubmit={async (values, actions) => {
-                        // clear error state
-                        this.setState({ error: '' });
+                        this.uploadAndMint(values, (completed: boolean) => {
+                            if (completed) {
+                                if(!this.isClosable) actions.setSubmitting(false);
 
-                        try {
-                            // check if wallet is connected first.
-                            if(!this.context.isWalletConnected()) throw new Error("No wallet connected");
-
-                            const thumbnail = await this.modelPreviewRef.current!.getThumbnail();
-
-                            var mime_type;
-                            const file_ext = getFileExt(values.itemFile!.name);
-                            if(file_ext === "glb") mime_type = "model/gltf-binary";
-                            else if(file_ext === "gltf") mime_type = "model/gltf+json";
-                            else throw new Error("Unsupported mimeType");
-
-                            const metadata = createItemTokenMetadata({
-                                name: values.itemTitle,
-                                description: values.itemDescription,
-                                minter: this.context.walletPHK(),
-                                artifactUri: await blobToBloblike(values.itemFile!),
-                                thumbnailUri: { dataUri: thumbnail, type: "image/png" } as BlobLike,
-                                tags: values.itemTags,
-                                formats: [
-                                    {
-                                        mimeType: mime_type,
-                                        fileSize: values.itemFile!.size
-                                    }
-                                ]
-                            });
-
-                            // Post here and wait for result
-                            const requestOptions = {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: metadata
-                            };
-                            const response = await fetch(Conf.backend_url + "/upload", requestOptions)
-                            const data = await response.json();
-
-                            if(data.error) {
-                                throw new Error("Upload failed: " + data.error);
+                                this.setState({error: "", successState: 1}, () => {
+                                    // If closable close form after a short time.
+                                    if(this.isClosable) this.closeTimeout = setTimeout(() => {
+                                        this.props.closeForm(false);
+                                    }, 1000);
+                                });
                             }
-                            else if (data.metdata_uri && data.cid) {
-                                // mint item.
-                                await Contracts.mintItem(this.context, data.metdata_uri, values.itemRoyalties, values.itemAmount);
-
-                                // when successful, close form.
-                                if(this.isClosable) this.props.closeForm(false);
-
-                                // TODO: or redirect.
-
-                                // return to avoid setting properties after unmount.
-                                return;
+                            else {
+                                actions.setSubmitting(false);
+                                this.setState({ error: "Transaction failed", successState: 0 });
                             }
-                            else throw new Error("Backend: malformed response");
-                        } catch(e: any) {
-                            this.setState({ error: e.message });
-                        }
-
-                        actions.setSubmitting(false);
+                        }).catch((reason: any) => {
+                            actions.setSubmitting(false);
+                            this.setState({error: reason.message, successState: 0});
+                        });
                     }}
                 >
 
@@ -221,19 +236,21 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                         </div>
                                         <div className="mb-3">
                                             <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
-                                            <div className="input-group mb-3">
+                                            <div className="input-group">
                                                 <span className="input-group-text">%</span>
                                                 <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
                                             </div>
                                             <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
                                             <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
                                         </div>
-                                        <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} mint Item</button>
+                                        <button type="submit" className={`btn btn-${triHelper(this.state.successState, "primary", "danger", "success")} mb-3`} disabled={isSubmitting || !isValid}>
+                                            {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} mint Item
+                                        </button><br/>
+                                        {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
                                     </div>
                                     <div className='col'>
                                         <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} modelLoaded={this.modelLoaded} />
                                         <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
-                                        {this.state.error.length > 0 && ( <small className='text-danger'>Minting failed: {this.state.error}</small> )}
                                     </div>
                                 </div>
                             </Form>
