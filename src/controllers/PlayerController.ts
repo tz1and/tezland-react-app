@@ -248,7 +248,7 @@ export default class PlayerController {
 
     private initCamera(): FreeCamera {
         // This creates and positions a free camera (non-mesh)
-        var camera = new UniversalCamera("camera1", new Vector3(0, 2, 0), this.scene);
+        var camera = new UniversalCamera("playerCamera", new Vector3(0, 2, 0), this.scene);
 
         // Camera props
         camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;

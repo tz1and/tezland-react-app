@@ -6,7 +6,7 @@ import {
     FormikErrors,
     ErrorMessage
 } from 'formik';
-import AppSettings from '../storage/AppSettings';
+import AppSettings, { ShadowOptions } from '../storage/AppSettings';
 
 interface SettingsFormValues {
     // general
@@ -21,7 +21,7 @@ interface SettingsFormValues {
 
     // graphics
     enableAntialiasing: boolean;
-    enableShadows: boolean;
+    shadowOptions: ShadowOptions;
 }
 
 type SettingsFormProps = {
@@ -47,7 +47,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
 
         // graphics
         enableAntialiasing: AppSettings.enableAntialiasing.value,
-        enableShadows: AppSettings.enableShadows.value
+        shadowOptions: AppSettings.shadowOptions.value
     };
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -89,7 +89,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
 
                         // graphics
                         AppSettings.enableAntialiasing.value = values.enableAntialiasing;
-                        AppSettings.enableShadows.value = values.enableShadows;
+                        AppSettings.shadowOptions.value = values.shadowOptions;
 
                         props.closeForm(false);
 
@@ -103,6 +103,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 }}
             >
                 {({
+                    values,
                     isSubmitting,
                     isValid
                 }) => {
@@ -160,14 +161,18 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 </div>
                                 <div className="tab-pane fade" id="graphics" role="tabpanel" aria-labelledby="graphics-tab">
                                     <div className="mb-3">
+                                    <label htmlFor="shadowOptions" className="form-label">Shadows</label>
+                                        <Field id="shadowOptions" name="shadowOptions" as="select" value={values.shadowOptions} className="form-select" aria-describedby="shadowOptionsHelp" disabled={isSubmitting} >
+                                            <option key={"none"} value={"none"}>No shadows</option>
+                                            <option key={"standard"} value={"standard"}>Standard shadow maps</option>
+                                            <option key={"cascaded"} value={"cascaded"}>Cascaded shadow maps</option>
+                                        </Field>
+                                        <div id="shadowOptionsHelp" className="form-text">Maybe helps performance to turn it off, who knows.</div>
+                                    </div>
+                                    <div className="mb-3">
                                         <Field id="enableAntialiasing" name="enableAntialiasing" type="checkbox" className="form-check-input me-2" aria-describedby="enableAntialiasingHelp" disabled={isSubmitting}/>
                                         <label htmlFor="enableAntialiasing" className="form-label">Enable antialiasing</label>
                                         <div id="enableAntialiasingHelp" className="form-text">Disable this if you have a slow graphics card.</div>
-                                    </div>
-                                    <div className="mb-3">
-                                        <Field id="enableShadows" name="enableShadows" type="checkbox" className="form-check-input me-2" aria-describedby="enableShadowsHelp" disabled={isSubmitting}/>
-                                        <label htmlFor="enableShadows" className="form-label">Enable shadows</label>
-                                        <div id="enableShadowsHelp" className="form-text">Maybe helps to turn it off, who knows.</div>
                                     </div>
                                 </div>
                             </div>

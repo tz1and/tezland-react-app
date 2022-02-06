@@ -5,7 +5,7 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
-//import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
+import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
@@ -106,7 +106,7 @@ export class World {
         this.transparentGridMat.backFaceCulling = false;
         
         // Create sun and skybox
-        let sun_direction = new Vector3(-50, -100, 50);
+        let sun_direction = new Vector3(-50, -100, 50).normalize();
         this.sunLight = new DirectionalLight("sunLight", sun_direction, this.scene);
         this.sunLight.intensity = 0.5;
         //this.sunLight.autoCalcShadowZBounds = true;
@@ -135,26 +135,28 @@ export class World {
         skybox.material = skyMaterial;
 
         // After, camera, lights, etc, the shadow generator
-        if (AppSettings.enableShadows.value) {
-            /*const shadowGenerator = new CascadedShadowGenerator(512, this.sunLight);
-            shadowGenerator.debug = true;
-            //shadowGenerator.autoCalcDepthBounds = true;
-            //shadowGenerator.depthClamp = true;
-            shadowGenerator.shadowMaxZ = 100;
-            //shadowGenerator.freezeShadowCastersBoundingInfo = true;
-            //shadowGenerator.splitFrustum();*/
-
+        if (AppSettings.shadowOptions.value === "standard") {
             const shadowGenerator = new ShadowGenerator(1024, this.sunLight);
             //shadowGenerator.autoCalcDepthBounds = true;
             shadowGenerator.useExponentialShadowMap = true;
             shadowGenerator.useBlurExponentialShadowMap = true;
             //shadowGenerator.usePoissonSampling = true;
-
-            // set shadow generator on player controller.
             this.shadowGenerator = shadowGenerator;
-            this.playerController.shadowGenerator = this.shadowGenerator;
+        }
+        else if (AppSettings.shadowOptions.value === "cascaded") {
+            const shadowGenerator = new CascadedShadowGenerator(1024, this.sunLight);
+            //shadowGenerator.debug = true;
+            //shadowGenerator.autoCalcDepthBounds = true;
+            shadowGenerator.depthClamp = true;
+            shadowGenerator.shadowMaxZ = 100;
+            //shadowGenerator.freezeShadowCastersBoundingInfo = true;
+            //shadowGenerator.splitFrustum();
+            this.shadowGenerator = shadowGenerator;
         }
         else this.shadowGenerator = null;
+
+        // set shadow generator on player controller.
+        this.playerController.shadowGenerator = this.shadowGenerator;
 
         // Render every frame
         this.engine.runRenderLoop(() => {
