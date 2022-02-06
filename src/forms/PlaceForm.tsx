@@ -9,7 +9,7 @@ import {
 import { Node, Nullable } from '@babylonjs/core';
 import { InstanceMetadata } from '../world/Place';
 import BigNumber from 'bignumber.js';
-import { assert } from 'console';
+import assert from 'assert';
 
 interface PlaceFormValues {
     /*itemTitle: string;
