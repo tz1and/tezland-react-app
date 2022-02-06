@@ -9,6 +9,7 @@ import React from 'react';
 import Metadata from '../world/Metadata';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
+import { Popover } from 'bootstrap';
 
 type AuctionProps = {
     auctionId: number;
@@ -35,6 +36,8 @@ type AuctionState = {
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
+
+    private progressBarRef = React.createRef<HTMLDivElement>();
     
     constructor(props: AuctionProps) {
         super(props);
@@ -56,6 +59,8 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
     private refreshInterval: NodeJS.Timeout | null = null;
     private reloadTimeout: NodeJS.Timeout | null = null;
+
+    private popover: Popover | null = null;
 
     private updateTimeVars() {
         this.current_time = Math.floor(Date.now() / 1000);
@@ -132,12 +137,26 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         }, 10000);
 
         this.panMapToPlace(this.props.tokenId);
+
+        if(this.progressBarRef.current) {
+            console.log("create popover");
+            this.popover = new Popover(this.progressBarRef.current, {
+                content: () => {
+                    const time_left = (this.props.endTime - Math.floor(Date.now() / 1000)) / 3600;
+                    return `Time left: ${time_left > 0 ? time_left.toFixed(1) : "0"}h`;
+                },
+                placement: 'top',
+                trigger: 'hover'
+            });
+        }
     }
     
     override componentWillUnmount() {
         // Clear the interval right before component unmount
         if(this.refreshInterval) clearInterval(this.refreshInterval);
         if(this.reloadTimeout) clearInterval(this.reloadTimeout);
+
+        this.popover?.dispose();
     }
 
     override render() {
@@ -157,7 +176,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
                 </MapContainer>
                 <div className='p-3'>
-                    <div className="progress mb-3">
+                    <div className="progress mb-3" ref={this.progressBarRef}>
                         <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: `${this.progress}%` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={this.progress}></div>
                     </div>
 
