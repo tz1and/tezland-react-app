@@ -1,6 +1,6 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { Mesh, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
+import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { BlobLike, countPolygons } from '../utils/Utils';
@@ -23,11 +23,21 @@ export async function get_file_size(cid: string): Promise<number> {
     }
 }*/
 
+// TODO: this really shouldn't be global. Maybe a member of world?
+const assetMap: Map<BigNumber, AssetContainer> = new Map();
+
+export function disposeAssetMap() {
+    assetMap.forEach(v => {
+        v.dispose();
+    })
+    assetMap.clear();
+}
+
 export async function download_item(token_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
-    var mesh = scene.getMeshByName(`item${token_id}`);
-    if(!mesh) {
+    var asset = assetMap.get(token_id);
+    if(!asset) {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
         const itemCachedStats = await Metadata.Storage.loadObject(token_id.toNumber(), "itemPolycount");
         const polygonLimit = AppSettings.polygonLimit.value;
@@ -92,37 +102,33 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         // TODO: download file, then load, better for babylon cache.
 
         // LoadAssetContainer?
-        const newMeshes = await SceneLoader.ImportMeshAsync('', Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
+        const result = await SceneLoader.LoadAssetContainerAsync(Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
+        assetMap.set(token_id, result);
 
         // Make sure to stop all animations.
-        newMeshes.animationGroups.forEach((ag) => { ag.stop(); })
+        result.animationGroups.forEach((ag) => { ag.stop(); })
+        asset = result;
 
         // get the root mesh
-        mesh = newMeshes.meshes[0] as Mesh;
-        mesh.name = `item${token_id}`;
+        //mesh.name = `item${token_id}`;
 
         // then set original to be disabled
-        mesh.parent = scene.getTransformNodeByName("loadedItemCache");
+        //mesh.parent = scene.getTransformNodeByName("loadedItemCache");
         //mesh.setEnabled(false); // not needed, as loadedItemCache is disabled.
 
         // If we don't have a cache, calculate polycount and store it.
         // TODO: this might not be good enough, since animated meshes don't have polygons?
         // Could be a babylon beta bug.
         if(itemCachedStats === null || itemCachedStats.polyCount < 0) {
-            const polycount = countPolygons(newMeshes.meshes);
+            const polycount = countPolygons(result.meshes);
             Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polyCount: polycount, fileSize: fileSize});
 
             if(polycount >= polygonLimit) {
                 Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
 
-                // clean up. seems a bit extreme, but whatevs.
-                for (const x of newMeshes.animationGroups) x.dispose();
-                for (const x of newMeshes.geometries) x.dispose();
-                for (const x of newMeshes.lights) x.dispose();
-                for (const x of newMeshes.meshes) x.dispose();
-                for (const x of newMeshes.particleSystems) x.dispose();
-                for (const x of newMeshes.skeletons) x.dispose();
-                for (const x of newMeshes.transformNodes) x.dispose();
+                // remove from asset map and dispose.
+                assetMap.delete(token_id);
+                result.dispose();
 
                 return null;
             }
@@ -130,26 +136,17 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
     }
     //else Logging.InfoDev("mesh found in cache");
         
-    // clone
-    const instance = mesh.instantiateHierarchy(parent);
-    if(instance) {
+    // Instantiate.
+    // TODO: getting first root node is enough?
+    const instance = asset.instantiateModelsToScene() // .instantiateHierarchy(parent);
+    instance.rootNodes[0].parent = parent;
+    /*if(instance) {
         instance.setEnabled(true);
         // for some reason instantiateHierarchy ignores setting the parent if null.
         if(parent === null) instance.parent = null;
-    }
+    }*/
 
-    //const loader = new GLTFFileLoader();
-    //loader.loadFile(null, `http://localhost:8080/ipfs/${hash}`);
-
-    //http://localhost:8080/ipfs/QmbVJzhKrruQx2PVyBKdfhrGFe6aD6aDFMyxoZ8aKHP1UP
-
-    /*const arrayBuffer = await download_file(artifact);
-    arrayBuffer.
-    const loader = new GLTFFileLoader();
-    let file = new File([arrayBuffer.], "Astronaut.glb")
-    loader.loadFile()*/
-
-    return instance;
+    return instance.rootNodes[0];
 }
 
 type ItemMetadata = {

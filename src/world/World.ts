@@ -23,6 +23,7 @@ import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
+import { disposeAssetMap } from "../ipfs/ipfs";
 //import { isDev } from "../utils/Utils";
 
 
@@ -236,6 +237,8 @@ export class World {
         this.places.clear();
 
         this.playerController.dispose();
+
+        disposeAssetMap();
 
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
