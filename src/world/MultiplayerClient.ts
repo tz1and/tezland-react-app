@@ -9,7 +9,7 @@ import { Logging } from '../utils/Logging';
 
 
 export default class MultiplayerClient { //extends EventEmitter {
-    public static UpdateInterval = 500;
+    public static UpdateInterval = 100;
 
     private ws: WebSocket;
     private world: World;
@@ -118,6 +118,10 @@ export default class MultiplayerClient { //extends EventEmitter {
     private updateOtherPlayers(updates: any) {
         assert(this.otherPlayersNode);
 
+        if(updates.length === 0) return;
+
+        //const start_time = performance.now();
+
         updates.forEach((u: any) => {
             // skip currently connected player.
             if (this.identity === u.name) return;
@@ -139,7 +143,10 @@ export default class MultiplayerClient { //extends EventEmitter {
                 this.otherPlayers.set(u.name, p);
             }
             p.update(u.upd);
-        })
+        });
+
+        //const elapsed = performance.now() - start_time;
+        //console.log(`update other players took: ${elapsed}ms`);
     }
 
     public updatePlayerPosition(pos: Vector3, rot: Vector3) {
@@ -165,6 +172,23 @@ export default class MultiplayerClient { //extends EventEmitter {
         this.ws.send(JSON.stringify(req));
 
         // server doesn't respond to update position
+    }
+
+    public interpolateOtherPlayers() {
+        if(this.otherPlayers.size === 0) return;
+
+        //const start_time = performance.now();
+
+        // assume 60 fps.
+        const time_since_last_frame = 1 / 60;
+        const time = time_since_last_frame / 0.2;
+
+        this.otherPlayers.forEach((p) => {
+            p.interpolate(time);
+        })
+
+        //const elapsed = performance.now() - start_time;
+        //console.log(`interpolating players took: ${elapsed}ms`);
     }
 
     private dispose() {
@@ -194,6 +218,9 @@ class OtherPlayer {
     public body: Mesh;
     public tranformNode: TransformNode;
 
+    public lastPos: Vector3;
+    public lastRot: Vector3;
+
     constructor(name: string, parent: TransformNode) {
         this.tranformNode = new TransformNode(name);
         this.head = Mesh.CreateBox("head", 0.5, null);
@@ -209,6 +236,9 @@ class OtherPlayer {
 
         this.tranformNode.parent = parent;
 
+        this.lastPos = new Vector3(0,0,0);
+        this.lastRot = new Vector3(0,0,0);
+
         Logging.LogDev("MultiplayerClient: added player", name)
     }
 
@@ -216,8 +246,13 @@ class OtherPlayer {
         assert(tranformData.length === 48)
         const uints = fromHexString(tranformData);
         const view = new DataView(uints.buffer)
-        this.tranformNode.position.set(view.getFloat32(0), view.getFloat32(4), view.getFloat32(8));
-        this.head.rotation.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
+        this.lastPos.set(view.getFloat32(0), view.getFloat32(4), view.getFloat32(8));
+        this.lastRot.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
+    }
+
+    interpolate(delta: number) {
+        this.tranformNode.position = Vector3.Lerp(this.tranformNode.position, this.lastPos, delta);
+        this.head.rotation = Vector3.Lerp(this.head.rotation, this.lastRot, delta);
     }
 
     dispose() {

@@ -344,17 +344,21 @@ export class World {
     private lastMultiplayerUpdate: number = 0;
 
     private updateMultiplayer() {
-        const now = performance.now();
-        const elapsed = now - this.lastMultiplayerUpdate;
-        if(elapsed > MultiplayerClient.UpdateInterval) {
-            this.lastMultiplayerUpdate = now;
+        if(this.multiClient && this.multiClient.connected) {
+            // Occasionally send on postition.
+            const now = performance.now();
+            const elapsed = now - this.lastMultiplayerUpdate;
+            if(elapsed > MultiplayerClient.UpdateInterval) {
+                this.lastMultiplayerUpdate = now;
 
-            if(this.multiClient && this.multiClient.connected) {
                 this.multiClient.updatePlayerPosition(
                     this.playerController.getPosition(),
                     this.playerController.getRotation()
                 );
             }
+
+            // interpolate other players
+            this.multiClient.interpolateOtherPlayers();
         }
     }
 
