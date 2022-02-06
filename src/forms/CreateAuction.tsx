@@ -17,6 +17,7 @@ import { fetchGraphQL } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { Logging } from '../utils/Logging';
 import assert from 'assert';
+import { FormTrisate, triHelper } from './FormUtils';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -52,10 +53,10 @@ type CreateAuctionFormProps = { }
 
 type CreateAuctionFormState = {
     error: string,
+    successState: FormTrisate,
     mapLocation: [number, number],
     placePoly: [number, number][],
-    placeInventory?: any[],
-    pending: boolean // workaround until handleOperation has a failed state-
+    placeInventory?: any[]
 }
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
@@ -65,13 +66,15 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     override context!: React.ContextType<typeof TezosWalletContext>;
     //declare context: React.ContextType<typeof TezosWalletContext>
 
+    private navTimeout: NodeJS.Timeout | null = null;
+
     constructor(props: CreateAuctionFormProps) {
         super(props);
         this.state = {
             error: '',
+            successState: -1,
             mapLocation: [500, 500],
-            placePoly: [],
-            pending: false
+            placePoly: []
         };
     }
 
@@ -142,6 +145,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 
     override componentWillUnmount() {
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
+
+        if(this.navTimeout) clearInterval(this.navTimeout);
     }
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -173,24 +178,32 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 if (!values.startPrice || !values.endPrice || /*values.endPrice <= 0 ||*/ values.endPrice >= values.startPrice) {
                                     errors.endPrice = 'End price must be > 0 and < start price.';
                                 }
+
+                                // revalidation clears trisate and error
+                                this.setState({error: "", successState: -1});
                               
                                 return errors;
                             }}
-                            onSubmit={async (values, actions) => {
-                                try {
-                                    assert(values.startPrice);
-                                    assert(values.endPrice);
-                                    await DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration,
-                                        // @ts-expect-error
-                                        () => { this.props.navigate("/auctions", { replace: true }) });
-
-                                    this.setState({ pending: true });
-                                    return;
-                                } catch(e: any) {
-                                    this.setState({ error: e.message });
-                                }
-
-                                actions.setSubmitting(false);
+                            onSubmit={(values, actions) => {
+                                assert(values.startPrice);
+                                assert(values.endPrice);
+                                DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration, (completed: boolean) => {
+                                    if (completed) {
+                                        this.setState({error: "", successState: 1}, () => {
+                                            this.navTimeout = setTimeout(() => {
+                                                // @ts-expect-error
+                                                this.props.navigate("/auctions", { replace: true })
+                                            }, 1000);
+                                        });
+                                    }
+                                    else {
+                                        actions.setSubmitting(false);
+                                        this.setState({ error: "Transaction failed", successState: 0 });
+                                    }
+                                }).catch((reason: any) => {
+                                    actions.setSubmitting(false);
+                                    this.setState({error: reason.message, successState: 0});
+                                });
                             }}
                         >
                             {({
@@ -243,10 +256,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         <ErrorMessage name="endPrice" children={this.errorDisplay}/>
                                     </div>
                                     <div className="form-text mb-3">There is a 2.5% management fee on successful bids.</div>
-                                    <button type="submit" className="btn btn-primary mb-3" disabled={this.state.pending || isSubmitting || !isValid}>
-                                        {(isSubmitting || this.state.pending) && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} Create Auction
+                                    <button type="submit" className={`btn btn-${triHelper(this.state.successState, "primary", "danger", "success")} mb-3`} disabled={isSubmitting || !isValid}>
+                                        {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} Create Auction
                                     </button><br/>
-                                    {this.state.error.length > 0 && ( <span className='text-danger'>Transaction failed: {this.state.error}</span> )}
+                                    {this.state.error && ( <span className='text-danger d-inline-block mt-2'>Create Auction failed: {this.state.error}</span> )}
                                 </Form>
                             )}}
                         </Formik>

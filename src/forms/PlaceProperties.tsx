@@ -8,6 +8,7 @@ import {
 } from 'formik';
 import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
+import { FormTrisate, triHelper } from './FormUtils';
 
 interface PlaceFropertiesFormValues {
     placeGroundColor: string;
@@ -22,6 +23,7 @@ type PlaceFropertiesFormProps = {
 
 type PlaceFropertiesFormState = {
     error: string;
+    successState: FormTrisate;
 }
 
 
@@ -35,7 +37,7 @@ const colorToBytes = (color: string) => {
 export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) => {
     const context = useTezosWalletContext();
 
-    const [state, setState] = useState<PlaceFropertiesFormState>({error: ""});
+    const [state, setState] = useState<PlaceFropertiesFormState>({error: "", successState: -1});
     
     //const state: PlaceFropertiesFormState = { error: "" }
     const initialValues: PlaceFropertiesFormValues = {
@@ -57,6 +59,9 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                     if(bytes.length !== 6 /*|| not hex*/) {
                         errors.placeGroundColor = "Ground color invalid.";
                     }
+
+                    // revalidation clears trisate and error
+                    setState({error: "", successState: -1});
                   
                     return errors;
                 }}
@@ -64,12 +69,13 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                     Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), props.placeId, props.placeOwner, (completed: boolean) => {
                         actions.setSubmitting(false);
 
-                        if (completed) {
-                            props.closeForm(false);
-                            return;
-                        }
-
-                        setState({error: "Transaction failed"});
+                        if (completed)
+                            setState({error: "", successState: 1});
+                        else
+                            setState({error: "Transaction failed", successState: 0});
+                    }).catch((reason: any) => {
+                        actions.setSubmitting(false);
+                        setState({error: reason.message, successState: 0});
                     });
                 }}
             >
@@ -86,8 +92,9 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                                 <ErrorMessage name="placeGroundColor" children={errorDisplay}/>
                             </div>
                                     
-                            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !isValid}>{isSubmitting === true && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button>
-                            {state.error.length > 0 && ( <small className='text-danger'>Saving Place properties failed: {state.error}</small> )}
+                            <button type="submit" className={`btn btn-${triHelper(state.successState, "primary", "danger", "success")}`} disabled={isSubmitting || !isValid}>
+                                {isSubmitting && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button><br/>
+                            {state.error && ( <small className='text-danger d-inline-block mt-2'>Saving Place properties failed: {state.error}</small> )}
                         </Form>
                     )
                 }}
