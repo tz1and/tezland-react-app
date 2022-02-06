@@ -7,7 +7,6 @@ import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 //import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
 import { Database, Material, Nullable } from "@babylonjs/core";
@@ -135,36 +134,24 @@ export class World {
         let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
 
-        // create debug world
-        //this.debugWorld();
-
-        // TODO: this disable scene picking, but need to use onPointerDown, etc.
-        /*this.scene.onPrePointerObservable.add((pointerInfo) => {
-            pointerInfo.skipOnPointerObservable = true;
-        });*/
-
         // After, camera, lights, etc, the shadow generator
-        /*const csm = new CascadedShadowGenerator(1024, this.sunLight);
-        //csm.debug = true;
-        //csm.autoCalcDepthBounds = true;
-        csm.depthClamp = true;
-        csm.shadowMaxZ = 100;
-        csm.freezeShadowCastersBoundingInfo = true;
-        csm.splitFrustum();
-        //this.shadowGenerator.autoCalcDepthBounds = true;
-        //this.shadowGenerator.useExponentialShadowMap = true;
-        //this.shadowGenerator.useBlurExponentialShadowMap = true;
-        //this.shadowGenerator.usePoissonSampling = true;
-        this.shadowGenerator = csm;*/
-
         if (AppSettings.enableShadows.value) {
-            this.shadowGenerator = new ShadowGenerator(1024, this.sunLight);
-            //this.shadowGenerator.autoCalcDepthBounds = true;
-            this.shadowGenerator.useExponentialShadowMap = true;
-            this.shadowGenerator.useBlurExponentialShadowMap = true;
-            //this.shadowGenerator.usePoissonSampling = true;
+            /*const shadowGenerator = new CascadedShadowGenerator(512, this.sunLight);
+            shadowGenerator.debug = true;
+            //shadowGenerator.autoCalcDepthBounds = true;
+            //shadowGenerator.depthClamp = true;
+            shadowGenerator.shadowMaxZ = 100;
+            //shadowGenerator.freezeShadowCastersBoundingInfo = true;
+            //shadowGenerator.splitFrustum();*/
+
+            const shadowGenerator = new ShadowGenerator(1024, this.sunLight);
+            //shadowGenerator.autoCalcDepthBounds = true;
+            shadowGenerator.useExponentialShadowMap = true;
+            shadowGenerator.useBlurExponentialShadowMap = true;
+            //shadowGenerator.usePoissonSampling = true;
 
             // set shadow generator on player controller.
+            this.shadowGenerator = shadowGenerator;
             this.playerController.shadowGenerator = this.shadowGenerator;
         }
         else this.shadowGenerator = null;
@@ -238,40 +225,6 @@ export class World {
 
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
-    }
-
-    private debugWorld() {
-        var transform_node = new TransformNode("transform", this.scene);
-
-        for(let i = 0; i < 5; ++i) {
-            // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
-            var sphere = Mesh.CreateSphere("sphere1", 36, 2, this.scene);
-            sphere.parent = transform_node;
-            sphere.position.x = Math.random() * 10 - 5;
-            sphere.position.y = 1;
-            sphere.position.z = Math.random() * 10 - 5;
-            sphere.material = this.defaultMaterial;
-            sphere.checkCollisions = true;
-            this.shadowGenerator?.addShadowCaster(sphere);
-        }
-
-        var box = Mesh.CreateBox("sphere1", 2, this.scene);
-        box.position.set(10, 1, 0);
-        box.material = this.defaultMaterial;
-        box.checkCollisions = true;
-        this.shadowGenerator?.addShadowCaster(box);
-
-        box = Mesh.CreateBox("sphere1", 2, this.scene);
-        box.position.set(10, 3, 2);
-        box.material = this.defaultMaterial;
-        box.checkCollisions = true;
-        this.shadowGenerator?.addShadowCaster(box);
-
-        var player = Mesh.CreateBox("player", 1, this.scene);
-        player.position.y = 10;
-        player.checkCollisions = true;
-        player.ellipsoid.set(0.5, 0.5, 0.5);
-        this.shadowGenerator?.addShadowCaster(player);
     }
 
     // TODO: add a list of pending places to load.
