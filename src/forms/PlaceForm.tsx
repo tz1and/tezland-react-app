@@ -9,6 +9,7 @@ import {
 import { Node, Nullable } from '@babylonjs/core';
 import { InstanceMetadata } from '../world/Place';
 import BigNumber from 'bignumber.js';
+import { assert } from 'console';
 
 interface PlaceFormValues {
     /*itemTitle: string;
@@ -54,6 +55,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     return errors;
                 }}
                 onSubmit={(values, actions) => {
+                    assert(props.placedItem);
                     // set amount and price on Node (item) metadata.
                     if (props.placedItem) {
                         const metadata = props.placedItem.metadata as InstanceMetadata;
