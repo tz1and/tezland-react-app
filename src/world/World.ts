@@ -135,10 +135,6 @@ export class World {
         let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
 
-        let loadedItemCache = new TransformNode("loadedItemCache", this.scene);
-        loadedItemCache.position.y = -200;
-        loadedItemCache.setEnabled(false);
-
         // create debug world
         //this.debugWorld();
 

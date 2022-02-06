@@ -99,7 +99,8 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
             plugin_ext = ".gltf";
         else throw new Error("Unsupported mimeType");
 
-        // TODO: download file, then load, better for babylon cache.
+        // TODO: download file, then load, could be better for babylon cache?
+        // Because then it wouldn't contain the ipfs gateway url.
 
         // LoadAssetContainer?
         const result = await SceneLoader.LoadAssetContainerAsync(Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
@@ -108,13 +109,6 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         // Make sure to stop all animations.
         result.animationGroups.forEach((ag) => { ag.stop(); })
         asset = result;
-
-        // get the root mesh
-        //mesh.name = `item${token_id}`;
-
-        // then set original to be disabled
-        //mesh.parent = scene.getTransformNodeByName("loadedItemCache");
-        //mesh.setEnabled(false); // not needed, as loadedItemCache is disabled.
 
         // If we don't have a cache, calculate polycount and store it.
         // TODO: this might not be good enough, since animated meshes don't have polygons?
@@ -138,13 +132,9 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         
     // Instantiate.
     // TODO: getting first root node is enough?
-    const instance = asset.instantiateModelsToScene() // .instantiateHierarchy(parent);
+    const instance = asset.instantiateModelsToScene();
+    instance.rootNodes[0].name = `item${token_id}`;
     instance.rootNodes[0].parent = parent;
-    /*if(instance) {
-        instance.setEnabled(true);
-        // for some reason instantiateHierarchy ignores setting the parent if null.
-        if(parent === null) instance.parent = null;
-    }*/
 
     return instance.rootNodes[0];
 }
