@@ -37,11 +37,14 @@ export default class SunLight {
     get light() { return this.dirLight; }
 
     update(pos: Vector3) {
-        this.dirLight.position = pos.clone(); //.add(this.dirLight.direction.scale(-100));
+        // only update if player moved more than 1m.
+        if(pos.subtract(this.dirLight.position).length() > 1) {
+            this.dirLight.position = pos.clone(); //.add(this.dirLight.direction.scale(-100));
 
-        //console.log(this.dirLight.position);
-        //console.log(this.dirLight.direction);
+            //console.log(this.dirLight.position);
+            //console.log(this.dirLight.direction);
 
-        //this.dlh?.update();
+            //this.dlh?.update();
+        }
     }
 }
