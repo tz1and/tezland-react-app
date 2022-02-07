@@ -1,4 +1,5 @@
 import assert from "assert";
+import { Logging } from "./Logging";
 
 
 export type Tuple = [number, number];
@@ -174,9 +175,9 @@ export class GridBenchmark {
             const start_time = performance.now();
             fn();
             const elapsed = performance.now() - start_time;
-            console.log(`${name}: ${elapsed.toFixed(2)}ms`);
+            Logging.Log(`${name}: ${elapsed.toFixed(2)}ms`);
         } catch(e) {
-            console.log(`${name} failed: ${e}`);
+            Logging.Log(`${name} failed: ${e}`);
         }
     }
 
