@@ -121,7 +121,7 @@ export default function Faq() {
                         {item.question}
                     </button>
                 </h2>
-                <div id={`panel-collapse-${cat.id}-${itemIdx}`} className="accordion-collapse collapse" aria-labelledby={`panel-heading-${cat.id}-${itemIdx}`}>
+                <div id={`panel-collapse-${cat.id}-${itemIdx}`} className="accordion-collapse collapse" data-bs-parent="#accordionFlush" aria-labelledby={`panel-heading-${cat.id}-${itemIdx}`}>
                     <div className="accordion-body" style={{whiteSpace: "pre-wrap"}}>
                         {item.answer}
                     </div>
@@ -132,7 +132,7 @@ export default function Faq() {
         
         categories.push(<div className="col col-8 col-xl-6 col-xxl-4 flex-grow-1 flex-lg-grow-0" key={cat.id}>
             <h2 className="ps-2 pt-3">{cat.title}</h2>
-            <div className="accordion" id="accordionPanelsStayOpenExample">
+            <div className="accordion accordion-flush">
                 {items}
             </div>
         </div>)
@@ -142,7 +142,7 @@ export default function Faq() {
         <main>
             <div className="container px-4 py-4">
                 <h1 className="text-center">Frequently Asked Questions</h1>
-                <div className="row mt-3 pt-3 justify-content-center">
+                <div className="row mt-3 pt-3 justify-content-center" id="accordionFlush">
                     {categories}
                 </div>
             </div>
