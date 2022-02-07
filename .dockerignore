@@ -3,6 +3,7 @@
 Dockerfile
 Dockerfile.prod
 docker-compose.*
+yarn-error.log
 nginx.conf
 Makefile
 .git/
