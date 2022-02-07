@@ -40,7 +40,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             placedItem: null,
             showFps: AppSettings.showFps.value,
             notifications: [],
-            placeInfo: {placeId: 0, owner: '', ownedOrOperated: false},
+            placeInfo: {placeId: -1, owner: '', ownedOrOperated: false},
             groundColor: '#FFFFFF'
             // optional second annotation for better type inference
             //count: 0,
@@ -137,13 +137,13 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         let controlInfo = this.state.dispaly_overlay ? <ControlsHelp/> : null;
 
-        let placeInfoOverlay = this.state.dispaly_overlay ? null :
+        let placeInfoOverlay = !this.state.dispaly_overlay && this.state.placeInfo.placeId !== -1 ?
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
                 <h5>Place #{this.state.placeInfo.placeId}</h5>
                 <hr/>
                 Owner: {this.state.placeInfo.owner}<br/>
                 Permissions: {this.state.placeInfo.ownedOrOperated ? "Yes" : "No"}
-            </div>;
+            </div> : null;
 
         let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 

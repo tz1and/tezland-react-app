@@ -213,7 +213,6 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 handleChange
                             }) => {
                                 // TODO: sort out the drop down mess...
-                                // when only one place is in the inventory, it can't be selected.
 
                                 return (
                                 <Form>

@@ -13,6 +13,7 @@ import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
 import BigNumber from "bignumber.js";
 import AppSettings from "../storage/AppSettings";
+import assert from "assert";
 
 
 export type InstanceMetadata = {
@@ -34,6 +35,8 @@ export default class Place {
 
     private placeBounds: Nullable<Mesh>;
     private placeGround: Nullable<Mesh>;
+
+    private executionAction: Nullable<ExecuteCodeAction> = null;
 
     private _origin: Vector3;
     get origin(): Vector3 { return this._origin.clone(); }
@@ -83,6 +86,11 @@ export default class Place {
 
         this.tempItemsNode?.dispose();
         this.tempItemsNode = null;
+
+        // unregister execution action
+        if (this.executionAction) {
+            this.world.playerController.playerTrigger.actionManager?.unregisterAction(this.executionAction);
+        }
     }
 
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
@@ -113,7 +121,7 @@ export default class Place {
     // TODO: be smarter about loading items. don't reload everthing, maybe.
     public async load(placeMetadata: any) {
         try {
-            //let startTime = performance.now()
+            //let start_time = performance.now()
 
             // Using ExtrudePolygon
             this._origin = Vector3.FromArray(placeMetadata.centerCoordinates);
@@ -144,40 +152,49 @@ export default class Place {
             this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
             this.tempItemsNode.position = this.origin.clone();
 
-            // update owner and operator ansychronously
+            this.executionAction = new ExecuteCodeAction(
+                {
+                    trigger: ActionManager.OnIntersectionEnterTrigger,
+                    parameter: {
+                        mesh: this.placeBounds,
+                        usePreciseIntersection: true
+                    }
+                },
+                () => {
+                    this.world.playerController.setCurrentPlace(this);
+                    Logging.InfoDev("entered place: " + this.placeId)
+                },
+            );
+
+            // update owner and operator, excution action, loading items ansychronously
             (async () => {
+                //const load_start_time = performance.now();
+
                 this.owner = await Contracts.getPlaceOwner(this.placeId);
                 // TODO: maybe reload isOperated when you enter a place.
                 // OR EVEN BETTER. listen to walletChanged events and reload for all places.
                 // OR EVEN EVEN BETTER. listen for specific contract events.
                 this.isOperated = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
-            })()
 
-            this.world.playerController.playerTrigger.actionManager?.registerAction(
-                new ExecuteCodeAction(
-                    {
-                        trigger: ActionManager.OnIntersectionEnterTrigger,
-                        parameter: { 
-                            mesh: this.placeBounds, 
-                            usePreciseIntersection: true
-                        }
-                    },
-                    () => {
-                        this.world.playerController.setCurrentPlace(this);
-                        Logging.InfoDev("entered place: " + this.placeId)
-                    },
-                ),
-            );
+                // register player trigger when place owner info has loaded.
+                assert(this.executionAction);
+                this.world.playerController.playerTrigger.actionManager?.registerAction(this.executionAction);
 
-            //LoggingDev.InfoDev(`generating place took ${performance.now() - startTime} milliseconds`)
+                // TODO:
+                // Problem with loading asynchronously is that meshes could be loaded into the scene twice.
+                // Needs to be fixed!
+                //await
+                await this.loadItems(false);
 
-            // TODO:
-            // Problem with loading asynchronously is that meshes could be loaded into the scene twice.
-            // Needs to be fixed!
-            //await
-            this.loadItems(false);
+                //const load_elapsed = performance.now() - load_start_time;
+                //Logging.InfoDev(`Place loading took ${load_elapsed}ms`)
+            })().catch((reason: any) => {
+                Logging.InfoDev("failed to load items/ownership " + this.placeId);
+                Logging.InfoDev(reason);
+            })
 
-            //LoggingDev.InfoDev(`Call to load took ${performance.now() - startTime} milliseconds`)
+            //const elapsed = performance.now() - start_time;
+            //Logging.InfoDev(`generating place took ${elapsed}ms`)
         } catch(e) {
             Logging.InfoDev("failed to load place " + this.placeId);
             Logging.InfoDev(e);
