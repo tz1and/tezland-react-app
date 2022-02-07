@@ -1,7 +1,6 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { Vector3, Color3 } from "@babylonjs/core/Maths/math";
-import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -23,6 +22,7 @@ import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
 import { disposeAssetMap } from "../ipfs/ipfs";
+import SunLight from "./SunLight";
 //import { isDev } from "../utils/Utils";
 
 
@@ -37,7 +37,7 @@ export class World {
     private defaultMaterial: Material;
     readonly transparentGridMat: GridMaterial;
     
-    private sunLight: DirectionalLight;
+    private sunLight: SunLight;
     
     readonly playerController: PlayerController;
     readonly shadowGenerator: Nullable<ShadowGenerator>;
@@ -106,11 +106,8 @@ export class World {
         this.transparentGridMat.backFaceCulling = false;
         
         // Create sun and skybox
-        let sun_direction = new Vector3(-50, -100, 50).normalize();
-        this.sunLight = new DirectionalLight("sunLight", sun_direction, this.scene);
-        this.sunLight.intensity = 0.5;
-        //this.sunLight.autoCalcShadowZBounds = true;
-        //this.sunLight.autoUpdateExtends = true;
+        const sun_direction = new Vector3(-50, -100, 50).normalize();
+        this.sunLight = new SunLight("sunLight", sun_direction, this.scene);
 
         let ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
         ambient_light.intensity = 0.4;
@@ -129,26 +126,30 @@ export class World {
         skyMaterial.backFaceCulling = false;
         //skyMaterial.inclination = 0.25;
         skyMaterial.useSunPosition = true;
-        skyMaterial.sunPosition = sun_direction.negate();
+        skyMaterial.sunPosition = sun_direction.scale(-1);
 
         let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
 
         // After, camera, lights, etc, the shadow generator
         if (AppSettings.shadowOptions.value === "standard") {
-            const shadowGenerator = new ShadowGenerator(1024, this.sunLight);
-            //shadowGenerator.autoCalcDepthBounds = true;
-            shadowGenerator.useExponentialShadowMap = true;
-            shadowGenerator.useBlurExponentialShadowMap = true;
+            const shadowGenerator = new ShadowGenerator(1024, this.sunLight.light);
+            shadowGenerator.frustumEdgeFalloff = 0.1;
+            shadowGenerator.filter = ShadowGenerator.FILTER_PCSS;
+            //shadowGenerator.useCloseExponentialShadowMap = true;
+            //shadowGenerator.useExponentialShadowMap = true;
+            //shadowGenerator.useBlurExponentialShadowMap = true;
             //shadowGenerator.usePoissonSampling = true;
             this.shadowGenerator = shadowGenerator;
         }
         else if (AppSettings.shadowOptions.value === "cascaded") {
-            const shadowGenerator = new CascadedShadowGenerator(1024, this.sunLight);
+            const shadowGenerator = new CascadedShadowGenerator(1024, this.sunLight.light);
             //shadowGenerator.debug = true;
             //shadowGenerator.autoCalcDepthBounds = true;
-            shadowGenerator.depthClamp = true;
-            shadowGenerator.shadowMaxZ = 100;
+            //shadowGenerator.depthClamp = true;
+            shadowGenerator.frustumEdgeFalloff = 0.1;
+            shadowGenerator.freezeShadowCastersBoundingInfo = true;
+            shadowGenerator.shadowMaxZ = 200;
             //shadowGenerator.freezeShadowCastersBoundingInfo = true;
             //shadowGenerator.splitFrustum();
             this.shadowGenerator = shadowGenerator;
@@ -318,10 +319,14 @@ export class World {
 
     // TODO: go over this again.
     public updateWorld() {
+        const playerPos = this.playerController.getPosition();
+
+        this.sunLight.update(playerPos);
+
+        // update multiplayer
         this.updateMultiplayer();
 
         // Update world when player has moved a certain distance.
-        const playerPos = this.playerController.getPosition();
         if(this.lastUpdatePosition.subtract(playerPos).length() > worldUpdateDistance)
         {
             // TEMP: do this asynchronously, getting lots of metadata
