@@ -11,7 +11,60 @@ import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { Matrix2D } from "@babylonjs/gui";
 import { signedArea, sleep } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
+import { DeepEqualsSet, HashSet, IDeepEquals, IHash } from "../utils/Sets";
 
+/*function round(x: number) {
+    return Math.round((x + Number.EPSILON) * 100) / 100;
+}
+
+function roundVector2(v: Vector2) {
+    //console.log()
+    //console.log(v.x, v.y)
+    //console.log(round(v.x), round(v.y))
+    return new Vector2(round(v.x), round(v.y));
+}*/
+
+class Edge implements IDeepEquals {
+    constructor(a: Vector2, b: Vector2) {
+        this.a = a.clone(); //roundVector2(a);
+        this.b = b.clone(); //roundVector2(b);
+    }
+
+    public a: Vector2;
+    public b: Vector2;
+
+    /*private static ExtractAsInt(value: number) {
+        return parseInt(value.toString());
+    };
+
+    private static hashFloats(_x1: number, _y1: number, _x2: number, _y2: number) {
+        var x1 = Edge.ExtractAsInt(_x1);
+        var y1 = Edge.ExtractAsInt(_y1);
+        var x2 = Edge.ExtractAsInt(_x2);
+        var y2 = Edge.ExtractAsInt(_y2);
+        var hash = _x1;
+        hash = (hash * 397) ^ _y1;
+        hash = (hash * 397) ^ _x2;
+        hash = (hash * 397) ^ _y2;
+        console.log("hash", hash)
+        return hash;
+    }
+
+    public getHashCode(): number {
+        return a.x > b.x && a.y > b.y ? Edge.hashFloats(a.x, a.y, b.x, b.y) :
+            Edge.hashFloats(b.x, b.y, a.x, a.y);
+    }*/
+
+    public deepEquals(other: Edge): boolean {
+        const epsilon = 0.001;
+        return this.a.x > this.b.x ? this.a.equalsWithEpsilon(other.a, epsilon) && this.b.equalsWithEpsilon(other.b, epsilon) :
+            this.a.equalsWithEpsilon(other.b, epsilon) && this.b.equalsWithEpsilon(other.a, epsilon);
+    }
+
+    public pointsToArray(): number[] {
+        return this.a.asArray().concat(this.b.asArray());
+    }
+}
 
 class Land {
     public center: Vector2;
@@ -70,6 +123,14 @@ class Land {
         //arr.push([this.points[0].x, this.points[0].y]);
 
         return [arr];
+    }
+
+    edges(): Edge[] {
+        const edges: Edge[] = [];
+        for(let i = 0; i < this.points.length; ++i) {
+            edges.push(new Edge(this.points[i], this.points[(i + 1) % this.points.length]));
+        }
+        return edges;
     }
 
     centroid(): Vector2 {
@@ -275,6 +336,7 @@ class ExclusionZone {
 
 type GenerateMapState = {
     svg?: string;
+    roadsAndCurbs?: any;
 }
 
 type GenerateMapProps = {
@@ -294,7 +356,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
     private svgRef = createRef<SVGSVGElement>();
 
-    private downloadFile = () => {
+    private downloadSvgFile = () => {
         if(!this.state.svg) return;
 
         // create blob from data
@@ -307,6 +369,29 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         link.setAttribute(
             'download',
             `map.svg`,
+        );
+
+        // Append to html link element and cick it
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up and remove the link
+        document.body.removeChild(link);
+    }
+
+    private downloadRoadsFile = () => {
+        if(!this.state.svg) return;
+
+        // create blob from data
+        const data = new Blob([JSON.stringify(this.state.roadsAndCurbs)], { type: 'application/json' });
+        const downloadLink = window.URL.createObjectURL(data);
+
+        // create download file link
+        const link = document.createElement('a');
+        link.href = downloadLink;
+        link.setAttribute(
+            'download',
+            `roads.json`,
         );
 
         // Append to html link element and cick it
@@ -675,23 +760,41 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const center = new Vector2();
         landArray = landArray.sort((a, b) => a.center.subtract(center).length() - b.center.subtract(center).length());
 
+        const mainRoads: DeepEqualsSet<Edge> = new DeepEqualsSet();
+
+        let land_limit_counter = 0;
+        const land_limit = Infinity;
         for(const land of landArray) {
+            if(land_limit_counter >= land_limit) break;
+
+            // Add edges as "main roads"
+            land.edges().forEach(mainRoads.add, mainRoads);
+
             land.straightSkeleton(3.5);
+
+            land_limit_counter++;
         }
+
+        console.log("mainRoads", mainRoads.size);
 
         // TODO: tesselate large cells into grids.
         const prando = new Prando(1234);
         const clippedLand: Land[] = []
 
-        let land_limit_counter = 0;
-        const land_limit = Infinity;
+        const mainRoadCurbs: DeepEqualsSet<Edge> = new DeepEqualsSet();
+
+        land_limit_counter = 0;
         for(const land of landArray) {
-            if(land_limit_counter > land_limit) break;
+            if(land_limit_counter >= land_limit) break;
+
+            // Add edges as "main road curbs"
+            land.edges().forEach(mainRoadCurbs.add, mainRoadCurbs);
 
             if(land.dontSplit) {
                 land.straightSkeleton(3);
                 clippedLand.push(land);
-                console.log("didn't split")
+                console.log("didn't split");
+                land_limit_counter++;
                 continue;
             }
 
@@ -715,6 +818,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             land_limit_counter++;
         }
 
+        // Draw the svg
         // TODO: figure out which way to flip the map...
         for(const land of clippedLand) {
             if(land.isValid()) {
@@ -725,6 +829,15 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }
         }
 
+        // Draw roads
+        for (const road of mainRoads) {
+            draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
+        }
+
+        for (const curb of mainRoadCurbs) {
+            draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});
+        }
+
         /*for(const land of landArray) {
             draw.polygon(land.pointsToArray()).fill('none').stroke('red');
         }*/
@@ -732,13 +845,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         console.log("Number of places (incl invalid): ", clippedLand.length);
         this.mintPlaces(clippedLand);
 
-        this.setState({svg: draw.svg()});
+        this.setState({svg: draw.svg(), roadsAndCurbs: { roads: mainRoads.arr, curbs: mainRoadCurbs.arr }});
     }
 
     override render(): React.ReactNode {
         return (
             <main className="container">
-                <button className="btn btn-primary" onClick={() => this.downloadFile()}>Download SVG</button>
+                <button className="btn btn-primary" onClick={() => this.downloadSvgFile()}>Download SVG</button> <button className="btn btn-primary" onClick={() => this.downloadRoadsFile()}>Download Roads</button>
                 <svg className="d-block" ref={this.svgRef}></svg>
             </main>
         );
