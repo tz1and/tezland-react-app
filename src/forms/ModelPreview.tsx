@@ -3,7 +3,6 @@ import '@babylonjs/loaders/glTF';
 import { ArcRotateCamera, Color4, DirectionalLight, Engine, HemisphericLight, Mesh,
     Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { countPolygons } from '../utils/Utils';
-import { Logging } from '../utils/Logging';
 
 
 class PreviewScene {
