@@ -39,7 +39,7 @@ export class DeepEqualsSet<T extends IDeepEquals> {
     private _arr: Array<T>;
 
     constructor() {
-        this._arr = new Array();
+        this._arr = [];
     }
 
     add(item: T) {

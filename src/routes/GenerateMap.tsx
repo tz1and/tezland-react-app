@@ -11,7 +11,7 @@ import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { Matrix2D } from "@babylonjs/gui";
 import { signedArea, sleep } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
-import { DeepEqualsSet, HashSet, IDeepEquals, IHash } from "../utils/Sets";
+import { DeepEqualsSet, IDeepEquals } from "../utils/Sets";
 
 /*function round(x: number) {
     return Math.round((x + Number.EPSILON) * 100) / 100;
