@@ -1,4 +1,4 @@
-import { DirectionalLight, Scene, Vector3 } from "@babylonjs/core";
+import { Color3, DirectionalLight, Scene, Vector3 } from "@babylonjs/core";
 //import { Nullable, DirectionalLightFrustumViewer } from '@babylonjs/core';
 //import { isDev } from "../utils/Utils";
 
@@ -11,7 +11,9 @@ export default class SunLight {
         this.dirLight = new DirectionalLight(name, direction, scene);
         this.dirLight.position = new Vector3(); //this.dirLight.direction.scale(-100);
 
-        this.dirLight.intensity = 0.5;
+        this.dirLight.intensity = 0.6;
+        this.dirLight.diffuse = new Color3(1, 1, 0.95);
+        this.dirLight.specular = new Color3(0.95, 0.95, 1);
 
         // Disable this, don't want the whole scene to be shadowed
         // and we want to be in control.

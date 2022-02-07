@@ -8,7 +8,7 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, Material, Nullable } from "@babylonjs/core";
+import { Database, Material, Nullable, SceneLoader, TransformNode } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -34,7 +34,7 @@ export class World {
     readonly scene: Scene;
     
     private engine: Engine;
-    private defaultMaterial: Material;
+    private defaultMaterial: SimpleMaterial;
     readonly transparentGridMat: GridMaterial;
     
     private sunLight: SunLight;
@@ -97,6 +97,7 @@ export class World {
 
         // Create a default material
         this.defaultMaterial = new SimpleMaterial("defaulMat", this.scene);
+        this.defaultMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9);
 
         // transparent grid material for place bounds
         this.transparentGridMat = new GridMaterial("transp_grid", this.scene);
@@ -110,7 +111,7 @@ export class World {
         this.sunLight = new SunLight("sunLight", sun_direction, this.scene);
 
         let ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
-        ambient_light.intensity = 0.4;
+        ambient_light.intensity = 0.3;
         ambient_light.diffuse = new Color3(0.7, 0.7, 1);
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
@@ -242,12 +243,44 @@ export class World {
             await this.fetchPlace(i);
         }
 
+        this.loadRoadDecorations();
+
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.playerController.getCurrentPlace()
         if(currentPlace)
             this.appControlFunctions.updatePlaceInfo(currentPlace.placeId,
                 currentPlace.currentOwner, currentPlace.isOwnedOrOperated);
     };
+
+    private roadDecorations: Nullable<TransformNode> = null;
+
+    // TODO: Needs to be culled!
+    public async loadRoadDecorations() {
+        const req = await fetch("/models/roads.json");
+        const roadsAndCurbs = await req.json();
+
+        this.roadDecorations = new TransformNode("roadDecorations", this.scene);
+
+        const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.scene, null, '.glb');
+        
+        for (var curbEdge of roadsAndCurbs.curbs) {
+            const from = new Vector3(curbEdge.a.x, 0, curbEdge.a.y);
+            const to = new Vector3(curbEdge.b.x, 0, curbEdge.b.y);
+
+            const line = from.subtract(to);
+            const line_len = line.length();
+            if(line_len > 13) {
+                //const lineMesh = Mesh.CreateLines("line", [from, to], this.scene, false);
+                
+                for (var d = 6.5; d < line_len - 6.5; d = d + 25) {
+                    const instance = result.instantiateModelsToScene().rootNodes[0];
+                    instance.position = to.add(line.scale(d / line_len));
+                    instance.parent = this.roadDecorations;
+                    this.shadowGenerator?.addShadowCaster(instance as Mesh);
+                }
+            }
+        }
+    }
 
     // TODO: metadata gets re-loaded too often.
     // loadPlace should be definite. add another functio
