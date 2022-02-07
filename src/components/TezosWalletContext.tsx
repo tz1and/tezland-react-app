@@ -100,7 +100,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
             /*eventHandlers: {
               PERMISSION_REQUEST_SUCCESS: {
                 handler: async (data: any) => {
-                  console.log('permission data:', data);
+                  Logging.LogDev('permission data:', data);
                 },
               },
             }*/

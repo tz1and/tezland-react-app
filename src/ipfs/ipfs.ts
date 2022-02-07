@@ -70,7 +70,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
                 return null;
             }
         }
-        // TODO: while we can't do head requests to a gateway, rely on the item metadata.
+        // NOTE: while we can't do head requests to a gateway, rely on the item metadata.
         else {
             // early out if the file size from metadata is > sizeLimit.
             if(fileSize > AppSettings.fileSizeLimit.value) {
@@ -100,7 +100,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         else throw new Error("Unsupported mimeType");
 
         // TODO: download file, then load, could be better for babylon cache?
-        // Because then it wouldn't contain the ipfs gateway url.
+        // Because then it wouldn't contain the ipfs gateway url. That might change.
 
         // LoadAssetContainer?
         const result = await SceneLoader.LoadAssetContainerAsync(Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);

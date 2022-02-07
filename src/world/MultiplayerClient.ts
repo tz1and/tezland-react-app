@@ -73,7 +73,7 @@ export default class MultiplayerClient { //extends EventEmitter {
     }
 
     private handleMessage(message: MessageEvent<any>) {
-        //console.log('received: %s', message.data);
+        //Logging.Log('received: %s', message.data);
 
         try {
             const msgObj = JSON.parse(message.data.toString());
@@ -148,7 +148,7 @@ export default class MultiplayerClient { //extends EventEmitter {
         });
 
         //const elapsed = performance.now() - start_time;
-        //console.log(`update other players took: ${elapsed}ms`);
+        //Logging.Log(`update other players took: ${elapsed}ms`);
     }
 
     public updatePlayerPosition(pos: Vector3, rot: Vector3) {
@@ -190,7 +190,7 @@ export default class MultiplayerClient { //extends EventEmitter {
         })
 
         //const elapsed = performance.now() - start_time;
-        //console.log(`interpolating players took: ${elapsed}ms`);
+        //Logging.Log(`interpolating players took: ${elapsed}ms`);
     }
 
     private dispose() {

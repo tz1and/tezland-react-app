@@ -3,6 +3,7 @@ import '@babylonjs/loaders/glTF';
 import { ArcRotateCamera, Color4, DirectionalLight, Engine, HemisphericLight, Mesh,
     Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { countPolygons } from '../utils/Utils';
+import { Logging } from '../utils/Logging';
 
 
 class PreviewScene {
@@ -73,6 +74,7 @@ class PreviewScene {
         if(!file) return 0;
 
         try {
+            // TODO: use asset container.
             const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
             result.animationGroups.forEach((ag) => { ag.stop(); })
             this.previewObject = result.meshes[0] as Mesh;
@@ -89,6 +91,7 @@ class PreviewScene {
             this.previewObject.position.y = -extent.y * new_scale / 2;
 
             const polycount = countPolygons(result.meshes);
+            //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.
             modelLoaded('success', file.size, polycount);
@@ -110,7 +113,6 @@ class PreviewScene {
 export type ModelLoadingState = 'none' | 'success' | 'failed';
 type ModelLoadedCallback = (loadingState: ModelLoadingState, modelFileSize: number, polyCount: number) => void;
 
-// TODO: add a callback to call when model was loaded (or failed).
 type ModelPreviewProps = {
     file?: File | undefined;
     modelLoaded: ModelLoadedCallback;

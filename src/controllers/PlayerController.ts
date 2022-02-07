@@ -381,7 +381,7 @@ export default class PlayerController {
             this.lastDistanceUpdate = now;
             const travelled = this.lastPos.subtract(this.getPosition()).length();
             this.lastPos = this.getPosition().clone();
-            console.log(`Travelled ${travelled}m in ${elapsed}ms`);
+            Logging.Log(`Travelled ${travelled}m in ${elapsed}ms`);
         }
     }*/
 

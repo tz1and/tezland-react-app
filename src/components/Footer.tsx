@@ -41,8 +41,8 @@ export default function Frontpage() {
                     <ul className="list-unstyled text-small">
                         <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://discord.gg/fbpy4QdzSp">Discord</a></li>
                         <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://twitter.com/tz1and">Twitter</a></li>
-                        {/*<li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://t.me/TODO">Telegram</a></li>
-                        <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://www.instagram.com/todo/">Instagram</a></li>*/}
+                        {/*<li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://t.me/tz1and">Telegram</a></li>
+                        <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://www.instagram.com/tz1and/">Instagram</a></li>*/}
                     </ul>
                 </div>
             </div>

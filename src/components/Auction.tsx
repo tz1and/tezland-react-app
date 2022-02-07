@@ -139,7 +139,6 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         this.panMapToPlace(this.props.tokenId);
 
         if(this.progressBarRef.current) {
-            console.log("create popover");
             this.popover = new Popover(this.progressBarRef.current, {
                 content: () => {
                     const time_left = (this.props.endTime - Math.floor(Date.now() / 1000)) / 3600;

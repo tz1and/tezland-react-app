@@ -15,7 +15,6 @@ import { sleep } from './utils/Utils';
 import Conf from './Config';
 
 
-// TODO: find a better way to do this, see todo.
 Metadata.Storage.open(() => {
     renderApp();
 }, () => {

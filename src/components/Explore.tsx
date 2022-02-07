@@ -118,7 +118,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     override render() {
-        // TODO: maybe could use router for overlay/forms.
+        // NOTE: maybe could use router for overlay/forms.
         let form;
         if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} />
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
