@@ -133,7 +133,7 @@ export class World {
 
         // After, camera, lights, etc, the shadow generator
         if (AppSettings.shadowOptions.value === "standard") {
-            const shadowGenerator = new ShadowGenerator(1024, this.sunLight.light);
+            const shadowGenerator = new ShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
             shadowGenerator.frustumEdgeFalloff = 0.1;
             shadowGenerator.filter = ShadowGenerator.FILTER_PCSS;
             //shadowGenerator.useCloseExponentialShadowMap = true;
@@ -143,7 +143,7 @@ export class World {
             this.shadowGenerator = shadowGenerator;
         }
         else if (AppSettings.shadowOptions.value === "cascaded") {
-            const shadowGenerator = new CascadedShadowGenerator(1024, this.sunLight.light);
+            const shadowGenerator = new CascadedShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
             //shadowGenerator.debug = true;
             //shadowGenerator.autoCalcDepthBounds = true;
             //shadowGenerator.depthClamp = true;

@@ -44,8 +44,10 @@ const parseBool: ParseFunc<boolean> = (value: string) => value === 'true';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const parseString: ParseFunc<string> = (value: string) => value;
 const parseShadowOptions: ParseFunc<ShadowOptions> = (value: string) => value as ShadowOptions;
+const parseShadowMapRes: ParseFunc<ShadowMapRes> = (value: string) => Number(value) as ShadowMapRes;
 
 export type ShadowOptions = "none" | "standard" | "cascaded";
+export type ShadowMapRes = 512 | 1024 | 2048;
 
 export default class AppSettings {
     // general
@@ -63,4 +65,5 @@ export default class AppSettings {
     // graphics
     static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);
     static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "standard", parseShadowOptions);
+    static shadowMapRes = new AppSetting<ShadowMapRes>("shadowMapRes", 1024, parseShadowMapRes);
 }
