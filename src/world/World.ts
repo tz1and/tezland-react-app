@@ -146,11 +146,12 @@ export class World {
             const shadowGenerator = new CascadedShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
             //shadowGenerator.debug = true;
             //shadowGenerator.autoCalcDepthBounds = true;
-            //shadowGenerator.depthClamp = true;
             shadowGenerator.frustumEdgeFalloff = 0.1;
             shadowGenerator.freezeShadowCastersBoundingInfo = true;
-            shadowGenerator.shadowMaxZ = 200;
-            //shadowGenerator.freezeShadowCastersBoundingInfo = true;
+            shadowGenerator.stabilizeCascades = true;
+            shadowGenerator.shadowMaxZ = 150;
+            shadowGenerator.numCascades = 4;
+            shadowGenerator.lambda = 0.6;
             //shadowGenerator.splitFrustum();
             this.shadowGenerator = shadowGenerator;
         }
