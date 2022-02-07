@@ -1,6 +1,6 @@
 import React from 'react';
 import '@babylonjs/loaders/glTF';
-import { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh,
+import { ArcRotateCamera, Color4, DirectionalLight, Engine, HemisphericLight, Mesh,
     Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { countPolygons } from '../utils/Utils';
 
@@ -46,12 +46,17 @@ class PreviewScene {
 
         scene.collisionsEnabled = false;
 
-        const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new Vector3(0, 0, 0), scene);
+        const camera = new ArcRotateCamera("camera", Math.PI / 1.5, Math.PI / 2.5, 11, new Vector3(0, 0, 0), scene);
         camera.wheelPrecision = 25;
         camera.attachControl(this.canvas, true);
-        /*const light =*/ new HemisphericLight("light", new Vector3(0.1, 1, 0.1), scene);
 
-        scene.clearColor = Color4.FromHexString("#503333");
+        const hemi_light = new HemisphericLight("light", new Vector3(0.1, 1, 0.1), scene);
+        hemi_light.intensity = 0.5;
+
+        const dir_light = new DirectionalLight("light2", new Vector3(1,-1,-1), this.scene);
+        dir_light.intensity = 0.6;
+
+        scene.clearColor = Color4.FromHexString("#DDEEFF");
     
         return scene;
     };
@@ -69,6 +74,7 @@ class PreviewScene {
 
         try {
             const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
+            result.animationGroups.forEach((ag) => { ag.stop(); })
             this.previewObject = result.meshes[0] as Mesh;
 
             const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
@@ -167,7 +173,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         return (
         <div>
             <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas>
-            <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#503333" onChange={(col) => this.preview?.setBgColor(col.target.value)}/></p>
+            <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#DDEEFF" onChange={(col) => this.preview?.setBgColor(col.target.value)}/></p>
             <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
                 Use the mouse to control the view.<br/><br/>
                 Mouse wheel: zoom<br/>
