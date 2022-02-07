@@ -140,6 +140,8 @@ export default class MultiplayerClient { //extends EventEmitter {
             let p = this.otherPlayers.get(u.name);
             if(!p) {
                 p = new OtherPlayer(u.name, this.otherPlayersNode!);
+                this.world.shadowGenerator?.addShadowCaster(p.head);
+                this.world.shadowGenerator?.addShadowCaster(p.body);
                 this.otherPlayers.set(u.name, p);
             }
             p.update(u.upd);
@@ -214,9 +216,9 @@ export default class MultiplayerClient { //extends EventEmitter {
 }
 
 class OtherPlayer {
-    public head: Mesh;
-    public body: Mesh;
-    public tranformNode: TransformNode;
+    readonly head: Mesh;
+    readonly body: Mesh;
+    readonly tranformNode: TransformNode;
 
     public lastPos: Vector3;
     public lastRot: Vector3;

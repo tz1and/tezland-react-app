@@ -295,7 +295,7 @@ export default class PlayerController {
 
         this.tempObject = null;
         this.currentPlace = null;
-        // TODO: shadowgen?
+        this.shadowGenerator = null;
     }
 
     /**
