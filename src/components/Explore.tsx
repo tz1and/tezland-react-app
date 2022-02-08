@@ -13,6 +13,7 @@ import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { PlaceFropertiesForm } from '../forms/PlaceProperties';
 import { FromNames } from '../world/AppControlFunctions';
+import { LoadingError } from './LoadingError';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -117,8 +118,18 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         return [0,0];
     }
 
+    override componentDidMount() {
+        // check if the virtual world failed to load for some reason.
+        // TODO: the way the loading errors are handled is kinda nasty. Improve!
+        if(this.virtualSpaceRef.current?.failedToLoad) {
+            this.setState({show_form: 'loadingerror', dispaly_overlay: true});
+        }
+    }
+
     override render() {
         // NOTE: maybe could use router for overlay/forms.
+        if(this.state.show_form === 'loadingerror') return <LoadingError/>;
+
         let form;
         if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} />
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;

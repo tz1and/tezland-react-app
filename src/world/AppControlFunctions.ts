@@ -3,7 +3,7 @@
 import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
 
-export type FromNames = 'placeproperties' | 'instructions' | 'placeitem' | 'settings' | 'mint' | 'inventory';
+export type FromNames = 'placeproperties' | 'instructions' | 'placeitem' | 'settings' | 'mint' | 'inventory' | 'loadingerror';
 
 export type AppControlFunctions = {
     loadForm(form_type: FromNames): void;

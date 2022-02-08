@@ -8,12 +8,8 @@ import { Logging } from '../utils/Logging';
 
 type VirtualSpaceProps = {
     appControl: AppControlFunctions;
-    // using `interface` is also ok
-    //message: string;
 };
 type VirtualSpaceState = {
-    //count: number; // like this
-    //mount: HTMLDivElement | null;
 };
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
@@ -23,13 +19,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     private mount = React.createRef<HTMLCanvasElement>();
     private world: World | null;
 
+    public failedToLoad: boolean = false;
+
     constructor(props: VirtualSpaceProps) {
         super(props);
-        this.state = {
-            // optional second annotation for better type inference
-            //count: 0,
-            //mount: null
-        };
+        this.state = {};
         this.world = null;
     }
 
@@ -54,7 +48,14 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
     override componentDidMount() {
         assert(this.mount.current);
-        this.world = new World(this.mount.current, this.props.appControl, this.context);
+        try {
+            this.world = new World(this.mount.current, this.props.appControl, this.context);
+        }
+        catch(err: any) {
+            this.failedToLoad = true;
+            return;
+        }
+
         this.world.loadWorld();
     }
 
