@@ -14,7 +14,7 @@ export default function Frontpage() {
                     </div>
                 </div>
                 <div className="overflow-hidden" style={{maxHeight: "50vh"}}>
-                    <div className="container px-5">
+                    <div className="container px-0 px-md-5">
                         <img src="/img/world_screenshot.png" className="img-fluid border rounded-3 shadow-lg mb-4" alt="A screenshot of the virtual world."
                             width="100%" loading="lazy" />
                     </div>
@@ -23,14 +23,14 @@ export default function Frontpage() {
 
             <div className="container col-xxl-8 px-0 py-2">
                 <div className="row flex-lg-row-reverse align-items-center g-5 py-5">
-                    <div className="col-lg-6">
+                    <div className="col-lg-6 mx-4 mx-md-0">
                         <h1 className="display-5 fw-bold lh-1 mb-3">Decentralised</h1>
                         <p className="lead">No, for reals.<br/>Everything is stored either on
                             the <a className='link-info text-decoration-none' href="https://tezos.com/" target="_blank" rel="noreferrer">Tezos</a> blockchain or
                             on <a className='link-info text-decoration-none' href="https://ipfs.io/" target="_blank" rel="noreferrer">IPFS</a>. This website is just a portal, there could be others.</p>
                     </div>
-                    <div className="col-10 col-sm-8 col-lg-6">
-                        <img src="/img/tezos_ipfs.png" className="d-block mx-lg-auto img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                    <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
+                        <img src="/img/tezos_ipfs.png" className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
                     </div>
                 </div>
@@ -38,11 +38,11 @@ export default function Frontpage() {
 
             <div className="container col-xxl-8 px-0 py-2">
                 <div className="row flex-lg-row-reverse align-items-center g-5 py-5">
-                    <div className="col-10 col-sm-8 col-lg-6">
-                        <img src="/img/map_screenshot.png" className="d-block mx-lg-auto img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                    <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
+                        <img src="/img/map_screenshot.png" className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
                     </div>
-                    <div className="col-lg-6">
+                    <div className="col-lg-6 mx-4 mx-md-0">
                         <h1 className="display-5 fw-bold lh-1 mb-3">Ever Expanding</h1>
                         <p className="lead">The World will be expanded at a pace that makes sense and new Places will become available regularly.</p>
                     </div>
@@ -51,7 +51,7 @@ export default function Frontpage() {
 
             <div className="container col-xxl-8 px-0 py-2">
                 <div className="row flex-lg-row-reverse align-items-center g-5 py-5">
-                    <div className="col-lg-6">
+                    <div className="col-lg-6 mx-4 mx-md-0">
                         <h1 className="display-5 fw-bold lh-1 mb-3">Build Together</h1>
                         <p className="lead">Imagine some clever point about collaboration here.<br/>Let's build something big, together.</p>
                         {/*<div className="d-grid gap-2 d-md-flex justify-content-md-start">
@@ -59,8 +59,8 @@ export default function Frontpage() {
                             <Link to="/faq" className="btn btn-outline-secondary btn-lg px-4">Learn More</Link>
                         </div>*/}
                     </div>
-                    <div className="col-10 col-sm-8 col-lg-6">
-                        <img src="/img/world_screenshot.png" className="d-block mx-lg-auto img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                    <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
+                        <img src="/img/world_screenshot.png" className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
                     </div>
                 </div>
