@@ -2,8 +2,9 @@ import assert from 'assert';
 import Conf from '../Config';
 //import EventEmitter from 'events';
 import { World } from './World';
-import { Mesh, Nullable, TransformNode, Vector3 } from '@babylonjs/core';
-import { fromHexString, toHexString } from '../utils/Utils';
+import {  Constants, DynamicTexture, Mesh, MeshBuilder, Nullable,
+    StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { fromHexString, toHexString, truncate } from '../utils/Utils';
 import crypto from 'crypto';
 import { Logging } from '../utils/Logging';
 
@@ -218,10 +219,51 @@ export default class MultiplayerClient { //extends EventEmitter {
 class OtherPlayer {
     readonly head: Mesh;
     readonly body: Mesh;
+    readonly nameplate: Mesh;
     readonly tranformNode: TransformNode;
 
     public lastPos: Vector3;
     public lastRot: Vector3;
+
+    private makeBillboard(name: string, parent: TransformNode) {
+        const scene = parent.getScene();
+
+        const res_h = 64;
+        var text: string;
+        var aspect_ratio: number;
+        if (name.startsWith('tz1')) {
+            aspect_ratio = 1/7;
+            text = truncate(name, 12, '\u2026');
+        }
+        else {
+            aspect_ratio = 1 / 2.8;
+            text = "Guest";
+        }
+
+        // TODO: calculate lentgh of text in pixels!
+
+        // TODO: store dynamic texture and material for dispose?
+        var dynamicTexture = new DynamicTexture("NameplateTexture", {width: res_h / aspect_ratio, height: res_h}, scene, true);
+        dynamicTexture.hasAlpha = true;
+        dynamicTexture.getContext().fillStyle = 'transparent';
+        dynamicTexture.drawText(text, 1, res_h - 2, `${res_h}px Arial`, "white", "transparent", true);
+
+        const mat = new StandardMaterial("NameplateMaterial", scene);
+        //mat.diffuseTexture = dynamicTexture;
+        mat.alphaMode = Constants.ALPHA_MULTIPLY;
+        mat.emissiveTexture = dynamicTexture;
+        mat.disableLighting = true;
+
+        const plane = MeshBuilder.CreatePlane("Nameplate", {width: 0.2 / aspect_ratio, height: 0.2}, scene);
+        //const plane = Mesh.CreatePlane("Nameplate", 0.5, scene, true);
+        plane.parent = this.tranformNode;
+        //plane.material.backFaceCulling = false;
+        plane.material = mat;
+        plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+        plane.addLODLevel(10, null);
+
+        return plane;
+    };
 
     constructor(name: string, parent: TransformNode) {
         this.tranformNode = new TransformNode(name);
@@ -235,6 +277,9 @@ class OtherPlayer {
         this.body = Mesh.CreateCylinder("body", 1, 0.9, 0.9, 12, null);
         this.body.parent = this.tranformNode;
         this.body.position.y = -0.85;
+
+        this.nameplate = this.makeBillboard(name, this.tranformNode);
+        this.nameplate.position.y = 0.5;
 
         this.tranformNode.parent = parent;
 
