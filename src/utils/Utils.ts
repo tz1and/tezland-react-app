@@ -68,40 +68,28 @@ export const tezToMutez = (tez: BigNumber | number): BigNumber => tokensAmountTo
 export const mutezToTez = (mutez: BigNumber | number): BigNumber => numberToTokensAmount(mutez, tezDecimals);
 
 export const dataURItoBlob = (dataURI: string): Blob => {
-  // TODO: this is pretty inefficient. rewrite sometime, maybe.
-  // convert base64 to raw binary data held in a string
-  var byteString = atob(dataURI.split(',')[1]);
-
   // separate out the mime component
   var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
 
-  // write the bytes of the string to an ArrayBuffer
-  var ab = new ArrayBuffer(byteString.length);
-
-  // create a view into the buffer
-  var ia = new Uint8Array(ab);
-
-  // set the bytes of the buffer to the correct values
-  for (var i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-  }
+  var buf = Buffer.from(dataURI.split(',')[1], 'base64')
 
   // write the ArrayBuffer to a blob, and you're done
-  var blob = new Blob([ab], {type: mimeString});
+  var blob = new Blob([buf], {type: mimeString});
   return blob;
 }
 
-export type BlobLike = {
+export type FileLike = {
   dataUri: string,
-  type: string
+  type: string,
+  name: string
 }
 
-export const blobToBloblike = (blob: Blob): Promise<BlobLike> => {
+export const fileToFileLike = (file: File): Promise<FileLike> => {
   return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.readAsDataURL(blob);
+      reader.readAsDataURL(file);
       reader.onloadend = function () {
-          resolve({ dataUri: reader.result as string, type: blob.type });
+          resolve({ dataUri: reader.result as string, type: file.type, name: file.name });
       };
   });
 };

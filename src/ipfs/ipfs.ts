@@ -3,7 +3,7 @@ import '@babylonjs/loaders/glTF';
 import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
-import { BlobLike, countPolygons } from '../utils/Utils';
+import { FileLike, countPolygons } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import AppSettings from '../storage/AppSettings';
 import assert from 'assert';
@@ -143,8 +143,8 @@ type ItemMetadata = {
     description: string;
     minter: string;
     name: string;
-    artifactUri: BlobLike;
-    thumbnailUri: BlobLike;
+    artifactUri: FileLike;
+    thumbnailUri: FileLike;
     tags: string; // unprocessed tags
     formats: object[];
 }

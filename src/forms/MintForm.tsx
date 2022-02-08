@@ -11,7 +11,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { BlobLike, blobToBloblike, getFileExt } from '../utils/Utils';
+import { FileLike, fileToFileLike, getFileExt } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
@@ -98,8 +98,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             name: values.itemTitle,
             description: values.itemDescription,
             minter: this.context.walletPHK(),
-            artifactUri: await blobToBloblike(values.itemFile!),
-            thumbnailUri: { dataUri: thumbnail, type: "image/png" } as BlobLike,
+            artifactUri: await fileToFileLike(values.itemFile!),
+            thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
             tags: values.itemTags,
             formats: [
                 {
