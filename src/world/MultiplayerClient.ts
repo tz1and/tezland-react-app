@@ -232,7 +232,7 @@ class OtherPlayer {
         var text: string;
         var aspect_ratio: number;
         if (name.startsWith('tz1')) {
-            aspect_ratio = 1/7;
+            aspect_ratio = 1/7.2;
             text = truncate(name, 12, '\u2026');
         }
         else {
@@ -249,9 +249,9 @@ class OtherPlayer {
         dynamicTexture.drawText(text, 1, res_h - 2, `${res_h}px Arial`, "white", "transparent", true);
 
         const mat = new StandardMaterial("NameplateMaterial", scene);
-        //mat.diffuseTexture = dynamicTexture;
-        mat.alphaMode = Constants.ALPHA_MULTIPLY;
+        mat.diffuseTexture = dynamicTexture;
         mat.emissiveTexture = dynamicTexture;
+        mat.alphaMode = Constants.ALPHA_MULTIPLY;
         mat.disableLighting = true;
 
         const plane = MeshBuilder.CreatePlane("Nameplate", {width: 0.2 / aspect_ratio, height: 0.2}, scene);
