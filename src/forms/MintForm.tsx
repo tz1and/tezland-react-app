@@ -169,7 +169,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                     
                         return errors;
                     }}
-                    onSubmit={async (values, actions) => {
+                    onSubmit={(values, actions) => {
                         this.uploadAndMint(values, (completed: boolean) => {
                             if (completed) {
                                 if(!this.isClosable) actions.setSubmitting(false);
