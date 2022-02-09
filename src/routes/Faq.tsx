@@ -98,10 +98,6 @@ The World contract has it's own set of operators, like FA2 operators, but there 
             {
                 question: "Who's on the team?",
                 answer: "Only me right now, feel free to involve yourself!"
-            },
-            {
-                question: "Have you heard of Cryptovoxels?",
-                answer: "Hi Ben! How's it going? Let's grab some riggers some time :)"
             }
         ]
     }
