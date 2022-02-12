@@ -134,3 +134,7 @@ export const getUrlFileSizeHead = async (url: string): Promise<number> => {
 
   throw new Error("content-length not in response");
 }
+
+export const yesNo = (v: boolean): string => {
+  return v ? "Yes" : "No";
+}

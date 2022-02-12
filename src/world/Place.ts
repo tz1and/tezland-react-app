@@ -7,7 +7,7 @@ import { getFloat16 } from "@petamoriken/float16";
 
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
-import { fromHexString, mutezToTez, pointIsInside } from "../utils/Utils";
+import { fromHexString, mutezToTez, pointIsInside, yesNo } from "../utils/Utils";
 import { World } from "./World";
 import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
@@ -51,6 +51,13 @@ export class PlacePermissions {
     public hasModifyAll() { return (this._permissions & PlacePermissions.permissionModifyAll) === PlacePermissions.permissionModifyAll; }
     public hasProps() { return (this._permissions & PlacePermissions.permissionProps) === PlacePermissions.permissionProps; }
     public hasFull() { return (this._permissions & PlacePermissions.permissionFull) === PlacePermissions.permissionFull; }
+
+    public toString(): string {
+        if (!this.hasAny()) return "None";
+        if (this.hasFull()) return "Full";
+
+        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasPlaceItems())}, Props:${yesNo(this.hasProps())}`;
+    }
 };
 
 

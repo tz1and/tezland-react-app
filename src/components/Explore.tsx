@@ -154,7 +154,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <h5>Place #{this.state.placeInfo.placeId}</h5>
                 <hr/>
                 Owner: {this.state.placeInfo.owner}<br/>
-                Permissions: {this.state.placeInfo.permissions.hasAny() ? "Yes" : "No"}
+                Permissions: {this.state.placeInfo.permissions.toString()}
             </div> : null;
 
         let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
