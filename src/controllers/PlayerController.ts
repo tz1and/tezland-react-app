@@ -97,14 +97,14 @@ export default class PlayerController {
 
         this.setCurrentPlace = (place: Place) => {
             this.currentPlace = place;
-            appControlfunctions.updatePlaceInfo(place.placeId, place.currentOwner, place.isOwnedOrOperated);
+            appControlfunctions.updatePlaceInfo(place.placeId, place.currentOwner, place.getPermissions);
         }
 
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
             switch(info.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    if(info.event.button === 0 && this.currentPlace && this.currentPlace.isOwnedOrOperated &&
+                    if(info.event.button === 0 && this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() &&
                         this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
                         // TODO: move placing items into Place class.
@@ -228,7 +228,7 @@ export default class PlayerController {
                         if(current_item) {
                             const metadata = current_item.metadata as InstanceMetadata;
                             const place = world.places.get(metadata.placeId);
-                            if(place && place.isOwnedOrOperated) {
+                            if(place && (metadata.issuer === world.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
                                 // If the item is unsaved, remove it directly.
                                 if(metadata.id === undefined) {
                                     current_item.dispose();
@@ -400,7 +400,7 @@ export default class PlayerController {
                 this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
             }
 
-            if(this.currentPlace && this.currentPlace.isOwnedOrOperated && this.currentPlace.isInBounds(this.tempObject)) {
+            if(this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() && this.currentPlace.isInBounds(this.tempObject)) {
                 this.tempObject.setEnabled(true);
                 //this.tempObject.material!.alpha = 1;
             } else {

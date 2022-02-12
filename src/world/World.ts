@@ -249,7 +249,7 @@ export class World {
         const currentPlace = this.playerController.getCurrentPlace()
         if(currentPlace)
             this.appControlFunctions.updatePlaceInfo(currentPlace.placeId,
-                currentPlace.currentOwner, currentPlace.isOwnedOrOperated);
+                currentPlace.currentOwner, currentPlace.getPermissions);
     };
 
     private roadDecorations: Nullable<TransformNode> = null;

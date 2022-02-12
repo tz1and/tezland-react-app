@@ -30,6 +30,30 @@ export type InstanceMetadata = {
 export type PlaceId = number;
 
 
+export class PlacePermissions {
+    private _permissions: number;
+
+    // should mirror the permissions from TL_World contract.
+    public static permissionNone: number       = 0;
+    public static permissionPlaceItems: number = 1;
+    public static permissionModifyAll: number  = 2;
+    public static permissionProps: number      = 4;
+    public static permissionFull: number       = 7;
+
+    constructor(permissions: number) {
+        this._permissions = permissions;
+    }
+
+    public get permissions(): number { return this._permissions; }
+
+    public hasAny() { return this._permissions !== PlacePermissions.permissionNone; }
+    public hasPlaceItems() { return (this._permissions & PlacePermissions.permissionPlaceItems) === PlacePermissions.permissionPlaceItems; }
+    public hasModifyAll() { return (this._permissions & PlacePermissions.permissionModifyAll) === PlacePermissions.permissionModifyAll; }
+    public hasProps() { return (this._permissions & PlacePermissions.permissionProps) === PlacePermissions.permissionProps; }
+    public hasFull() { return (this._permissions & PlacePermissions.permissionFull) === PlacePermissions.permissionFull; }
+};
+
+
 export default class Place {
     readonly placeId: number;
     private world: World;
@@ -56,10 +80,10 @@ export default class Place {
     get tempItemsNode() { return this._tempItemsNode; }
     private set tempItemsNode(val: Nullable<TransformNode>) { this._tempItemsNode = val; }
 
-    get isOwnedOrOperated(): boolean { return this.isOperated; }
+    get getPermissions(): PlacePermissions { return this.permissions; }
     get currentOwner(): string { return this.owner; }
     private owner: string;
-    private isOperated: boolean;
+    private permissions: PlacePermissions;
 
     constructor(placeId: number, world: World) {
         this.placeId = placeId;
@@ -71,7 +95,7 @@ export default class Place {
         this._itemsNode = null;
         this._tempItemsNode = null;
         this.owner = "";
-        this.isOperated = false;
+        this.permissions = new PlacePermissions(PlacePermissions.permissionNone);
     }
 
     public dispose() {
@@ -175,7 +199,7 @@ export default class Place {
                 // TODO: maybe reload isOperated when you enter a place.
                 // OR EVEN BETTER. listen to walletChanged events and reload for all places.
                 // OR EVEN EVEN BETTER. listen for specific contract events.
-                this.isOperated = await Contracts.isPlaceOwnerOrOperator(this.world.walletProvider, this.placeId, this.owner);
+                this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
 
                 // register player trigger when place owner info has loaded.
                 assert(this.executionAction);
@@ -315,11 +339,6 @@ export default class Place {
     public save(): boolean {
         if(!this.tempItemsNode || !this.itemsNode) {
             Logging.InfoDev("can't save: items not loaded: " + this.placeId);
-            return false;
-        }
-
-        if(!this.isOwnedOrOperated) {
-            Logging.InfoDev("can't save: place not owned or operated: " + this.placeId);
             return false;
         }
 

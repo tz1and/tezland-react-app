@@ -5,7 +5,7 @@ import { tezToMutez, toHexString } from "../utils/Utils";
 import { setFloat16 } from "@petamoriken/float16";
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
-import { InstanceMetadata } from "../world/Place";
+import { InstanceMetadata, PlacePermissions } from "../world/Place";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
@@ -71,9 +71,9 @@ export class Contracts {
       return !balanceRes.isZero();
     }*/
 
-    private async isPlaceOperator(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<boolean> {
+    private async queryPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<PlacePermissions> {
         // check if wallet is connected before calling walletPHK
-        if (!walletProvider.isWalletConnected()) return false;
+        if (!walletProvider.isWalletConnected()) return new PlacePermissions(PlacePermissions.permissionNone);
 
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
@@ -81,16 +81,16 @@ export class Contracts {
         // use is_operator on-chain view.
         const permissionsRes: BigNumber = await this.marketplaces.contractViews.get_permissions({ permittee: walletProvider.walletPHK(), owner: owner, lot_id: place_id }).executeView({ viewCaller: this.marketplaces.address });
 
-        return permissionsRes.toNumber() !== 0;
+        return new PlacePermissions(permissionsRes.toNumber());
     }
 
-    public async isPlaceOwnerOrOperator(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<boolean> {
+    public async getPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<PlacePermissions> {
         // check if wallet is connected before calling walletPHK
-        if (!walletProvider.isWalletConnected()) return false;
+        if (!walletProvider.isWalletConnected()) return new PlacePermissions(PlacePermissions.permissionNone);
 
-        if (walletProvider.walletPHK() === owner) return true;
+        if (walletProvider.walletPHK() === owner) return new PlacePermissions(PlacePermissions.permissionFull);
 
-        return this.isPlaceOperator(walletProvider, place_id, owner);
+        return this.queryPlacePermissions(walletProvider, place_id, owner);
     }
 
     public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {

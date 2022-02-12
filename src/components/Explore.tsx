@@ -14,6 +14,7 @@ import Conf from '../Config';
 import { PlaceFropertiesForm } from '../forms/PlaceProperties';
 import { FromNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
+import { PlacePermissions } from '../world/Place';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -25,7 +26,7 @@ type ExploreState = {
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[];
-    placeInfo: {placeId: number, owner: string, ownedOrOperated: boolean};
+    placeInfo: {placeId: number, owner: string, permissions: PlacePermissions};
     groundColor: string;
     //count: number; // like this
 };
@@ -41,7 +42,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             placedItem: null,
             showFps: AppSettings.showFps.value,
             notifications: [],
-            placeInfo: {placeId: -1, owner: '', ownedOrOperated: false},
+            placeInfo: {placeId: -1, owner: '', permissions: new PlacePermissions(PlacePermissions.permissionNone)},
             groundColor: '#FFFFFF'
             // optional second annotation for better type inference
             //count: 0,
@@ -104,11 +105,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
-    updatePlaceInfo = (placeId: number, owner: string, ownedOrOperated: boolean) => {
+    updatePlaceInfo = (placeId: number, owner: string, permissions: PlacePermissions) => {
         this.setState({placeInfo: {
             placeId: placeId,
             owner: owner,
-            ownedOrOperated: ownedOrOperated
+            permissions: permissions
         }});
     }
 
@@ -153,7 +154,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <h5>Place #{this.state.placeInfo.placeId}</h5>
                 <hr/>
                 Owner: {this.state.placeInfo.owner}<br/>
-                Permissions: {this.state.placeInfo.ownedOrOperated ? "Yes" : "No"}
+                Permissions: {this.state.placeInfo.permissions.hasAny() ? "Yes" : "No"}
             </div> : null;
 
         let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });

@@ -2,6 +2,7 @@
 
 import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
+import { PlacePermissions } from "./Place";
 
 export type FromNames = 'placeproperties' | 'instructions' | 'placeitem' | 'settings' | 'mint' | 'inventory' | 'loadingerror';
 
@@ -11,5 +12,5 @@ export type AppControlFunctions = {
     placeItem(node: Node): void;
     editPlaceProperties(groundColor: string): void;
     addNotification(data: NotificationData): void;
-    updatePlaceInfo(placeId: number, owner: string, ownedOrOperated: boolean): void;
+    updatePlaceInfo(placeId: number, owner: string, permissions: PlacePermissions): void;
 };
