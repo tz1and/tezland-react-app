@@ -1,5 +1,5 @@
 import { Mesh, Node, Quaternion } from "@babylonjs/core";
-import { Contract, OpKind, TransactionWalletOperation } from "@taquito/taquito";
+import { Contract, MichelsonMap, OpKind, TransactionWalletOperation } from "@taquito/taquito";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { setFloat16 } from "@petamoriken/float16";
@@ -79,9 +79,9 @@ export class Contracts {
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
         // use is_operator on-chain view.
-        const isOperatorRes = await this.marketplaces.contractViews.is_operator({ operator: walletProvider.walletPHK(), owner: owner, token_id: place_id }).executeView({ viewCaller: this.marketplaces.address });
+        const permissionsRes: BigNumber = await this.marketplaces.contractViews.get_permissions({ permittee: walletProvider.walletPHK(), owner: owner, lot_id: place_id }).executeView({ viewCaller: this.marketplaces.address });
 
-        return isOperatorRes;
+        return permissionsRes.toNumber() !== 0;
     }
 
     public async isPlaceOwnerOrOperator(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<boolean> {
@@ -109,15 +109,29 @@ export class Contracts {
         this.handleOperation(walletProvider, mint_item_op, callback);
     }
 
-    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, xtz_per_item: number, callback?: (completed: boolean) => void) {
+    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
         const get_item_op = await marketplacesWallet.methodsObject.get_item({
-            lot_id: place_id, item_id: item_id
+            lot_id: place_id, item_id: item_id, issuer: issuer
         }).send({ amount: xtz_per_item, mutez: false });
+
+        this.handleOperation(walletProvider, get_item_op, callback);
+    }
+
+    // TODO map or array of item_id to item_data.
+    public async setItemData(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, item_data: string, callback?: (completed: boolean) => void) {
+        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+
+        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+        if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+
+        const get_item_op = await marketplacesWallet.methodsObject.set_item_data({
+            lot_id: place_id, update_list: [{ item_id: item_id, item_data: item_data }]
+        }).send();
 
         this.handleOperation(walletProvider, get_item_op, callback);
     }
@@ -155,16 +169,19 @@ export class Contracts {
         const stItemsKey = "placeItems";
 
         if (placeUpdated) {
-            Logging.InfoDev("place items outdated, reading from chain")
+            Logging.InfoDev("place items outdated, reading from chain");
 
             const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
 
-            const foreachPairs: { id: number; data: object }[] = [];
-            result.stored_items.forEach((val: object, key: number) => {
-                foreachPairs.push({ id: key, data: val });
-            });
+            const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
+            const flattened_item_data: { item_id: BigNumber; issuer: string, data: object }[] = [];
+            for (const [issuer, issuer_items] of michelson_map.entries()) {
+                for (const [item_id, item] of issuer_items.entries()) {
+                    flattened_item_data.push({ item_id: item_id, issuer: issuer, data: item });
+                }
+            }
 
-            const place_data = { stored_items: foreachPairs, place_props: result.place_props }
+            const place_data = { stored_items: flattened_item_data, place_props: result.place_props }
 
             // TODO: await save?
             Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
@@ -199,11 +216,15 @@ export class Contracts {
 
         const wallet_phk = walletProvider.walletPHK();
 
-        // build remove item list
-        const remove_item_list: BigNumber[] = [];
+        // build remove item map
+        const remove_item_map: MichelsonMap<string, BigNumber[]> = new MichelsonMap();
         remove.forEach((item) => {
             const metadata = item.metadata as InstanceMetadata;
-            remove_item_list.push(metadata.id);
+
+            if (remove_item_map.has(metadata.issuer))
+                remove_item_map.get(metadata.issuer)!.push(metadata.id);
+            else
+                remove_item_map.set(metadata.issuer, [metadata.id]);
         });
 
         // build add item list
@@ -268,10 +289,10 @@ export class Contracts {
         }]);
 
         // removals first. because of item limit.
-        if (remove_item_list.length > 0) batch.with([{
+        if (remove_item_map.size > 0) batch.with([{
             kind: OpKind.TRANSACTION,
             ...marketplacesWallet.methodsObject.remove_items({
-                lot_id: place_id, item_list: remove_item_list, owner: owner
+                lot_id: place_id, remove_map: remove_item_map, owner: owner
             }).toTransferParams()
         }]);
 

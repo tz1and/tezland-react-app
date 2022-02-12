@@ -200,7 +200,7 @@ export class World {
 
         if (tContent.parameters) {
             const ep = tContent.parameters.entrypoint;
-            if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items") {
+            if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items" || ep === "set_item_data") {
                 try {
                     const schema = new ParameterSchema(Contracts.marketplaces!.entrypoints.entrypoints[ep])
                     const params = schema.Execute(tContent.parameters.value);

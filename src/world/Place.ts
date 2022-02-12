@@ -18,6 +18,7 @@ import assert from "assert";
 
 export type InstanceMetadata = {
     id: BigNumber;
+    issuer: string;
     placeId: number;
     itemTokenId: BigNumber;
     xtzPerItem: number;
@@ -204,104 +205,111 @@ export default class Place {
     // isUpdate should pretty much always be true unless called from Place.load()
     // TODO: make sure it doesn't throw exception is potentially not caught.
     public async loadItems(isUpdate: boolean) {
-        if(!this.placeBounds) {
-            Logging.InfoDev("place bounds don't exist: " + this.placeId);
-            return;
-        }
+        try {
+            if(!this.placeBounds) {
+                Logging.InfoDev("place bounds don't exist: " + this.placeId);
+                return;
+            }
 
-        const placeHasUpdated = await Contracts.hasPlaceUpdated(this.world.walletProvider, this.placeId);
+            const placeHasUpdated = await Contracts.hasPlaceUpdated(this.world.walletProvider, this.placeId);
 
-        if(isUpdate && !placeHasUpdated) return;
+            if(isUpdate && !placeHasUpdated) return;
 
-        // Load items
-        const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, placeHasUpdated);
+            // Load items
+            const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, placeHasUpdated);
 
-        if(this.placeGround)
-            (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
+            if(this.placeGround)
+                (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
 
-        // remove old place items if they exist.
-        if(this.itemsNode) {
-            this.itemsNode.dispose();
-            this.itemsNode = null;
-            Logging.InfoDev("cleared old items");
-        }
+            // remove old place items if they exist.
+            if(this.itemsNode) {
+                this.itemsNode.dispose();
+                this.itemsNode = null;
+                Logging.InfoDev("cleared old items");
+            }
 
-        // itemsNode must be in the origin.
-        this.itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
-        this.itemsNode.position = this.origin.clone();
-        
-        const outOfBounds: number[] = [];
-
-        //items.forEach(async (element: any) => {
-        for (const element of items.stored_items) {
-            if(!element.data.item) continue;
-
-            // Set prototype to make sure BigNumbers get recognised.
-            // See here: https://github.com/MikeMcl/bignumber.js/issues/245
-            Object.setPrototypeOf(element.id, BigNumber.prototype);
-            Object.setPrototypeOf(element.data.item.token_id, BigNumber.prototype);
-            Object.setPrototypeOf(element.data.item.xtz_per_item, BigNumber.prototype);
-            Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
-
-            const token_id = new BigNumber(element.data.item.token_id);
-            const item_coords = element.data.item.item_data;
-            const item_amount = element.data.item.item_amount;
-            const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
+            // itemsNode must be in the origin.
+            this.itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
+            this.itemsNode.position = this.origin.clone();
             
-            try {
-                const uint8array: Uint8Array = fromHexString(item_coords);
-                const view = new DataView(uint8array.buffer);
-                // 4 floats for quat, 1 float scale, 3 floats pos = 16 bytes
-                const quat = new Quaternion(getFloat16(view, 0), getFloat16(view, 2), getFloat16(view, 4), getFloat16(view, 6));
-                const scale = getFloat16(view, 8);
-                const pos = new Vector3(getFloat16(view, 10), getFloat16(view, 12), getFloat16(view, 14));
+            const outOfBounds: number[] = [];
 
-                const instance = await ipfs.download_item(token_id, this.world.scene, this.itemsNode);
+            //items.forEach(async (element: any) => {
+            for (const element of items.stored_items) {
+                if(!element.data.item) continue;
 
-                if(instance) {
-                    /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
-                    instance.parent = this.itemsNode;
-                    instance.rotationQuaternion = quat;
-                    instance.position = pos;
-                    instance.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
-                    /*sphere.position.x = Math.random() * 20 - 10;
-                    sphere.position.y = 1;
-                    sphere.position.z = Math.random() * 20 - 10;*/
-                    //sphere.material = this.defaultMaterial;
-                    instance.metadata = {
-                        id: new BigNumber(element.id),
-                        placeId: this.placeId,
-                        itemTokenId: token_id,
-                        xtzPerItem: xtz_per_item,
-                        itemAmount: new BigNumber(item_amount)
-                    } as InstanceMetadata;
+                // Set prototype to make sure BigNumbers get recognised.
+                // See here: https://github.com/MikeMcl/bignumber.js/issues/245
+                Object.setPrototypeOf(element.item_id, BigNumber.prototype);
+                Object.setPrototypeOf(element.data.item.token_id, BigNumber.prototype);
+                Object.setPrototypeOf(element.data.item.xtz_per_item, BigNumber.prototype);
+                Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
 
-                    // TODO: for all submeshes/instances, whatever
-                    //instance.checkCollisions = true;
-                    this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
+                const issuer = element.issuer;
+                const token_id = new BigNumber(element.data.item.token_id);
+                const item_coords = element.data.item.item_data;
+                const item_amount = element.data.item.item_amount;
+                const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
+                
+                try {
+                    const uint8array: Uint8Array = fromHexString(item_coords);
+                    const view = new DataView(uint8array.buffer);
+                    // 4 floats for quat, 1 float scale, 3 floats pos = 16 bytes
+                    const quat = new Quaternion(getFloat16(view, 0), getFloat16(view, 2), getFloat16(view, 4), getFloat16(view, 6));
+                    const scale = getFloat16(view, 8);
+                    const pos = new Vector3(getFloat16(view, 10), getFloat16(view, 12), getFloat16(view, 14));
 
-                    if(!this.isInBounds(instance)) {
-                        outOfBounds.push(new BigNumber(element.id).toNumber());
-                        instance.dispose();
+                    const instance = await ipfs.download_item(token_id, this.world.scene, this.itemsNode);
+
+                    if(instance) {
+                        /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
+                        instance.parent = this.itemsNode;
+                        instance.rotationQuaternion = quat;
+                        instance.position = pos;
+                        instance.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
+                        /*sphere.position.x = Math.random() * 20 - 10;
+                        sphere.position.y = 1;
+                        sphere.position.z = Math.random() * 20 - 10;*/
+                        //sphere.material = this.defaultMaterial;
+                        instance.metadata = {
+                            id: new BigNumber(element.item_id),
+                            issuer: issuer,
+                            placeId: this.placeId,
+                            itemTokenId: token_id,
+                            xtzPerItem: xtz_per_item,
+                            itemAmount: new BigNumber(item_amount)
+                        } as InstanceMetadata;
+
+                        // TODO: for all submeshes/instances, whatever
+                        //instance.checkCollisions = true;
+                        this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
+
+                        if(!this.isInBounds(instance)) {
+                            outOfBounds.push(new BigNumber(element.item_id).toNumber());
+                            instance.dispose();
+                        }
                     }
                 }
-            }
-            catch(e) {
-                Logging.InfoDev("Failed to load placed item: ", e);
-            }
-        };
+                catch(e) {
+                    Logging.InfoDev("Failed to load placed item: ", e);
+                }
+            };
 
-        if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
-            this.world.appControlFunctions.addNotification({
-                id: "oobItems" + this.placeId,
-                title: "Out of bounds items!",
-                body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
-                type: 'warning'
-            })
-            Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
+            if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
+                this.world.appControlFunctions.addNotification({
+                    id: "oobItems" + this.placeId,
+                    title: "Out of bounds items!",
+                    body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
+                    type: 'warning'
+                })
+                Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
+            }
+
+            //this.octree = this.scene.createOrUpdateSelectionOctree();
         }
-
-        //this.octree = this.scene.createOrUpdateSelectionOctree();
+        catch(e: any) {
+            Logging.Error("Failed to load items for place: " + e)
+        }
     }
 
     public save(): boolean {
