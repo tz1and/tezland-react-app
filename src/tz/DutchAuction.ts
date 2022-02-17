@@ -11,8 +11,11 @@ export default class DutchAuction {
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
         const placesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.place_contract);
 
+        // in the future price_granularity might change. For now it is one minute.
+        //const price_granularity = 60; // in seconds.
+        const start_time_offset = 45; // in seconds, should be larger than current block time (30s).
         const current_time = Math.floor(Date.now() / 1000);
-        const start_time = (Math.floor(current_time / 60) + 1) * 60; // begins at the next full minute.
+        const start_time = (Math.floor((current_time + start_time_offset) / 60) + 1) * 60; // begins at the next full minute.
         const end_time = Math.floor(start_time + duration * 3600); // hours to seconds
 
         const batch = walletProvider.tezosToolkit().wallet.batch([
