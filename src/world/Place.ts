@@ -92,6 +92,8 @@ export default class Place {
     private owner: string;
     private permissions: PlacePermissions;
 
+    private savePending: boolean;
+
     constructor(placeId: number, world: World) {
         this.placeId = placeId;
         this.world = world;
@@ -101,6 +103,7 @@ export default class Place {
         this._buildHeight = 0;
         this._itemsNode = null;
         this._tempItemsNode = null;
+        this.savePending = false;
         this.owner = "";
         this.permissions = new PlacePermissions(PlacePermissions.permissionNone);
     }
@@ -349,6 +352,11 @@ export default class Place {
             return false;
         }
 
+        if(this.savePending) {
+            Logging.Info("Can't save again while operaton is pending: " + this.placeId);
+            return false;
+        }
+
         // try to save items.
         const tempChildren = this.tempItemsNode.getChildren();
         const add_children = new Array<Node>();
@@ -376,6 +384,8 @@ export default class Place {
             return false;
         }
 
+        this.savePending = true;
+
         Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
             if(this.tempItemsNode) {
                 this.tempItemsNode.dispose();
@@ -385,6 +395,8 @@ export default class Place {
                 this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
                 this.tempItemsNode.position = this.origin.clone();
             }
+
+            this.savePending = false;
 
             // TODO: does this really need to be called here?
             // subscription should handle it.
