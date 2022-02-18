@@ -8,7 +8,7 @@ import {
 } from 'formik';
 import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
-import { FormTrisate, triHelper } from './FormUtils';
+import { Trilean, triHelper } from './FormUtils';
 
 interface PlaceFropertiesFormValues {
     placeGroundColor: string;
@@ -23,7 +23,7 @@ type PlaceFropertiesFormProps = {
 
 type PlaceFropertiesFormState = {
     error: string;
-    successState: FormTrisate;
+    successState: Trilean;
 }
 
 
@@ -37,7 +37,7 @@ const colorToBytes = (color: string) => {
 export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) => {
     const context = useTezosWalletContext();
 
-    const [state, setState] = useState<PlaceFropertiesFormState>({error: "", successState: -1});
+    const [state, setState] = useState<PlaceFropertiesFormState>({error: "", successState: 0});
     
     //const state: PlaceFropertiesFormState = { error: "" }
     const initialValues: PlaceFropertiesFormValues = {
@@ -61,7 +61,7 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                     }
 
                     // revalidation clears trisate and error
-                    setState({error: "", successState: -1});
+                    setState({error: "", successState: 0});
                   
                     return errors;
                 }}
@@ -72,10 +72,10 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                         if (completed)
                             setState({error: "", successState: 1});
                         else
-                            setState({error: "Transaction failed", successState: 0});
+                            setState({error: "Transaction failed", successState: -1});
                     }).catch((reason: any) => {
                         actions.setSubmitting(false);
-                        setState({error: reason.message, successState: 0});
+                        setState({error: reason.message, successState: -1});
                     });
                 }}
             >
@@ -92,7 +92,7 @@ export const PlaceFropertiesForm: React.FC<PlaceFropertiesFormProps> = (props) =
                                 <ErrorMessage name="placeGroundColor" children={errorDisplay}/>
                             </div>
                                     
-                            <button type="submit" className={`btn btn-${triHelper(state.successState, "primary", "danger", "success")}`} disabled={isSubmitting || !isValid}>
+                            <button type="submit" className={`btn btn-${triHelper(state.successState, "danger", "primary", "success")}`} disabled={isSubmitting || !isValid}>
                                 {isSubmitting && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button><br/>
                             {state.error && ( <small className='text-danger d-inline-block mt-2'>Saving Place properties failed: {state.error}</small> )}
                         </Form>

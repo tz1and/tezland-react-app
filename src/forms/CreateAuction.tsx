@@ -17,7 +17,7 @@ import { fetchGraphQL } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { Logging } from '../utils/Logging';
 import assert from 'assert';
-import { FormTrisate, triHelper } from './FormUtils';
+import { Trilean, triHelper } from './FormUtils';
 
 type MapSetCenterProps = {
     center: [number, number],
@@ -53,7 +53,7 @@ type CreateAuctionFormProps = { }
 
 type CreateAuctionFormState = {
     error: string,
-    successState: FormTrisate,
+    successState: Trilean,
     mapLocation: [number, number],
     placePoly: [number, number][],
     placeInventory?: any[]
@@ -72,7 +72,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         super(props);
         this.state = {
             error: '',
-            successState: -1,
+            successState: 0,
             mapLocation: [500, 500],
             placePoly: []
         };
@@ -180,7 +180,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 }
 
                                 // revalidation clears trisate and error
-                                this.setState({error: "", successState: -1});
+                                this.setState({error: "", successState: 0});
                               
                                 return errors;
                             }}
@@ -198,11 +198,11 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                     }
                                     else {
                                         actions.setSubmitting(false);
-                                        this.setState({ error: "Transaction failed", successState: 0 });
+                                        this.setState({ error: "Transaction failed", successState: -1 });
                                     }
                                 }).catch((reason: any) => {
                                     actions.setSubmitting(false);
-                                    this.setState({error: reason.message, successState: 0});
+                                    this.setState({error: reason.message, successState: -1});
                                 });
                             }}
                         >
@@ -255,7 +255,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         <ErrorMessage name="endPrice" children={this.errorDisplay}/>
                                     </div>
                                     <div className="form-text mb-3">There is a 2.5% management fee on successful bids.</div>
-                                    <button type="submit" className={`btn btn-${triHelper(this.state.successState, "primary", "danger", "success")} mb-3`} disabled={isSubmitting || !isValid}>
+                                    <button type="submit" className={`btn btn-${triHelper(this.state.successState, "danger", "primary", "success")} mb-3`} disabled={isSubmitting || !isValid}>
                                         {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} Create Auction
                                     </button><br/>
                                     {this.state.error && ( <span className='text-danger d-inline-block mt-2'>Create Auction failed: {this.state.error}</span> )}

@@ -15,7 +15,7 @@ import { FileLike, fileToFileLike, getFileExt } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
-import { FormTrisate, triHelper } from './FormUtils';
+import { Trilean, triHelper } from './FormUtils';
 
 interface MintFormValues {
     itemTitle: string;
@@ -33,7 +33,7 @@ type MintFormProps = {
 
 type MintFormState = {
     error: string,
-    successState: FormTrisate,
+    successState: Trilean,
     modelLoadingState: ModelLoadingState;
     modelLimitWarning: string;
 }
@@ -53,7 +53,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         super(props);
         this.state = {
             error: "",
-            successState: -1,
+            successState: 0,
             modelLoadingState: "none",
             modelLimitWarning: ""
         };
@@ -128,135 +128,154 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         else throw new Error("Backend: malformed response");
     }
 
+    private resetState() {
+        this.setState({
+            error: "",
+            successState: 0,
+            modelLoadingState: "none",
+            modelLimitWarning: ""
+        });
+    }
+
     override render(): React.ReactNode {
         return (
             <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
-                {this.isClosable && <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />}
-                <h2>mint Item</h2>
-                <Formik
-                    innerRef={this.formikRef}
-                    initialValues={this.initialValues}
-                    validate = {(values) => {
-                        const errors: FormikErrors<MintFormValues> = {};
+                {this.state.successState === 1 ? <div><h2 className='mb-2'>Item minted</h2>
+                    <div className='d-flex align-items-center justify-content-center'>
+                        <div className='btn-group' role='group'>
+                            <button type='button' className='btn btn btn-success' onClick={() => this.resetState()}>Mint another</button>
+                            {this.isClosable && <button type='button' className='btn btn btn-primary' onClick={() => this.props.closeForm(true)}>Close</button>}
+                        </div>
+                    </div>
+                </div> :
+                <div>
+                    {this.isClosable && <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />}
+                    <h2>mint Item</h2>
+                    <Formik
+                        innerRef={this.formikRef}
+                        initialValues={this.initialValues}
+                        validate = {(values) => {
+                            const errors: FormikErrors<MintFormValues> = {};
 
-                        if (!values.itemFile) {
-                            errors.itemFile = 'No file selected';
-                        } else {
-                            // this is "delayed" because it depends on async state...
-                            // TODO: improve, somehow.
-                            if(this.state.modelLoadingState === "failed")
-                                errors.itemFile = 'Model file failed to load.';
+                            if (!values.itemFile) {
+                                errors.itemFile = 'No file selected';
+                            } else {
+                                // this is "delayed" because it depends on async state...
+                                // TODO: improve, somehow.
+                                if(this.state.modelLoadingState === "failed")
+                                    errors.itemFile = 'Model file failed to load.';
 
-                            // This is just here to filter out some obvious trolls.
-                            if (this.modelPreviewRef.current!.state.polycount > 10000000)
-                                errors.itemFile = 'Mesh has too many polygons.';
-                        }
-
-                        if (values.itemTitle.length === 0) {
-                            errors.itemTitle = 'Title required';
-                        }
-                    
-                        if (values.itemRoyalties < 0 || values.itemRoyalties > 25) {
-                            errors.itemRoyalties = 'Royalties invalid';
-                        }
-
-                        if (values.itemAmount < 1 || values.itemAmount > 10000) {
-                            errors.itemAmount = 'Amount invalid';
-                        }
-
-                        // revalidation clears trisate and error
-                        this.setState({error: "", successState: -1});
-                    
-                        return errors;
-                    }}
-                    onSubmit={(values, actions) => {
-                        this.uploadAndMint(values, (completed: boolean) => {
-                            if (completed) {
-                                if(!this.isClosable) actions.setSubmitting(false);
-
-                                this.setState({error: "", successState: 1}, () => {
-                                    // If closable close form after a short time.
-                                    if(this.isClosable) this.closeTimeout = setTimeout(() => {
-                                        this.props.closeForm(false);
-                                    }, 1000);
-                                });
+                                // This is just here to filter out some obvious trolls.
+                                if (this.modelPreviewRef.current!.state.polycount > 10000000)
+                                    errors.itemFile = 'Mesh has too many polygons.';
                             }
-                            else {
+
+                            if (values.itemTitle.length === 0) {
+                                errors.itemTitle = 'Title required';
+                            }
+                        
+                            if (values.itemRoyalties < 0 || values.itemRoyalties > 25) {
+                                errors.itemRoyalties = 'Royalties invalid';
+                            }
+
+                            if (values.itemAmount < 1 || values.itemAmount > 10000) {
+                                errors.itemAmount = 'Amount invalid';
+                            }
+
+                            // revalidation clears trisate and error
+                            this.setState({error: "", successState: 0});
+                        
+                            return errors;
+                        }}
+                        onSubmit={(values, actions) => {
+                            this.uploadAndMint(values, (completed: boolean) => {
+                                if (completed) {
+                                    if(!this.isClosable) actions.setSubmitting(false);
+
+                                    this.setState({error: "", successState: 1}, /*() => {
+                                        // If closable close form after a short time.
+                                        if(this.isClosable) this.closeTimeout = setTimeout(() => {
+                                            this.props.closeForm(false);
+                                        }, 1000);
+                                    }*/);
+                                }
+                                else {
+                                    actions.setSubmitting(false);
+                                    this.setState({ error: "Transaction failed", successState: -1 });
+                                }
+                            }).catch((reason: any) => {
                                 actions.setSubmitting(false);
-                                this.setState({ error: "Transaction failed", successState: 0 });
-                            }
-                        }).catch((reason: any) => {
-                            actions.setSubmitting(false);
-                            this.setState({error: reason.message, successState: 0});
-                        });
-                    }}
-                >
+                                this.setState({error: reason.message, successState: -1});
+                            });
+                        }}
+                    >
 
-                    {({
-                        values,
-                        isSubmitting,
-                        touched,
-                        isValid
-                        /*errors,
-                        handleSubmit,
-                        validating,
-                        valid*/
-                    }) => {
-                        return (
-                            <Form>
-                                <div className='row'>
-                                    <div className='col'>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemFile" className="form-label">3D Model file</label>
-                                            <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
-                                            <div id="fileHelp" className="form-text">Only gltf models are supported.</div>
-                                            <ErrorMessage name="itemFile" children={this.errorDisplay}/>
-                                            {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1">
-                                                <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemTitle" className="form-label">Title</label>
-                                            <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
-                                            <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemDescription" className="form-label">Description</label>
-                                            <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemTags" className="form-label">Tags</label>
-                                            <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
-                                            <div id="tagsHelp" className="form-text">List of tags, separated by <i>;</i>.</div>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                            <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
-                                            <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
-                                            <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
-                                            <div className="input-group">
-                                                <span className="input-group-text">%</span>
-                                                <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
+                        {({
+                            values,
+                            isSubmitting,
+                            touched,
+                            isValid
+                            /*errors,
+                            handleSubmit,
+                            validating,
+                            valid*/
+                        }) => {
+                            return (
+                                <Form>
+                                    <div className='row'>
+                                        <div className='col'>
+                                            <div className="mb-3">
+                                                <label htmlFor="itemFile" className="form-label">3D Model file</label>
+                                                <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
+                                                <div id="fileHelp" className="form-text">Only gltf models are supported.</div>
+                                                <ErrorMessage name="itemFile" children={this.errorDisplay}/>
+                                                {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1">
+                                                    <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
                                             </div>
-                                            <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
-                                            <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
+                                            <div className="mb-3">
+                                                <label htmlFor="itemTitle" className="form-label">Title</label>
+                                                <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
+                                                <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
+                                            </div>
+                                            <div className="mb-3">
+                                                <label htmlFor="itemDescription" className="form-label">Description</label>
+                                                <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
+                                            </div>
+                                            <div className="mb-3">
+                                                <label htmlFor="itemTags" className="form-label">Tags</label>
+                                                <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
+                                                <div id="tagsHelp" className="form-text">List of tags, separated by <i>;</i>.</div>
+                                            </div>
+                                            <div className="mb-3">
+                                                <label htmlFor="itemAmount" className="form-label">Amount</label>
+                                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
+                                                <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
+                                                <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
+                                            </div>
+                                            <div className="mb-3">
+                                                <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
+                                                <div className="input-group">
+                                                    <span className="input-group-text">%</span>
+                                                    <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
+                                                </div>
+                                                <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
+                                                <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
+                                            </div>
+                                            <button type="submit" className={`btn btn-${triHelper(this.state.successState, "danger", "primary", "success")} mb-3`} disabled={isSubmitting || !isValid}>
+                                                {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} mint Item
+                                            </button><br/>
+                                            {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
                                         </div>
-                                        <button type="submit" className={`btn btn-${triHelper(this.state.successState, "primary", "danger", "success")} mb-3`} disabled={isSubmitting || !isValid}>
-                                            {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} mint Item
-                                        </button><br/>
-                                        {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
+                                        <div className='col'>
+                                            <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} modelLoaded={this.modelLoaded} />
+                                            <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
+                                        </div>
                                     </div>
-                                    <div className='col'>
-                                        <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} modelLoaded={this.modelLoaded} />
-                                        <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
-                                    </div>
-                                </div>
-                            </Form>
-                        )
-                    }}
-                </Formik>
+                                </Form>
+                            )
+                        }}
+                    </Formik>
+                </div>}
             </div>
         );
     }
