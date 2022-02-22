@@ -2,7 +2,7 @@ import React from 'react';
 import '@babylonjs/loaders/glTF';
 import { ArcRotateCamera, Color4, DirectionalLight, Engine, HemisphericLight, Mesh,
     Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
-import { countPolygons } from '../utils/Utils';
+import { countPolygons, getFileType } from '../utils/Utils';
 
 
 class PreviewScene {
@@ -74,7 +74,8 @@ class PreviewScene {
 
         try {
             // TODO: use asset container.
-            const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null); //, '.glb');
+            const file_type = await getFileType(file);
+            const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null, '.' + file_type);
             result.animationGroups.forEach((ag) => { ag.stop(); })
             this.previewObject = result.meshes[0] as Mesh;
 

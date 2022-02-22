@@ -11,11 +11,12 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { FileLike, fileToFileLike, getFileExt } from '../utils/Utils';
+import { FileLike, fileToFileLike, getFileType } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
 import { Trilean, triHelper } from './FormUtils';
+import assert from 'assert';
 
 interface MintFormValues {
     itemTitle: string;
@@ -85,26 +86,29 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     }
 
     private async uploadAndMint(values: MintFormValues, callback?: (completed: boolean) => void) {
-        const thumbnail = await this.modelPreviewRef.current!.getThumbnail();
+        assert(values.itemFile);
+        assert(this.modelPreviewRef.current);
+
+        const thumbnail = await this.modelPreviewRef.current.getThumbnail();
 
         // TODO: validate mimeType in validation.
         var mime_type;
-        const file_ext = getFileExt(values.itemFile!.name);
-        if(file_ext === "glb") mime_type = "model/gltf-binary";
-        else if(file_ext === "gltf") mime_type = "model/gltf+json";
+        const file_type = await getFileType(values.itemFile);
+        if(file_type === "glb") mime_type = "model/gltf-binary";
+        else if(file_type === "gltf") mime_type = "model/gltf+json";
         else throw new Error("Unsupported mimeType");
 
         const metadata = createItemTokenMetadata({
             name: values.itemTitle,
             description: values.itemDescription,
             minter: this.context.walletPHK(),
-            artifactUri: await fileToFileLike(values.itemFile!),
+            artifactUri: await fileToFileLike(values.itemFile),
             thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
             tags: values.itemTags,
             formats: [
                 {
                     mimeType: mime_type,
-                    fileSize: values.itemFile!.size
+                    fileSize: values.itemFile.size
                 }
             ]
         });

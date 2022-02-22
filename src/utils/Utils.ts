@@ -102,6 +102,19 @@ export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 };
 
+// Tries to get the file type from the file header, otherwise
+// returns extension.
+export const getFileType = async (file: File): Promise<string> => {
+  const fbuf = await file.arrayBuffer();
+  const view = new DataView(fbuf);
+
+  // Check various (supported) file headers.
+  if(view.getUint32(0) === 1735152710) return 'glb';
+
+  // Otherwise, decide by file extension.
+  return getFileExt(file.name);
+}
+
 export const getFileExt = (filename: string) => {
   return filename.substring(filename.lastIndexOf('.') + 1);
 }
