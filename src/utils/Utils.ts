@@ -19,13 +19,11 @@ export const pointIsInside = (point: Vector3, mesh: Mesh) => {
     ray.origin = refPoint;
     ray.direction = direction;
     ray.length = diameter;
-    // @ts-expect-error
     var pickInfo = ray.intersectsMesh(mesh);
     while (pickInfo.hit) {
         hitCount++;
         pickInfo.pickedPoint!.addToRef(direction.scale(0.00000001), refPoint);
         ray.origin = refPoint;
-        // @ts-expect-error
         pickInfo = ray.intersectsMesh(mesh);
     }   
     if((hitCount % 2) === 1) {
