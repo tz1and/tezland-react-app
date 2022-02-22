@@ -1,7 +1,8 @@
-import { ActionManager, FreeCamera, IWheelEvent, KeyboardEventTypes, Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene, ShadowGenerator, UniversalCamera, Vector3 } from "@babylonjs/core";
+import { ActionManager, FreeCamera, IWheelEvent, KeyboardEventTypes,
+    Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene,
+    ShadowGenerator, UniversalCamera, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import BigNumber from "bignumber.js";
-//import { SimpleMaterial } from "@babylonjs/materials/simple";
 import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
@@ -10,6 +11,7 @@ import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place, { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
 import PickingGuiController from "./PickingGuiController";
+import TempObjectHelper from "./TempObjectHelper";
 
 
 const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
@@ -23,8 +25,10 @@ export default class PlayerController {
     public get shadowGenerator(): Nullable<ShadowGenerator> { return this._shadowGenerator; }
 
     private tempObject: Nullable<Mesh>;
+    private tempObjectHelper: Nullable<TempObjectHelper>;
     private tempObjectOffsetY: number;
     private tempObjectRot: Quaternion;
+    private tempObjectPos: Vector3;
     //private state: ControllerState;
 
     private pickingGui: PickingGuiController;
@@ -46,8 +50,10 @@ export default class PlayerController {
         this._shadowGenerator = null;
         this.currentPlace = null;
         this.tempObject = null;
+        this.tempObjectHelper = null;
         this.tempObjectOffsetY = 0;
         this.tempObjectRot = new Quaternion();
+        this.tempObjectPos = new Vector3();
         this.pickingGui = new PickingGuiController(world);
         this.camera = this.initCamera();
 
@@ -156,11 +162,19 @@ export default class PlayerController {
                 switch(kbInfo.event.code) {
                     // Scale
                     case "KeyR":
-                        this.tempObject?.scaling.multiplyInPlace(new Vector3(1.1, 1.1, 1.1));
+                        if (this.tempObject && this.tempObjectHelper) {
+                            const scale = new Vector3(1.1, 1.1, 1.1);
+                            this.tempObject.scaling.multiplyInPlace(scale);
+                            this.tempObjectHelper.scaleUpdate(scale);
+                        }
                         break;
                     
                     case "KeyF":
-                        this.tempObject?.scaling.multiplyInPlace(new Vector3(0.9, 0.9, 0.9));
+                        if (this.tempObject && this.tempObjectHelper) {
+                            const scale = new Vector3(0.9, 0.9, 0.9);
+                            this.tempObject.scaling.multiplyInPlace(scale);
+                            this.tempObjectHelper.scaleUpdate(scale);
+                        }
                         break;
                     
                     // Rotate
@@ -325,13 +339,25 @@ export default class PlayerController {
             this.tempObject = null;
         }
 
+        if(this.tempObjectHelper) {
+            this.tempObjectHelper.dispose()
+            this.tempObjectHelper = null;
+        }
+
         this.currentItem = token_id;
         if (this.currentItem === undefined) return;
+
+        // Resetting is important for the TempObjectHelper.
+        // as it doesn't seem to be possible to get a hierarchical OOBB.
+        this.tempObjectPos = new Vector3();
+        this.tempObjectRot = new Quaternion();
 
         try {
             this.tempObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, null) as Mesh;
             if(this.tempObject) {
+                // the temp object.
                 this.tempObject.rotationQuaternion = this.tempObjectRot;
+                this.tempObject.position = this.tempObjectPos;
 
                 // set pickable false on the whole hierarchy.
                 this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
@@ -342,19 +368,12 @@ export default class PlayerController {
                 const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
                 const new_scale = 2 / extent_max; // Scale to 2 meters.
                 this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-                // throws an error for some reason.
-                //this.tempObject.getChildMeshes(false).forEach((e) => e.visibility = 0.5 );
 
-                /*const transparent_mat = new SimpleMaterial("tranp", this.scene);
-                //transparent_mat.alpha = 0.2;
-                //transparent_mat.disableLighting = true;
-                //transparent_mat.backFaceCulling = false;
-                transparent_mat.diffuseColor.set(0.8, 0.2, 0.2);
-
-                this.tempObject = Mesh.CreateBox("tempObject", 1, this.scene);
-                this.tempObject.material = transparent_mat;
-                this.tempObject.isPickable = false;
-                //this.tempObject.rotationQuaternion = this.tempObjectRot;*/
+                // positioning helper.
+                this.tempObjectHelper = new TempObjectHelper(this.scene, this.tempObjectRot);
+                this.tempObjectHelper.modelUpdate(this.tempObject);
+                
+                // add shadows caster.
                 this.shadowGenerator?.addShadowCaster(this.tempObject as Mesh);
 
                 // make sure picking gui goes away.
@@ -394,18 +413,20 @@ export default class PlayerController {
         // cast a ray for picking guy and item placing
         const hit = this.scene.pickWithRay(this.camera.getForwardRay());
 
-        if(this.tempObject) {
+        if(this.tempObject && this.tempObjectHelper) {
             if(hit && hit.pickedPoint) {
                 const point = hit.pickedPoint;
-                this.tempObject.position.set(point.x, point.y + this.tempObjectOffsetY, point.z);
+                this.tempObjectPos.set(point.x, point.y + this.tempObjectOffsetY, point.z);
+                this.tempObjectHelper.posUpdate(this.tempObjectPos);
             }
 
+            // TODO: update only when state changed!!!!
             if(this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() && this.currentPlace.isInBounds(this.tempObject)) {
                 this.tempObject.setEnabled(true);
-                //this.tempObject.material!.alpha = 1;
+                this.tempObjectHelper.setValid(true);
             } else {
                 this.tempObject.setEnabled(false);
-                //this.tempObject.material!.alpha = 0.2;
+                this.tempObjectHelper.setValid(false);
             }
         } else if (hit) {
             // TODO: await this somehow?
