@@ -386,21 +386,24 @@ export default class Place {
 
         this.savePending = true;
 
-        Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, () => {
-            if(this.tempItemsNode) {
-                this.tempItemsNode.dispose();
-                Logging.InfoDev("cleared temp items");
-
-                // create NEW temp items node
-                this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
-                this.tempItemsNode.position = this.origin.clone();
-            }
-
+        Contracts.saveItems(this.world.walletProvider, remove_children, add_children, this.placeId, this.owner, (completed: boolean) => {
             this.savePending = false;
 
-            // TODO: does this really need to be called here?
-            // subscription should handle it.
-            this.loadItems(true);
+            // Only remove temp items if op completed.
+            if(completed) {
+                if(this.tempItemsNode) {
+                    this.tempItemsNode.dispose();
+                    Logging.InfoDev("cleared temp items");
+
+                    // create NEW temp items node
+                    this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
+                    this.tempItemsNode.position = this.origin.clone();
+                }
+
+                // TODO: does this really need to be called here?
+                // subscription should handle it.
+                this.loadItems(true);
+            }
         });
 
         return true;

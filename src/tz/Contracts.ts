@@ -102,15 +102,20 @@ export class Contracts {
         const contributors: MichelsonMap<string, any> = new MichelsonMap();
         contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: "minter" });
 
-        const mint_item_op = await minterWallet.methodsObject.mint_Item({
-            address: walletProvider.walletPHK(),
-            amount: amount,
-            royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
-            contributors: contributors,
-            metadata: char2Bytes(item_metadata_url)
-        }).send();
+        try {
+            const mint_item_op = await minterWallet.methodsObject.mint_Item({
+                address: walletProvider.walletPHK(),
+                amount: amount,
+                royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
+                contributors: contributors,
+                metadata: char2Bytes(item_metadata_url)
+            }).send();
 
-        this.handleOperation(walletProvider, mint_item_op, callback);
+            this.handleOperation(walletProvider, mint_item_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
@@ -119,11 +124,16 @@ export class Contracts {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
-        const get_item_op = await marketplacesWallet.methodsObject.get_item({
-            lot_id: place_id, item_id: item_id, issuer: issuer
-        }).send({ amount: xtz_per_item, mutez: false });
+        try {
+            const get_item_op = await marketplacesWallet.methodsObject.get_item({
+                lot_id: place_id, item_id: item_id, issuer: issuer
+            }).send({ amount: xtz_per_item, mutez: false });
 
-        this.handleOperation(walletProvider, get_item_op, callback);
+            this.handleOperation(walletProvider, get_item_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     // TODO map or array of item_id to item_data.
@@ -133,11 +143,16 @@ export class Contracts {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
-        const get_item_op = await marketplacesWallet.methodsObject.set_item_data({
-            lot_id: place_id, update_list: [{ item_id: item_id, item_data: item_data }]
-        }).send();
+        try {
+            const get_item_op = await marketplacesWallet.methodsObject.set_item_data({
+                lot_id: place_id, update_list: [{ item_id: item_id, item_data: item_data }]
+            }).send();
 
-        this.handleOperation(walletProvider, get_item_op, callback);
+            this.handleOperation(walletProvider, get_item_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     public async countPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
@@ -209,9 +224,14 @@ export class Contracts {
         let params: any = { lot_id: place_id, props: groundColor };
         if(owner) params.owner = owner;
 
-        const save_props_op = await marketplacesWallet.methodsObject.set_place_props(params).send();
+        try {
+            const save_props_op = await marketplacesWallet.methodsObject.set_place_props(params).send();
 
-        this.handleOperation(walletProvider, save_props_op, callback);
+            this.handleOperation(walletProvider, save_props_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: (completed: boolean) => void) {
@@ -312,9 +332,14 @@ export class Contracts {
             ...itemsWallet.methods.update_operators(operator_removes).toTransferParams()
         }]);
 
-        const batch_op = await batch.send();
+        try {
+            const batch_op = await batch.send();
 
-        this.handleOperation(walletProvider, batch_op, callback);
+            this.handleOperation(walletProvider, batch_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: (completed: boolean) => void) {

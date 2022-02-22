@@ -38,9 +38,14 @@ export default class DutchAuction {
             }
         ]);
 
-        const batch_op = await batch.send();
+        try {
+            const batch_op = await batch.send();
 
-        Contracts.handleOperation(walletProvider, batch_op, callback);
+            Contracts.handleOperation(walletProvider, batch_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     static async bidOnAuction(walletProvider: ITezosWalletProvider, auction_id: number, price_mutez: number, callback?: (completed: boolean) => void) {
@@ -48,10 +53,15 @@ export default class DutchAuction {
   
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
-  
-        const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
 
-        Contracts.handleOperation(walletProvider, bid_op, callback);
+        try {
+            const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
+
+            Contracts.handleOperation(walletProvider, bid_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 
     static async cancelAuction(walletProvider: ITezosWalletProvider, auction_id: number, callback?: (completed: boolean) => void) {
@@ -60,8 +70,13 @@ export default class DutchAuction {
         // note: this is also checked in Auction, probably don't have to recheck, but better safe.
         if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
   
-        const cancel_op = await auctionsWallet.methodsObject.cancel(auction_id).send();
+        try {
+            const cancel_op = await auctionsWallet.methodsObject.cancel(auction_id).send();
 
-        Contracts.handleOperation(walletProvider, cancel_op, callback);
+            Contracts.handleOperation(walletProvider, cancel_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
     }
 }
