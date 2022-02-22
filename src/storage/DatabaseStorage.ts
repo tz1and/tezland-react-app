@@ -10,7 +10,7 @@ const databaseTables: string[] = [
     "itemPolycount"
 ]
 
-const databaseVersion = databaseTables.length;
+const databaseVersion = 6;
 
 export class DatabaseStorage implements IStorageProvider {
     public isSupported: boolean;
@@ -78,6 +78,11 @@ export class DatabaseStorage implements IStorageProvider {
                             for(const table of databaseTables) {
                                 if(!this.db.objectStoreNames.contains(table))
                                     this.db.createObjectStore(table); //, { keyPath: "key" });
+                                else {
+                                    // On db upgrade, recreate stores.
+                                    this.db.deleteObjectStore(table);
+                                    this.db.createObjectStore(table);
+                                }
                             }
                         } catch (ex: any) {
                             Logging.Error("Error while creating object stores. Exception: " + ex.message);
