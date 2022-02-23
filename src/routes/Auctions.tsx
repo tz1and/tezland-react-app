@@ -136,7 +136,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <p>This is the <i>primary</i> (newly minted Places will end up here) and, when the whitelist will be disabled, also a secondary (everyone can create auctions) marketplace for Places.</p>
                     <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price.<br/>Auctions can be cancelled by the creator before a bid.</p>
                     <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
-                    <p><b>For the time being, you will need a whitelist spot to get a Place, which you can get in the <a href="https://discord.gg/fbpy4QdzSp" target="_blank" rel="noreferrer">Discord</a>.</b></p>
+                    <p><b>For the time being, you will need a whitelist spot to get a Place, which you can get in the <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer">Discord</a>.</b></p>
                     {DutchAuction.isAdministrator(this.context) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
                     <hr/>
                     <InfiniteScroll
