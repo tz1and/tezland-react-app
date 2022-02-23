@@ -47,7 +47,7 @@ const renderApp = (element?: JSX.Element) => {
             <Notification data={{
                 id: "liveOnTestnet",
                 title: "Live on testnet",
-                body: <span>tz1and is live on the testnet!<br/><br/>To give it a try, grab an account <a href="https://teztnets.xyz/hangzhounet-faucet" target="_blank" rel="noreferrer">from the faucet</a> and import it in TempleWallet.</span>,
+                body: <span>tz1and is live on the testnet! Again!<br/><br/>Among other things, this is about testing out the whitelist, you can get whitelisted in the <a href="https://discord.gg/fbpy4QdzSp" target="_blank" rel="noreferrer">discord</a>.<br/><br/>To give it a try, grab an account <a href="https://teztnets.xyz/hangzhounet-faucet" target="_blank" rel="noreferrer">from the faucet</a> and import it in TempleWallet.</span>,
                 type: 'info' }}/>
         </div> : null
 
