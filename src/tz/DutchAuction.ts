@@ -68,16 +68,16 @@ export default class DutchAuction {
         if(await DutchAuction.isWhitelistEnabled(walletProvider)) {
             return DutchAuction.isWhitelisted(walletProvider);
         }
-        else return false;
+        else return true;
     }
 
-    // TODO: don't hardcode admin?
+    // TODO: don't hardcode admin!
     static isAdministrator(walletProvider: ITezosWalletProvider) {
         if(!walletProvider.isWalletConnected()) return false;
 
         if(walletProvider.walletPHK() === "tz1U3shEPeLdLxyjFWWGjJjNhFugcVV8eCTW")
             return true;
-        else return true;
+        else return false;
     }
 
     private static async isWhitelisted(walletProvider: ITezosWalletProvider) {
