@@ -2,7 +2,9 @@ import React from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction from '../components/Auction'
+import TezosWalletContext from '../components/TezosWalletContext';
 import { fetchGraphQL } from '../ipfs/graphql';
+import DutchAuction from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
 
 type AuctionsProps = {}
@@ -10,17 +12,21 @@ type AuctionsProps = {}
 type AuctionsState = {
     auctions: any[], // TODO use a map. See Inventory.
     auction_offset: number,
-    more_data: boolean
+    more_data: boolean,
+    can_bid: boolean,
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
+    static override contextType = TezosWalletContext;
+    override context!: React.ContextType<typeof TezosWalletContext>;
 
     constructor(props: AuctionsProps) {
         super(props);
         this.state = {
             auctions: [],
             auction_offset: 0,
-            more_data: true
+            more_data: true,
+            can_bid: true
         };
     }
 
@@ -54,8 +60,22 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         }
     }
 
+    private walletChangeListener = () => {
+        DutchAuction.canBidOnAuctions(this.context).then((res) => {
+            this.setState({can_bid: res});
+        });
+    }
+
     override componentDidMount() {
+        this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
+
+        this.walletChangeListener();
+
         this.reloadAuctions();
+    }
+
+    override componentWillUnmount() {
+        this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
     private removeFromAuctions = (auction_id: number) => {
@@ -102,7 +122,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         for(const auction of this.state.auctions) {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
-                reloadAuctions={this.reloadAuctions} removeFromAuctions={this.removeFromAuctions} />);
+                canBid={this.state.can_bid} reloadAuctions={this.reloadAuctions} removeFromAuctions={this.removeFromAuctions} />);
         }
 
         if(rows.length === 0) {
@@ -113,11 +133,11 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             <main>
                 <div className="position-relative container text-start mt-4">
                     <h1>Active Place Auctions</h1>
-                    <p>This is the <i>primary</i> (newly minted Places will end up here) and a secondary (everyone can create auctions) marketplace for Places.</p>
+                    <p>This is the <i>primary</i> (newly minted Places will end up here) and, when the whitelist will be disabled, also a secondary (everyone can create auctions) marketplace for Places.</p>
                     <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price.<br/>Auctions can be cancelled by the creator before a bid.</p>
                     <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
-                    <p><b>For the time being, you will need a whitelist spot to get a place, which you can get in the <a href="https://discord.gg/fbpy4QdzSp" target="_blank" rel="noreferrer">discord</a>.</b></p>
-                    <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link>
+                    <p><b>For the time being, you will need a whitelist spot to get a Place, which you can get in the <a href="https://discord.gg/fbpy4QdzSp" target="_blank" rel="noreferrer">Discord</a>.</b></p>
+                    {DutchAuction.isAdministrator(this.context) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
                     <hr/>
                     <InfiniteScroll
                         className="d-flex justify-content-left flex-wrap p-2"

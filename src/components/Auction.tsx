@@ -19,6 +19,7 @@ type AuctionProps = {
     endTime: number;
     owner: string;
     tokenId: number;
+    canBid: boolean;
     reloadAuctions(): void;
     removeFromAuctions(auction_id: number): void;
     // using `interface` is also ok
@@ -86,20 +87,24 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private bidOnAuction = async () => {
-        await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice(), () => {
-            // Wait a little for the indexer to catch up.
-            this.reloadTimeout = setTimeout(() => {
-                this.props.removeFromAuctions(this.props.auctionId);
-            }, 2000);
+        await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice(), (completed: boolean) => {
+            if (completed) {
+                // Wait a little for the indexer to catch up.
+                this.reloadTimeout = setTimeout(() => {
+                    this.props.removeFromAuctions(this.props.auctionId);
+                }, 2000);
+            }
         });
     }
 
     private cancelAuction = async () => {
-        await DutchAuction.cancelAuction(this.context, this.props.auctionId, () => {
-            // Wait a little for the indexer to catch up.
-            this.reloadTimeout = setTimeout(() => {
-                this.props.removeFromAuctions(this.props.auctionId);
-            }, 2000);
+        await DutchAuction.cancelAuction(this.context, this.props.auctionId, (completed: boolean) => {
+            if (completed) {
+                // Wait a little for the indexer to catch up.
+                this.reloadTimeout = setTimeout(() => {
+                    this.props.removeFromAuctions(this.props.auctionId);
+                }, 2000);
+            }
         });
     }
 
@@ -188,8 +193,10 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     </p>
 
                     <Link to={`/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
+                    {!this.context.isWalletConnected() ? <button onClick={this.bidOnAuction} className="btn btn-secondary btn-md w-100" disabled={true}>No wallet conncted</button> :
+                    !this.props.canBid ? <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer" className="btn btn-warning btn-md w-100">Get Whitelisted</a> :
                     <button onClick={this.bidOnAuction} className="btn btn-primary btn-md w-100" disabled={!this.started}>
-                        {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>
+                        {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>}
                 </div>
             </div>
         );

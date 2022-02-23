@@ -64,6 +64,42 @@ export default class DutchAuction {
         }
     }
 
+    static async canBidOnAuctions(walletProvider: ITezosWalletProvider): Promise<boolean> {
+        if(await DutchAuction.isWhitelistEnabled(walletProvider)) {
+            return DutchAuction.isWhitelisted(walletProvider);
+        }
+        else return false;
+    }
+
+    // TODO: don't hardcode admin?
+    static isAdministrator(walletProvider: ITezosWalletProvider) {
+        if(!walletProvider.isWalletConnected()) return false;
+
+        if(walletProvider.walletPHK() === "tz1U3shEPeLdLxyjFWWGjJjNhFugcVV8eCTW")
+            return true;
+        else return true;
+    }
+
+    private static async isWhitelisted(walletProvider: ITezosWalletProvider) {
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
+  
+        // note: this is also checked in Auction, probably don't have to recheck, but better safe.
+        if(!walletProvider.isWalletConnected()) return false;
+
+        return auctionsWallet.contractViews.is_whitelisted(walletProvider.walletPHK()).executeView({ viewCaller: auctionsWallet.address });
+
+    }
+
+    private static async isWhitelistEnabled(walletProvider: ITezosWalletProvider) {
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
+  
+        // note: this is also checked in Auction, probably don't have to recheck, but better safe.
+        if(!walletProvider.isWalletConnected()) return false;
+
+        return auctionsWallet.contractViews.is_whitelist_enabled(walletProvider.walletPHK()).executeView({ viewCaller: auctionsWallet.address });
+
+    }
+
     static async cancelAuction(walletProvider: ITezosWalletProvider, auction_id: number, callback?: (completed: boolean) => void) {
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
   
