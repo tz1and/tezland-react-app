@@ -20,7 +20,6 @@ type AuctionProps = {
     owner: string;
     tokenId: number;
     canBid: boolean;
-    reloadAuctions(): void;
     removeFromAuctions(auction_id: number): void;
     // using `interface` is also ok
     //message: string;

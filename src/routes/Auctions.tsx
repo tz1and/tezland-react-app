@@ -84,6 +84,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             if(a.id !== auction_id) newAuctions.push(a);
         }
         this.setState({auctions: newAuctions});
+
+        this.walletChangeListener();
     }
 
     private reloadAuctions = () => {
@@ -122,7 +124,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         for(const auction of this.state.auctions) {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
-                canBid={this.state.can_bid} reloadAuctions={this.reloadAuctions} removeFromAuctions={this.removeFromAuctions} />);
+                canBid={this.state.can_bid} removeFromAuctions={this.removeFromAuctions} />);
         }
 
         if(rows.length === 0) {
