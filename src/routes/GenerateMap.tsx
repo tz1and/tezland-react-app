@@ -103,16 +103,6 @@ class Land {
         return arr;
     }
 
-    pointsToArraySvg(): number[] {
-        const arr: number[] = []
-
-        this.points.forEach((p) => {
-            arr.push(-p.x, p.y);
-        })
-
-        return arr;
-    }
-
     pointsToPolygon(): Polygon {
         const arr: Ring = []
 
@@ -624,7 +614,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const strokeColor = '#3d8dba';
 
         // create canvas
-        const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim)
+        // Mirror map on x, to make it match the babylon coordinate system.
+        const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1)
 
         draw.clear();
 

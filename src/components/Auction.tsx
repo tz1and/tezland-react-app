@@ -108,16 +108,17 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private panMapToPlace(place_id: number) {
+        // Note: To match leaflet coords, both x and y are flipped and mirrored.
         Metadata.getPlaceMetadata(place_id).then((res) => {
             const coords = res.centerCoordinates;
-            const center_pos: [number, number] = [500 + -coords[2], 500 + coords[0]];
+            const center_pos: [number, number] = [500 + -coords[2], 500 + -coords[0]];
 
             const polygon = res.borderCoordinates;
             const placePoly: [number, number][] = [];
             const areaPoly: number[] = [];
             for(const pos of polygon)
             {
-                placePoly.push([center_pos[0] + -pos[2], center_pos[1] + pos[0]]);
+                placePoly.push([center_pos[0] + -pos[2], center_pos[1] + -pos[0]]);
                 areaPoly.push(pos[0], pos[2]);
             }
 
