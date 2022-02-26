@@ -12,6 +12,8 @@ import { Matrix2D } from "@babylonjs/gui";
 import { signedArea, sleep } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
 import { DeepEqualsSet, IDeepEquals } from "../utils/Sets";
+import WorldGen from "../worldgen/WorldGen";
+import VoronoiDistrict from "../worldgen/VoronoiDistrict";
 
 /*function round(x: number) {
     return Math.round((x + Number.EPSILON) * 100) / 100;
@@ -607,19 +609,116 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         }
     }
 
+    private generateDistrict1() {
+        const district_1 = new VoronoiDistrict(new Vector2(0,0), [
+            new Vector2(-100,-100),
+            new Vector2(-100,100),
+            new Vector2(200,200),
+            new Vector2(100,-100)
+        ]);
+
+        // generate central circle
+        district_1.addCircle(new Vector2(0, 0), 40, 0, 8);
+
+        for(const s of district_1.sites) {
+            district_1.noSplit.push(new Vector2(s.x, s.y));
+        }
+
+        district_1.addCircle(new Vector2(0, 0), 80, 0, 8);
+
+        // generate grid blocks
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(45).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(395 - 65, 275));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(395 - 65 * i, 405), 65, Angle.FromDegrees(45).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(395 - 65, 405));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(-395 + 65 * i, 275), 65, Angle.FromDegrees(0).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(-395 + 65, 275));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(-395 + 65 * i, 405), 65, Angle.FromDegrees(0).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(-395 + 65, 405));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(395 - 65 * i, -275), 65, Angle.FromDegrees(0).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(395 - 65, -275));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(395 - 65 * i, -405), 65, Angle.FromDegrees(0).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(395 - 65, -405));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(-395 + 65 * i, -275), 65, Angle.FromDegrees(45).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(-395 + 65, -275));
+
+        for (let i = 0; i < 4; ++i) {
+            district_1.addCircle(new Vector2(-395 + 65 * i, -405), 65, Angle.FromDegrees(45).radians(), 4);
+        }
+
+        district_1.noSplit.push(new Vector2(-395 + 65, -405));
+
+        // generate other circles
+        district_1.addCircle(new Vector2(0, 275 + 65), 80, 0, 5);
+        district_1.addCircle(new Vector2(0, -275 - 65), 80, Angle.FromDegrees(180).radians(), 5);
+
+        district_1.noSplit.push(new Vector2(0, 275 + 65));
+        district_1.noSplit.push(new Vector2(0, -275 - 65));
+
+        district_1.addCircle(new Vector2(-275 - 65, 0), 90, 0, 6);
+        district_1.addCircle(new Vector2(275 + 65, 0), 90, Angle.FromDegrees(90).radians(), 6);
+
+        district_1.noSplit.push(new Vector2(275 + 65, 0));
+        district_1.noSplit.push(new Vector2(-275 - 65, 0));
+
+        district_1.addRandomSites(200, 663);
+
+        return district_1;
+    }
+
     // Similar to componentDidMount and componentDidUpdate:
     override componentDidMount() {
         const dim = 1000;
         const fillColor = '#d6f0ff';
         const strokeColor = '#3d8dba';
 
-        // create canvas
-        // Mirror map on x, to make it match the babylon coordinate system.
-        const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1)
+        const worldgen = new WorldGen();
 
-        draw.clear();
+        // First district
+        const district_1 = this.generateDistrict1();
+        worldgen.addDistrict(district_1);
 
-        const voronoi = new Voronoi();
+        // Second district
+        const district_2 = this.generateDistrict1();
+        district_2.center = new Vector2(50, 300);
+        district_2.vertices = [
+            new Vector2(-200,-200),
+            new Vector2(-100,100),
+            new Vector2(100,100),
+            new Vector2(100,-100)
+        ]
+        worldgen.addDistrict(district_2);
+
+        worldgen.generateWorld();
+
+        /*const voronoi = new Voronoi();
         const bbox: BoundingBox = {xl: -500, xr: 500, yt: -500, yb: 500}; // xl is x-left, xr is x-right, yt is y-top, and yb is y-bottom
         const sites: Site[] = [];
         const exclusion: ExclusionZone[] = [];
@@ -647,7 +746,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         for (let i = 0; i < 4; ++i) {
             generateCircle(sites, exclusion, new Vector2(-395 + 65 * i, 415), 65, Angle.FromDegrees(0).radians(), 4);
-        }*/
+        }* /
         // end old
 
         // generate central circle
@@ -807,36 +906,54 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }
 
             land_limit_counter++;
-        }
+        }*/
+
+        // create canvas
+        // Mirror map on x, to make it match the babylon coordinate system.
+        // TODO: create canvas based on world extent.
+        const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
+        draw.clear();
 
         // Draw the svg
         // TODO: figure out which way to flip the map...
-        for(const land of clippedLand) {
-            if(land.isValid()) {
-                draw.polygon(land.pointsToArray()).fill(fillColor).stroke(strokeColor).attr({'stroke-width': 0.5});
-                const centroid = land.centroid();
-                draw.circle(1).stroke(strokeColor).fill(strokeColor).move(centroid.x - 0.5, centroid.y - 0.5)
-                //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5)
+        // TODO: lots should be realtive to blocks, blocks relative to districts.
+        for (const district of worldgen.districts) {
+            draw.polygon(district.verticesToArray(district.center)).fill('lightgreen').stroke('green').attr({'stroke-width': 0.5});
+
+            for (const block of district.blocks) {
+                draw.polygon(block.verticesToArray(district.center)).fill('red').stroke('darkred').attr({'stroke-width': 0.5});
+
+                for (const lot of block.lots) {
+                    if(lot.isValid()) {
+                        draw.polygon(lot.verticesToArray(district.center)).fill(fillColor).stroke(strokeColor).attr({'stroke-width': 0.5});
+                        const centroid = lot.centroid(district.center);
+                        draw.circle(1).stroke(strokeColor).fill(strokeColor).move(centroid.x - 0.5, centroid.y - 0.5);
+                        //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5);
+                    }
+                }
             }
         }
 
+        //draw.circle(10).stroke('black').fill('black').move(105, 105);
+        //draw.circle(10).stroke('purple').fill('purple').move(-105, -105);
+
         // Draw roads
-        for (const road of mainRoads) {
+        /*for (const road of mainRoads) {
             draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
         }
 
         for (const curb of mainRoadCurbs) {
             draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});
-        }
+        }*/
 
         /*for(const land of landArray) {
             draw.polygon(land.pointsToArray()).fill('none').stroke('red');
         }*/
 
-        console.log("Number of places (incl invalid): ", clippedLand.length);
-        this.mintPlaces(clippedLand);
+        /*console.log("Number of places (incl invalid): ", clippedLand.length);
+        this.mintPlaces(clippedLand);*/
 
-        this.setState({svg: draw.svg(), roadsAndCurbs: { roads: mainRoads.arr, curbs: mainRoadCurbs.arr }});
+        this.setState({svg: draw.svg() /*, roadsAndCurbs: { roads: mainRoads.arr, curbs: mainRoadCurbs.arr }*/});
     }
 
     override render(): React.ReactNode {
