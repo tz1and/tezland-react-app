@@ -123,7 +123,7 @@ export const signedArea = (data: number[], start: number, end: number, dim: numb
       sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
       j = i;
   }
-  return sum;
+  return sum / 2;
 }
 
 export const countPolygons = (meshes: AbstractMesh[]): number => {
