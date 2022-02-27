@@ -1,14 +1,14 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3 } from "@babylonjs/core/Maths/math";
+import { Vector3, Color3, Vector2 } from "@babylonjs/core/Maths/math";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { GridMaterial, SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
+import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, Nullable, SceneLoader, TransformNode } from "@babylonjs/core";
+import { Database, Nullable, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -23,6 +23,7 @@ import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
 import { disposeAssetMap } from "../ipfs/ipfs";
 import SunLight from "./SunLight";
+import { extrudeMeshFromShape } from "../utils/MeshUtils";
 //import { isDev } from "../utils/Utils";
 
 
@@ -35,6 +36,7 @@ export class World {
     
     private engine: Engine;
     private defaultMaterial: SimpleMaterial;
+    private waterMaterial: WaterMaterial;
     readonly transparentGridMat: GridMaterial;
     
     private sunLight: SunLight;
@@ -116,13 +118,6 @@ export class World {
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
-        // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        let ground = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
-        ground.material = this.defaultMaterial;
-        ground.checkCollisions = true;
-        ground.receiveShadows = true;
-        ground.position.y = -0.01;
-
         let skyMaterial = new SkyMaterial("skyMaterial", this.scene);
         skyMaterial.backFaceCulling = false;
         //skyMaterial.inclination = 0.25;
@@ -131,6 +126,28 @@ export class World {
 
         let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
+
+        // The worlds water.
+        let waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
+        waterMaterial.backFaceCulling = true;
+        let bumpTexture = new Texture("models/waterbump.png", this.scene);
+        bumpTexture.uScale = 2;
+        bumpTexture.vScale = 2;
+        waterMaterial.bumpTexture = bumpTexture;
+        waterMaterial.windForce = -1;
+        waterMaterial.waveHeight = 0; //0.05;
+        waterMaterial.bumpHeight = 0.15;
+        waterMaterial.windDirection = new Vector2(1, 1);
+        waterMaterial.waterColor = new Color3(0.02, 0.06, 0.24);
+        waterMaterial.colorBlendFactor = 0.8;
+        waterMaterial.addToRenderList(skybox);
+        this.waterMaterial = waterMaterial
+
+        let ground = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
+        ground.material = this.waterMaterial;
+        ground.checkCollisions = true;
+        ground.receiveShadows = true;
+        ground.position.y = -3;
 
         // After, camera, lights, etc, the shadow generator
         if (AppSettings.shadowOptions.value === "standard") {
@@ -234,6 +251,9 @@ export class World {
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
+        // Load districts
+        await this.loadDistricts();
+
         const placeCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
 
         Logging.InfoDev("world has " + placeCount + " places.");
@@ -243,7 +263,7 @@ export class World {
             await this.fetchPlace(i);
         }
 
-        this.loadRoadDecorations();
+        //this.loadRoadDecorations();
 
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.playerController.getCurrentPlace()
@@ -251,6 +271,31 @@ export class World {
             this.appControlFunctions.updatePlaceInfo(currentPlace.placeId,
                 currentPlace.currentOwner, currentPlace.getPermissions);
     };
+
+    private async loadDistricts() {
+        const req = await fetch("/models/districts.json");
+        const districts = await req.json();
+
+        var counter = 0;
+        for (const district of districts) {
+            const center = new Vector3(district.center.x, 0, district.center.y);
+            let vertices: Vector3[] = [];
+
+            district.vertices.forEach((vertex: any) => {
+                vertices.push(new Vector3(vertex.x, 0, vertex.y));
+            });
+            vertices = vertices.reverse()
+
+            const mesh = extrudeMeshFromShape(vertices, 50, center, this.defaultMaterial, `district${counter}`, this.scene);
+            mesh.checkCollisions = true;
+            mesh.receiveShadows = true;
+            mesh.position.y = -0.01;
+
+            this.waterMaterial.addToRenderList(mesh);
+
+            counter++;
+        }
+    }
 
     private roadDecorations: Nullable<TransformNode> = null;
 

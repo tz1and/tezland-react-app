@@ -128,6 +128,7 @@ export default class Place {
         }
     }
 
+    // TODO: use MeshUtils.extrudeMeshFromShape
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
         const extrude = MeshBuilder.ExtrudePolygon(`placeBounds${this.placeId}`, {
             shape: shape,
@@ -171,6 +172,7 @@ export default class Place {
             shape = shape.reverse();
 
             // create bounds
+            // TODO: use MeshUtils.extrudeMeshFromShape
             this.placeBounds = this.extrudeMeshFromShape(shape, this.buildHeight + 1, new Vector3(this.origin.x, this.buildHeight, this.origin.z),
                 this.world.transparentGridMat);
 
