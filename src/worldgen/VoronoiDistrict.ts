@@ -68,7 +68,7 @@ export default class VoronoiDistrict extends District {
     public override generateBlocks() {
         const voronoi = new Voronoi();
         // TODO: bbox defined by WorldPolygon.extent()
-        const bbox = {xl: -500, xr: 500, yt: -500, yb: 500}; // xl is x-left, xr is x-right, yt is y-top, and yb is y-bottom
+        const bbox: BoundingBox = {xl: -500, xr: 500, yt: -500, yb: 500}; // xl is x-left, xr is x-right, yt is y-top, and yb is y-bottom
         const diagram: Diagram = voronoi.compute(this.sites, bbox);
 
         const unclipped_blocks: Block[] = []

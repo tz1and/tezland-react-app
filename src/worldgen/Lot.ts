@@ -1,11 +1,11 @@
-import { Vector2 } from '@babylonjs/core';
+//import { Vector2 } from '@babylonjs/core';
 import WorldPolygon from './WorldPolygon'
 
 
 export default class Lot extends WorldPolygon {
-    constructor(center: Vector2, vertices: Vector2[]) {
+    /*constructor(center: Vector2, vertices: Vector2[]) {
         super(center, vertices);
-    }
+    }*/
 
     // TODO: add area arg and put in WorldPolygon?
     isValid(): boolean {

@@ -1,5 +1,4 @@
 import { Vector2 } from "@babylonjs/core";
-import { signedArea } from "../utils/Utils";
 import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { IDeepEquals } from "../utils/Sets";
 
