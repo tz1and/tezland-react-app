@@ -215,6 +215,25 @@ export async function upload_places(places: string[]): Promise<string[]> {
     // do batches of 20 or so
     var count = 0;
     var promises: Promise<Response>[] = []
+
+    const resolvePromises = async() => {
+        const responses = await Promise.all(promises);
+
+        for (const r of responses) {
+            const data = await r.json();
+
+            if(data.error) {
+                throw new Error("Upload failed: " + data.error);
+            }
+            else if (data.metdata_uri && data.cid) {
+                uploaded_place_metadata.push(data.metdata_uri);
+            }
+            else throw new Error("Backend: malformed response");
+        }
+
+        promises = [];
+    }
+
     for(const metadata of places) {
         // Post here and wait for result
         const requestOptions = {
@@ -224,28 +243,18 @@ export async function upload_places(places: string[]): Promise<string[]> {
         };
         promises.push(fetch(Conf.backend_url + "/upload", requestOptions));
 
-        // TODO: This is borken. when metadata is empty, some promises stay unresolved...
-        if(count >= 1) {
-            const responses = await Promise.all(promises);
-
-            for (const r of responses) {
-                const data = await r.json();
-
-                if(data.error) {
-                    throw new Error("Upload failed: " + data.error);
-                }
-                else if (data.metdata_uri && data.cid) {
-                    uploaded_place_metadata.push(data.metdata_uri);
-                }
-                else throw new Error("Backend: malformed response");
-            }
-
-            promises = [];
+        if(count >= 20) {
+            await resolvePromises();
             count = 0;
         }
 
         count++;
     }
+
+    await resolvePromises();
+
+    assert(promises.length === 0);
+    assert(places.length === uploaded_place_metadata.length);
 
     return uploaded_place_metadata;
 }
