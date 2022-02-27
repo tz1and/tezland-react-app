@@ -142,7 +142,7 @@ export class World {
         waterMaterial.bumpHeight = 0.15;
         waterMaterial.windDirection = new Vector2(1, 1);
         waterMaterial.waterColor = new Color3(0.02, 0.06, 0.24);
-        waterMaterial.colorBlendFactor = 0.8;
+        waterMaterial.colorBlendFactor = 0.7;
         waterMaterial.addToRenderList(skybox);
         this.waterMaterial = waterMaterial
 
