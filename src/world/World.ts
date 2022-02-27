@@ -23,7 +23,7 @@ import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
 import { disposeAssetMap } from "../ipfs/ipfs";
 import SunLight from "./SunLight";
-import { extrudeMeshFromShape } from "../utils/MeshUtils";
+import { MeshUtils } from "../utils/MeshUtils";
 //import { isDev } from "../utils/Utils";
 
 
@@ -112,15 +112,18 @@ export class World {
         const sun_direction = new Vector3(-50, -100, 50).normalize();
         this.sunLight = new SunLight("sunLight", sun_direction, this.scene);
 
-        let ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
+        const ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
         ambient_light.intensity = 0.3;
         ambient_light.diffuse = new Color3(0.7, 0.7, 1);
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
-        let skyMaterial = new SkyMaterial("skyMaterial", this.scene);
+        const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
         skyMaterial.backFaceCulling = false;
         //skyMaterial.inclination = 0.25;
+        //skyMaterial.turbidity = 1;
+        //skyMaterial.rayleigh = 3;
+        //skyMaterial.luminance = 0.3;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
 
@@ -128,9 +131,9 @@ export class World {
         skybox.material = skyMaterial;
 
         // The worlds water.
-        let waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
+        const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
         waterMaterial.backFaceCulling = true;
-        let bumpTexture = new Texture("models/waterbump.png", this.scene);
+        const bumpTexture = new Texture("models/waterbump.png", this.scene);
         bumpTexture.uScale = 2;
         bumpTexture.vScale = 2;
         waterMaterial.bumpTexture = bumpTexture;
@@ -143,11 +146,12 @@ export class World {
         waterMaterial.addToRenderList(skybox);
         this.waterMaterial = waterMaterial
 
-        let ground = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
-        ground.material = this.waterMaterial;
-        ground.checkCollisions = true;
-        ground.receiveShadows = true;
-        ground.position.y = -3;
+        const water = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
+        water.material = this.waterMaterial;
+        water.isPickable = false;
+        water.checkCollisions = true;
+        water.receiveShadows = true;
+        water.position.y = -3;
 
         // After, camera, lights, etc, the shadow generator
         if (AppSettings.shadowOptions.value === "standard") {
@@ -286,12 +290,22 @@ export class World {
             });
             vertices = vertices.reverse()
 
-            const mesh = extrudeMeshFromShape(vertices, 50, center, this.defaultMaterial, `district${counter}`, this.scene);
+            // Create "island".
+            const mesh = MeshUtils.extrudeMeshFromShape(vertices, 50, center, this.defaultMaterial,
+                `district${counter}`, this.scene, Mesh.DEFAULTSIDE, true);
             mesh.checkCollisions = true;
             mesh.receiveShadows = true;
             mesh.position.y = -0.01;
 
             this.waterMaterial.addToRenderList(mesh);
+
+            // TEMP
+            // Create invisible wall.
+            const walls = MeshUtils.extrudeShape([new Vector3(), new Vector3(0,2,0)], vertices, center, this.defaultMaterial,
+                `district${counter}`, this.scene, Mesh.BACKSIDE);
+            walls.checkCollisions = true;
+            walls.receiveShadows = false;
+            walls.visibility = 0;
 
             counter++;
         }

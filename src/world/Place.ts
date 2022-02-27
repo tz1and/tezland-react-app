@@ -316,8 +316,10 @@ export default class Place {
                             itemAmount: new BigNumber(item_amount)
                         } as InstanceMetadata;
 
-                        // TODO: for all submeshes/instances, whatever
-                        //instance.checkCollisions = true;
+                        // Enable collisions for instance.
+                        //instance.getChildMeshes(false).forEach((e) => e.checkCollisions = true );
+
+                        // Add instance to shadow casters.
                         this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
 
                         if(!this.isInBounds(instance)) {
