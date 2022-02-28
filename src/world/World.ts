@@ -159,6 +159,9 @@ export class World {
             const shadowGenerator = new ShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
             shadowGenerator.frustumEdgeFalloff = 0.1;
             shadowGenerator.filter = ShadowGenerator.FILTER_PCSS;
+            // Self-shadow bias
+            shadowGenerator.bias = 0.001;
+            shadowGenerator.normalBias = 0.02;
             //shadowGenerator.useCloseExponentialShadowMap = true;
             //shadowGenerator.useExponentialShadowMap = true;
             //shadowGenerator.useBlurExponentialShadowMap = true;
@@ -175,6 +178,9 @@ export class World {
             shadowGenerator.shadowMaxZ = 150;
             shadowGenerator.numCascades = 4;
             shadowGenerator.lambda = 0.6;
+            // Self-shadow bias
+            shadowGenerator.bias = 0.001;
+            shadowGenerator.normalBias = 0.02;
             //shadowGenerator.splitFrustum();
             this.shadowGenerator = shadowGenerator;
         }
@@ -333,7 +339,9 @@ export class World {
             }, this.scene);
             walkway0.checkCollisions = true;
             walkway0.isPickable = true;
+            walkway0.receiveShadows = true;
             walkway0.parent = bridgeNode;
+            this.shadowGenerator?.addShadowCaster(walkway0);
             
             /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
@@ -369,6 +377,7 @@ export class World {
             left.isPickable = true;
             left.parent = bridgeNode;
             left.position.set(-bridge_width/2+0.5, 1, 0);
+            this.shadowGenerator?.addShadowCaster(left);
 
             const right = MeshBuilder.CreateBox("wall1", {
                 width: 1,
@@ -379,6 +388,7 @@ export class World {
             right.isPickable = true;
             right.parent = bridgeNode;
             right.position.set(bridge_width/2-0.5, 1, 0);
+            this.shadowGenerator?.addShadowCaster(right);
 
             bridgeNode.position = points[0].add(points[1]).multiplyByFloats(0.5, 0.5, 0.5);
             bridgeNode.position.y = -0.511;
