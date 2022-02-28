@@ -64,6 +64,6 @@ export default class AppSettings {
 
     // graphics
     static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);
-    static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "standard", parseShadowOptions);
+    static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "cascaded", parseShadowOptions);
     static shadowMapRes = new AppSetting<ShadowMapRes>("shadowMapRes", 1024, parseShadowMapRes);
 }
