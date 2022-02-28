@@ -34,6 +34,10 @@ class Edge implements IDeepEquals {
             Edge.hashFloats(b.x, b.y, a.x, a.y);
     }*/
 
+    public centerPoint(): Vector2 {
+        return this.a.add(this.b).multiplyByFloats(0.5, 0.5);
+    }
+
     public deepEquals(other: Edge): boolean {
         const epsilon = 0.001;
         return this.a.x > this.b.x ? this.a.equalsWithEpsilon(other.a, epsilon) && this.b.equalsWithEpsilon(other.b, epsilon) :
@@ -97,11 +101,11 @@ export default class WorldPolygon {
     }
 
     // get edges
-    public edges(): Edge[] {
+    public edges(translate: Vector2 = new Vector2()): Edge[] {
         const edges: Edge[] = [];
 
         for(let i = 0; i < this.vertices.length; ++i) {
-            edges.push(new Edge(this.vertices[i], this.vertices[(i + 1) % this.vertices.length]));
+            edges.push(new Edge(this.vertices[i].add(translate), this.vertices[(i + 1) % this.vertices.length].add(translate)));
         }
         return edges;
     }

@@ -7,20 +7,13 @@ import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import { sleep } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
-import WorldGen from "../worldgen/WorldGen";
+import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict from "../worldgen/VoronoiDistrict";
 import assert from "assert";
 
-type DistrictDefinition = {
-    vertices: Vector2[];
-    center: Vector2;
-    // TODO: roads, curbs
-    //roads: Edge
-}
-
 type GenerateMapState = {
     svg?: string;
-    districts?: DistrictDefinition[];
+    world_def?: WorldDefinition;
     worldgen?: WorldGen;
 }
 
@@ -68,7 +61,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         if(!this.state.svg) return;
 
         // create blob from data
-        const data = new Blob([JSON.stringify(this.state.districts)], { type: 'application/json' });
+        const data = new Blob([JSON.stringify(this.state.world_def)], { type: 'application/json' });
         const downloadLink = window.URL.createObjectURL(data);
 
         // create download file link
@@ -276,6 +269,15 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         ]
         worldgen.addDistrict(district_2);
 
+        //Bridging districts on (1 3) at distance  15.811388300841896
+
+        //worldgen.addBridge({})
+        //worldgen.addConnection(district_1, district_2);
+        worldgen.addBridge(new Bridge(district_1, 1, 0.05, district_2, 3, 0.8));
+        worldgen.addBridge(new Bridge(district_1, 1, 0.25, district_2, 3, 0.6));
+        worldgen.addBridge(new Bridge(district_1, 1, 0.5, district_2, 3, 0.35));
+        worldgen.addBridge(new Bridge(district_1, 1, 0.75, district_2, 3, 0.1));
+
         worldgen.generateWorld();
 
         /*const mainRoads: DeepEqualsSet<Edge> = new DeepEqualsSet();
@@ -300,14 +302,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
         draw.clear();
 
-        const district_defs: DistrictDefinition[] = [];
-
         // Draw the svg
         // TODO: figure out which way to flip the map...
         // TODO: lots should be realtive to blocks, blocks relative to districts.
         for (const district of worldgen.districts) {
             draw.polygon(district.verticesToArray(district.center)).fill('lightgreen').stroke('green').attr({'stroke-width': 0.5});
-            district_defs.push({ center: district.center, vertices: district.vertices });
 
             for (const block of district.blocks) {
                 draw.polygon(block.verticesToArray(district.center)).fill('red').stroke('darkred').attr({'stroke-width': 0.5});
@@ -323,6 +322,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }
         }
 
+        for (const bridge of worldgen.bridges) {
+            console.log(bridge);
+            draw.line(bridge.bridge_path[0].asArray().concat(bridge.bridge_path[1].asArray())).stroke('purple').attr({'stroke-width': 5});
+        }
+
         // Draw roads
         /*for (const road of mainRoads) {
             draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
@@ -332,7 +336,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});
         }*/
 
-        this.setState({ worldgen: worldgen, svg: draw.svg(), districts: district_defs });
+        this.setState({ worldgen: worldgen, svg: draw.svg(), world_def: worldgen.serialise() });
     }
 
     override render(): React.ReactNode {
