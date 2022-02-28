@@ -249,8 +249,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     // Similar to componentDidMount and componentDidUpdate:
     override componentDidMount() {
         const dim = 1000;
-        const fillColor = '#d6f0ff';
-        const strokeColor = '#3d8dba';
 
         const worldgen = new WorldGen();
 
@@ -302,20 +300,29 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
         draw.clear();
 
+        // Colors
+        const lotFillColor = '#d6f0ff';
+        const lotStrokeColor = '#3d8dba';
+        const blockFillColor = '#eaeaea';
+        const blockStrokeColor = '#777777'; // eslint-disable-line @typescript-eslint/no-unused-vars
+        const districtFillColor = '#f6f6f6';
+        const districtStrokeColor = '#888888';
+        const bridgeColor = '#888888';
+
         // Draw the svg
         // TODO: figure out which way to flip the map...
         // TODO: lots should be realtive to blocks, blocks relative to districts.
         for (const district of worldgen.districts) {
-            draw.polygon(district.verticesToArray(district.center)).fill('lightgreen').stroke('green').attr({'stroke-width': 0.5});
+            draw.polygon(district.verticesToArray(district.center)).fill(districtFillColor).stroke(districtStrokeColor).attr({'stroke-width': 0.5});
 
             for (const block of district.blocks) {
-                draw.polygon(block.verticesToArray(district.center)).fill('red').stroke('darkred').attr({'stroke-width': 0.5});
+                draw.polygon(block.verticesToArray(district.center)).fill(blockFillColor)/*.stroke(blockStrokeColor)*/.attr({'stroke-width': 0.5});
 
                 for (const lot of block.lots) {
                     if(lot.isValid()) {
-                        draw.polygon(lot.verticesToArray(district.center)).fill(fillColor).stroke(strokeColor).attr({'stroke-width': 0.5});
+                        draw.polygon(lot.verticesToArray(district.center)).fill(lotFillColor).stroke(lotStrokeColor).attr({'stroke-width': 0.5});
                         const centroid = lot.centroid(district.center);
-                        draw.circle(1).stroke(strokeColor).fill(strokeColor).move(centroid.x - 0.5, centroid.y - 0.5);
+                        draw.circle(1).fill(lotFillColor).stroke(lotStrokeColor).move(centroid.x - 0.5, centroid.y - 0.5);
                         //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5);
                     }
                 }
@@ -323,8 +330,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         }
 
         for (const bridge of worldgen.bridges) {
-            console.log(bridge);
-            draw.line(bridge.bridge_path[0].asArray().concat(bridge.bridge_path[1].asArray())).stroke('purple').attr({'stroke-width': 5});
+            draw.line(bridge.bridge_path[0].asArray().concat(bridge.bridge_path[1].asArray())).stroke(bridgeColor).attr({'stroke-width': 10});
         }
 
         // Draw roads

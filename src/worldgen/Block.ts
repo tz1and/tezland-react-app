@@ -16,7 +16,7 @@ export default class Block extends WorldPolygon {
     }
 
     public generateLots() {
-        // TODO: tesselate large cells into grids.
+        // TODO: tesselate large cells into grids?
         const prando = new Prando(1234);
         
         if(this.dont_split) {
