@@ -1,6 +1,6 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Vector2 } from "@babylonjs/core/Maths/math";
+import { Vector3, Color3, Vector2, Axis, Space } from "@babylonjs/core/Maths/math";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -8,7 +8,7 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, Nullable, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+import { Database, MeshBuilder, Nullable, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -24,6 +24,7 @@ import MultiplayerClient from "./MultiplayerClient";
 import { disposeAssetMap } from "../ipfs/ipfs";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
+import { WorldDefinition } from "../worldgen/WorldGen";
 //import { isDev } from "../utils/Utils";
 
 
@@ -278,14 +279,14 @@ export class World {
 
     private async loadDistricts() {
         const req = await fetch("/models/districts.json");
-        const districts = await req.json();
+        const world_def = (await req.json()) as WorldDefinition;
 
-        var counter = 0;
-        for (const district of districts) {
+        let counter = 0;
+        for (const district of world_def.districts) {
             const center = new Vector3(district.center.x, 0, district.center.y);
             let vertices: Vector3[] = [];
 
-            district.vertices.forEach((vertex: any) => {
+            district.vertices.forEach((vertex) => {
                 vertices.push(new Vector3(vertex.x, 0, vertex.y));
             });
             vertices = vertices.reverse()
@@ -301,11 +302,89 @@ export class World {
 
             // TEMP
             // Create invisible wall.
-            const walls = MeshUtils.extrudeShape([new Vector3(), new Vector3(0,2,0)], vertices, center, this.defaultMaterial,
+            /*const walls = MeshUtils.extrudeShape([new Vector3(), new Vector3(0,2,0)], vertices, center, this.defaultMaterial,
                 `district${counter}`, this.scene, Mesh.BACKSIDE);
             walls.checkCollisions = true;
             walls.receiveShadows = false;
-            walls.visibility = 0;
+            walls.visibility = 0;*/
+
+            counter++;
+        }
+
+        counter = 0;
+        for (const bridge of world_def.bridges) {
+            let points: Vector3[] = [];
+
+            bridge.bridge_path.forEach((vertex) => {
+                points.push(new Vector3(vertex.x, 0, vertex.y));
+            });
+
+            const bridgeNode = new TransformNode(`bridge${counter}`, this.scene);
+
+            // For now, bridge paths can only be a line
+            const bridge_width = 10;
+            const bridge_vector = points[0].subtract(points[1]);
+            const bridge_length = bridge_vector.length() + 2;
+
+            const walkway0 = MeshBuilder.CreateBox("walkway0", {
+                width: bridge_width,
+                depth: bridge_length,
+                height: 1,
+            }, this.scene);
+            walkway0.checkCollisions = true;
+            walkway0.isPickable = true;
+            walkway0.parent = bridgeNode;
+            
+            /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
+                width: bridge_width,
+                depth: bridge_length / 2,
+                height: 1,
+            }, this.scene);
+            walkway0.checkCollisions = true;
+            walkway0.isPickable = true;
+            walkway0.parent = bridgeNode;
+            walkway0.position.z = bridge_length*0.25;
+            walkway0.position.y = 0.075;
+            walkway0.rotate(Axis.X, 0.02, Space.LOCAL);
+
+            const walkway1 = MeshBuilder.CreateBox("walkway0", {
+                width: bridge_width,
+                depth: bridge_length / 2,
+                height: 1,
+            }, this.scene);
+            walkway1.checkCollisions = true;
+            walkway1.isPickable = true;
+            walkway1.parent = bridgeNode;
+            walkway1.position.z = -bridge_length*0.25;
+            walkway1.position.y = 0.075;
+            walkway1.rotate(Axis.X, -0.02, Space.LOCAL);*/
+
+            // For now, bridge paths can only be a line
+            const left = MeshBuilder.CreateBox("wall0", {
+                width: 1,
+                depth: bridge_length,
+                height: 1,
+            }, this.scene);
+            left.checkCollisions = true;
+            left.isPickable = true;
+            left.parent = bridgeNode;
+            left.position.set(-bridge_width/2+0.5, 1, 0);
+
+            const right = MeshBuilder.CreateBox("wall1", {
+                width: 1,
+                depth: bridge_length,
+                height: 1,
+            }, this.scene);
+            right.checkCollisions = true;
+            right.isPickable = true;
+            right.parent = bridgeNode;
+            right.position.set(bridge_width/2-0.5, 1, 0);
+
+            bridgeNode.position = points[0].add(points[1]).multiplyByFloats(0.5, 0.5, 0.5);
+            bridgeNode.position.y = -0.511;
+
+            const angle = Vector3.Dot(points[0].subtract(points[1]).normalize(), new Vector3(-1,0,0))
+            bridgeNode.rotate(Axis.Y, angle, Space.LOCAL);
 
             counter++;
         }
