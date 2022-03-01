@@ -77,6 +77,7 @@ export default class Metadata {
                         fileSize
                         royalties
                         supply
+                        baseScale
                     }
                 }`, "getItemTokenMetadata", { id: token_id });
 

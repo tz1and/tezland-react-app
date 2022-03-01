@@ -129,7 +129,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         }
 
         // Normalise scale to base scale (1m by default).
-        const baseScale = 1; // in m
+        const baseScale = itemMetadata.baseScale; // in m
         const {min, max} = result.transformNodes[0].getHierarchyBoundingVectors(true);
         const extent = max.subtract(min);
         const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
