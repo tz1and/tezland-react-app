@@ -155,6 +155,7 @@ type ItemMetadata = {
     thumbnailUri: FileLike;
     tags: string; // unprocessed tags
     formats: object[];
+    baseScale: number;
 }
 
 export function createItemTokenMetadata(metadata: ItemMetadata): string {
@@ -173,11 +174,12 @@ export function createItemTokenMetadata(metadata: ItemMetadata): string {
         isTransferable: true,
         isBooleanAmount: false,
         shouldPreferSymbol: false,
-        symbol: 'Item',
+        symbol: 'tz1and Item',
         artifactUri: metadata.artifactUri,
         thumbnailUri: metadata.thumbnailUri,
         decimals: 0,
-        formats: metadata.formats
+        formats: metadata.formats,
+        baseScale: metadata.baseScale
     });
 }
 
@@ -199,7 +201,7 @@ export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
         isTransferable: true,
         isBooleanAmount: true,
         shouldPreferSymbol: true,
-        symbol: 'Place',
+        symbol: 'tz1and Place',
         //artifactUri: cid,
         decimals: 0,
         placeType: metadata.placeType

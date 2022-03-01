@@ -110,7 +110,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                     mimeType: mime_type,
                     fileSize: values.itemFile.size
                 }
-            ]
+            ],
+            baseScale: 1
         });
 
         // Post here and wait for result
