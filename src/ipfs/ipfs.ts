@@ -200,7 +200,7 @@ export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
         minter: metadata.minter,
         isTransferable: true,
         isBooleanAmount: true,
-        shouldPreferSymbol: true,
+        shouldPreferSymbol: false,
         symbol: 'tz1and Place',
         //artifactUri: cid,
         decimals: 0,
