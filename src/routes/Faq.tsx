@@ -5,17 +5,18 @@ const faqData = [
         items: [
             {
                 question: "Are the smart contracts audited?",
-                answer: <span>No, not yet. You know what that means.<br/><br/>I was as careful as can be, wrote test and all that. The contract source code is available on <a target="_blank" rel="noreferrer" href="https://github.com/tz1and">GitHub</a>.</span>
+                answer: <span>No, not yet. You know what that means.<br/><br/>I was as careful as can be, wrote test and all that. The contract source code is/will be available on <a target="_blank" rel="noreferrer" href="https://github.com/tz1and">GitHub</a>.<br/><br/>
+                You may be wondering why the World contract source is missing, I will open source it once the DAO bootstrapping is done.</span>
             },
             {
                 question: "Is this project open source?",
-                answer: "The contracts are, so is the indexer. While the app itself isn't, at the time of writing, I intend to open it up after some time."
+                answer: "The contracts are (or will be), so is the indexer. While the app itself isn't, at the time of writing, I intend to open it up after some time."
             },
             {
                 question: "Is there a roadmap?",
                 answer: `I have plenty of ideas for things to add, the Item data in the contracts is extensible and the contracts are upgradeable.
                 
-The next thing I'd like to do is 'multiplayer', so you can see and interact with others in the world. Maybe avatars?`
+The next thing I'd like to do is 'proper multiplayer', so you can see and interact with others in the world. Maybe avatars? Interior places, etc, etc.`
             },
             {
                 question: "What types of content are supported?",
@@ -38,6 +39,22 @@ The default limits aren't strictly enforced, they can be overridden in the setti
 Until then, lowpoly has a nice aesthetic :)
 
 I'll probably also add a "visit single Place" option, where you can link people to your place and it will load all the crazy stuff you put in there.`
+            },
+            {
+                question: "So! What's the deal with the DAO?",
+                answer: `This is important, and probably should have it's own section on the website.
+
+Until the DAO bootstrapping is done (see DAO token section), the proceeds of Place auctions and market fees go to the manager (me), to fund the development, cover running costs, marketing and whatever else may come up.
+
+Depending on how that goes, I may feed part of that into the DAO, but that's at my discretion.
+
+After the DAO has been bootstrapped, the Place and market fees will be split 70/30 between to the DAO and the "core team" repectively.
+
+(Clarification: fees will not be redistributed between DAO owners - see DAO token section for more.)
+
+I more or less made this number up - and once we have some solid voting set up to pay contributors, I may change it to feed more into the DAO (but never the other way around, that will be ensured by the splitting contract).
+
+I have to eat. But also, I live a rather humble life. Also, a pretty honest life. :)`
             }
         ]
     },
@@ -61,21 +78,23 @@ The Items contract also has an owner-only burn function, if you ever feel like b
                 question: "There's this 'tz1and DAO' token...",
                 answer: `The plan is to transition this into some sorf of community project, a 'decentralized autonomous organization', if you will.
 
-Eventually, you will be able to use the DAO token to vote on proposals.
+Eventually, you will be able to use the DAO token to vote on proposals, changes to the world contracts global settings, how to spend the DAO funds (paying contributors, marketing, etc).
 
-Until the cut-off date, everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team vote-fund.
+In quasi-legal terms: This is a non-profit.
 
-Feel free to add liquidity, I (probably XD - joke) won't dump my tokens. But know that this will never be more than a DAO - unless there's a vote, I suppose.`
+From the day the DAO is bootstrapped (DAO tokens are not distributed immediately, to not over-advantage early adopters) to the cut-off date (bootstrap + 60 days), everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team vote-fund.
+
+Feel free to add liquidity, I (probably XD - joke, I won't throw away my vote) won't dump my tokens. But know that this will never be more than a DAO token - unless there's a vote, I suppose.`
             },
             {
                 question: "Can I share my Place with a spouse/friend/stranger I met online?",
                 answer: <span>Yes! You can!<br/><br/>
 
-You can allow others to place their Items on in your Place by adding them them as operators on your Place <b><i>in the World contract</i></b>. They will also be able to remove items, but Items belong to who placed them.<br/><br/>
+You can allow others to place their Items on in your Place by giving them permissions on your Place <b><i>in the World contract</i></b>. There are a couple of different permissions you can grant.<br/><br/>
 
-Should you remove someone from the operators of your Place, they won't be able to remove their Items. Be nice!<br/><br/>
+Items always belong to who placed them. Items can always be removed from places by who placed them, even if permissions are removed.<br/><br/>
 
-The World contract has it's own set of operators, like FA2 operators, but there is nothing to worry about, it does not grant any other rights than placing and removing Items. No potential for broken marriages or ruined friendships. :)</span>
+The World contract has permissions, kind similar to FA2 operators, but there is nothing to worry about, it does not grant any transfer rights on the Place token itself. No potential for broken marriages or ruined friendships. :)</span>
             }
         ]
     },
