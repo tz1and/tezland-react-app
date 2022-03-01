@@ -290,10 +290,11 @@ export default class Place {
                 try {
                     const uint8array: Uint8Array = fromHexString(item_coords);
                     const view = new DataView(uint8array.buffer);
-                    // 3 floats for euler angles, 3 floats pos, 1 float scale = 14 bytes
-                    const quat = Quaternion.FromEulerAngles(getFloat16(view, 0), getFloat16(view, 2), getFloat16(view, 4));
-                    const pos = new Vector3(getFloat16(view, 6), getFloat16(view, 8), getFloat16(view, 10));
-                    const scale = getFloat16(view, 12);
+                    // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
+                    // NOTE: for now we assume format version 0
+                    const quat = Quaternion.FromEulerAngles(getFloat16(view, 1), getFloat16(view, 3), getFloat16(view, 5));
+                    const pos = new Vector3(getFloat16(view, 7), getFloat16(view, 9), getFloat16(view, 11));
+                    const scale = getFloat16(view, 13);
 
                     const instance = await ipfs.download_item(token_id, this.world.scene, this.itemsNode);
 

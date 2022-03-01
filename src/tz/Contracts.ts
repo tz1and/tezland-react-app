@@ -262,19 +262,21 @@ export class Contracts {
             const item_price = tezToMutez(metadata.xtzPerItem);
             const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
             const euler_angles = rot.toEulerAngles();
-            // 3 floats for euler angles, 3 floats pos, 1 float scale = 14 bytes
-            const array = new Uint8Array(14);
+            // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
+            const array = new Uint8Array(15);
             const view = new DataView(array.buffer);
+            // format - version 0
+            view.setUint8(0, 0);
             // quat
-            setFloat16(view, 0, euler_angles.x);
-            setFloat16(view, 2, euler_angles.y);
-            setFloat16(view, 4, euler_angles.z);
+            setFloat16(view, 1, euler_angles.x);
+            setFloat16(view, 3, euler_angles.y);
+            setFloat16(view, 5, euler_angles.z);
             // pos
-            setFloat16(view, 6, mesh.position.x);
-            setFloat16(view, 8, mesh.position.y);
-            setFloat16(view, 10, mesh.position.z);
+            setFloat16(view, 7, mesh.position.x);
+            setFloat16(view, 9, mesh.position.y);
+            setFloat16(view, 11, mesh.position.z);
             // scale
-            setFloat16(view, 12, Math.abs(mesh.scaling.x));
+            setFloat16(view, 13, Math.abs(mesh.scaling.x));
             const item_data = toHexString(array);
 
             add_item_list.push({ item: { token_id: token_id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });
