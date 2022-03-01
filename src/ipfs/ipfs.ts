@@ -1,6 +1,6 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from '@babylonjs/core';
+import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode, Vector3 } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { FileLike, countPolygons } from '../utils/Utils';
@@ -127,6 +127,14 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
                 return null;
             }
         }
+
+        // Normalise scale to base scale (1m by default).
+        const baseScale = 1; // in m
+        const {min, max} = result.transformNodes[0].getHierarchyBoundingVectors(true);
+        const extent = max.subtract(min);
+        const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+        const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
+        result.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
     }
     //else Logging.InfoDev("mesh found in cache");
         
