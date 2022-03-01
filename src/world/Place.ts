@@ -116,11 +116,11 @@ export default class Place {
         this.placeGround?.dispose();
         this.placeGround = null;
 
-        this.itemsNode?.dispose();
-        this.itemsNode = null;
+        this._itemsNode?.dispose();
+        this._itemsNode = null;
 
-        this.tempItemsNode?.dispose();
-        this.tempItemsNode = null;
+        this._tempItemsNode?.dispose();
+        this._tempItemsNode = null;
 
         // unregister execution action
         if (this.executionAction) {
@@ -173,7 +173,7 @@ export default class Place {
 
             // create bounds
             // TODO: use MeshUtils.extrudeMeshFromShape
-            this.placeBounds = this.extrudeMeshFromShape(shape, this.buildHeight + 1, new Vector3(this.origin.x, this.buildHeight, this.origin.z),
+            this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(this._origin.x, this._buildHeight, this._origin.z),
                 this.world.transparentGridMat);
 
             this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
@@ -181,13 +181,14 @@ export default class Place {
             this.placeBounds.getHierarchyBoundingVectors();
 
             // create ground
-            this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this.origin.x, 0, this.origin.z),
+            this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this._origin.x, 0, this._origin.z),
                 new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
             this.placeGround.receiveShadows = true;
 
             // create temp items node
-            this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
-            this.tempItemsNode.position = this.origin.clone();
+            this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
+            this._tempItemsNode.position = this._origin.clone();
+            this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
 
             this.executionAction = new ExecuteCodeAction(
                 {
@@ -258,15 +259,16 @@ export default class Place {
                 (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
 
             // remove old place items if they exist.
-            if(this.itemsNode) {
-                this.itemsNode.dispose();
-                this.itemsNode = null;
+            if(this._itemsNode) {
+                this._itemsNode.dispose();
+                this._itemsNode = null;
                 Logging.InfoDev("cleared old items");
             }
 
             // itemsNode must be in the origin.
-            this.itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
-            this.itemsNode.position = this.origin.clone();
+            this._itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
+            this._itemsNode.position = this._origin.clone();
+            this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
             
             const outOfBounds: number[] = [];
 
@@ -296,11 +298,11 @@ export default class Place {
                     const pos = new Vector3(getFloat16(view, 7), getFloat16(view, 9), getFloat16(view, 11));
                     const scale = getFloat16(view, 13);
 
-                    const instance = await ipfs.download_item(token_id, this.world.scene, this.itemsNode);
+                    const instance = await ipfs.download_item(token_id, this.world.scene, this._itemsNode);
 
                     if(instance) {
                         /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
-                        instance.parent = this.itemsNode;
+                        instance.parent = this._itemsNode;
                         instance.rotationQuaternion = quat;
                         instance.position = pos;
                         instance.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
@@ -352,7 +354,7 @@ export default class Place {
     }
 
     public save(): boolean {
-        if(!this.tempItemsNode || !this.itemsNode) {
+        if(!this._tempItemsNode || !this._itemsNode) {
             Logging.InfoDev("can't save: items not loaded: " + this.placeId);
             return false;
         }
@@ -363,7 +365,7 @@ export default class Place {
         }
 
         // try to save items.
-        const tempChildren = this.tempItemsNode.getChildren();
+        const tempChildren = this._tempItemsNode.getChildren();
         const add_children = new Array<Node>();
 
         tempChildren.forEach((child) => {
@@ -373,7 +375,7 @@ export default class Place {
             }
         });
 
-        const children = this.itemsNode.getChildren();
+        const children = this._itemsNode.getChildren();
         const remove_children = new Array<Node>();
 
         children.forEach((child) => {
@@ -396,13 +398,14 @@ export default class Place {
 
             // Only remove temp items if op completed.
             if(completed) {
-                if(this.tempItemsNode) {
-                    this.tempItemsNode.dispose();
+                if(this._tempItemsNode) {
+                    this._tempItemsNode.dispose();
                     Logging.InfoDev("cleared temp items");
 
                     // create NEW temp items node
-                    this.tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
-                    this.tempItemsNode.position = this.origin.clone();
+                    this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
+                    this._tempItemsNode.position = this._origin.clone();
+                    this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
                 }
 
                 // TODO: does this really need to be called here?
