@@ -11,6 +11,12 @@ export default function Privacy() {
                         <p>
                             We (tz1and) won't sell, publish or pass on any of the - incidentally and temporarily - collected data.
                         </p>
+                        <small>
+                            <u>Other data stored and used:</u><br/>
+                            It's probably worth noting that some (not very sensitive) data is stored locally in your browser, including wallet public key hashes.
+                            Also, the smart contracts store public key hashes and the "multiplayer" component uses public key hashes and signatures to authenticate users.
+                            This should be beyond the usual scope of a privacy policy, just for your information and the sake of transparency.
+                        </small>
                     </div>
                 </div>
             </div>
