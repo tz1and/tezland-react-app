@@ -6,10 +6,10 @@ export default function Privacy() {
                     <div className="col-md-8">
                         <h1 className="text-center mb-4">Privacy Policy</h1>
                         <p>
-                            This website does not utilise tracking cookies (analytics or otherwise), and does not store any personalised data, aside from (temporary) webserver logs containing IP addresses.
+                            This website does not utilise tracking cookies (analytics or otherwise) and does not store any personalised data, aside from (temporary) web-server logs containing IP addresses.
                         </p>
                         <p>
-                            We (tz1and) won't sell, publish or pass on any of the incidentally and temporarily collected data.
+                            We (tz1and) won't sell, publish or pass on any of the - incidentally and temporarily - collected data.
                         </p>
                     </div>
                 </div>
