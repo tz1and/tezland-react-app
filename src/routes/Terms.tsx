@@ -12,7 +12,7 @@ export default function Terms() {
                             Liability is with you (the user). By using the platform, you agree to these terms.
                         </p>
                         <p>
-                            We will be dilligent in moderating the platform to prevent these kinds of illicit uses.
+                            We will be diligent in moderating the platform to prevent these kinds of illicit uses.
                         </p>
                         <p>
                             To report copyright infringements, you can use the <a className="link-secondary" target="_blank" rel="noreferrer" href="https://discord.gg/fbpy4QdzSp">Discord</a>, or email us at <a href="mailto:reports@tz1and.com">contact@tz1and.com</a>.
