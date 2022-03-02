@@ -31,8 +31,8 @@ export default function Frontpage() {
                     <ul className="list-unstyled text-small">
                         <li><Link className="link-secondary" to="/faq">FAQ</Link></li>
                         {/*<li><Link className="link-secondary" to="/team">Team</Link></li>*/}
-                        {/*<li><Link className="link-secondary" to="/lol">Privacy</Link></li>*/}
                         <li><Link className="link-secondary" to="/terms">Terms</Link></li>
+                        <li><Link className="link-secondary" to="/privacy">Privacy Policy</Link></li>
                         {/*<li><a className="link-secondary" href="mailto:contact@todo.com">Contact</a></li>*/}
                     </ul>
                 </div>

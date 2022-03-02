@@ -9,6 +9,8 @@ import SiteLayout from './routes/SiteLayout';
 import Frontpage from './routes/Frontpage';
 import Faq from './routes/Faq';
 import Docs from './routes/Docs';
+import Terms from './routes/Terms';
+import Privacy from './routes/Privacy';
 import GenerateMap from './routes/GenerateMap';
 import MintFormWrapper from './forms/MintFormWrapper';
 import PageNotFound from './routes/PageNotFound';
@@ -35,6 +37,8 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                         <Route path="docs" element={<Docs />} />
                         <Route path="faq" element={<Faq />} />
+                        <Route path="privacy" element={<Privacy />} />
+                        <Route path="terms" element={<Terms />} />
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                         <Route path="*" element={<PageNotFound />}/>
                     </Route>
