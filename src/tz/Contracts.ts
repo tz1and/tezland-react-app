@@ -60,7 +60,7 @@ export class Contracts {
     // Note: unused.
     /*private async isPlaceOwner(walletProvider: ITezosWalletProvider, place_id: number): Promise<boolean> {
       // check if wallet is connected before calling walletPHK
-      if(!walletProvider.isWalletConnected()) return false;
+      if (!walletProvider.isWalletConnected()) return false;
 
       if(!this.places)
         this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
@@ -94,10 +94,10 @@ export class Contracts {
     }
 
     public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {
-        const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
-
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("mintItem: No wallet connected");
+
+        const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
         const contributors: MichelsonMap<string, any> = new MichelsonMap();
         contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: "minter" });
@@ -119,10 +119,10 @@ export class Contracts {
     }
 
     public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
-
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+
+        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         try {
             const get_item_op = await marketplacesWallet.methodsObject.get_item({
@@ -138,10 +138,10 @@ export class Contracts {
 
     // TODO map or array of item_id to item_data.
     public async setItemData(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, item_data: string, callback?: (completed: boolean) => void) {
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
-
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+
+        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         try {
             const get_item_op = await marketplacesWallet.methodsObject.set_item_data({

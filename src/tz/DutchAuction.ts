@@ -52,10 +52,10 @@ export default class DutchAuction {
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
   
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-        if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
+        if (!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
 
         try {
-            const bid_op = await auctionsWallet.methodsObject.bid(auction_id).send({ amount: price_mutez, mutez: true });
+            const bid_op = await auctionsWallet.methodsObject.bid({ auction_id: auction_id }).send({ amount: price_mutez, mutez: true });
 
             Contracts.handleOperation(walletProvider, bid_op, callback);
         }
@@ -71,9 +71,9 @@ export default class DutchAuction {
         else return true;
     }
 
-    // TODO: don't hardcode admin!
+    // TODO: don't hardcode admin! use get_administrator view.
     static isAdministrator(walletProvider: ITezosWalletProvider) {
-        if(!walletProvider.isWalletConnected()) return false;
+        if (!walletProvider.isWalletConnected()) return false;
 
         if(walletProvider.walletPHK() === "tz1U3shEPeLdLxyjFWWGjJjNhFugcVV8eCTW")
             return true;
@@ -81,33 +81,33 @@ export default class DutchAuction {
     }
 
     private static async isWhitelisted(walletProvider: ITezosWalletProvider) {
-        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
-  
         // note: this is also checked in Auction, probably don't have to recheck, but better safe.
-        if(!walletProvider.isWalletConnected()) return false;
+        if (!walletProvider.isWalletConnected()) return false;
+
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
 
         return auctionsWallet.contractViews.is_whitelisted(walletProvider.walletPHK()).executeView({ viewCaller: auctionsWallet.address });
 
     }
 
     private static async isWhitelistEnabled(walletProvider: ITezosWalletProvider) {
-        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
-  
         // note: this is also checked in Auction, probably don't have to recheck, but better safe.
-        if(!walletProvider.isWalletConnected()) return false;
+        if (!walletProvider.isWalletConnected()) return false;
+
+        const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
 
         return auctionsWallet.contractViews.is_whitelist_enabled(walletProvider.walletPHK()).executeView({ viewCaller: auctionsWallet.address });
 
     }
 
     static async cancelAuction(walletProvider: ITezosWalletProvider, auction_id: number, callback?: (completed: boolean) => void) {
+        // note: this is also checked in Auction, probably don't have to recheck, but better safe.
+        if (!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
+
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auchtion_contract);
   
-        // note: this is also checked in Auction, probably don't have to recheck, but better safe.
-        if(!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
-  
         try {
-            const cancel_op = await auctionsWallet.methodsObject.cancel(auction_id).send();
+            const cancel_op = await auctionsWallet.methodsObject.cancel({ auction_id: auction_id }).send();
 
             Contracts.handleOperation(walletProvider, cancel_op, callback);
         }
