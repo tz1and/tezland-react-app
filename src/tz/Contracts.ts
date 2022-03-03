@@ -266,8 +266,8 @@ export class Contracts {
             // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
             const array = new Uint8Array(15);
             const view = new DataView(array.buffer);
-            // format - version 0
-            view.setUint8(0, 0);
+            // format - version 1
+            view.setUint8(0, 1);
             // quat
             setFloat16(view, 1, euler_angles.x);
             setFloat16(view, 3, euler_angles.y);
