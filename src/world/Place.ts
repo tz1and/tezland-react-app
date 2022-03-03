@@ -294,6 +294,7 @@ export default class Place {
                     const view = new DataView(uint8array.buffer);
                     // NOTE: for now we assume format version 1
                     // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
+                    assert(uint8array.length >= 15);
                     const quat = Quaternion.FromEulerAngles(getFloat16(view, 1), getFloat16(view, 3), getFloat16(view, 5));
                     const pos = new Vector3(getFloat16(view, 7), getFloat16(view, 9), getFloat16(view, 11));
                     const scale = getFloat16(view, 13);
