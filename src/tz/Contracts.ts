@@ -10,6 +10,8 @@ import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
 import { Logging } from "../utils/Logging";
+import { fetchGraphQL } from "../ipfs/graphql";
+import assert from "assert";
 
 
 export class Contracts {
@@ -48,13 +50,20 @@ export class Contracts {
     }
 
     public async getPlaceOwner(place_id: number): Promise<string> {
-        // todo: use indexer
-        const responseP = await fetch(`${Conf.bcd_url}/v1/contract/${Conf.tezos_network}/${Conf.place_contract}/transfers?token_id=${place_id}&size=1`);
-        const transferInfo = await responseP.json();
-
-        if (transferInfo.total > 0) return transferInfo.transfers[0].to;
-
-        return "";
+        try {   
+            const data = await fetchGraphQL(`
+                query getPlaceOwner($id: bigint!) {
+                    placeTokenHolder(limit: 1, where: {tokenId: {_eq: $id}}) {
+                        holderId
+                    }
+                }`, "getPlaceOwner", { id: place_id });
+            
+            assert(data.placeTokenHolder[0]);
+            return data.placeTokenHolder[0].holderId;
+        } catch(e: any) {
+            Logging.InfoDev("failed to get place owner:", e);
+            return "";
+        }
     }
 
     // Note: unused.

@@ -24,7 +24,7 @@ export default class Metadata {
         // Try to read the token metadata from storage.
         let tokenMetadata = await Metadata.Storage.loadObject(token_id, "placeMetadata");
 
-        // load from bcdhub if it doesn't exist
+        // load from indexer if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
@@ -60,7 +60,7 @@ export default class Metadata {
         // Try to read the token metadata from storage.
         let tokenMetadata = await Metadata.Storage.loadObject(token_id, "itemMetadata");
 
-        // load from bcdhub if it doesn't exist
+        // load from indexer if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
