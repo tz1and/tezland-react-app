@@ -353,7 +353,7 @@ export class World {
             
             const walkway0 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
-                depth: bridge_length / 2 + 0.02,
+                depth: half_bridge_length + 0.02,
                 height: 1,
             }, this.scene);
             walkway0.checkCollisions = true;
@@ -367,7 +367,7 @@ export class World {
 
             const walkway1 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
-                depth: bridge_length / 2 + 0.02,
+                depth: half_bridge_length + 0.02,
                 height: 1,
             }, this.scene);
             walkway1.checkCollisions = true;
