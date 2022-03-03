@@ -38,6 +38,7 @@
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {
+    "@babylonjs/inspector": "^5.0.0-rc.0",
     "@types/bootstrap": "^5.1.9",
     "@types/earcut": "^2.1.1",
     "@types/jest": "^26.0.15",

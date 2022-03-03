@@ -25,7 +25,8 @@ import { disposeAssetMap } from "../ipfs/ipfs";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import { WorldDefinition } from "../worldgen/WorldGen";
-//import { isDev } from "../utils/Utils";
+import { isDev } from "../utils/Utils";
+import assert from "assert";
 
 
 const worldUpdateDistance = 10;
@@ -93,11 +94,14 @@ export class World {
         this.scene.gravity = new Vector3(0, earthGravity / assumedFramesPerSecond, 0);
 
         // Enable inspector in dev
-        /*if(isDev()) {
+        if(isDev()) {
             import("@babylonjs/inspector").then( () => {
-                this.scene.debugLayer.show({ showExplorer: true, embedMode: true });
+                const inspector_root = document.getElementById("inspector-host");
+                assert(inspector_root);
+                console.log(inspector_root);
+                this.scene.debugLayer.show({ showExplorer: true, embedMode: true, globalRoot: inspector_root });
             });
-        }*/
+        }
 
         // create camera first
         this.playerController = new PlayerController(this, canvas, appControlfunctions);

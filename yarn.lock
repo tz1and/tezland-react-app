@@ -1102,7 +1102,7 @@
   dependencies:
     tslib "^2.3.1"
 
-"@babylonjs/gui@^5.0.0-rc.0":
+"@babylonjs/gui@5.0.0-rc.0", "@babylonjs/gui@^5.0.0-rc.0":
   version "5.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-5.0.0-rc.0.tgz#e4c4c8814b19575fdce9d1ef1e4d11b0ed6d9519"
   integrity sha512-ArsDHWnSuEEtrGfI8d+QALLA0uuB6MLV9FlkHRlcbnzV++mm7FLmL6yZ9Wv8JNxXGb4MqzK3IVaw13F9x5UDNQ==
@@ -1110,7 +1110,20 @@
     "@babylonjs/core" "5.0.0-rc.0"
     tslib "^2.3.1"
 
-"@babylonjs/loaders@^5.0.0-rc.0":
+"@babylonjs/inspector@^5.0.0-rc.0":
+  version "5.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/inspector/-/inspector-5.0.0-rc.0.tgz#c16be3e4cbe81368734f9a2c4e0a7436c17e1b1b"
+  integrity sha512-05S8Hd1xyIiqUkXgqPzD4eclzm3dldsJLup6x0Mb2n0anoCbSwk1rI+Q7wczepeZ8W5JdT9zEfgMJcPZJmrR5w==
+  dependencies:
+    "@babylonjs/core" "5.0.0-rc.0"
+    "@babylonjs/gui" "5.0.0-rc.0"
+    "@babylonjs/loaders" "5.0.0-rc.0"
+    "@babylonjs/materials" "5.0.0-rc.0"
+    "@babylonjs/serializers" "5.0.0-rc.0"
+    babylonjs-gltf2interface "5.0.0-rc.0"
+    tslib "^2.3.1"
+
+"@babylonjs/loaders@5.0.0-rc.0", "@babylonjs/loaders@^5.0.0-rc.0":
   version "5.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@babylonjs/loaders/-/loaders-5.0.0-rc.0.tgz#e871907f87ff3eaa5b6681a557353fae2a535327"
   integrity sha512-wiPNGUjdXUEiq/vko07KFqut6NVHnrnbozJ9ajOXNa9V9RHG0Zjjmig92UKwycMV/2iigXG0vicPvoWyOW7oiw==
@@ -1119,12 +1132,21 @@
     babylonjs-gltf2interface "5.0.0-rc.0"
     tslib "^2.3.1"
 
-"@babylonjs/materials@^5.0.0-rc.0":
+"@babylonjs/materials@5.0.0-rc.0", "@babylonjs/materials@^5.0.0-rc.0":
   version "5.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-5.0.0-rc.0.tgz#0e3cbe8082f47bd5088fb86d30a3785e146a7b11"
   integrity sha512-XTz9qOWF8qrSIIYlSgxB86hnugtU/IZMRDSpCbjAEem7qrIKSAKvy51bezQslMePIGuFk6ktzat2P/LPUjRNbg==
   dependencies:
     "@babylonjs/core" "5.0.0-rc.0"
+    tslib "^2.3.1"
+
+"@babylonjs/serializers@5.0.0-rc.0":
+  version "5.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/serializers/-/serializers-5.0.0-rc.0.tgz#50b3960a0714ea58deaa117fb38af8385d692723"
+  integrity sha512-ppWzq23TT9v0KyLqJDLEpMp1v4YXhb1ub2umYSksYQgUjXeHZNC9pNrKjO2kNH9qpjt2YVvknt5aJnTeok69DQ==
+  dependencies:
+    "@babylonjs/core" "5.0.0-rc.0"
+    babylonjs-gltf2interface "5.0.0-rc.0"
     tslib "^2.3.1"
 
 "@bcoe/v8-coverage@^0.2.3":

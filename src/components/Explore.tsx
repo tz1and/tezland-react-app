@@ -15,6 +15,7 @@ import { PlaceFropertiesForm } from '../forms/PlaceProperties';
 import { FromNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import { PlacePermissions } from '../world/Place';
+import { isDev } from '../utils/Utils';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -175,6 +176,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                     addNotification: this.addNotification,
                     updatePlaceInfo: this.updatePlaceInfo,
                 }} />
+                { isDev() ? <div id="inspector-host" /> : null }
             </div>
         );
     }
