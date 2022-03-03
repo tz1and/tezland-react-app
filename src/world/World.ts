@@ -1,6 +1,6 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Vector2, Axis, Space } from "@babylonjs/core/Maths/math";
+import { Vector3, Color3, Vector2, Axis, Space, Angle } from "@babylonjs/core/Maths/math";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -98,7 +98,6 @@ export class World {
             import("@babylonjs/inspector").then( () => {
                 const inspector_root = document.getElementById("inspector-host");
                 assert(inspector_root);
-                console.log(inspector_root);
                 this.scene.debugLayer.show({ showExplorer: true, embedMode: true, globalRoot: inspector_root });
             });
         }
@@ -338,14 +337,14 @@ export class World {
 
             // For now, bridge paths can only be a line
             const bridge_width = 8;
-            const bridge_vector = points[0].subtract(points[1]);
+            const bridge_vector = points[1].subtract(points[0]);
             const bridge_length = bridge_vector.length() + 2;
-            const half_bridge_length = bridge_length * 0.5;
+            //const half_bridge_length = bridge_length * 0.5;
             const bridge_pos = points[0].add(points[1]).multiplyByFloats(0.5, 0.5, 0.5);
-            const bridge_angle = Vector3.Dot(points[0].subtract(points[1]).normalize(), new Vector3(-1,0,0))
+            const bridge_angle = Vector3.Dot(Vector3.Forward(), bridge_vector.normalize());
 
-            /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
-                width: bridge_width - 2,
+            const walkway0 = MeshBuilder.CreateBox("walkway0", {
+                width: bridge_width,
                 depth: bridge_length,
                 height: 1,
             }, this.scene);
@@ -353,9 +352,9 @@ export class World {
             walkway0.isPickable = true;
             walkway0.receiveShadows = true;
             walkway0.parent = bridgeNode;
-            this.shadowGenerator?.addShadowCaster(walkway0);*/
+            this.shadowGenerator?.addShadowCaster(walkway0);
             
-            const walkway0 = MeshBuilder.CreateBox("walkway0", {
+            /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
                 depth: half_bridge_length + 0.02,
                 height: 1,
@@ -381,7 +380,7 @@ export class World {
             walkway1.position.z = -bridge_length*0.25;
             walkway1.position.y = 0.075;
             walkway1.rotate(Axis.X, -0.02, Space.LOCAL);
-            this.shadowGenerator?.addShadowCaster(walkway1);
+            this.shadowGenerator?.addShadowCaster(walkway1);*/
 
             // For now, bridge paths can only be a line
             const left = MeshBuilder.CreateBox("wall0", {
@@ -409,7 +408,7 @@ export class World {
             bridgeNode.position = bridge_pos;
             bridgeNode.position.y = -0.511;
 
-            bridgeNode.rotate(Axis.Y, bridge_angle, Space.LOCAL);
+            bridgeNode.rotate(Axis.Y, Angle.FromDegrees(90).radians() + bridge_angle, Space.LOCAL);
 
             counter++;
         }
