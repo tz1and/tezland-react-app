@@ -192,6 +192,7 @@ export class Contracts {
 
             const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
 
+            // We have to flatten the michelson map into something serialisable.
             const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
             const flattened_item_data: { item_id: BigNumber; issuer: string, data: object }[] = [];
             for (const [issuer, issuer_items] of michelson_map.entries()) {
