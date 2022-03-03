@@ -290,13 +290,6 @@ export default class PlayerController {
         //this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
         //camera.inertia = 0.5;
         //camera.angularSensibility = 2;
-        //this.camera.checkCollisions = false;
-
-        // This targets the camera to scene origin
-        //camera.setTarget(Vector3.Zero());
-
-        // This attaches the camera to the canvas
-        //camera.attachControl(canvas, true);
 
         return camera;
     }

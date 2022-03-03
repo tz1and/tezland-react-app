@@ -106,6 +106,8 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         const result = await SceneLoader.LoadAssetContainerAsync(Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
         assetMap.set(token_id, result);
 
+        // Enabled collision on all meshes.
+        result.meshes.forEach((m) => { m.checkCollisions = true; })
         // Make sure to stop all animations.
         result.animationGroups.forEach((ag) => { ag.stop(); })
         asset = result;

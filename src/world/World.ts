@@ -87,6 +87,11 @@ export class World {
         this.scene = new Scene(this.engine);
         this.scene.collisionsEnabled = true;
 
+        // Set gravity on scene.
+        const assumedFramesPerSecond = 60;
+        const earthGravity = -9.81;
+        this.scene.gravity = new Vector3(0, earthGravity / assumedFramesPerSecond, 0);
+
         // Enable inspector in dev
         /*if(isDev()) {
             import("@babylonjs/inspector").then( () => {
@@ -328,12 +333,15 @@ export class World {
             const bridgeNode = new TransformNode(`bridge${counter}`, this.scene);
 
             // For now, bridge paths can only be a line
-            const bridge_width = 10;
+            const bridge_width = 8;
             const bridge_vector = points[0].subtract(points[1]);
             const bridge_length = bridge_vector.length() + 2;
+            const half_bridge_length = bridge_length * 0.5;
+            const bridge_pos = points[0].add(points[1]).multiplyByFloats(0.5, 0.5, 0.5);
+            const bridge_angle = Vector3.Dot(points[0].subtract(points[1]).normalize(), new Vector3(-1,0,0))
 
-            const walkway0 = MeshBuilder.CreateBox("walkway0", {
-                width: bridge_width,
+            /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
+                width: bridge_width - 2,
                 depth: bridge_length,
                 height: 1,
             }, this.scene);
@@ -341,60 +349,63 @@ export class World {
             walkway0.isPickable = true;
             walkway0.receiveShadows = true;
             walkway0.parent = bridgeNode;
-            this.shadowGenerator?.addShadowCaster(walkway0);
+            this.shadowGenerator?.addShadowCaster(walkway0);*/
             
-            /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
+            const walkway0 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
-                depth: bridge_length / 2,
+                depth: bridge_length / 2 + 0.02,
                 height: 1,
             }, this.scene);
             walkway0.checkCollisions = true;
             walkway0.isPickable = true;
+            walkway0.receiveShadows = true;
             walkway0.parent = bridgeNode;
             walkway0.position.z = bridge_length*0.25;
             walkway0.position.y = 0.075;
             walkway0.rotate(Axis.X, 0.02, Space.LOCAL);
+            this.shadowGenerator?.addShadowCaster(walkway0);
 
             const walkway1 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
-                depth: bridge_length / 2,
+                depth: bridge_length / 2 + 0.02,
                 height: 1,
             }, this.scene);
             walkway1.checkCollisions = true;
             walkway1.isPickable = true;
             walkway1.parent = bridgeNode;
+            walkway1.receiveShadows = true;
             walkway1.position.z = -bridge_length*0.25;
             walkway1.position.y = 0.075;
-            walkway1.rotate(Axis.X, -0.02, Space.LOCAL);*/
+            walkway1.rotate(Axis.X, -0.02, Space.LOCAL);
+            this.shadowGenerator?.addShadowCaster(walkway1);
 
             // For now, bridge paths can only be a line
             const left = MeshBuilder.CreateBox("wall0", {
                 width: 1,
                 depth: bridge_length,
-                height: 1,
+                height: 2,
             }, this.scene);
             left.checkCollisions = true;
             left.isPickable = true;
             left.parent = bridgeNode;
-            left.position.set(-bridge_width/2+0.5, 1, 0);
+            left.position.set(-bridge_width/2 - 0.5, 0.5, 0);
             this.shadowGenerator?.addShadowCaster(left);
 
             const right = MeshBuilder.CreateBox("wall1", {
                 width: 1,
                 depth: bridge_length,
-                height: 1,
+                height: 2,
             }, this.scene);
             right.checkCollisions = true;
             right.isPickable = true;
             right.parent = bridgeNode;
-            right.position.set(bridge_width/2-0.5, 1, 0);
+            right.position.set(bridge_width/2 + 0.5, 0.5, 0);
             this.shadowGenerator?.addShadowCaster(right);
 
-            bridgeNode.position = points[0].add(points[1]).multiplyByFloats(0.5, 0.5, 0.5);
+            bridgeNode.position = bridge_pos;
             bridgeNode.position.y = -0.511;
 
-            const angle = Vector3.Dot(points[0].subtract(points[1]).normalize(), new Vector3(-1,0,0))
-            bridgeNode.rotate(Axis.Y, angle, Space.LOCAL);
+            bridgeNode.rotate(Axis.Y, bridge_angle, Space.LOCAL);
 
             counter++;
         }
