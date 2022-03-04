@@ -193,7 +193,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     </p>
 
                     <Link to={`/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
-                    {!this.context.isWalletConnected() ? <button onClick={this.bidOnAuction} className="btn btn-secondary btn-md w-100" disabled={true}>No wallet conncted</button> :
+                    {!this.context.isWalletConnected() ? <button onClick={this.bidOnAuction} className="btn btn-secondary btn-md w-100" disabled={true}>No wallet connected</button> :
                     !this.props.canBid ? <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer" className="btn btn-warning btn-md w-100">Get Whitelisted</a> :
                     <button onClick={this.bidOnAuction} className="btn btn-primary btn-md w-100" disabled={!this.started}>
                         {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>}
