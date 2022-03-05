@@ -21,13 +21,11 @@ export default class DutchAuction {
         const batch = walletProvider.tezosToolkit().wallet.batch([
             {
                 kind: OpKind.TRANSACTION,
-                ...placesWallet.methods.update_operators([{
-                    add_operator: {
-                        owner: walletProvider.walletPHK(),
+                ...placesWallet.methodsObject.update_adhoc_operators({ add_adhoc_operators: [{
                         operator: auctionsWallet.address,
                         token_id: placeId
-                    }
-                }]).toTransferParams()
+                    }]
+                }).toTransferParams()
             },
             {
                 kind: OpKind.TRANSACTION,
@@ -36,6 +34,11 @@ export default class DutchAuction {
                     start_time: start_time.toString(), end_time: end_time.toString(), fa2: Conf.place_contract
                 }).toTransferParams()
             }
+            // Not really needed unless you want to be extra careful.
+            /*{
+                kind: OpKind.TRANSACTION,
+                ...placesWallet.methodsObject.update_adhoc_operators({ clear_adhoc_operators: null }).toTransferParams()
+            }*/
         ]);
 
         try {

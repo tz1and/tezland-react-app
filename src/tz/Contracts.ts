@@ -248,8 +248,6 @@ export class Contracts {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
-        const wallet_phk = walletProvider.walletPHK();
-
         // build remove item map
         const remove_item_map: MichelsonMap<string, BigNumber[]> = new MichelsonMap();
         remove.forEach((item) => {
@@ -263,7 +261,7 @@ export class Contracts {
 
         // build add item list
         const add_item_list: object[] = [];
-        const item_set = new Set<BigNumber>();
+        const item_set = new Set<number>();
         add.forEach((item) => {
             const mesh = item as Mesh;
             const metadata = mesh.metadata as InstanceMetadata;
@@ -291,28 +289,16 @@ export class Contracts {
 
             add_item_list.push({ item: { token_id: token_id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });
 
-            item_set.add(token_id);
+            item_set.add(token_id.toNumber());
         });
 
         // build operator add/remove lists
         const operator_adds: object[] = [];
-        const operator_removes: object[] = [];
 
         item_set.forEach((token_id) => {
             operator_adds.push({
-                add_operator: {
-                    owner: wallet_phk,
-                    operator: marketplacesWallet.address,
-                    token_id: token_id
-                }
-            });
-
-            operator_removes.push({
-                remove_operator: {
-                    owner: wallet_phk,
-                    operator: marketplacesWallet.address,
-                    token_id: token_id
-                }
+                operator: marketplacesWallet.address,
+                token_id: token_id
             });
         });
 
@@ -321,7 +307,7 @@ export class Contracts {
 
         if (operator_adds.length > 0) batch.with([{
             kind: OpKind.TRANSACTION,
-            ...itemsWallet.methods.update_operators(operator_adds).toTransferParams()
+            ...itemsWallet.methodsObject.update_adhoc_operators({ add_adhoc_operators: operator_adds }).toTransferParams()
         }]);
 
         // removals first. because of item limit.
@@ -339,10 +325,11 @@ export class Contracts {
             }).toTransferParams()
         }]);
 
-        if (operator_removes.length > 0) batch.with([{
+        // Not really needed unless you want to be extra careful.
+        /*if (operator_adds.length > 0) batch.with([{
             kind: OpKind.TRANSACTION,
-            ...itemsWallet.methods.update_operators(operator_removes).toTransferParams()
-        }]);
+            ...itemsWallet.methodsObject.update_adhoc_operators({ clear_adhoc_operators: null }).toTransferParams()
+        }]);*/
 
         try {
             const batch_op = await batch.send();
