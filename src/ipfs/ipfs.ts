@@ -1,6 +1,6 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode, Vector3 } from '@babylonjs/core';
+import { AssetContainer, Mesh, Nullable, Scene, SceneLoader, TransformNode, Vector3 } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { FileLike, countPolygons } from '../utils/Utils';
@@ -24,7 +24,7 @@ export async function get_file_size(cid: string): Promise<number> {
 }*/
 
 // TODO: this really shouldn't be global. Maybe a member of world?
-const assetMap: Map<BigNumber, AssetContainer> = new Map();
+const assetMap: Map<number, AssetContainer> = new Map();
 
 export function disposeAssetMap() {
     assetMap.forEach(v => {
@@ -36,7 +36,7 @@ export function disposeAssetMap() {
 export async function download_item(token_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
-    var asset = assetMap.get(token_id);
+    var asset = assetMap.get(token_id.toNumber());
     if(!asset) {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
         const itemCachedStats = await Metadata.Storage.loadObject(token_id.toNumber(), "itemPolycount");
@@ -104,7 +104,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
 
         // LoadAssetContainer?
         const result = await SceneLoader.LoadAssetContainerAsync(Conf.ipfs_gateway + '/ipfs/', hash, scene, null, plugin_ext);
-        assetMap.set(token_id, result);
+        assetMap.set(token_id.toNumber(), result);
 
         // Enabled collision on all meshes.
         result.meshes.forEach((m) => { m.checkCollisions = true; })
@@ -123,7 +123,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
                 Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
 
                 // remove from asset map and dispose.
-                assetMap.delete(token_id);
+                assetMap.delete(token_id.toNumber());
                 result.dispose();
 
                 return null;
@@ -131,22 +131,29 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         }
 
         // Normalise scale to base scale (1m by default).
+        // NOTE: use result.meshes[0] instead of transformNodes
+        // NOTE: could use normalizeToUnitCube, but that doesn't let us scale freely.
         const baseScale = itemMetadata.baseScale; // in m
-        const {min, max} = result.transformNodes[0].getHierarchyBoundingVectors(true);
+        const {min, max} = result.meshes[0].getHierarchyBoundingVectors(true);
         const extent = max.subtract(min);
         const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
         const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
-        result.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+        result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
     }
     //else Logging.InfoDev("mesh found in cache");
-        
-    // Instantiate.
-    // TODO: getting first root node is enough?
-    const instance = asset.instantiateModelsToScene();
-    instance.rootNodes[0].name = `item${token_id}`;
-    instance.rootNodes[0].parent = parent;
+    
+    // Parent for our instance.
+    const rootNode = new Mesh(`item${token_id}`, scene, parent);
 
-    return instance.rootNodes[0];
+    // Instantiate.
+    // Getting first root node is probably enough.
+    // Note: imported glTFs are rotate because of the difference in coordinate systems.
+    // Don't flip em.
+    const instance = asset.instantiateModelsToScene();
+    instance.rootNodes[0].name = `item${token_id}_clone`;
+    instance.rootNodes[0].parent = rootNode;
+
+    return rootNode;
 }
 
 type ItemMetadata = {

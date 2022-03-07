@@ -302,8 +302,6 @@ export default class Place {
                     const instance = await ipfs.download_item(token_id, this.world.scene, this._itemsNode);
 
                     if(instance) {
-                        /*var sphere = Mesh.CreateSphere("sphere1", 12, scale, this.scene);*/
-                        instance.parent = this._itemsNode;
                         instance.rotationQuaternion = quat;
                         instance.position = pos;
                         instance.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
