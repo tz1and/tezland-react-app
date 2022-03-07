@@ -109,7 +109,7 @@ export class Contracts {
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
         const contributors: MichelsonMap<string, any> = new MichelsonMap();
-        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: "minter" });
+        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: { minter: null } });
 
         try {
             const mint_item_op = await minterWallet.methodsObject.mint_Item({
