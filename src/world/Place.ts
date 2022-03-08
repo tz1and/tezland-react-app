@@ -143,7 +143,7 @@ export default class Place {
     }
 
     private polygonMeshFromShape(shape: Vector3[], pos: Vector3, mat: Material): Mesh {
-        const poly = MeshBuilder.CreatePolygon(`placeBounds${this.placeId}`, {
+        const poly = MeshBuilder.CreatePolygon(`placeGround${this.placeId}`, {
             shape: shape
         }, this.world.scene, earcut);
 

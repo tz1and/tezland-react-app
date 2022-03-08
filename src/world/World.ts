@@ -155,7 +155,7 @@ export class World {
         waterMaterial.addToRenderList(skybox);
         this.waterMaterial = waterMaterial
 
-        const water = Mesh.CreateGround("ground1", 1000, 1000, 4, this.scene);
+        const water = Mesh.CreateGround("water", 1000, 1000, 4, this.scene);
         water.material = this.waterMaterial;
         water.isPickable = false;
         water.checkCollisions = true;
