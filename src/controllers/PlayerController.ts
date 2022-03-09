@@ -178,12 +178,28 @@ export default class PlayerController {
                         break;
                     
                     // Rotate
-                    case "KeyE":
-                        this.tempObject?.rotateAround(this.tempObject.position, new Vector3(0,1,0), Math.PI / 32);
+                    case "Digit1":
+                        this.tempObject?.rotate(Vector3.Up(), Math.PI / 32);
                         break;
                     
-                    case "KeyQ":
-                        this.tempObject?.rotateAround(this.tempObject.position, new Vector3(0,1,0), -Math.PI / 32);
+                    case "Digit2":
+                        this.tempObject?.rotate(Vector3.Up(), -Math.PI / 32);
+                        break;
+
+                    case "Digit3":
+                        this.tempObject?.rotate(Vector3.Forward(), Math.PI / 32);
+                        break;
+                    
+                    case "Digit4":
+                        this.tempObject?.rotate(Vector3.Forward(), -Math.PI / 32);
+                        break;
+
+                    case "Digit5":
+                        this.tempObject?.rotate(Vector3.Right(), Math.PI / 32);
+                        break;
+                    
+                    case "Digit6":
+                        this.tempObject?.rotate(Vector3.Right(), -Math.PI / 32);
                         break;
                     
                     // Save place
@@ -369,7 +385,10 @@ export default class PlayerController {
                 // make sure picking gui goes away.
                 await this.pickingGui.updatePickingGui(null, 0);
             }
-            else this.currentItem = undefined;
+            else {
+                this.currentItem = undefined;
+                // TODO: notification when model failed to load for some reason!
+            }
         }
         catch(e) {
             this.currentItem = undefined;

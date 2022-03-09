@@ -89,13 +89,31 @@ export const ControlsHelp: React.FC<{}> = () => {
                         Adjust height (mouse wheel)<br/>
                         <span className="glyphicon-stack m-1 mx-0">
                             <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">Q</span>
+                            <span className="glyphicon-stack-2x text-white">1</span>
                         </span>/
                         <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">E</span>
+                            <span className="glyphicon-stack-2x text-white">2</span>
                         </span>
-                        Rotate item<br/>
+                        Rotate Item around Y (up)<br/>
+                        <span className="glyphicon-stack m-1 mx-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <span className="glyphicon-stack-2x text-white">3</span>
+                        </span>/
+                        <span className="glyphicon-stack m-1 mx-0 me-1">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <span className="glyphicon-stack-2x text-white">4</span>
+                        </span>
+                        Rotate Item around Z (forward)<br/>
+                        <span className="glyphicon-stack m-1 mx-0">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <span className="glyphicon-stack-2x text-white">5</span>
+                        </span>/
+                        <span className="glyphicon-stack m-1 mx-0 me-1">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <span className="glyphicon-stack-2x text-white">6</span>
+                        </span>
+                        Rotate Item around X (right)<br/>
                         <span className="glyphicon-stack m-1 mx-0">
                             <i className="bi bi-square-fill glyphicon-stack-1x"></i>
                             <span className="glyphicon-stack-2x text-white">R</span>
