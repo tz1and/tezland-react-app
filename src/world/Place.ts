@@ -280,14 +280,14 @@ export default class Place {
                 // See here: https://github.com/MikeMcl/bignumber.js/issues/245
                 Object.setPrototypeOf(element.item_id, BigNumber.prototype);
                 Object.setPrototypeOf(element.data.item.token_id, BigNumber.prototype);
-                Object.setPrototypeOf(element.data.item.xtz_per_item, BigNumber.prototype);
+                Object.setPrototypeOf(element.data.item.mutez_per_item, BigNumber.prototype);
                 Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
 
                 const issuer = element.issuer;
                 const token_id = new BigNumber(element.data.item.token_id);
                 const item_coords = element.data.item.item_data;
                 const item_amount = element.data.item.item_amount;
-                const xtz_per_item = mutezToTez(element.data.item.xtz_per_item).toNumber();
+                const xtz_per_item = mutezToTez(element.data.item.mutez_per_item).toNumber();
                 
                 try {
                     const uint8array: Uint8Array = fromHexString(item_coords);
