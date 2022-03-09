@@ -35,6 +35,9 @@ export default class PlayerController {
 
     readonly playerTrigger: Mesh;
 
+    private _flyMode: boolean;
+    public get flyMode(): boolean { return this._flyMode; }
+
     /*private handleKeyUp: (e: KeyboardEvent) => void;
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
@@ -55,6 +58,7 @@ export default class PlayerController {
         this.tempObjectRot = new Quaternion();
         this.tempObjectPos = new Vector3();
         this.pickingGui = new PickingGuiController(world);
+        this._flyMode = false;
         this.camera = this.initCamera();
 
         // TEMP-ish: get coordinates from url.
@@ -240,6 +244,11 @@ export default class PlayerController {
                         this.setCurrentItem();
                         break;
 
+                    // Toggle fly mode
+                    case 'KeyG':
+                        this.toggleFlyMode();
+                        break;
+
                     /*case 'KeyB':
                         chrome.bookmarks.create({
                             title: "bookmarks.create() on MDN",
@@ -319,6 +328,11 @@ export default class PlayerController {
         this.tempObject = null;
         this.currentPlace = null;
         this.shadowGenerator = null;
+    }
+
+    private toggleFlyMode(): void {
+        this._flyMode = !this._flyMode;
+        this.camera.applyGravity = !this._flyMode;
     }
 
     /**

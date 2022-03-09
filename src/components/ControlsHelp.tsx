@@ -40,6 +40,11 @@ export const ControlsHelp: React.FC<{}> = () => {
                         </span>
                         Walk (left shift)<br/>
                         <span className="glyphicon-stack m-1 mx-0 me-1">
+                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+                            <span className="glyphicon-stack-2x text-white">G</span>
+                        </span>
+                        Toggle Fly-mode<br/>
+                        <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-mouse-fill glyphicon-stack-1x"></i>
                         </span>
                         Look
