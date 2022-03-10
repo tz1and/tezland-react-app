@@ -38,7 +38,8 @@ export class PlacePermissions {
     public static permissionPlaceItems: number = 1;
     public static permissionModifyAll: number  = 2;
     public static permissionProps: number      = 4;
-    public static permissionFull: number       = 7;
+    //public static permissionCanSell: number    = 8;
+    public static permissionFull: number       = 7; // 15 with CanSell
 
     constructor(permissions: number) {
         this._permissions = permissions;
@@ -56,7 +57,7 @@ export class PlacePermissions {
         if (!this.hasAny()) return "None";
         if (this.hasFull()) return "Full";
 
-        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasPlaceItems())}, Props:${yesNo(this.hasProps())}`;
+        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasModifyAll())}, Props:${yesNo(this.hasProps())}`;
     }
 };
 

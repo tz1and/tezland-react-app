@@ -222,8 +222,7 @@ export default class PlayerController {
 
                     // Opens the place properties form
                     case 'KeyP':
-                        // TODO: check permissions.
-                        if(this.currentPlace) {
+                        if(this.currentPlace && this.currentPlace.getPermissions.hasProps()) {
                             Contracts.getItemsForPlaceView(world.walletProvider, this.currentPlace.placeId, false).then((res) => {
                                 assert(this.currentPlace);
                                 document.exitPointerLock();

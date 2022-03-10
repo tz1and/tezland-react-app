@@ -4,10 +4,10 @@ import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
 import { PlacePermissions } from "./Place";
 
-export type FromNames = 'placeproperties' | 'instructions' | 'placeitem' | 'settings' | 'mint' | 'inventory' | 'loadingerror';
+export type FormNames = 'placeproperties' | 'instructions' | 'placeitem' | 'settings' | 'mint' | 'inventory' | 'loadingerror';
 
 export type AppControlFunctions = {
-    loadForm(form_type: FromNames): void;
+    loadForm(form_type: FormNames): void;
     setOverlayDispaly(display: boolean): void;
     placeItem(node: Node): void;
     editPlaceProperties(groundColor: string): void;

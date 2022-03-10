@@ -11,8 +11,8 @@ import { SettingsForm } from '../forms/SettingsForm';
 import AppSettings from '../storage/AppSettings';
 import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
-import { PlaceFropertiesForm } from '../forms/PlaceProperties';
-import { FromNames } from '../world/AppControlFunctions';
+import { EditPlace } from '../forms/EditPlace';
+import { FormNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import { PlacePermissions } from '../world/Place';
 import { isDev } from '../utils/Utils';
@@ -22,7 +22,7 @@ type ExploreProps = {
     //message: string;
 };
 type ExploreState = {
-    show_form: FromNames;
+    show_form: FormNames;
     dispaly_overlay: boolean;
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
@@ -50,7 +50,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         };
     }
 
-    loadForm = (form_type: FromNames) => {
+    loadForm = (form_type: FormNames) => {
         this.setState({ show_form: form_type, dispaly_overlay: true });
     }
 
@@ -138,7 +138,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
         else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm} selectItemFromInventory={this.selectItemFromInventory} />;
-        else if (this.state.show_form === 'placeproperties') form = <PlaceFropertiesForm closeForm={this.closeForm}
+        else if (this.state.show_form === 'placeproperties') form = <EditPlace closeForm={this.closeForm}
             placeOwner={this.state.placeInfo.owner} placeId={this.state.placeInfo.placeId} groundColor={this.state.groundColor} />;
 
         let overlay = !this.state.dispaly_overlay ? null :

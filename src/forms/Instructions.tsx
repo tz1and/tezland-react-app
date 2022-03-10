@@ -2,11 +2,11 @@ import { Popover } from 'bootstrap';
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WalletWidget from '../components/WalletWidget';
-import { FromNames } from '../world/AppControlFunctions';
+import { FormNames } from '../world/AppControlFunctions';
 
 type InstructionsProps = {
     closeForm(cancelled: boolean): void;
-    loadForm(form_type: FromNames): void;
+    loadForm(form_type: FormNames): void;
     getCurrentLocation(): [number, number]
 }
 

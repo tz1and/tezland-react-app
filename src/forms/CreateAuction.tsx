@@ -219,7 +219,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                 <Form>
                                     <div className="mb-3">
                                         <label htmlFor="placeId" className="form-label">Place ID</label>
-                                        <Field id="placeId" name="placeId" as="select" className="form-select" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { this.onIdChange(e); handleChange(e);}}>
+                                        <Field id="placeId" name="placeId" as="select" className="form-select" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { handleChange(e); this.onIdChange(e); }}>
                                             {!this.state.placeInventory ?
                                                 (<option value={-1}>Loading Place Inventory...</option>) :
                                                     this.state.placeInventory.length === 0 ?

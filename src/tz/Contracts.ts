@@ -102,6 +102,57 @@ export class Contracts {
         return this.queryPlacePermissions(walletProvider, place_id, owner);
     }
 
+    public async addPlacePermissions(walletProvider: ITezosWalletProvider, owner: string, token_id: number, permittee: string, permissions: number, callback?: (completed: boolean) => void) {
+        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+        if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+
+        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+
+        const contributors: MichelsonMap<string, any> = new MichelsonMap();
+        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: { minter: null } });
+
+        try {
+            const set_permissions_op = await marketplacesWallet.methodsObject.set_permissions([{
+                add_permission: {
+                    owner: owner,
+                    permittee: permittee,
+                    token_id: token_id,
+                    perm: permissions
+                }
+            }]).send();
+
+            this.handleOperation(walletProvider, set_permissions_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
+    }
+
+    public async removePlacePermissions(walletProvider: ITezosWalletProvider, owner: string, token_id: number, permittee: string, callback?: (completed: boolean) => void) {
+        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+        if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+
+        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+
+        const contributors: MichelsonMap<string, any> = new MichelsonMap();
+        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: { minter: null } });
+
+        try {
+            const set_permissions_op = await marketplacesWallet.methodsObject.set_permissions([{
+                remove_permission: {
+                    owner: owner,
+                    permittee: permittee,
+                    token_id: token_id
+                }
+            }]).send();
+
+            this.handleOperation(walletProvider, set_permissions_op, callback);
+        }
+        catch {
+            if(callback) callback(false);
+        }
+    }
+
     public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("mintItem: No wallet connected");
