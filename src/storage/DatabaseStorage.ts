@@ -10,7 +10,7 @@ const databaseTables: string[] = [
     "itemPolycount"
 ]
 
-const databaseVersion = 6;
+const databaseVersion = 7;
 
 export class DatabaseStorage implements IStorageProvider {
     public isSupported: boolean;
