@@ -76,7 +76,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
             onSubmit={(values, actions) => {
                 let permissions = 0;
                 if (values.permissionFull)
-                    permissions = 15;
+                    permissions = 7;
                 else {
                     const permPlaceItems = 1;
                     const permModifyAll  = 2;
