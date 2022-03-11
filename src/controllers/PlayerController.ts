@@ -42,9 +42,10 @@ export default class PlayerController {
     private gravity: Vector3 = new Vector3();
     private player_speed: number = PlayerJogSpeed;
 
-    private static readonly GRAVITY = 2.8;
+    private static readonly GRAVITY = 0.5;
     private static readonly BODY_HEIGHT = 1.5;
     private static readonly LEGS_HEIGHT = 0.3;
+    private static readonly JUMP_VEL = 0.1;
 
     private _flyMode: boolean;
     public get flyMode(): boolean { return this._flyMode; }
@@ -269,7 +270,6 @@ export default class PlayerController {
                     // Toggle fly mode
                     case 'KeyG':
                         this.toggleFlyMode();
-                        this.playerTrigger.position.y = 1000;
                         break;
 
                     /*case 'KeyB':
@@ -352,7 +352,15 @@ export default class PlayerController {
 
     private toggleFlyMode(): void {
         this._flyMode = !this._flyMode;
-        this.camera.applyGravity = !this._flyMode;
+        
+        if (this._flyMode) {
+            this.position_prev_flymode.copyFrom(this.playerTrigger.position);
+        } else {
+            this.playerTrigger.position.copyFrom(this.position_prev_flymode);
+        }
+
+        this.velocity.setAll(0);
+        this.gravity.setAll(0);
     }
 
     /**
@@ -474,6 +482,9 @@ export default class PlayerController {
         return dist_to_ground;
     }
 
+    private position_prev_frame: Vector3 = new Vector3();
+    private position_prev_flymode: Vector3 = new Vector3();
+
     private updateFromControls(delta_time: number): void {
         // Get inputs
         this.input.checkInputs();
@@ -483,7 +494,7 @@ export default class PlayerController {
         // Figure out directions.
         const cam_dir = this.camera.getDirection(Axis.Z);
         const right = Vector3.Cross(Vector3.Up(), cam_dir);
-        const fwd = Vector3.Cross(right, Vector3.Up());
+        const fwd = this._flyMode ? cam_dir : Vector3.Cross(right, Vector3.Up());
 
         // TODO: switch between jog and walk.
 
@@ -506,28 +517,50 @@ export default class PlayerController {
         // Work that out based on distance travlled before and after moveWithCollisions.
         // Actually, that doesn't work, velocity will invert when teleporting happens with moveWithCollisions.
         // This is dumb.
-        //const pos_before = this.playerTrigger.position.clone();
+        this.position_prev_frame.copyFrom(this.playerTrigger.position);
 
-        if(!grounded) {
-            // increase fall velocity.
-            this.gravity.addInPlace(Vector3.Down().scale(delta_time * PlayerController.GRAVITY));
-            this.velocity.y = this.gravity.y;
+        // Fly mode controls
+        if (this._flyMode) {
+            // no gravity in fly mode
+            this.gravity.setAll(0);
 
             this.playerTrigger.moveWithCollisions(this.velocity);
 
-            // ground player again after applying gravity.
-            this.groundPlayer();
+            // TODO: up/down controls in flymode.
         } else {
-            // reset fall velocity.
-            this.gravity = new Vector3();
-            this.velocity.y = this.gravity.y;
-
-            this.playerTrigger.moveWithCollisions(this.velocity);
+            if(!grounded) {
+                // increase fall velocity.
+                this.gravity.addInPlace(Vector3.Down().scale(delta_time * PlayerController.GRAVITY));
+                this.velocity.y = this.gravity.y;
+    
+                this.playerTrigger.moveWithCollisions(this.velocity);
+    
+                // ground player again after applying gravity.
+                this.groundPlayer();
+            } else {
+                // reset fall velocity.
+                this.gravity.setAll(0);
+    
+                // If grounded, we can jump.
+                if (this.input.jump) {
+                    this.gravity.addInPlace(Vector3.Up().scale(PlayerController.JUMP_VEL));
+                }
+    
+                this.velocity.y = this.gravity.y;
+    
+                this.playerTrigger.moveWithCollisions(this.velocity);
+            }
         }
+        
 
         // This kinda somewhat works but isn't perfect.
-        /*const vel_actual = this.playerTrigger.position.subtract(pos_before);
-        if (Vector3.Dot(vel_actual, this.velocity) < 0) {
+        const vel_diff = this.playerTrigger.position.subtract(this.position_prev_frame).subtractInPlace(this.velocity);
+        if(!isEpsilonEqual(vel_diff.x, 0, PlayerController.EPSILON))
+            this.velocity.x += vel_diff.x;
+        if(!isEpsilonEqual(vel_diff.z, 0, PlayerController.EPSILON))
+            this.velocity.z += vel_diff.z;
+        //console.log(this.velocity)
+        /*if (Vector3.Dot(vel_actual, this.velocity) < 0) {
             this.playerTrigger.position = pos_before;
             this.velocity.set(0, 0, 0);
         }

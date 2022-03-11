@@ -7,6 +7,7 @@ export class PlayerKeyboardInput {
 
     public right: number = 0;
     public forward: number = 0;
+    public jump: boolean = false;
 
     /**
      * Gets or Set the list of keyboard keys used to control the forward move of the camera.
@@ -38,6 +39,11 @@ export class PlayerKeyboardInput {
      */
     public keysRight: number[] = [39];
 
+    /**
+     * Gets or Set the list of keyboard keys used to control jumping.
+     */
+     public keysJump: number[] = [32];
+
     private _keys = new Array<number>();
     private _onCanvasBlurObserver: Nullable<Observer<Engine>> = null;
     private _onKeyboardObserver: Nullable<Observer<KeyboardInfo>> = null;
@@ -65,7 +71,8 @@ export class PlayerKeyboardInput {
                         || this.keysLeft.indexOf(evt.keyCode) !== -1
                         || this.keysRight.indexOf(evt.keyCode) !== -1
                         || this.keysUpward.indexOf(evt.keyCode) !== -1
-                        || this.keysDownward.indexOf(evt.keyCode) !== -1) {
+                        || this.keysDownward.indexOf(evt.keyCode) !== -1
+                        || this.keysJump.indexOf(evt.keyCode) !== -1) {
                         let index = this._keys.indexOf(evt.keyCode);
 
                         if (index === -1) {
@@ -78,7 +85,8 @@ export class PlayerKeyboardInput {
                         || this.keysLeft.indexOf(evt.keyCode) !== -1
                         || this.keysRight.indexOf(evt.keyCode) !== -1
                         || this.keysUpward.indexOf(evt.keyCode) !== -1
-                        || this.keysDownward.indexOf(evt.keyCode) !== -1) {
+                        || this.keysDownward.indexOf(evt.keyCode) !== -1
+                        || this.keysJump.indexOf(evt.keyCode) !== -1) {
                         let index = this._keys.indexOf(evt.keyCode);
 
                         if (index >= 0) {
@@ -119,6 +127,7 @@ export class PlayerKeyboardInput {
             // Keyboard
             this.forward = 0;
             this.right = 0;
+            this.jump = false;
             for (let index = 0; index < this._keys.length; index++) {
                 let keyCode = this._keys[index];
 
@@ -134,6 +143,8 @@ export class PlayerKeyboardInput {
                     // TODO: fly mode up
                 } else if (this.keysDownward.indexOf(keyCode) !== -1) {
                     // TODO: fly mode down
+                } else if (this.keysJump.indexOf(keyCode) !== -1) {
+                    this.jump = true;
                 }
             }
         }
