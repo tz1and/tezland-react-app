@@ -88,11 +88,6 @@ export class World {
         this.scene = new Scene(this.engine);
         this.scene.collisionsEnabled = true;
 
-        // Set gravity on scene.
-        const assumedFramesPerSecond = 60;
-        const earthGravity = -9.81;
-        this.scene.gravity = new Vector3(0, earthGravity / assumedFramesPerSecond, 0);
-
         // Enable inspector in dev
         if(isDev()) {
             import("@babylonjs/inspector").then( () => {
@@ -213,6 +208,8 @@ export class World {
 
         // TODO: on walletChanged event, disconnect and reconnect!
         this.multiClient = new MultiplayerClient(this);
+
+        //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
     }
 
     private onResize = () => {

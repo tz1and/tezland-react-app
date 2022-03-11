@@ -1,16 +1,18 @@
-import { ActionManager, FreeCamera, IWheelEvent, KeyboardEventTypes,
-    Mesh, MeshBuilder, Nullable, PointerEventTypes, Quaternion, Scene,
-    ShadowGenerator, UniversalCamera, Vector3 } from "@babylonjs/core";
+import { ActionManager, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
+    Mesh, Nullable, PointerEventTypes, Quaternion, Ray, Scene,
+    ShadowGenerator, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
+import { isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Place, { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
 import PickingGuiController from "./PickingGuiController";
+import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
 
 
@@ -34,6 +36,15 @@ export default class PlayerController {
     private pickingGui: PickingGuiController;
 
     readonly playerTrigger: Mesh;
+
+    private input: PlayerKeyboardInput;
+    private velocity: Vector3 = new Vector3();
+    private gravity: Vector3 = new Vector3();
+    private player_speed: number = PlayerJogSpeed;
+
+    private static readonly GRAVITY = 2.8;
+    private static readonly BODY_HEIGHT = 1.5;
+    private static readonly LEGS_HEIGHT = 0.3;
 
     private _flyMode: boolean;
     public get flyMode(): boolean { return this._flyMode; }
@@ -61,6 +72,12 @@ export default class PlayerController {
         this._flyMode = false;
         this.camera = this.initCamera();
 
+        this.input = new PlayerKeyboardInput();
+        this.input.keysLeft = [65 /*w*/, 37 /*left arrow*/];
+        this.input.keysRight = [68 /*d*/, 39 /*right arrow*/];
+        this.input.keysUp = [87 /*w*/, 38 /*up arrow*/];
+        this.input.keysDown = [83 /*s*/, 40 /*down arrow*/];
+
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -69,10 +86,14 @@ export default class PlayerController {
             this.camera.position.z = parseFloat(urlParams.get('coordz')!);
         }
 
-        this.playerTrigger = MeshBuilder.CreateCapsule("player", {height: 1.8, radius: 0.5, updatable: false}, this.scene);
+        // Mesh builder :  {height: PlayerController.BODY_HEIGHT, radius: 0.5, updatable: false}
+        this.playerTrigger = new Mesh("player", this.scene);
+        this.playerTrigger.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
+        this.playerTrigger.position.y = 2;
         this.playerTrigger.isPickable = false;
         this.playerTrigger.isVisible = false;
         this.playerTrigger.actionManager = new ActionManager(this.scene);
+        this.camera.parent = this.playerTrigger;
 
         this.scene.registerAfterRender(this.updateController.bind(this));
 
@@ -84,13 +105,15 @@ export default class PlayerController {
             if (!controlEnabled) {
                 // blur canvas to stop keyboard events.
                 canvas.blur();
-                this.camera.detachControl(canvas);
+                this.camera.detachControl();
+                this.input.detachControl();
                 //this.isPointerLocked = false;
                 appControlfunctions.setOverlayDispaly(true);
             } else {
                 // focus on canvas for keyboard input to work.
                 canvas.focus();
-                this.camera.attachControl(canvas);
+                this.camera.attachControl();
+                this.input.attachControl(this.scene);
                 //this.isPointerLocked = true;
             }
         };
@@ -157,7 +180,7 @@ export default class PlayerController {
                 switch(kbInfo.event.code) {
                     // Scale
                     case "ShiftLeft":
-                        this.camera.speed = PlayerJogSpeed;
+                        this.player_speed = PlayerJogSpeed;
                         break;
                 }
             }
@@ -246,6 +269,7 @@ export default class PlayerController {
                     // Toggle fly mode
                     case 'KeyG':
                         this.toggleFlyMode();
+                        this.playerTrigger.position.y = 1000;
                         break;
 
                     /*case 'KeyB':
@@ -258,7 +282,7 @@ export default class PlayerController {
                         break;*/
 
                     case 'ShiftLeft': // Enable jog
-                        this.camera.speed = PlayerWalkSpeed;
+                        this.player_speed = PlayerWalkSpeed;
                         break;
 
                     case 'Delete': // Mark item for deletion
@@ -286,34 +310,31 @@ export default class PlayerController {
 
     private initCamera(): FreeCamera {
         // This creates and positions a free camera (non-mesh)
-        var camera = new UniversalCamera("playerCamera", new Vector3(0, 2, 0), this.scene);
+        var camera = new FreeCamera("playerCamera", new Vector3(0, PlayerController.BODY_HEIGHT * 0.5, 0), this.scene);
 
         // Camera props
-        camera.fovMode = UniversalCamera.FOVMODE_HORIZONTAL_FIXED;
+        camera.fovMode = FreeCamera.FOVMODE_HORIZONTAL_FIXED;
         camera.fov = 1.65806; // ~95 deg.
         camera.minZ = 0.1;
         camera.maxZ = 2000;
 
         // Collision stuff
-        camera.checkCollisions = true;
-        camera.applyGravity = true;
-        camera.ellipsoid = new Vector3(0.5, 0.9, 0.5);
+        //camera.checkCollisions = true;
+        //camera.applyGravity = true;
+        //camera.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
 
         // Sensibility
         camera.angularSensibility = camera.angularSensibility * 10 / AppSettings.mouseSensitivity.value;
         // TODO: inertia also affects movement...
-        //camera.inertia = 0;
+        camera.inertia = 0;
 
         // Set movement keys
-        camera.keysLeft = [65 /*w*/, 37 /*left arrow*/];
-        camera.keysRight = [68 /*d*/, 39 /*right arrow*/];
-        camera.keysUp = [87 /*w*/, 38 /*up arrow*/];
-        camera.keysDown = [83 /*s*/, 40 /*down arrow*/];
-        //camera.keysUpward = [32 /*space*/]; // that's not actually jumping.
-        camera.speed = PlayerJogSpeed;
-        //this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
-        //camera.inertia = 0.5;
-        //camera.angularSensibility = 2;
+        camera.inputs.clear();
+        camera.inputs.addMouse();
+        ////camera.keysUpward = [32 /*space*/]; // that's not actually jumping.
+        ////this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
+        ////camera.inertia = 0.5;
+        ////camera.angularSensibility = 2;
 
         return camera;
     }
@@ -339,7 +360,7 @@ export default class PlayerController {
      * @returns Vector3
      */
     public getPosition(): Vector3 {
-        return this.camera.position;
+        return this.camera.globalPosition;
     }
 
     /**
@@ -426,14 +447,105 @@ export default class PlayerController {
         }
     }*/
 
-    private updateController() {
-        //const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
+    //Send raycast to the floor to detect if there are any hits with meshes below the character
+    private floorRaycast(offsetx: number, offsetz: number, raycastlen?: number): number {
+        //position the raycast from bottom center of mesh
+        let raycastFloorPos = new Vector3(this.playerTrigger.position.x + offsetx, this.playerTrigger.position.y - (PlayerController.BODY_HEIGHT * 0.5), this.playerTrigger.position.z + offsetz);
+        let ray = new Ray(raycastFloorPos, Vector3.Down(), raycastlen);
 
-        // update player trigger mesh position.
-        this.playerTrigger.position.set(this.camera.position.x, this.camera.position.y - 0.9, this.camera.position.z);
+        let pick = this.scene.pickWithRay(ray);
+
+        if (pick && pick.hit) {
+            return pick.distance;
+        } else {
+            return Infinity;
+        }
+    }
+
+    private static readonly EPSILON = 0.00000001;
+
+    private groundPlayer(): number {
+        let dist_to_ground = this.floorRaycast(0, 0);
+        // If less than leg height, adjust position.
+        if(dist_to_ground + PlayerController.EPSILON < PlayerController.LEGS_HEIGHT) {
+            this.playerTrigger.position.y += PlayerController.LEGS_HEIGHT - dist_to_ground;
+            dist_to_ground = PlayerController.LEGS_HEIGHT;
+        }
+        return dist_to_ground;
+    }
+
+    private updateFromControls(delta_time: number): void {
+        // Get inputs
+        this.input.checkInputs();
+        const moveFwd = this.input.forward; //fwd, z
+        const moveRight = this.input.right; //right, x
+
+        // Figure out directions.
+        const cam_dir = this.camera.getDirection(Axis.Z);
+        const right = Vector3.Cross(Vector3.Up(), cam_dir);
+        const fwd = Vector3.Cross(right, Vector3.Up());
+
+        // TODO: switch between jog and walk.
+
+        // Player velocity.
+        const accel = delta_time * 3
+        const new_vel = fwd.scale(moveFwd).add(right.scale(moveRight)).normalize().scale(this.player_speed * accel);
+        this.velocity.scaleInPlace(1 - accel).addInPlace(new_vel);
+
+        // Not needed if accel and decel are eq.
+        /*if(this.velocity.length() > PlayerJogSpeed) {
+            console.log("claming vel");
+            this.velocity.normalize().scaleInPlace(PlayerJogSpeed);
+        }*/
+
+        // Get the distance to ground
+        let dist_to_ground = this.groundPlayer();
+        const grounded = isEpsilonEqual(dist_to_ground, PlayerController.LEGS_HEIGHT, PlayerController.EPSILON);
+
+        // TODO: obstacles should affect velocity!
+        // Work that out based on distance travlled before and after moveWithCollisions.
+        // Actually, that doesn't work, velocity will invert when teleporting happens with moveWithCollisions.
+        // This is dumb.
+        //const pos_before = this.playerTrigger.position.clone();
+
+        if(!grounded) {
+            // increase fall velocity.
+            this.gravity.addInPlace(Vector3.Down().scale(delta_time * PlayerController.GRAVITY));
+            this.velocity.y = this.gravity.y;
+
+            this.playerTrigger.moveWithCollisions(this.velocity);
+
+            // ground player again after applying gravity.
+            this.groundPlayer();
+        } else {
+            // reset fall velocity.
+            this.gravity = new Vector3();
+            this.velocity.y = this.gravity.y;
+
+            this.playerTrigger.moveWithCollisions(this.velocity);
+        }
+
+        // This kinda somewhat works but isn't perfect.
+        /*const vel_actual = this.playerTrigger.position.subtract(pos_before);
+        if (Vector3.Dot(vel_actual, this.velocity) < 0) {
+            this.playerTrigger.position = pos_before;
+            this.velocity.set(0, 0, 0);
+        }
+        else this.velocity.set(vel_actual.x, 0, vel_actual.z);*/
+    }
+
+    private updateController() {
+        const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
+
+        // Player movement.
+        this.updateFromControls(delta_time);
 
         // cast a ray for picking guy and item placing
-        const hit = this.scene.pickWithRay(this.camera.getForwardRay());
+        const hit = this.scene.pickWithRay(this.camera.getForwardRay(
+            undefined,
+            this.camera.getWorldMatrix(),
+            this.camera.globalPosition
+        ));
 
         if(this.tempObject && this.tempObjectHelper) {
             if(hit && hit.pickedPoint) {

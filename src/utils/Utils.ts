@@ -149,3 +149,7 @@ export const getUrlFileSizeHead = async (url: string): Promise<number> => {
 export const yesNo = (v: boolean): string => {
   return v ? "Yes" : "No";
 }
+
+export const isEpsilonEqual = (a: number, b: number, epsilon: number = Number.EPSILON) => {
+  return (Math.abs(a - b) < epsilon);
+}
