@@ -254,7 +254,7 @@ class OtherPlayer {
         mat.alphaMode = Constants.ALPHA_MULTIPLY;
         mat.disableLighting = true;
 
-        const plane = MeshBuilder.CreatePlane("Nameplate", {width: 0.2 / aspect_ratio, height: 0.2}, scene);
+        const plane = MeshBuilder.CreatePlane("Nameplate", {width: 0.2 / aspect_ratio, height: 0.2, updatable: false}, null);
         //const plane = Mesh.CreatePlane("Nameplate", 0.5, scene, true);
         plane.parent = this.tranformNode;
         //plane.material.backFaceCulling = false;
@@ -267,18 +267,22 @@ class OtherPlayer {
 
     constructor(name: string, parent: TransformNode) {
         this.tranformNode = new TransformNode(name);
-        this.head = Mesh.CreateBox("head", 0.5, null);
+        this.head = Mesh.CreateBox("head", 0.5, null, false);
+        this.head.isPickable = false;
         this.head.parent = this.tranformNode;
 
-        const nose = Mesh.CreateBox("nose", 0.1, null);
+        const nose = Mesh.CreateBox("nose", 0.1, null, false);
+        nose.isPickable = false;
         nose.parent = this.head;
         nose.position.z = 0.3;
 
-        this.body = Mesh.CreateCylinder("body", 1, 0.9, 0.9, 12, null);
+        this.body = Mesh.CreateCylinder("body", 1, 0.9, 0.9, 12, null, undefined, false);
+        this.body.isPickable = false;
         this.body.parent = this.tranformNode;
         this.body.position.y = -0.85;
 
         this.nameplate = this.makeBillboard(name, this.tranformNode);
+        this.nameplate.isPickable = false;
         this.nameplate.position.y = 0.5;
 
         this.tranformNode.parent = parent;

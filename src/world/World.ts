@@ -492,11 +492,11 @@ export class World {
     private lastMultiplayerUpdate: number = 0;
 
     private updateMultiplayer() {
-        if(this.multiClient && this.multiClient.connected && !this.playerController.flyMode) {
+        if(this.multiClient && this.multiClient.connected) {
             // Occasionally send player postition.
             const now = performance.now();
             const elapsed = now - this.lastMultiplayerUpdate;
-            if(elapsed > MultiplayerClient.UpdateInterval) {
+            if(!this.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
                 this.lastMultiplayerUpdate = now;
 
                 this.multiClient.updatePlayerPosition(
