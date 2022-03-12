@@ -179,7 +179,7 @@ export class World {
             shadowGenerator.frustumEdgeFalloff = 0.1;
             shadowGenerator.freezeShadowCastersBoundingInfo = true;
             shadowGenerator.stabilizeCascades = true;
-            shadowGenerator.shadowMaxZ = 150;
+            shadowGenerator.shadowMaxZ = 250;
             shadowGenerator.numCascades = 4;
             shadowGenerator.lambda = 0.6;
             // Self-shadow bias
@@ -412,11 +412,11 @@ export class World {
         }
     }
 
-    private roadDecorations: Nullable<TransformNode> = null;
+    //private roadDecorations: Nullable<TransformNode> = null;
 
     // TODO: Needs to be culled!
     public async loadRoadDecorations(curbs: Edge[], counter: number) {
-        this.roadDecorations = new TransformNode(`roadDecorations${counter}`, this.scene);
+        const roadDecorations = new TransformNode(`roadDecorations${counter}`, this.scene);
 
         // TODO: don't load this multiple times
         const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.scene, null, '.glb');
@@ -434,7 +434,7 @@ export class World {
                 for (var d = 6.5; d < line_len - 6.5; d = d + 25) {
                     const instance = result.instantiateModelsToScene().rootNodes[0];
                     instance.position = to.add(line.scale(d / line_len));
-                    instance.parent = this.roadDecorations;
+                    instance.parent = roadDecorations;
                     this.shadowGenerator?.addShadowCaster(instance as Mesh);
                 }
             }
