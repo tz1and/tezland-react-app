@@ -2,7 +2,7 @@ import { Mesh, Node, Quaternion } from "@babylonjs/core";
 import { Contract, MichelsonMap, OpKind, TransactionWalletOperation } from "@taquito/taquito";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
-import { setFloat16 } from "@petamoriken/float16";
+import { packTo } from 'byte-data';
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
 import { InstanceMetadata, PlacePermissions } from "../world/Place";
@@ -323,19 +323,20 @@ export class Contracts {
             const euler_angles = rot.toEulerAngles();
             // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
             const array = new Uint8Array(15);
-            const view = new DataView(array.buffer);
             // format - version 1
-            view.setUint8(0, 1);
+            packTo(1, { bits: 8, signed: false, be: true }, array, 0);
+            // float data
+            const type = { bits: 16, fp: true, be: true };
             // quat
-            setFloat16(view, 1, euler_angles.x);
-            setFloat16(view, 3, euler_angles.y);
-            setFloat16(view, 5, euler_angles.z);
+            packTo(euler_angles.x, type, array, 1);
+            packTo(euler_angles.y, type, array, 3);
+            packTo(euler_angles.z, type, array, 5);
             // pos
-            setFloat16(view, 7, mesh.position.x);
-            setFloat16(view, 9, mesh.position.y);
-            setFloat16(view, 11, mesh.position.z);
+            packTo(mesh.position.x, type, array, 7);
+            packTo(mesh.position.y, type, array, 9);
+            packTo(mesh.position.z, type, array, 11);
             // scale
-            setFloat16(view, 13, Math.abs(mesh.scaling.x));
+            packTo(Math.abs(mesh.scaling.x), type, array, 13);
             const item_data = toHexString(array);
 
             add_item_list.push({ item: { token_id: token_id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });

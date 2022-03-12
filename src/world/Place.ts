@@ -3,8 +3,7 @@ import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node,
 
 import earcut from 'earcut';
 
-import { getFloat16 } from "@petamoriken/float16";
-
+import { unpack } from 'byte-data';
 import Contracts from "../tz/Contracts";
 import * as ipfs from "../ipfs/ipfs";
 import { fromHexString, mutezToTez, pointIsInside, yesNo } from "../utils/Utils";
@@ -292,13 +291,21 @@ export default class Place {
                 
                 try {
                     const uint8array: Uint8Array = fromHexString(item_coords);
-                    const view = new DataView(uint8array.buffer);
                     // NOTE: for now we assume format version 1
                     // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
                     assert(uint8array.length >= 15);
-                    const quat = Quaternion.FromEulerAngles(getFloat16(view, 1), getFloat16(view, 3), getFloat16(view, 5));
-                    const pos = new Vector3(getFloat16(view, 7), getFloat16(view, 9), getFloat16(view, 11));
-                    const scale = getFloat16(view, 13);
+                    const format = unpack(uint8array, { bits: 8, signed: false, be: true }, 0);
+                    assert(format === 1);
+                    const type = { bits: 16, fp: true, be: true };
+                    const quat = Quaternion.FromEulerAngles(
+                        unpack(uint8array, type, 1),
+                        unpack(uint8array, type, 3),
+                        unpack(uint8array, type, 5));
+                    const pos = new Vector3(
+                        unpack(uint8array, type, 7),
+                        unpack(uint8array, type, 9),
+                        unpack(uint8array, type, 11));
+                    const scale = unpack(uint8array, type, 13);
 
                     const instance = await ipfs.download_item(token_id, this.world.scene, this._itemsNode);
 
