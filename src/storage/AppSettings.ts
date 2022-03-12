@@ -61,6 +61,7 @@ export default class AppSettings {
 
     // controls
     static mouseSensitivity = new AppSetting<number>("mouseSensitivity", 1, parseNumber);
+    static mouseInertia = new AppSetting<number>("mouseInertia", 0.5, parseNumber);
 
     // graphics
     static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);

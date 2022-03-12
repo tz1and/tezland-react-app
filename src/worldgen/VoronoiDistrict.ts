@@ -1,9 +1,10 @@
 import { Vector2 } from "@babylonjs/core";
 import Prando from "prando";
 import { BoundingBox, Diagram, Site, Voronoi } from "voronoijs";
+import { DeepEqualsSet } from "../utils/Sets";
 import Block from "./Block";
 import District from "./District";
-import WorldPolygon from "./WorldPolygon";
+import WorldPolygon, { Edge } from "./WorldPolygon";
 
 
 class ExclusionZone {
@@ -107,6 +108,22 @@ export default class VoronoiDistrict extends District {
             if(block.dont_split) blocks.forEach((b) => { b.dont_split = true; });
             this.blocks.push(...blocks);
         });
+
+        // TODO: roads need unshrunken clipped cells
+        /*const mainRoads: DeepEqualsSet<Edge> = new DeepEqualsSet();
+        //let land_limit_counter = 0;
+        //const land_limit = Infinity;
+        for(const block of this.blocks) {
+            block.edges(this.center).forEach(mainRoads.add, mainRoads);
+        }
+        this.roads = mainRoads.arr;*/
+
+        const mainRoadCurbs: DeepEqualsSet<Edge> = new DeepEqualsSet();
+        //land_limit_counter = 0;
+        for(const block of this.blocks) {
+            block.edges(this.center).forEach(mainRoadCurbs.add, mainRoadCurbs);
+        }
+        this.curbs = mainRoadCurbs.arr;
 
         // Sort original sites by distance to center (of this district).
         const center = new Vector2();

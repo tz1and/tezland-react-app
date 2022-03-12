@@ -286,7 +286,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             points.push(pointOnCircle(40, angle).negate());
         }
 
-        const r1 = 29, r2 = 40;
+        //const r1 = 29, r2 = 40;
         const district_2 = new VoronoiDistrict(new Vector2(0,0),
             points.reverse()
             /*[
@@ -388,20 +388,18 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                     }
                 }
             }
+
+            // Draw roads
+            /*for (const road of district.roads)
+                draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
+
+            for (const curb of district.curbs)
+                draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});*/
         }
 
         for (const bridge of worldgen.bridges) {
             draw.line(bridge.bridge_path[0].asArray().concat(bridge.bridge_path[1].asArray())).stroke(bridgeColor).attr({'stroke-width': 10});
         }
-
-        // Draw roads
-        /*for (const road of mainRoads) {
-            draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
-        }
-
-        for (const curb of mainRoadCurbs) {
-            draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});
-        }*/
 
         this.setState({ worldgen: worldgen, svg: draw.svg(), world_def: worldgen.serialise() });
     }

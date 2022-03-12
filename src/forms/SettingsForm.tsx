@@ -18,6 +18,7 @@ interface SettingsFormValues {
 
     // controls
     mouseSensitivity: number;
+    mouseInertia: number;
 
     // graphics
     enableAntialiasing: boolean;
@@ -45,6 +46,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
 
         // controls
         mouseSensitivity: AppSettings.mouseSensitivity.value,
+        mouseInertia: AppSettings.mouseInertia.value,
 
         // graphics
         enableAntialiasing: AppSettings.enableAntialiasing.value,
@@ -88,6 +90,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
 
                         // controls
                         AppSettings.mouseSensitivity.value = values.mouseSensitivity;
+                        AppSettings.mouseInertia.value = values.mouseInertia;
 
                         // graphics
                         AppSettings.enableAntialiasing.value = values.enableAntialiasing;
@@ -155,11 +158,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                     </div>
                                 </div>
                                 <div className="tab-pane fade" id="controls" role="tabpanel" aria-labelledby="controls-tab">
-                                    <div className="mb-3">
+                                <div className="mb-3">
                                         <label htmlFor="mouseSensitivity" className="form-label">Mouse Sensitivity</label>
                                         <Field id="mouseSensitivity" name="mouseSensitivity" type="number" step={0.1} className="form-control" aria-describedby="mouseSensitivityHelp" disabled={isSubmitting} autoFocus={true} />
                                         <div id="mouseSensitivityHelp" className="form-text">How sensitive mouse look is.</div>
                                         <ErrorMessage name="mouseSensitivity" children={errorDisplay}/>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="mouseInertia" className="form-label">Mouse Inertia</label>
+                                        <Field id="mouseInertia" name="mouseInertia" type="number" step={0.1} className="form-control" aria-describedby="mouseInertiaHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="mouseInertiaHelp" className="form-text">Uhm, how to explain this...</div>
+                                        <ErrorMessage name="mouseInertia" children={errorDisplay}/>
                                     </div>
                                 </div>
                                 <div className="tab-pane fade" id="graphics" role="tabpanel" aria-labelledby="graphics-tab">

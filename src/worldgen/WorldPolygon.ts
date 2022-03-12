@@ -3,7 +3,7 @@ import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { IDeepEquals } from "../utils/Sets";
 
 
-class Edge implements IDeepEquals {
+export class Edge implements IDeepEquals {
     constructor(a: Vector2, b: Vector2) {
         this.a = a.clone(); //roundVector2(a);
         this.b = b.clone(); //roundVector2(b);

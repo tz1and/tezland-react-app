@@ -324,9 +324,9 @@ export default class PlayerController {
         //camera.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
 
         // Sensibility
-        camera.angularSensibility = camera.angularSensibility * 10 / AppSettings.mouseSensitivity.value;
-        // TODO: inertia also affects movement...
-        camera.inertia = 0;
+        camera.angularSensibility *= 10 / AppSettings.mouseSensitivity.value;
+        // TODO: inertia also affects default camera movement...
+        camera.inertia *= AppSettings.mouseInertia.value;
 
         // Set movement keys
         camera.inputs.clear();

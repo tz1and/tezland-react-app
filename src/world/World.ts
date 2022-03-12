@@ -27,6 +27,7 @@ import { MeshUtils } from "../utils/MeshUtils";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import { isDev } from "../utils/Utils";
 import assert from "assert";
+import { Edge } from "../worldgen/WorldPolygon";
 
 
 const worldUpdateDistance = 10;
@@ -279,8 +280,6 @@ export class World {
             await this.fetchPlace(i);
         }
 
-        //this.loadRoadDecorations();
-
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.playerController.getCurrentPlace()
         if(currentPlace)
@@ -318,6 +317,8 @@ export class World {
             walls.checkCollisions = true;
             walls.receiveShadows = false;
             walls.visibility = 0;*/
+
+            this.loadRoadDecorations(district.curbs, counter);
 
             counter++;
         }
@@ -414,15 +415,14 @@ export class World {
     private roadDecorations: Nullable<TransformNode> = null;
 
     // TODO: Needs to be culled!
-    public async loadRoadDecorations() {
-        const req = await fetch("/models/roads.json");
-        const roadsAndCurbs = await req.json();
+    public async loadRoadDecorations(curbs: Edge[], counter: number) {
+        this.roadDecorations = new TransformNode(`roadDecorations${counter}`, this.scene);
 
-        this.roadDecorations = new TransformNode("roadDecorations", this.scene);
-
+        // TODO: don't load this multiple times
         const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.scene, null, '.glb');
+        result.meshes.forEach((m) => { m.checkCollisions = true; })
         
-        for (var curbEdge of roadsAndCurbs.curbs) {
+        for (var curbEdge of curbs) {
             const from = new Vector3(curbEdge.a.x, 0, curbEdge.a.y);
             const to = new Vector3(curbEdge.b.x, 0, curbEdge.b.y);
 
