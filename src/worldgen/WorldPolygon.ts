@@ -34,6 +34,10 @@ class Edge implements IDeepEquals {
             Edge.hashFloats(b.x, b.y, a.x, a.y);
     }*/
 
+    public length(): number {
+        return this.b.subtract(this.a).length();
+    }
+
     public centerPoint(): Vector2 {
         return this.a.add(this.b).multiplyByFloats(0.5, 0.5);
     }

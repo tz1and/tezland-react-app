@@ -52,7 +52,7 @@ export default class Block extends WorldPolygon {
          // compute bounds
         /*let min = new Vector2(Infinity, Infinity);
         let max = new Vector2(-Infinity, -Infinity);
-        for (const p of land.points) {
+        for (const p of this.vertices) {
             min = Vector2.Minimize(p, min);
             max = Vector2.Maximize(p, max);
         }
@@ -64,7 +64,21 @@ export default class Block extends WorldPolygon {
         const max_extent = Math.max(extent.x, extent.y);
         const gridSize = new Vector2(Math.ceil(max_extent / prando.next(30, 40)), Math.ceil(max_extent / prando.next(30, 40)));
 
-        let rect = new Rectangle(max_extent * 1, max_extent * 1, min.add(extent.divide(new Vector2(2,2))), prando.nextInt(0, 8) * 45);
+        // Find the longest edge (to rotate along)
+        let longest_edge_len = -Infinity;
+        let longest_edge: Edge | undefined;
+        this.edges().forEach((edge) => {
+            const len = edge.length();
+            if (len > longest_edge_len) {
+                longest_edge_len = len;
+                longest_edge = edge;
+            }
+        });
+
+        assert(longest_edge);
+        const angle = Vector2.Dot(new Vector2(1,0), longest_edge.b.subtract(longest_edge.a))
+
+        let rect = new Rectangle(max_extent * 1, max_extent * 1, min.add(extent.divide(new Vector2(2,2))), 0);
         //draw.polygon(rect.pointsToArray()).stroke('red').fill('none');
 
         const grid: Polygon[] = [];
@@ -90,7 +104,7 @@ export default class Block extends WorldPolygon {
         max.addInPlace(new Vector2(safeEps, safeEps));
 
         const extent = max.subtract(min);
-        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(25, 35)), Math.ceil(extent.y / prando.next(25, 35)));
+        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(30, 40)), Math.ceil(extent.y / prando.next(30, 40)));
         const spacing = new Vector2(extent.x / gridSize.x, extent.y / gridSize.y);
         
         const grid: Polygon[] = [];

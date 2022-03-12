@@ -164,10 +164,27 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
     private generateDistrict1() {
         const district_1 = new VoronoiDistrict(new Vector2(0,0), [
-            new Vector2(-100,-100),
-            new Vector2(-100,100),
+            // right edge
+            new Vector2(-0,-200),
+            new Vector2(-44,-90),
+            new Vector2(-15,-25),
+            new Vector2(-27,-7),
+            new Vector2(-27,7),
+            new Vector2(-15,25),
+            new Vector2(-44,90),
+            new Vector2(0,200),
+            // bottom
             new Vector2(200,200),
-            new Vector2(100,-100)
+            // left
+            new Vector2(200,130),
+            new Vector2(150,40),
+            new Vector2(150,-40),
+            new Vector2(200,-130),
+            new Vector2(200,-200),
+            /*new Vector2(500,-500),
+            new Vector2(500,500),
+            new Vector2(-500,500),
+            new Vector2(-500,-500),*/
         ]);
 
         // generate central circle
@@ -179,8 +196,19 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         district_1.addCircle(new Vector2(0, 0), 80, 0, 8);
 
+        // Add some square blocks
+        for (let i = 0; i < 1; ++i) {
+            district_1.addCircle(new Vector2(164 - 65 * i, -164), 65, Angle.FromDegrees(0).radians(), 4);
+        }
+
+        for (let i = 0; i < 1; ++i) {
+            district_1.addCircle(new Vector2(164 - 65 * i, 164), 65, Angle.FromDegrees(0).radians(), 4);
+        }
+
+        //district_1.noSplit.push(new Vector2(395 - 65, -200));
+
         // generate grid blocks
-        for (let i = 0; i < 4; ++i) {
+        /*for (let i = 0; i < 4; ++i) {
             district_1.addCircle(new Vector2(395 - 65 * i, 275), 65, Angle.FromDegrees(45).radians(), 4);
         }
 
@@ -239,11 +267,49 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         district_1.addCircle(new Vector2(275 + 65, 0), 90, Angle.FromDegrees(90).radians(), 6);
 
         district_1.noSplit.push(new Vector2(275 + 65, 0));
-        district_1.noSplit.push(new Vector2(-275 - 65, 0));
+        district_1.noSplit.push(new Vector2(-275 - 65, 0));*/
 
         district_1.addRandomSites(200, 663);
 
         return district_1;
+    }
+
+    // It's the little island
+    private generateDistrict2() {
+
+        const pointOnCircle = (r: number, t: number, p: Vector2 = Vector2.Zero()) => {
+            return new Vector2(r * Math.cos(t) + p.x, r * Math.sin(t) + p.y)
+        }
+
+        const points = [];
+        for (let angle = 0; angle < 2 * Math.PI; angle += 2 * Math.PI / 7) {
+            points.push(pointOnCircle(40, angle).negate());
+        }
+
+        const r1 = 29, r2 = 40;
+        const district_2 = new VoronoiDistrict(new Vector2(0,0),
+            points.reverse()
+            /*[
+                new Vector2(-r1,-r1),
+                new Vector2(-r2,-0), //c
+                new Vector2(-r1,r1),
+                new Vector2(0,r2), //c
+                new Vector2(r1,r1),
+                new Vector2(r2,10), //c
+                new Vector2(r2,-10), //c
+                new Vector2(r1,-r1),
+                new Vector2(0,-r2),
+            ]*/
+        );
+
+        // generate central circle
+        district_2.addCircle(new Vector2(0, 0), 100, 0, 8);
+
+        for(const s of district_2.sites) {
+            district_2.noSplit.push(new Vector2(s.x, s.y));
+        }
+
+        return district_2
     }
 
     // Similar to componentDidMount and componentDidUpdate:
@@ -257,24 +323,19 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         worldgen.addDistrict(district_1);
 
         // Second district
-        const district_2 = this.generateDistrict1();
-        district_2.center = new Vector2(50, 300);
-        district_2.vertices = [
-            new Vector2(-200,-200),
-            new Vector2(-100,100),
-            new Vector2(100,100),
-            new Vector2(100,-100)
-        ]
+        const district_2 = this.generateDistrict2();
+        district_2.center = new Vector2(-100, 0);
         worldgen.addDistrict(district_2);
 
         //Bridging districts on (1 3) at distance  15.811388300841896
 
         //worldgen.addBridge({})
         //worldgen.addConnection(district_1, district_2);
-        worldgen.addBridge(new Bridge(district_1, 1, 0.05, district_2, 3, 0.8));
-        worldgen.addBridge(new Bridge(district_1, 1, 0.25, district_2, 3, 0.6));
-        worldgen.addBridge(new Bridge(district_1, 1, 0.5, district_2, 3, 0.35));
-        worldgen.addBridge(new Bridge(district_1, 1, 0.75, district_2, 3, 0.1));
+        //worldgen.addBridge(new Bridge(district_1, 1, 0.05, district_2, 3, 0.8));
+        //worldgen.addBridge(new Bridge(district_1, 1, 0.7, district_2, 5, 0.85));
+        //worldgen.addBridge(new Bridge(district_1, 5, 0.5, district_2, 3, 0.35));
+        //worldgen.addBridge(new Bridge(district_1, 5, 0.3, district_2, 4, 0.15));
+        worldgen.addBridge(new Bridge(district_1, 3, 0.5, district_2, 2, 0.5));
 
         worldgen.generateWorld();
 
