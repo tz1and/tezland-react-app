@@ -551,7 +551,6 @@ export default class PlayerController {
                 this.playerTrigger.moveWithCollisions(this.velocity);
             }
         }
-        
 
         // This kinda somewhat works but isn't perfect.
         const vel_diff = this.playerTrigger.position.subtract(this.position_prev_frame).subtractInPlace(this.velocity);
