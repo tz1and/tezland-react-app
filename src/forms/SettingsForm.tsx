@@ -187,6 +187,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                             <option key={512} value={512}>Low</option>
                                             <option key={1024} value={1024}>Medium</option>
                                             <option key={2048} value={2048}>High</option>
+                                            <option key={4096} value={4096}>Utra</option>
                                         </Field>
                                         <div id="shadowMapResHelp" className="form-text">Shadow map resolution. Affects shadow quality.</div>
                                     </div>

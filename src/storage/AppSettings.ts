@@ -47,7 +47,7 @@ const parseShadowOptions: ParseFunc<ShadowOptions> = (value: string) => value as
 const parseShadowMapRes: ParseFunc<ShadowMapRes> = (value: string) => Number(value) as ShadowMapRes;
 
 export type ShadowOptions = "none" | "standard" | "cascaded";
-export type ShadowMapRes = 512 | 1024 | 2048;
+export type ShadowMapRes = 512 | 1024 | 2048 | 4096;
 
 export default class AppSettings {
     // general
