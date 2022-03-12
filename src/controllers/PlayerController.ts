@@ -90,7 +90,7 @@ export default class PlayerController {
         // Mesh builder :  {height: PlayerController.BODY_HEIGHT, radius: 0.5, updatable: false}
         this.playerTrigger = new Mesh("player", this.scene);
         this.playerTrigger.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
-        this.playerTrigger.position.y = 2;
+        this.playerTrigger.ellipsoidOffset.set(0, PlayerController.LEGS_HEIGHT + (PlayerController.BODY_HEIGHT * 0.5), 0);
         this.playerTrigger.isPickable = false;
         this.playerTrigger.isVisible = false;
         this.playerTrigger.actionManager = new ActionManager(this.scene);
@@ -310,7 +310,7 @@ export default class PlayerController {
 
     private initCamera(): FreeCamera {
         // This creates and positions a free camera (non-mesh)
-        var camera = new FreeCamera("playerCamera", new Vector3(0, PlayerController.BODY_HEIGHT * 0.5, 0), this.scene);
+        var camera = new FreeCamera("playerCamera", new Vector3(0, PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT, 0), this.scene);
 
         // Camera props
         camera.fovMode = FreeCamera.FOVMODE_HORIZONTAL_FIXED;
@@ -368,7 +368,7 @@ export default class PlayerController {
      * @returns Vector3
      */
     public getPosition(): Vector3 {
-        return this.camera.globalPosition;
+        return this.playerTrigger.position;
     }
 
     /**
@@ -457,8 +457,8 @@ export default class PlayerController {
 
     //Send raycast to the floor to detect if there are any hits with meshes below the character
     private floorRaycast(offsetx: number, offsetz: number, raycastlen?: number): number {
-        //position the raycast from bottom center of mesh
-        let raycastFloorPos = new Vector3(this.playerTrigger.position.x + offsetx, this.playerTrigger.position.y - (PlayerController.BODY_HEIGHT * 0.5), this.playerTrigger.position.z + offsetz);
+        // position the raycast from bottom center of ellipsoid
+        let raycastFloorPos = new Vector3(this.playerTrigger.position.x + offsetx, this.playerTrigger.position.y + PlayerController.LEGS_HEIGHT, this.playerTrigger.position.z + offsetz);
         let ray = new Ray(raycastFloorPos, Vector3.Down(), raycastlen);
 
         let pick = this.scene.pickWithRay(ray);

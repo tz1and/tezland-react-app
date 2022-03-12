@@ -270,6 +270,7 @@ class OtherPlayer {
         this.head = Mesh.CreateBox("head", 0.5, null, false);
         this.head.isPickable = false;
         this.head.parent = this.tranformNode;
+        this.head.position.y = 1.8; // TODO: don't hardocde this
 
         const nose = Mesh.CreateBox("nose", 0.1, null, false);
         nose.isPickable = false;
@@ -279,11 +280,11 @@ class OtherPlayer {
         this.body = Mesh.CreateCylinder("body", 1, 0.9, 0.9, 12, null, undefined, false);
         this.body.isPickable = false;
         this.body.parent = this.tranformNode;
-        this.body.position.y = -0.85;
+        this.body.position.y = 0.95; // TODO: don't hardocde this
 
         this.nameplate = this.makeBillboard(name, this.tranformNode);
         this.nameplate.isPickable = false;
-        this.nameplate.position.y = 0.5;
+        this.nameplate.position.y = 1.8 + 0.5; // TODO: don't hardocde this
 
         this.tranformNode.parent = parent;
 
