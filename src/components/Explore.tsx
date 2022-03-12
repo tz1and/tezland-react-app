@@ -8,7 +8,7 @@ import { Node, Nullable } from '@babylonjs/core';
 import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
-import AppSettings from '../storage/AppSettings';
+import AppSettings, { AppTerms } from '../storage/AppSettings';
 import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
@@ -16,6 +16,7 @@ import { FormNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import { PlacePermissions } from '../world/Place';
 import { isDev } from '../utils/Utils';
+import { TermsForm } from '../forms/Terms';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -38,7 +39,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     constructor(props: ExploreProps) {
         super(props);
         this.state = {
-            show_form: 'instructions',
+            show_form: AppTerms.termsAccepted.value ? 'instructions' : 'terms',
             dispaly_overlay: true,
             placedItem: null,
             showFps: AppSettings.showFps.value,
@@ -70,7 +71,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     closeForm = (cancelled: boolean) => {
-        if(this.state.show_form === 'settings') {
+        if(this.state.show_form === 'settings' || this.state.show_form === 'terms') {
             this.setState({ show_form: 'instructions', dispaly_overlay: true });
             return;
         }
@@ -134,6 +135,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         let form;
         if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} />
+        else if (this.state.show_form === 'terms') form = <TermsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
         else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;

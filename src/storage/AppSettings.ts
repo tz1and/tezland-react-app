@@ -68,3 +68,7 @@ export default class AppSettings {
     static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "cascaded", parseShadowOptions);
     static shadowMapRes = new AppSetting<ShadowMapRes>("shadowMapRes", 1024, parseShadowMapRes);
 }
+
+export class AppTerms {
+    static termsAccepted = new AppSetting<boolean>("termsAccepted", false, parseBool);
+}

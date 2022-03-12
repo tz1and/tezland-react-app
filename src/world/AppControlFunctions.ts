@@ -4,7 +4,14 @@ import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
 import { PlacePermissions } from "./Place";
 
-export type FormNames = 'placeproperties' | 'instructions' | 'placeitem' | 'settings' | 'mint' | 'inventory' | 'loadingerror';
+export type FormNames = 'placeproperties'
+    | 'instructions'
+    | 'placeitem'
+    | 'settings'
+    | 'mint'
+    | 'inventory'
+    | 'loadingerror'
+    | 'terms';
 
 export type AppControlFunctions = {
     loadForm(form_type: FormNames): void;
