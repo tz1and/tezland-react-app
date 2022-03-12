@@ -1095,58 +1095,58 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@babylonjs/core@5.0.0-rc.2", "@babylonjs/core@^5.0.0-rc.0":
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-5.0.0-rc.2.tgz#e844289ec44eec06a9aeb52796b98fea1953d3d1"
-  integrity sha512-XvGmAauX83EsOKFeIcku3jxFKKNq7+nBhOXZG+gXLrAnZITFlB56uXbo7YlZWLbmZb46Qyqs78nUrZXp7hfZ5Q==
+"@babylonjs/core@5.0.0-rc.3", "@babylonjs/core@^5.0.0-rc.0":
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-5.0.0-rc.3.tgz#5b21ee5779e03a1291ded5dee32f864ba3618008"
+  integrity sha512-Of3KehVZ0WRfBElORjt1sOtdFXrzj1zKLt2eVLohHuN6Ffvx4nEziY9Yg58P2yCGQXs0dRr/EhluHpheJJwiBg==
   dependencies:
     tslib "^2.3.1"
 
-"@babylonjs/gui@5.0.0-rc.2", "@babylonjs/gui@^5.0.0-rc.0":
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-5.0.0-rc.2.tgz#3a10a966404095ff1aa94f7eb2b12105c351f42b"
-  integrity sha512-UQj08Zs2iUdZXEzvMAKR9eqqSoYD5bo2SZmseKJhZzn8RX820D7FXZS0WQ4elkCdc8oxQ+5ZwhmO4lMvgk6pTA==
+"@babylonjs/gui@5.0.0-rc.3", "@babylonjs/gui@^5.0.0-rc.0":
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-5.0.0-rc.3.tgz#45d957a3ebd5b9df099ef6ac4c450d347b0dbf6c"
+  integrity sha512-9SvgCtBPuUD8thXhhKIDBqsguLtaqbR6kWseh5WOAI+UdEs2fIUS1QNx93fPNZdjHjq7PvmpHGpIRG0rcpoiSQ==
   dependencies:
-    "@babylonjs/core" "5.0.0-rc.2"
+    "@babylonjs/core" "5.0.0-rc.3"
     tslib "^2.3.1"
 
 "@babylonjs/inspector@^5.0.0-rc.0":
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@babylonjs/inspector/-/inspector-5.0.0-rc.2.tgz#8198a9b3e98138df5c3a2984f5c168ffbdedd769"
-  integrity sha512-lfbK251WsH+uwxtjY83FIAu0rKtMg9Lg6ynkLE+CXiw5GmTkhbnBcVsIXxl42aLZHo5lrNYkhWuQp0T4X5uCBA==
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@babylonjs/inspector/-/inspector-5.0.0-rc.3.tgz#2da476b84177305e113f03f3e5c87f569ea5f3e1"
+  integrity sha512-CJYNmsDEQH6tLCRZmFoYlVPrjT09YiDvzWS3gr6xN//rbcrCPb6YTx9CGd5Wj053U2UBJio8ES2m3ODDNfWYpA==
   dependencies:
-    "@babylonjs/core" "5.0.0-rc.2"
-    "@babylonjs/gui" "5.0.0-rc.2"
-    "@babylonjs/loaders" "5.0.0-rc.2"
-    "@babylonjs/materials" "5.0.0-rc.2"
-    "@babylonjs/serializers" "5.0.0-rc.2"
-    babylonjs-gltf2interface "5.0.0-rc.2"
+    "@babylonjs/core" "5.0.0-rc.3"
+    "@babylonjs/gui" "5.0.0-rc.3"
+    "@babylonjs/loaders" "5.0.0-rc.3"
+    "@babylonjs/materials" "5.0.0-rc.3"
+    "@babylonjs/serializers" "5.0.0-rc.3"
+    babylonjs-gltf2interface "5.0.0-rc.3"
     tslib "^2.3.1"
 
-"@babylonjs/loaders@5.0.0-rc.2", "@babylonjs/loaders@^5.0.0-rc.0":
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@babylonjs/loaders/-/loaders-5.0.0-rc.2.tgz#29890ebcd9e33e2266853dd363f9a653ea562588"
-  integrity sha512-3C4ZGAJXbGR5r5M6o9gItR6uosImY7wZqo+3MfhWyftwbjxO6VE7jJPRPFb/7L7c1iYbo7XJKu5+9JwAuAZd1g==
+"@babylonjs/loaders@5.0.0-rc.3", "@babylonjs/loaders@^5.0.0-rc.0":
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@babylonjs/loaders/-/loaders-5.0.0-rc.3.tgz#d9c8fcd4fd3146f491fefa3a287b9a2910365587"
+  integrity sha512-3UVqa04TkMVmKmnjlS5AMuexXBx0x4r2mevIG6iIuYPymH6cCCeCTh+3SoNGzLORH9Lyb4+44b3vw3C7Zqv8Tw==
   dependencies:
-    "@babylonjs/core" "5.0.0-rc.2"
-    babylonjs-gltf2interface "5.0.0-rc.2"
+    "@babylonjs/core" "5.0.0-rc.3"
+    babylonjs-gltf2interface "5.0.0-rc.3"
     tslib "^2.3.1"
 
-"@babylonjs/materials@5.0.0-rc.2", "@babylonjs/materials@^5.0.0-rc.0":
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-5.0.0-rc.2.tgz#a2e16e9fe50fafc353190a8601044ba51275d0ea"
-  integrity sha512-m5nABkbSK91N/Ngr3sIxQ78H2au7wZsZmIB/Z3wijqrm3i4cdThldaux423kH8SJJd4VyY9Iymj62cXt1zkKRg==
+"@babylonjs/materials@5.0.0-rc.3", "@babylonjs/materials@^5.0.0-rc.0":
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-5.0.0-rc.3.tgz#6d7ad2fd77d7d4f4e8d08046f5663c5540771ba8"
+  integrity sha512-EsKttusWohgwFeSsi9uJ+uZlkr3GojRuPTqvI3u9UFOMib7oI/psy41wmZxGiRsn87/DMeZELr0rGthU2Jq9xA==
   dependencies:
-    "@babylonjs/core" "5.0.0-rc.2"
+    "@babylonjs/core" "5.0.0-rc.3"
     tslib "^2.3.1"
 
-"@babylonjs/serializers@5.0.0-rc.2":
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@babylonjs/serializers/-/serializers-5.0.0-rc.2.tgz#08e74b6e6026b5f800ac71be7e6eb62839c18da2"
-  integrity sha512-g8lzEkTdEEpGFze3bg+Ge8cOOOpi0n/TxI5CVDLGK0h8vfLN1hr4NY9VGUP+9CxDbsF3tniPl9AaZnUWYG7nkg==
+"@babylonjs/serializers@5.0.0-rc.3":
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@babylonjs/serializers/-/serializers-5.0.0-rc.3.tgz#84b98040605c1bcc6286452261498da071281274"
+  integrity sha512-6fhebAe9PdliV5TlQMv9vFk34z/ubBqpuEDIoN3dZH6R4N+H0k0Lxi2AsLR5LGNXCDkAsSe3Gk9OzI6zJCqL+g==
   dependencies:
-    "@babylonjs/core" "5.0.0-rc.2"
-    babylonjs-gltf2interface "5.0.0-rc.2"
+    "@babylonjs/core" "5.0.0-rc.3"
+    babylonjs-gltf2interface "5.0.0-rc.3"
     tslib "^2.3.1"
 
 "@bcoe/v8-coverage@^0.2.3":
@@ -2574,9 +2574,9 @@ ansi-regex@^2.0.0:
   integrity sha1-w7M6te42DYbg5ijwRorn7yfWVN8=
 
 ansi-regex@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-4.1.0.tgz#8b9f8f08cf1acb843756a839ca8c7e3168c51997"
-  integrity sha512-1apePfXM1UOSqw0o9IiFAovVz9M5S1Dg+4TrDwfMewQ6p/rmMueb7tWZjQ1rx4Loy1ArBggoqGpfqqdI4rondg==
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-4.1.1.tgz#164daac87ab2d6f6db3a29875e2d1766582dabed"
+  integrity sha512-ILlv4k/3f6vfQ4OoP2AGvirOktlQ98ZEL1k9FaQjxa3L1abBgbuTDAdPOpvbGncC0BTVQrl+OM8xZGK6tWXt7g==
 
 ansi-regex@^5.0.0, ansi-regex@^5.0.1:
   version "5.0.1"
@@ -3028,10 +3028,10 @@ babylon@^6.18.0:
   resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.18.0.tgz#af2f3b88fa6f5c1e4c634d1a0f8eac4f55b395e3"
   integrity sha512-q/UEjfGJ2Cm3oKV71DJz9d25TPnq5rhBVL2Q4fA5wcC3jcrdn7+SssEybFIxwAvvP+YCsCYNKughoF33GxgycQ==
 
-babylonjs-gltf2interface@5.0.0-rc.2:
-  version "5.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-5.0.0-rc.2.tgz#8c9f4df65a8bd56cb3ff4009cb15340eb755cc6a"
-  integrity sha512-VgpxPJaq8mWKTVENH0fTfgcrCp2rqW8c5T7XbHxHJya9oASBdoyh8XFoLjZDOm4tISffVsVCVxYbwmBzIhHQ0g==
+babylonjs-gltf2interface@5.0.0-rc.3:
+  version "5.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-5.0.0-rc.3.tgz#b649336529688f3a82bcbd7fb0cd4b8f5b78a074"
+  integrity sha512-hXYD2C/4OT2toGSP1Ll89rf6b9r+tqkWnP22C5rnZQ69TJMukvv//dXujJC6sVHZZ7Gt9zpihmVJCgTFTJ/4cg==
 
 balanced-match@^1.0.0:
   version "1.0.2"
@@ -4658,9 +4658,9 @@ ejs@^3.1.5:
     jake "^10.6.1"
 
 electron-to-chromium@^1.3.564, electron-to-chromium@^1.4.76:
-  version "1.4.80"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.80.tgz#299a1ea3e32810934b4e3c2e4d4cb53136fdab3f"
-  integrity sha512-COsbJCGVYCc/aAY4cd94x1Js3q0r406YKGbdL8LXHg0O9dEjuFEFU/vZneRxBxKo/f1lLHi0YyAR7sbFM+i8Bg==
+  version "1.4.82"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.82.tgz#51e123ca434b1eba8c434ece2b54f095b304a651"
+  integrity sha512-Ks+ANzLoIrFDUOJdjxYMH6CMKB8UQo5modAwvSZTxgF+vEs/U7G5IbWFUp6dS4klPkTDVdxbORuk8xAXXhMsWw==
 
 elliptic@^6.5.3, elliptic@^6.5.4:
   version "6.5.4"
@@ -4795,9 +4795,9 @@ es-to-primitive@^1.2.1:
     is-symbol "^1.0.2"
 
 es5-ext@^0.10.35, es5-ext@^0.10.50:
-  version "0.10.57"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.57.tgz#440574256186e2bf22223d673087caae83edabd2"
-  integrity sha512-L7cCNoPwTkAp7IBHxrKLsh7NKiVFkcdxlP9vbVw9QUvb7gF0Mz9bEBN0WY9xqdTjGF907EMT/iG013vnbqwu1Q==
+  version "0.10.58"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.58.tgz#5b97d94236285fb87c8ffc782cf42eb0a25d2ae0"
+  integrity sha512-LHO+KBBaHGwjy32ibSaMY+ZzjpC4K4I5bPoijICMBL7gXEXfrEUrzssmNP+KigbQEp1dRUnGkry/vUnxOqptLQ==
   dependencies:
     es6-iterator "^2.0.3"
     es6-symbol "^3.1.3"
@@ -10690,9 +10690,9 @@ spdy@^4.0.2:
     spdy-transport "^3.0.0"
 
 splaytree@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/splaytree/-/splaytree-3.1.0.tgz#17d4a0108a6da3627579690b7b847241e18ddec8"
-  integrity sha512-gvUGR7xnOy0fLKTCxDeUZYgU/I1Tdf8M/lM1Qrf8L2TIOR5ipZjGk02uYcdv0o2x7WjVRgpm3iS2clLyuVAt0Q==
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/splaytree/-/splaytree-3.1.1.tgz#e1bc8e68e64ef5a9d5f09d36e6d9f3621795a438"
+  integrity sha512-9FaQ18FF0+sZc/ieEeXHt+Jw2eSpUgUtTLDYB/HXKWvhYVyOc7h1hzkn5MMO3GPib9MmXG1go8+OsBBzs/NMww==
 
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"
