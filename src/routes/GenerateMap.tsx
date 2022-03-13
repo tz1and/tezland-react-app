@@ -2,7 +2,7 @@ import React, { createRef } from "react";
 import { Svg } from "@svgdotjs/svg.js";
 import { Angle, Vector2 } from '@babylonjs/core'
 import Conf from "../Config";
-import { OpKind } from "@taquito/taquito";
+import { MichelsonMap, OpKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import { sleep } from "../utils/Utils";
@@ -122,28 +122,22 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         console.log("upload places done");
 
         // Mint places
-        let batch = this.context.tezosToolkit().wallet.batch();
-        let batch_size = 0;
+        let batch = [];
 
         for(const meta of place_meta_files) {
             console.log(meta);
 
-            batch.with([
-                {
-                    kind: OpKind.TRANSACTION,
-                    ...minterWallet.methodsObject.mint_Place({
-                        address: walletphk,
-                        metadata: char2Bytes(meta)
-                    }).toTransferParams()
-                }
-            ]);
+            const metadata_map = new MichelsonMap<string,string>({ prim: "map", args: [{prim: "string"}, {prim: "bytes"}]});
+            metadata_map.set('', char2Bytes(meta));
+            batch.push({
+                to_: walletphk,
+                metadata: metadata_map
+            });
 
-            batch_size++;
-
-            if(batch_size >= 150) {
+            if(batch.length >= 150) {
                 console.log("batch limit reached, sending batch");
 
-                const batch_op = await batch.send();
+                const batch_op = await minterWallet.methodsObject.mint_Place(batch).send();
                 await batch_op.confirmation();
 
                 // TODO: figure out how long to wait between operations...
@@ -151,13 +145,12 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 await sleep(10000);
                 console.log("done sleeping, preparing next batch");
 
-                batch = this.context.tezosToolkit().wallet.batch();
-                batch_size = 0;
+                batch = [];
             }
         }
 
-        if(batch_size > 0) {
-            const batch_op = await batch.send();
+        if(batch.length > 0) {
+            const batch_op = await minterWallet.methodsObject.mint_Place(batch).send();
             await batch_op.confirmation();
         }
     }
