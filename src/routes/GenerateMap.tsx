@@ -2,7 +2,7 @@ import React, { createRef } from "react";
 import { Svg } from "@svgdotjs/svg.js";
 import { Angle, Vector2 } from '@babylonjs/core'
 import Conf from "../Config";
-import { MichelsonMap, OpKind } from "@taquito/taquito";
+import { MichelsonMap } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import { sleep } from "../utils/Utils";
