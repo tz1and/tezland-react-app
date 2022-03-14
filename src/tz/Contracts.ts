@@ -247,33 +247,34 @@ export class Contracts {
 
         const stItemsKey = "placeItems";
 
-        if (placeUpdated) {
-            Logging.InfoDev("place items outdated, reading from chain");
-
-            const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
-
-            // We have to flatten the michelson map into something serialisable.
-            const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
-            const flattened_item_data: { item_id: BigNumber; issuer: string, data: object }[] = [];
-            for (const [issuer, issuer_items] of michelson_map.entries()) {
-                for (const [item_id, item] of issuer_items.entries()) {
-                    flattened_item_data.push({ item_id: item_id, issuer: issuer, data: item });
-                }
-            }
-
-            const place_data = { stored_items: flattened_item_data, place_props: result.place_props }
-
-            // TODO: await save?
-            Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
-
-            return place_data;
-        } else { // Otherwise load items from storage
+        // Try to read from local storage.
+        if(!placeUpdated) {
             Logging.InfoDev("reading place from local storage")
 
             const placeItemsStore = await Metadata.Storage.loadObject(place_id, stItemsKey);
 
-            return placeItemsStore;
+            if (placeItemsStore !== null) return placeItemsStore;
         }
+
+        Logging.InfoDev("place items outdated, reading from chain");
+
+        const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
+
+        // We have to flatten the michelson map into something serialisable.
+        const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
+        const flattened_item_data: { item_id: BigNumber; issuer: string, data: object }[] = [];
+        for (const [issuer, issuer_items] of michelson_map.entries()) {
+            for (const [item_id, item] of issuer_items.entries()) {
+                flattened_item_data.push({ item_id: item_id, issuer: issuer, data: item });
+            }
+        }
+
+        const place_data = { stored_items: flattened_item_data, place_props: result.place_props }
+
+        // TODO: await save?
+        Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
+
+        return place_data;
 
         //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
