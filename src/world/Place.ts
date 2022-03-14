@@ -201,12 +201,12 @@ export default class Place {
                 },
                 async () => {
                     // Update owner and permissions, if they weren't updated recently.
-                    if(performance.now() - 60000 > this.last_owner_and_permission_update) {
+                    if(Date.now() - 60000 > this.last_owner_and_permission_update) {
                         Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
                         try {
                             this.owner = await Contracts.getPlaceOwner(this.placeId);
                             this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
-                            this.last_owner_and_permission_update = performance.now();
+                            this.last_owner_and_permission_update = Date.now();
                         }
                         catch(reason: any) {
                             Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
