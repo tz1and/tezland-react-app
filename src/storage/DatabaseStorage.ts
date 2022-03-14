@@ -54,7 +54,9 @@ export class DatabaseStorage implements IStorageProvider {
                 var request: IDBOpenDBRequest = this.idbFactory.open("tezland", databaseVersion);
 
                 // Could occur if user is blocking the quota for the DB and/or doesn't grant access to IndexedDB
-                request.onerror = () => {
+                request.onerror = (ev) => {
+                    Logging.Error("IDB request failed. Event info following:");
+                    Logging.ErrorDev(ev);
                     handleError();
                 };
 

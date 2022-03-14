@@ -91,6 +91,7 @@ export default class Place {
     get currentOwner(): string { return this.owner; }
     private owner: string;
     private permissions: PlacePermissions;
+    private last_owner_and_permission_update = 0;
 
     private savePending: boolean;
 
@@ -198,36 +199,43 @@ export default class Place {
                         usePreciseIntersection: true
                     }
                 },
-                () => {
+                async () => {
+                    // Update owner and permissions, if they weren't updated recently.
+                    if(performance.now() - 60000 > this.last_owner_and_permission_update) {
+                        Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
+                        try {
+                            this.owner = await Contracts.getPlaceOwner(this.placeId);
+                            this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
+                            this.last_owner_and_permission_update = performance.now();
+                        }
+                        catch(reason: any) {
+                            Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
+                            Logging.InfoDev(reason);
+                        }
+                    }
+
+                    // Then set current place. Updates the UI as well.
                     this.world.playerController.setCurrentPlace(this);
                     Logging.InfoDev("entered place: " + this.placeId)
                 },
             );
 
+            // register player trigger when place owner info has loaded.
+            this.world.playerController.playerTrigger.actionManager?.registerAction(this.executionAction);
+
             // update owner and operator, excution action, loading items ansychronously
             (async () => {
                 //const load_start_time = performance.now();
 
-                this.owner = await Contracts.getPlaceOwner(this.placeId);
-                // TODO: maybe reload isOperated when you enter a place.
-                // OR EVEN BETTER. listen to walletChanged events and reload for all places.
-                // OR EVEN EVEN BETTER. listen for specific contract events.
-                this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
-
-                // register player trigger when place owner info has loaded.
-                assert(this.executionAction);
-                this.world.playerController.playerTrigger.actionManager?.registerAction(this.executionAction);
-
                 // TODO:
                 // Problem with loading asynchronously is that meshes could be loaded into the scene twice.
                 // Needs to be fixed!
-                //await
                 await this.loadItems(false);
 
                 //const load_elapsed = performance.now() - load_start_time;
                 //Logging.InfoDev(`Place loading took ${load_elapsed}ms`)
             })().catch((reason: any) => {
-                Logging.InfoDev("failed to load items/ownership " + this.placeId);
+                Logging.InfoDev("failed to load items " + this.placeId);
                 Logging.InfoDev(reason);
             })
 
