@@ -219,7 +219,7 @@ export class Contracts {
         if (!this.places)
             this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
 
-        return await this.places.contractViews.count_tokens().executeView({ viewCaller: this.places.address });
+        return this.places.contractViews.count_tokens().executeView({ viewCaller: this.places.address });
     }
 
     public async hasPlaceUpdated(walletProvider: ITezosWalletProvider, place_id: number): Promise<boolean> {
