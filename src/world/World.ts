@@ -210,6 +210,8 @@ export class World {
         // TODO: on walletChanged event, disconnect and reconnect!
         this.multiClient = new MultiplayerClient(this);
 
+        // TODO: wait for wallet to be initialised?
+
         //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
     }
 
@@ -310,7 +312,7 @@ export class World {
 
             this.waterMaterial.addToRenderList(mesh);
 
-            // TEMP
+            // TODO: gaps for bridges.
             // Create invisible wall.
             /*const walls = MeshUtils.extrudeShape([new Vector3(), new Vector3(0,2,0)], vertices, center, this.defaultMaterial,
                 `district${counter}`, this.scene, Mesh.BACKSIDE);
