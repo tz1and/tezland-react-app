@@ -361,7 +361,7 @@ export default class Place {
             //this.octree = this.scene.createOrUpdateSelectionOctree();
         }
         catch(e: any) {
-            Logging.Error("Failed to load items for place: " + e)
+            Logging.Error("Failed to load items for place " + this.placeId, e);
         }
     }
 
