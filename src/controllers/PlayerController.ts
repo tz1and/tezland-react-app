@@ -20,6 +20,7 @@ const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
 const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
 
 export default class PlayerController {
+    private appControlFunctions: AppControlFunctions;
     private camera: FreeCamera;
     private scene: Scene;
     private _shadowGenerator: Nullable<ShadowGenerator>;
@@ -60,7 +61,8 @@ export default class PlayerController {
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
 
-    constructor(world: World, canvas: HTMLCanvasElement, appControlfunctions: AppControlFunctions) {
+    constructor(world: World, canvas: HTMLCanvasElement, appControlFunctions: AppControlFunctions) {
+        this.appControlFunctions = appControlFunctions;
         this.scene = world.scene;
         this._shadowGenerator = null;
         this.currentPlace = null;
@@ -109,7 +111,7 @@ export default class PlayerController {
                 this.camera.detachControl();
                 this.input.detachControl();
                 //this.isPointerLocked = false;
-                appControlfunctions.setOverlayDispaly(true);
+                this.appControlFunctions.setOverlayDispaly(true);
             } else {
                 // focus on canvas for keyboard input to work.
                 canvas.focus();
@@ -122,17 +124,12 @@ export default class PlayerController {
         // Catch pointerlock errors to not get stuck
         this.onPointerlockError = () => {
             Logging.Error("Pointerlock request failed.");
-            appControlfunctions.loadForm('instructions');
+            this.appControlFunctions.loadForm('instructions');
         };
 
         // add pointerlock event listeners
         document.addEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.addEventListener("pointerlockerror", this.onPointerlockError, false);
-
-        this.setCurrentPlace = (place: Place) => {
-            this.currentPlace = place;
-            appControlfunctions.updatePlaceInfo(place.placeId, place.currentOwner, place.getPermissions);
-        }
 
         // mouse interaction when locked
         this.scene.onPointerObservable.add(async (info, eventState) => {
@@ -161,7 +158,7 @@ export default class PlayerController {
                             eventState.skipNextObservers = true;
 
                             document.exitPointerLock();
-                            appControlfunctions.placeItem(newObject);
+                            this.appControlFunctions.placeItem(newObject);
                         }
                     }
                     break;
@@ -233,6 +230,8 @@ export default class PlayerController {
                     // Save place
                     case "KeyU":
                         if(this.currentPlace) {
+                            // We don't check permissions because removing of own items is always allowed.
+                            // Permissions are checked when placing/marking for removal instead.
                             if(this.currentPlace.save())
                                 document.exitPointerLock();
                         }
@@ -241,25 +240,34 @@ export default class PlayerController {
                     // Opens the mint form
                     case 'KeyM':
                         document.exitPointerLock();
-                        appControlfunctions.loadForm('mint');
+                        this.appControlFunctions.loadForm('mint');
                         break;
 
                     // Opens the place properties form
                     case 'KeyP':
-                        if(this.currentPlace && this.currentPlace.getPermissions.hasProps()) {
-                            Contracts.getItemsForPlaceView(world.walletProvider, this.currentPlace.placeId, false).then((res) => {
-                                assert(this.currentPlace);
-                                document.exitPointerLock();
-                                // NOTE: we just assume, placeInfo in Explore is up to date.
-                                appControlfunctions.editPlaceProperties('#' + res.place_props);
-                            })
+                        if(this.currentPlace) {
+                            if (this.currentPlace.getPermissions.hasProps()) {
+                                Contracts.getItemsForPlaceView(world.walletProvider, this.currentPlace.placeId, false).then((res) => {
+                                    assert(this.currentPlace);
+                                    document.exitPointerLock();
+                                    // NOTE: we just assume, placeInfo in Explore is up to date.
+                                    this.appControlFunctions.editPlaceProperties('#' + res.place_props);
+                                });
+                            } else {
+                                this.appControlFunctions.addNotification({
+                                    id: "permissionsProps" + this.currentPlace.placeId,
+                                    title: "No permission",
+                                    body: `You don't have permission to edit the properties of this place.`,
+                                    type: 'info'
+                                });
+                            }
                         }
                         break;
 
                     // Opens the inventory
                     case 'KeyI':
                         document.exitPointerLock();
-                        appControlfunctions.loadForm('inventory');
+                        this.appControlFunctions.loadForm('inventory');
                         break;
 
                     // Clear item selection
@@ -379,7 +387,10 @@ export default class PlayerController {
         return this.camera.rotation;
     }
 
-    public setCurrentPlace: (place: Place) => void;
+    public setCurrentPlace(place: Place) {
+        this.currentPlace = place;
+        this.appControlFunctions.updatePlaceInfo(place.placeId, place.currentOwner, place.getPermissions);
+    }
 
     public getCurrentPlace() { return this.currentPlace; }
 
@@ -429,7 +440,12 @@ export default class PlayerController {
             }
             else {
                 this.currentItem = undefined;
-                // TODO: notification when model failed to load for some reason!
+                this.appControlFunctions.addNotification({
+                    id: "itemLimits" + token_id,
+                    title: "Item failed to load",
+                    body: `The item you selected (token id: ${token_id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
+                    type: 'danger'
+                });
             }
         }
         catch(e) {

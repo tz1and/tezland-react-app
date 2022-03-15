@@ -64,8 +64,8 @@ export class World {
 
     private subscription?: Subscription<OperationContent> | undefined;
 
-    constructor(mount: HTMLCanvasElement, appControlfunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
-        this.appControlFunctions = appControlfunctions;
+    constructor(mount: HTMLCanvasElement, appControlFunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
+        this.appControlFunctions = appControlFunctions;
         // Get the canvas element from the DOM.
         const canvas = mount;
         const divFps = document.getElementById("fps");
@@ -99,7 +99,7 @@ export class World {
         }
 
         // create camera first
-        this.playerController = new PlayerController(this, canvas, appControlfunctions);
+        this.playerController = new PlayerController(this, canvas, appControlFunctions);
         this.lastUpdatePosition = this.playerController.getPosition().clone();
 
         // Create a default material

@@ -27,7 +27,7 @@ type ExploreState = {
     dispaly_overlay: boolean;
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
-    notifications: NotificationData[];
+    notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     placeInfo: {placeId: number, owner: string, permissions: PlacePermissions};
     groundColor: string;
     //count: number; // like this
