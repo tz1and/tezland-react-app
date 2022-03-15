@@ -7,6 +7,7 @@ export class PlayerKeyboardInput {
 
     public right: number = 0;
     public forward: number = 0;
+    public up: number = 0;
     public jump: boolean = false;
 
     /**
@@ -127,6 +128,7 @@ export class PlayerKeyboardInput {
             // Keyboard
             this.forward = 0;
             this.right = 0;
+            this.up = 0;
             this.jump = false;
             for (let index = 0; index < this._keys.length; index++) {
                 let keyCode = this._keys[index];
@@ -140,11 +142,12 @@ export class PlayerKeyboardInput {
                 } else if (this.keysDown.indexOf(keyCode) !== -1) {
                     this.forward = -1;
                 } else if (this.keysUpward.indexOf(keyCode) !== -1) {
-                    // TODO: fly mode up
+                    this.up = 1;
                 } else if (this.keysDownward.indexOf(keyCode) !== -1) {
-                    // TODO: fly mode down
+                    this.up = -1;
                 } else if (this.keysJump.indexOf(keyCode) !== -1) {
                     this.jump = true;
+                    this.up = 1;
                 }
             }
         }

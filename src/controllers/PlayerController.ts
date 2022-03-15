@@ -80,6 +80,9 @@ export default class PlayerController {
         this.input.keysRight = [68 /*d*/, 39 /*right arrow*/];
         this.input.keysUp = [87 /*w*/, 38 /*up arrow*/];
         this.input.keysDown = [83 /*s*/, 40 /*down arrow*/];
+        // NOTE: upward is also handled by "jump"
+        this.input.keysUpward = [];
+        this.input.keysDownward = [86/*v*/];
 
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
@@ -506,6 +509,7 @@ export default class PlayerController {
         this.input.checkInputs();
         const moveFwd = this.input.forward; //fwd, z
         const moveRight = this.input.right; //right, x
+        const moveUp = this.input.up; // up, y
 
         // Figure out directions.
         const cam_dir = this.camera.getDirection(Axis.Z);
@@ -516,7 +520,10 @@ export default class PlayerController {
 
         // Player velocity.
         const accel = delta_time * 3
-        const new_vel = fwd.scale(moveFwd).add(right.scale(moveRight)).normalize().scale(this.player_speed * accel);
+        const new_vel = (this._flyMode ?
+            fwd.scale(moveFwd).add(right.scale(moveRight)).add(Vector3.Up().scale(moveUp)) :
+            fwd.scale(moveFwd).add(right.scale(moveRight))
+        ).normalize().scale(this.player_speed * accel);
         this.velocity.scaleInPlace(1 - accel).addInPlace(new_vel);
 
         // Not needed if accel and decel are eq.
@@ -572,6 +579,8 @@ export default class PlayerController {
         const vel_diff = this.playerTrigger.position.subtract(this.position_prev_frame).subtractInPlace(this.velocity);
         if(!isEpsilonEqual(vel_diff.x, 0, PlayerController.EPSILON))
             this.velocity.x += vel_diff.x;
+        if(!isEpsilonEqual(vel_diff.y, 0, PlayerController.EPSILON))
+            this.velocity.y += vel_diff.y;
         if(!isEpsilonEqual(vel_diff.z, 0, PlayerController.EPSILON))
             this.velocity.z += vel_diff.z;
         //console.log(this.velocity)
