@@ -30,7 +30,8 @@ type AuctionState = {
     mapLocation: [number, number],
     placePoly: [number, number][],
     placeCoords: [number, number],
-    placeArea: number
+    placeArea: number,
+    buildHeight: number
 }
 
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
@@ -47,6 +48,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
             placePoly: [],
             placeCoords: [0, 0],
             placeArea: 0,
+            buildHeight: 0
         };
         this.updateTimeVars();
     }
@@ -126,7 +128,8 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                 mapLocation: center_pos,
                 placePoly: placePoly,
                 placeCoords: [coords[0], coords[2]],
-                placeArea: Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2))
+                placeArea: Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2)),
+                buildHeight: res.buildHeight
             });
         })
     }
@@ -186,6 +189,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
                     <p className='small'>
                         Place area: {this.state.placeArea.toFixed(2)} m<sup>2</sup><br/>
+                        Build height: {this.state.buildHeight.toFixed(2)} m<br/>
                         Current owner: <a href={`https://tzkt.io/${this.props.owner}`} target='_blank' rel='noreferrer'>{this.props.owner.substring(0,12)}...</a><br/>
                         Start price: {mutezToTez(this.props.startPrice).toNumber()} &#42793;<br/>
                         End price: {mutezToTez(this.props.endPrice).toNumber()} &#42793;<br/>
