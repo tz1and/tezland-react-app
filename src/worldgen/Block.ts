@@ -15,13 +15,14 @@ export default class Block extends WorldPolygon {
         this.dont_split = false;
     }
 
-    public generateLots() {
+    public generateLots(seed: number) {
         // TODO: tesselate large cells into grids?
-        const prando = new Prando(1234);
+        const prando = new Prando(seed);
         
         if(this.dont_split) {
             const lot = new Lot(this.center, this.vertices);
             lot.straightSkeleton(3);
+            lot.buildHeight += prando.next(0, 20);
             this.lots.push(lot);
             console.log("didn't split");
             return;
@@ -41,6 +42,12 @@ export default class Block extends WorldPolygon {
                 l.straightSkeleton(3);
                 if(l.isValid()) {
                     const properLand = WorldPolygon.clipAgainst<Lot, Lot>(l, poly, Lot);
+
+                    // Build height is just random for now
+                    properLand.forEach((l) => {
+                        l.buildHeight += prando.next(0, 20);
+                    })
+
                     this.lots.push(...properLand);
                 }
             });

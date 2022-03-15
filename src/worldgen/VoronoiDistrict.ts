@@ -73,6 +73,7 @@ export default class VoronoiDistrict extends District {
         const diagram: Diagram = voronoi.compute(this.sites, bbox);
 
         const unclipped_blocks: Block[] = []
+        //const unclipped_cells: Block[] = [] // TODO: needs work
 
         // Generate blocks from cells and shrink them.
         for(const cell of diagram.cells) {
@@ -89,6 +90,7 @@ export default class VoronoiDistrict extends District {
             }
 
             const block = new Block(center, vertices);
+
             block.straightSkeleton(3);
 
             for (const p of this.noSplit) {
@@ -96,6 +98,8 @@ export default class VoronoiDistrict extends District {
             }
 
             unclipped_blocks.push(block);
+
+            //unclipped_cells.push(new Block(center, vertices));
         }
 
         // Clip blocks against shrunk district.
@@ -109,11 +113,18 @@ export default class VoronoiDistrict extends District {
             this.blocks.push(...blocks);
         });
 
+        /*const cells: Block[] = []
+
+        unclipped_cells.forEach((block) => {
+            const blocks = WorldPolygon.clipAgainst<District, Block>(d_srunk, block.verticesToPolygon(), Block);
+            cells.push(...blocks);
+        });
+
         // TODO: roads need unshrunken clipped cells
-        /*const mainRoads: DeepEqualsSet<Edge> = new DeepEqualsSet();
+        const mainRoads: DeepEqualsSet<Edge> = new DeepEqualsSet();
         //let land_limit_counter = 0;
         //const land_limit = Infinity;
-        for(const block of this.blocks) {
+        for(const block of cells) {
             block.edges(this.center).forEach(mainRoads.add, mainRoads);
         }
         this.roads = mainRoads.arr;*/
@@ -129,8 +140,9 @@ export default class VoronoiDistrict extends District {
         const center = new Vector2();
         this.blocks = this.blocks.sort((a, b) => a.center.subtract(center).length() - b.center.subtract(center).length());
 
+        const prando = new Prando(1234);
         this.blocks.forEach((b) => {
-            b.generateLots();
+            b.generateLots(prando.nextInt());
         })
     }
 }

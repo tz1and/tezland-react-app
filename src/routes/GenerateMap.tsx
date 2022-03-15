@@ -107,7 +107,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                             minter: walletphk,
                             centerCoordinates: [centroid.x + district.center.x, 0, centroid.y + district.center.y],
                             borderCoordinates: pointsrel,
-                            buildHeight: 10,
+                            buildHeight: lot.buildHeight,
                             placeType: "exterior"
                         }));
                     }
