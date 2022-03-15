@@ -22,8 +22,8 @@ export default class VoronoiDistrict extends District {
     public noSplit: Vector2[];
     private exclusion: ExclusionZone[];
         
-    constructor(center: Vector2, vertices: Vector2[]) {
-        super(center, vertices);
+    constructor(center: Vector2, vertices: Vector2[], seed: number) {
+        super(center, vertices, seed);
 
         this.sites = [];
         this.exclusion = [];
@@ -140,9 +140,9 @@ export default class VoronoiDistrict extends District {
         const center = new Vector2();
         this.blocks = this.blocks.sort((a, b) => a.center.subtract(center).length() - b.center.subtract(center).length());
 
-        const prando = new Prando(1234);
+        const prando = new Prando(this.seed);
         this.blocks.forEach((b) => {
-            b.generateLots(prando.nextInt());
+            b.generateLots(prando.nextInt(), this.build_height_provider);
         })
     }
 }

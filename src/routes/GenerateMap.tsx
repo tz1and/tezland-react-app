@@ -178,7 +178,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             new Vector2(500,500),
             new Vector2(-500,500),
             new Vector2(-500,-500),*/
-        ]);
+        ], 1234);
 
         // generate central circle
         district_1.addCircle(new Vector2(0, 0), 40, 0, 8);
@@ -281,7 +281,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         //const r1 = 29, r2 = 40;
         const district_2 = new VoronoiDistrict(new Vector2(0,0),
-            points.reverse()
+            points.reverse(),
             /*[
                 new Vector2(-r1,-r1),
                 new Vector2(-r2,-0), //c
@@ -292,7 +292,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 new Vector2(r2,-10), //c
                 new Vector2(r1,-r1),
                 new Vector2(0,-r2),
-            ]*/
+            ],*/ 1337
         );
 
         // generate central circle

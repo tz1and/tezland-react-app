@@ -21,13 +21,16 @@ export default class District extends WorldPolygon {
     public bridge_connections: BridgeConnection[];
     public roads: Edge[];
     public curbs: Edge[];
+    public seed: number;
+    public build_height_provider: any | undefined;
 
-    constructor(center: Vector2, vertices: Vector2[]) {
+    constructor(center: Vector2, vertices: Vector2[], seed: number) {
         super(center, vertices);
         this.blocks = [];
         this.roads = [];
         this.curbs = [];
         this.bridge_connections = [];
+        this.seed = seed;
     }
 
     public generateBlocks() {
