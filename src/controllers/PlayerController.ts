@@ -1,4 +1,4 @@
-import { ActionManager, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
+import { ActionManager, Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
     Mesh, Nullable, PointerEventTypes, Quaternion, Ray, Scene,
     ShadowGenerator, Vector3 } from "@babylonjs/core";
 import assert from "assert";
@@ -322,7 +322,7 @@ export default class PlayerController {
 
         // Camera props
         camera.fovMode = FreeCamera.FOVMODE_HORIZONTAL_FIXED;
-        camera.fov = 1.65806; // ~95 deg.
+        camera.fov = Angle.FromDegrees(AppSettings.fovHorizontal.value).radians();
         camera.minZ = 0.1;
         camera.maxZ = 2000;
 

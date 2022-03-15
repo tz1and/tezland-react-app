@@ -67,6 +67,7 @@ export default class AppSettings {
     static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);
     static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "cascaded", parseShadowOptions);
     static shadowMapRes = new AppSetting<ShadowMapRes>("shadowMapRes", 1024, parseShadowMapRes);
+    static fovHorizontal = new AppSetting<number>("fovHorizontal", 90, parseNumber);
 }
 
 export class AppTerms {

@@ -24,6 +24,7 @@ interface SettingsFormValues {
     enableAntialiasing: boolean;
     shadowOptions: ShadowOptions;
     shadowMapRes: ShadowMapRes;
+    fovHorizontal: number;
 }
 
 type SettingsFormProps = {
@@ -51,7 +52,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         // graphics
         enableAntialiasing: AppSettings.enableAntialiasing.value,
         shadowOptions: AppSettings.shadowOptions.value,
-        shadowMapRes: AppSettings.shadowMapRes.value
+        shadowMapRes: AppSettings.shadowMapRes.value,
+        fovHorizontal: AppSettings.fovHorizontal.value
     };
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -95,7 +97,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         // graphics
                         AppSettings.enableAntialiasing.value = values.enableAntialiasing;
                         AppSettings.shadowOptions.value = values.shadowOptions;
-                        AppSettings.shadowMapRes.value = values.shadowMapRes
+                        AppSettings.shadowMapRes.value = values.shadowMapRes;
+                        AppSettings.fovHorizontal.value = values.fovHorizontal;
 
                         props.closeForm(false);
 
@@ -172,6 +175,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                     </div>
                                 </div>
                                 <div className="tab-pane fade" id="graphics" role="tabpanel" aria-labelledby="graphics-tab">
+                                    <div className="mb-3">
+                                        <label htmlFor="fovHorizontal" className="form-label">Mouse Inertia</label>
+                                        <Field id="fovHorizontal" name="fovHorizontal" type="number" min={85} max={125} step={1} className="form-control" aria-describedby="fovHorizontalHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="fovHorizontalHelp" className="form-text">Viewport horizontal field of view.</div>
+                                        <ErrorMessage name="fovHorizontal" children={errorDisplay}/>
+                                    </div>
                                     <div className="mb-3">
                                         <label htmlFor="shadowOptions" className="form-label">Shadows</label>
                                         <Field id="shadowOptions" name="shadowOptions" as="select" value={values.shadowOptions} className="form-select" aria-describedby="shadowOptionsHelp" disabled={isSubmitting} >
