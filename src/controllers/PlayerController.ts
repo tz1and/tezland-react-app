@@ -564,6 +564,13 @@ export default class PlayerController {
             this.velocity.set(0, 0, 0);
         }
         else this.velocity.set(vel_actual.x, 0, vel_actual.z);*/
+
+        // Ensure player can't move too far from body in fly mode
+        if (this._flyMode) {
+            const distance_from_body = this.playerTrigger.position.subtract(this.position_prev_flymode).length();
+            if (distance_from_body > 50)
+                this.playerTrigger.position.copyFrom(Vector3.Lerp(this.position_prev_flymode, this.playerTrigger.position, 50 / distance_from_body));
+        }
     }
 
     private updateController() {
