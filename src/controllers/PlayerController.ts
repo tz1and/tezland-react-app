@@ -251,7 +251,7 @@ export default class PlayerController {
                                     assert(this.currentPlace);
                                     document.exitPointerLock();
                                     // NOTE: we just assume, placeInfo in Explore is up to date.
-                                    this.appControlFunctions.editPlaceProperties('#' + res.place_props);
+                                    this.appControlFunctions.editPlaceProperties('#' + res.place_props.get('00'));
                                 });
                             } else {
                                 this.appControlFunctions.addNotification({

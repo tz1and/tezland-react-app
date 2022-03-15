@@ -264,7 +264,7 @@ export default class Place {
             const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, placeHasUpdated);
 
             if(this.placeGround)
-                (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props}`);
+                (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props.get('00')}`);
 
             // remove old place items if they exist.
             if(this._itemsNode) {

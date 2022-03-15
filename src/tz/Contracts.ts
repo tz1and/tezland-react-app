@@ -269,7 +269,14 @@ export class Contracts {
             }
         }
 
-        const place_data = { stored_items: flattened_item_data, place_props: result.place_props }
+        // We have to convert the michelson map into a regular map to be serialisable.
+        const props_michelson_map = (result.place_props as MichelsonMap<string, string>);
+        const place_props: Map<string, string> = new Map();
+        for (const [key, value] of props_michelson_map.entries()) {
+            place_props.set(key, value);
+        }
+
+        const place_data = { stored_items: flattened_item_data, place_props: place_props };
 
         // TODO: await save?
         Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
@@ -283,7 +290,9 @@ export class Contracts {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         // owner is optional.
-        let params: any = { lot_id: place_id, props: groundColor };
+        const props_map = new MichelsonMap<string, string>();
+        props_map.set('00', groundColor);
+        let params: any = { lot_id: place_id, props: props_map };
         if(owner) params.owner = owner;
 
         try {
