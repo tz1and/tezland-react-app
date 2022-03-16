@@ -1,5 +1,5 @@
 import { Mesh, Node, Quaternion } from "@babylonjs/core";
-import { Contract, MichelsonMap, OpKind, TransactionWalletOperation } from "@taquito/taquito";
+import { Contract, MichelsonMap, OpKind, PollingSubscribeProvider, TransactionWalletOperation } from "@taquito/taquito";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { packTo } from 'byte-data';
@@ -29,10 +29,10 @@ export class Contracts {
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
-        walletProvider.tezosToolkit().setProvider({ config: {
+        walletProvider.tezosToolkit().setStreamProvider(walletProvider.tezosToolkit().getFactory(PollingSubscribeProvider)({
             shouldObservableSubscriptionRetry: true,
-            streamerPollingIntervalMilliseconds: 20000
-        } });
+            pollingIntervalMilliseconds: 5000 // NOTE: getting random failures with 20000
+        }));
 
         try {
             const placesOperation = {
