@@ -82,7 +82,7 @@ Eventually, you will be able to use the DAO token to vote on proposals, changes 
 
 In quasi-legal terms: This is a non-profit.
 
-From the day the DAO is bootstrapped (DAO tokens are not distributed immediately, to not over-advantage early adopters) to the cut-off date (bootstrap + 60 days), everyone participating gets DAO tokens for 'swaps'. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved. A team vote-fund.
+DAO tokens will be distributed at some point - based on user activity. Everyone participating will get the chance to claim their DAO tokens. The manager (me) gets 20% of all minted DAO tokens: for myself and to be distributed to other people getting involved later. A team vote-fund.
 
 Feel free to add liquidity, I (probably XD - joke, I won't throw away my vote) won't dump my tokens. But know that this will never be more than a DAO token - unless there's a vote, I suppose.`
             },
