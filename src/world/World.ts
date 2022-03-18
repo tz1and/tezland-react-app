@@ -406,7 +406,7 @@ export class World {
             this.shadowGenerator?.addShadowCaster(right);
 
             bridgeNode.position = bridge_pos;
-            bridgeNode.position.y = -0.511;
+            bridgeNode.position.y = -0.525;
 
             bridgeNode.rotate(Axis.Y, Angle.FromDegrees(90).radians() + bridge_angle, Space.LOCAL);
 
