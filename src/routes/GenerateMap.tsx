@@ -262,7 +262,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         district_1.noSplit.push(new Vector2(275 + 65, 0));
         district_1.noSplit.push(new Vector2(-275 - 65, 0));*/
 
-        district_1.addRandomSites(200, 663);
+        district_1.addRandomSites(20, 10);
 
         return district_1;
     }

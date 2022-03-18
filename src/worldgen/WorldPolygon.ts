@@ -137,6 +137,18 @@ export default class WorldPolygon {
         return relpoints;
     }
 
+    public extent(): [Vector2, Vector2] {
+        const max = new Vector2(-Infinity, -Infinity);
+        const min = new Vector2(Infinity, Infinity);
+
+        this.vertices.forEach((v) => {
+            max.copyFrom(Vector2.Maximize(max, v));
+            min.copyFrom(Vector2.Minimize(min, v));
+        });
+
+        return [min, max];
+    }
+
     // naive shrink. rather use straight skeleton.
     public naiveShrink(s: number) {
         const newpoints: Vector2[] = [];
