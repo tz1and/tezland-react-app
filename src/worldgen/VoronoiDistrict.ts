@@ -69,13 +69,10 @@ export default class VoronoiDistrict extends District {
 
     public override generateBlocks() {
         const voronoi = new Voronoi();
-        // TODO: bbox defined by WorldPolygon.extent()
-        const [min, max] = this.extent();
 
         // Vornonoi bounds need some margin.
         const bounds_margin = 25;
-        min.subtractInPlace(new Vector2(bounds_margin, bounds_margin));
-        max.addInPlace(new Vector2(bounds_margin, bounds_margin));
+        const [min, max] = this.extent(bounds_margin);
 
         const bbox: BoundingBox = {xl: min.x, xr: max.x, yt: min.y, yb: max.y}; // xl is x-left, xr is x-right, yt is y-top, and yb is y-bottom
         const diagram: Diagram = voronoi.compute(this.sites, bbox);
@@ -150,7 +147,7 @@ export default class VoronoiDistrict extends District {
 
         const prando = new Prando(this.seed);
         this.blocks.forEach((b) => {
-            b.generateLots(prando.nextInt(), this.build_height_provider);
+            b.generateLots(prando.nextInt(0, 1000000), this.build_height_provider);
         })
     }
 }

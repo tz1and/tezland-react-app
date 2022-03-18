@@ -1,4 +1,5 @@
 import { Vector2 } from "@babylonjs/core";
+import { Matrix2D } from "@babylonjs/gui";
 import { intersection, Polygon, Ring } from 'polygon-clipping';
 import { IDeepEquals } from "../utils/Sets";
 
@@ -137,14 +138,20 @@ export default class WorldPolygon {
         return relpoints;
     }
 
-    public extent(): [Vector2, Vector2] {
+    public extent(safe_eps: number = 0, transform: Matrix2D = Matrix2D.Identity()): [Vector2, Vector2] {
         const max = new Vector2(-Infinity, -Infinity);
         const min = new Vector2(Infinity, Infinity);
 
         this.vertices.forEach((v) => {
-            max.copyFrom(Vector2.Maximize(max, v));
-            min.copyFrom(Vector2.Minimize(min, v));
+            const pos = new Vector2();
+            transform.transformCoordinates(v.x, v.y, pos);
+            max.copyFrom(Vector2.Maximize(max, pos));
+            min.copyFrom(Vector2.Minimize(min, pos));
         });
+
+        const safe_v = new Vector2(safe_eps, safe_eps);
+        min.subtractInPlace(safe_v);
+        max.addInPlace(safe_v);
 
         return [min, max];
     }

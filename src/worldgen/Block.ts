@@ -57,24 +57,10 @@ export default class Block extends WorldPolygon {
     }
 
     private generateGrid(prando: Prando): Polygon[] {
-        // TODO: New code using subdivided Rectangle
-         // compute bounds
-        /*let min = new Vector2(Infinity, Infinity);
-        let max = new Vector2(-Infinity, -Infinity);
-        for (const p of this.vertices) {
-            min = Vector2.Minimize(p, min);
-            max = Vector2.Maximize(p, max);
-        }
         const safeEps = 0.001;
-        min.subtractInPlace(new Vector2(safeEps, safeEps));
-        max.addInPlace(new Vector2(safeEps, safeEps));
-
-        const extent = max.subtract(min);
-        const max_extent = Math.max(extent.x, extent.y);
-        const gridSize = new Vector2(Math.ceil(max_extent / prando.next(30, 40)), Math.ceil(max_extent / prando.next(30, 40)));
-
+        // TODO: New code using subdivided Rectangle
         // Find the longest edge (to rotate along)
-        let longest_edge_len = -Infinity;
+        /*let longest_edge_len = -Infinity;
         let longest_edge: Edge | undefined;
         this.edges().forEach((edge) => {
             const len = edge.length();
@@ -87,7 +73,15 @@ export default class Block extends WorldPolygon {
         assert(longest_edge);
         const angle = Vector2.Dot(new Vector2(1,0), longest_edge.b.subtract(longest_edge.a))
 
-        let rect = new Rectangle(max_extent * 1, max_extent * 1, min.add(extent.divide(new Vector2(2,2))), 0);
+        // compute bounds
+        const transform = translateAndRotate(this.center.x, this.center.y, angle);
+        const [min, max] = this.extent(safeEps); //, transform);
+
+        const extent = max.subtract(min);
+        const max_extent = Math.max(extent.x, extent.y);
+        const gridSize = new Vector2(Math.ceil(max_extent / prando.next(30, 40)), Math.ceil(max_extent / prando.next(30, 40)));
+
+        let rect = new Rectangle(max_extent * 1, max_extent * 1, min.add(extent.divide(new Vector2(2,2))), angle);
         //draw.polygon(rect.pointsToArray()).stroke('red').fill('none');
 
         const grid: Polygon[] = [];
@@ -102,18 +96,10 @@ export default class Block extends WorldPolygon {
 
         // OLD CODE. TBH: old code was better
         // compute bounds
-        let min = new Vector2(Infinity, Infinity);
-        let max = new Vector2(-Infinity, -Infinity);
-        for (const p of this.vertices) {
-            min = Vector2.Minimize(p, min);
-            max = Vector2.Maximize(p, max);
-        }
-        const safeEps = 0.001;
-        min.subtractInPlace(new Vector2(safeEps, safeEps));
-        max.addInPlace(new Vector2(safeEps, safeEps));
+        const [min, max] = this.extent(safeEps);
 
         const extent = max.subtract(min);
-        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(30, 40)), Math.ceil(extent.y / prando.next(30, 40)));
+        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(30, 45)), Math.ceil(extent.y / prando.next(30, 45)));
         const spacing = new Vector2(extent.x / gridSize.x, extent.y / gridSize.y);
         
         const grid: Polygon[] = [];

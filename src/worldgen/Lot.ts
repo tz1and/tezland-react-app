@@ -12,7 +12,7 @@ export default class Lot extends WorldPolygon {
     // TODO: add area arg and put in WorldPolygon?
     isValid(): boolean {
         if(this.vertices.length < 3) return false;
-        if(this.area() < 18) return false;
+        if(this.area() < 10) return false;
 
         for (const p of this.vertices)
             if (!isFinite(p.x) || !isFinite(p.y)) return false;

@@ -1,23 +1,23 @@
-import { Angle, Vector2 } from "@babylonjs/core";
+import { Vector2 } from "@babylonjs/core";
 import { Matrix2D } from "@babylonjs/gui";
 import { Polygon, Ring } from "polygon-clipping";
 
 
-const translateAndRotate = (x: number, y: number, r: number): Matrix2D => {
+export const translateAndRotate = (x: number, y: number, r: number): Matrix2D => {
     const m_t = Matrix2D.Identity();
     Matrix2D.TranslationToRef(x, y, m_t);
     const m_r = Matrix2D.Identity();
-    Matrix2D.RotationToRef(Angle.FromDegrees(r).radians(), m_r);
+    Matrix2D.RotationToRef(r, m_r);
     const m = Matrix2D.Identity();
     m_r.multiplyToRef(m_t, m);
     return m;
 }
 
-/*const rotateAndTranslate = (x: number, y: number, r: number): Matrix2D => {
+/*export const rotateAndTranslate = (x: number, y: number, r: number): Matrix2D => {
     const m_t = Matrix2D.Identity();
     Matrix2D.TranslationToRef(x, y, m_t);
     const m_r = Matrix2D.Identity();
-    Matrix2D.RotationToRef(Angle.FromDegrees(r).radians(), m_r);
+    Matrix2D.RotationToRef(r, m_r);
     const m = Matrix2D.Identity();
     m_t.multiplyToRef(m_r, m);
     return m;
@@ -29,7 +29,7 @@ export default class Rectangle {
     public height: number;
 
     public pos: Vector2;
-    public angle: number;
+    public angle: number; // in radians
     //public transform: Matrix2D;
 
     constructor(width: number = 100, height: number = 100, pos: Vector2, angle: number) {
