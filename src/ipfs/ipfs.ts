@@ -36,7 +36,7 @@ export function disposeAssetMap() {
 export async function download_item(token_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
-    var asset = assetMap.get(token_id.toNumber());
+    let asset = assetMap.get(token_id.toNumber());
     if(!asset) {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
         const itemCachedStats = await Metadata.Storage.loadObject(token_id.toNumber(), "itemPolycount");
@@ -53,10 +53,12 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
             return null;
         }
 
-        var fileSize = itemMetadata.fileSize;
+        let fileSize = itemMetadata.fileSize;
+        let polygonCount = itemMetadata.polygonCount;
         // early out if cached stats exceed limits
         if(itemCachedStats) {
             fileSize = itemCachedStats.fileSize;
+            polygonCount = itemCachedStats.polygonCount;
 
             // early out if the cached fileSize is > sizeLimit.
             if(itemCachedStats.fileSize > AppSettings.fileSizeLimit.value) {
@@ -65,7 +67,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
             }
 
             // early out if the cached polycount is > -1 and >= polygonLimit.
-            if(itemCachedStats.polyCount >= 0 && itemCachedStats.polyCount >= polygonLimit) {
+            if(itemCachedStats.polygonCount >= 0 && itemCachedStats.polygonCount >= polygonLimit) {
                 Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
                 return null;
             }
@@ -77,6 +79,12 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
                 Logging.Warn("Item " + token_id + " exceeds size limits. Ignoring.");
                 return null;
             }
+
+            // early out if the polygon count from metadata is > polygonLimit.
+            if(polygonCount > polygonLimit) {
+                Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
+                return null;
+            }
         }
         // If no cached stats, get file size from url
         // TODO: cloudfalre ipfs gateway doesn't like this
@@ -84,7 +92,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
             // Item metadata may be lying. Lets make sure.
             fileSize = await getUrlFileSizeHead(Conf.ipfs_gateway + '/ipfs/' + hash);
             if(fileSize > AppSettings.getFileSizeLimit()) {
-                Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polyCount: -1, fileSize: fileSize});
+                Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polygonCount: -1, fileSize: fileSize});
                 Logging.Warn("Item " + token_id + " file exceeds size limits. Ignoring.");
                 return null;
             }
@@ -113,11 +121,12 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         asset = result;
 
         // If we don't have a cache, calculate polycount and store it.
+        // NOTE: we cound polygons even if we have a count in the metadata, metadata could be lying.
         // TODO: this might not be good enough, since animated meshes don't have polygons?
         // Could be a babylon beta bug.
-        if(itemCachedStats === null || itemCachedStats.polyCount < 0) {
+        if(itemCachedStats === null || itemCachedStats.polygonCount < 0) {
             const polycount = countPolygons(result.meshes);
-            Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polyCount: polycount, fileSize: fileSize});
+            Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polygonCount: polycount, fileSize: fileSize});
 
             if(polycount >= polygonLimit) {
                 Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
@@ -161,10 +170,13 @@ type ItemMetadata = {
     minter: string;
     name: string;
     artifactUri: FileLike;
+    displayUri: FileLike;
     thumbnailUri: FileLike;
     tags: string; // unprocessed tags
     formats: object[];
     baseScale: number;
+    polygonCount: number;
+    date: Date;
 }
 
 export function createItemTokenMetadata(metadata: ItemMetadata): string {
@@ -185,10 +197,13 @@ export function createItemTokenMetadata(metadata: ItemMetadata): string {
         shouldPreferSymbol: false,
         symbol: 'tz1and Item',
         artifactUri: metadata.artifactUri,
+        displayUri: metadata.displayUri,
         thumbnailUri: metadata.thumbnailUri,
         decimals: 0,
         formats: metadata.formats,
-        baseScale: metadata.baseScale
+        baseScale: metadata.baseScale,
+        polygonCount: metadata.polygonCount,
+        date: metadata.date.toISOString()
     });
 }
 

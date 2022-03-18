@@ -78,6 +78,7 @@ export default class Metadata {
                         royalties
                         supply
                         baseScale
+                        polygonCount
                     }
                 }`, "getItemTokenMetadata", { id: token_id });
 

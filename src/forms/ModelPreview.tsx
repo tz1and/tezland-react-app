@@ -70,7 +70,7 @@ class PreviewScene {
              this.previewObject = null;
         }
 
-        if(!file) return 0;
+        if(!file) return -1;
 
         try {
             // TODO: use asset container.
@@ -101,7 +101,7 @@ class PreviewScene {
         catch {
             modelLoaded('failed', 0, 0);
 
-            return 0;
+            return -1;
         }
     }
 
@@ -134,7 +134,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
             // optional second annotation for better type inference
             loading: false,
             thumbnail: null,
-            polycount: 0,
+            polycount: -1,
             //count: 0,
             //mount: null
         };

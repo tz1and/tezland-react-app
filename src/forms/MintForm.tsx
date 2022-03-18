@@ -69,6 +69,11 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
     private modelLoaded = (loadingState: ModelLoadingState, modelFileSize: number, polyCount: number) => {
+        const validateCallback = () => {
+            assert(this.formikRef.current);
+            this.formikRef.current.validateField("itemFile");
+        }
+
         // Model limits warning
         if(loadingState === "success") {
             let modelLimitWarning = '';
@@ -78,16 +83,18 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             if(modelFileSize > AppSettings.fileSizeLimit.defaultValue)
                 modelLimitWarning = 'Exceeds default file size limit. It may not be displayed.';
 
-            this.setState({ modelLimitWarning: modelLimitWarning, modelLoadingState: loadingState });
+            this.setState({ modelLimitWarning: modelLimitWarning, modelLoadingState: loadingState }, validateCallback);
         }
-        else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState });
-
-        this.formikRef.current?.validateField("itemFile")
+        else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState }, validateCallback);
     }
 
     private async uploadAndMint(values: MintFormValues, callback?: (completed: boolean) => void) {
         assert(values.itemFile);
         assert(this.modelPreviewRef.current);
+
+        // TEMP: don't check this for images, etc:
+        // For some meshes (fox) you can't count the polygons...
+        assert(this.modelPreviewRef.current.state.polycount >= 0);
 
         const thumbnail = await this.modelPreviewRef.current.getThumbnail();
 
@@ -101,8 +108,10 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         const metadata = createItemTokenMetadata({
             name: values.itemTitle,
             description: values.itemDescription,
+            date: new Date(),
             minter: this.context.walletPHK(),
             artifactUri: await fileToFileLike(values.itemFile),
+            displayUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
             thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
             tags: values.itemTags,
             formats: [
@@ -111,7 +120,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                     fileSize: values.itemFile.size
                 }
             ],
-            baseScale: 1
+            baseScale: 1,
+            polygonCount: this.modelPreviewRef.current.state.polycount
         });
 
         // Post here and wait for result
@@ -160,6 +170,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                         innerRef={this.formikRef}
                         initialValues={this.initialValues}
                         validate = {(values) => {
+                            assert(this.modelPreviewRef.current);
+
                             const errors: FormikErrors<MintFormValues> = {};
 
                             if (!values.itemFile) {
@@ -171,7 +183,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                     errors.itemFile = 'Model file failed to load.';
 
                                 // This is just here to filter out some obvious trolls.
-                                if (this.modelPreviewRef.current!.state.polycount > 10000000)
+                                if (this.modelPreviewRef.current.state.polycount > 10000000)
                                     errors.itemFile = 'Mesh has too many polygons.';
                             }
 
