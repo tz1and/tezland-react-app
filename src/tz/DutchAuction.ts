@@ -2,6 +2,7 @@ import { OpKind } from "@taquito/taquito";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Conf from "../Config";
+import { Logging } from "../utils/Logging";
 import { tezToMutez } from "../utils/Utils";
 import Contracts from "./Contracts";
 
@@ -46,7 +47,8 @@ export default class DutchAuction {
 
             Contracts.handleOperation(walletProvider, batch_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -62,7 +64,8 @@ export default class DutchAuction {
 
             Contracts.handleOperation(walletProvider, bid_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -114,7 +117,8 @@ export default class DutchAuction {
 
             Contracts.handleOperation(walletProvider, cancel_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }

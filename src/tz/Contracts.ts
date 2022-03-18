@@ -108,9 +108,6 @@ export class Contracts {
 
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
-        const contributors: MichelsonMap<string, any> = new MichelsonMap();
-        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: { minter: null } });
-
         try {
             const set_permissions_op = await marketplacesWallet.methodsObject.set_permissions([{
                 add_permission: {
@@ -123,7 +120,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, set_permissions_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -133,9 +131,6 @@ export class Contracts {
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
-
-        const contributors: MichelsonMap<string, any> = new MichelsonMap();
-        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: { minter: null } });
 
         try {
             const set_permissions_op = await marketplacesWallet.methodsObject.set_permissions([{
@@ -148,7 +143,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, set_permissions_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -159,12 +155,13 @@ export class Contracts {
 
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
-        const contributors: MichelsonMap<string, any> = new MichelsonMap();
-        contributors.set(walletProvider.walletPHK(), { relative_royalties: 1000, role: { minter: null } });
+        const contributors = [
+            { address: walletProvider.walletPHK(), relative_royalties: 1000, role: { minter: null } }
+        ];
 
         try {
             const mint_item_op = await minterWallet.methodsObject.mint_Item({
-                address: walletProvider.walletPHK(),
+                to_: walletProvider.walletPHK(),
                 amount: amount,
                 royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
                 contributors: contributors,
@@ -173,7 +170,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, mint_item_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -191,7 +189,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, get_item_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -210,7 +209,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, get_item_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -300,7 +300,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, save_props_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
@@ -398,7 +399,8 @@ export class Contracts {
 
             this.handleOperation(walletProvider, batch_op, callback);
         }
-        catch {
+        catch(e: any) {
+            Logging.Error(e);
             if(callback) callback(false);
         }
     }
