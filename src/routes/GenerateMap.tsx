@@ -2,14 +2,18 @@ import React, { createRef } from "react";
 import { Svg } from "@svgdotjs/svg.js";
 import { Angle, Vector2 } from '@babylonjs/core'
 import Conf from "../Config";
-import { MichelsonMap } from "@taquito/taquito";
+import { MichelsonMap, OpKind, WalletParamsWithKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
-import { sleep } from "../utils/Utils";
+import { mutezToTez, signedArea, sleep, tezToMutez } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
 import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict from "../worldgen/VoronoiDistrict";
 import assert from "assert";
+import Config from "../Config";
+import Contracts from "../tz/Contracts";
+import Metadata from "../world/Metadata";
+import BigNumber from "bignumber.js";
 
 type GenerateMapState = {
     svg?: string;
@@ -80,7 +84,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         document.body.removeChild(link);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private mintPlaces = async () => {
         assert(this.state.worldgen);
 
@@ -153,6 +156,82 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             const batch_op = await minterWallet.methodsObject.mint_Place(batch).send();
             await batch_op.confirmation();
         }
+    }
+
+    private createAuctions = async () => {
+        const auction_id_list: number[] = []; //Array.from({length: 95}, (x, i) => i + 4);
+
+        console.log(auction_id_list);
+
+        assert(auction_id_list.length > 0);
+        assert(auction_id_list.length <= 100);
+
+        const auctionsWallet = await this.context.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
+        const placesWallet = await this.context.tezosToolkit().wallet.at(Conf.place_contract);
+
+        const duration = 168; // 7 days = 24h * 7.
+        const start_time_offset = 45; // in seconds, should be larger than current block time (30s).
+        const current_time = Math.floor(Date.now() / 1000);
+        const start_time = (Math.floor((current_time + start_time_offset) / 60) + 1) * 60; // begins at the next full minute.
+        const end_time = Math.floor(start_time + duration * 3600); // hours to seconds
+
+        const pricePerAreaFactor = 1 / 400;
+        const pricePerVolumeFactor = 1 / 10000;
+
+        const adhoc_ops = [];
+        const create_ops: WalletParamsWithKind[] = [];
+
+        let running_total = new BigNumber(0);
+
+        for (const place_id of auction_id_list) {
+            const place_metadata = await Metadata.getPlaceMetadata(place_id);
+
+            const polygon = place_metadata.borderCoordinates;
+            const areaPoly: number[] = [];
+            for(const pos of polygon) areaPoly.push(pos[0], pos[2]);
+
+            const placeArea = Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2));
+            const placePrice = tezToMutez(parseFloat((
+                1
+                + placeArea * pricePerAreaFactor
+                + placeArea * place_metadata.buildHeight * pricePerVolumeFactor
+            ).toFixed(1)));
+
+            running_total = running_total.plus(placePrice);
+
+            console.log(placeArea, mutezToTez(placePrice).toNumber());
+
+            adhoc_ops.push({
+                operator: Config.dutch_auction_contract,
+                token_id: place_id
+            });
+
+            create_ops.push({
+                kind: OpKind.TRANSACTION,
+                ...auctionsWallet.methodsObject.create({
+                    token_id: place_id, start_price: placePrice, end_price: placePrice,
+                    start_time: start_time.toString(), end_time: end_time.toString(), fa2: Conf.place_contract
+                }).toTransferParams()
+            });
+        }
+
+        console.log("total value: ", mutezToTez(running_total).toNumber());
+
+        const batch_op = await this.context.tezosToolkit().wallet.batch([
+            {
+                kind: OpKind.TRANSACTION,
+                ...placesWallet.methodsObject.update_adhoc_operators({ add_adhoc_operators: adhoc_ops
+                }).toTransferParams()
+            },
+            ...create_ops,
+            {
+                kind: OpKind.TRANSACTION,
+                ...placesWallet.methodsObject.update_adhoc_operators({ clear_adhoc_operators: null
+                }).toTransferParams()
+            }
+        ]).send();
+
+        Contracts.handleOperation(this.context, batch_op, () => {});
     }
 
     private generateDistrict1() {
@@ -401,6 +480,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return (
             <main className="container">
                 <button className="btn btn-primary me-2" onClick={() => this.mintPlaces()}>Mint</button>
+                <button className="btn btn-primary me-2" onClick={() => this.createAuctions()}>Create Auctions</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadSvgFile()}>Download SVG</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadDistrictsFile()}>Download Districts</button>
                 <svg className="d-block" ref={this.svgRef}></svg>
