@@ -18,7 +18,7 @@ class PreviewScene {
         this.canvas = mount;
 
         // Associate a Babylon Engine to it.
-        this.engine = new Engine(this.canvas, true);
+        this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true, stencil: true });
         this.engine.disableManifestCheck = true;
 
         // Create our first scene.
@@ -105,8 +105,8 @@ class PreviewScene {
         }
     }
 
-    getScreenshot(): Promise<string> {
-        return Tools.CreateScreenshotAsync(this.engine, this.scene.activeCamera!, 350);
+    getScreenshot(res: number): Promise<string> {
+        return Tools.CreateScreenshotUsingRenderTargetAsync(this.engine, this.scene.activeCamera!, res, "image/png", 1, true);
     }
 }
 
@@ -167,8 +167,8 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         }
     }
 
-    getThumbnail(): Promise<string> {
-        return this.preview!.getScreenshot();
+    getThumbnail(res: number): Promise<string> {
+        return this.preview!.getScreenshot(res);
     }
 
     override render() {
