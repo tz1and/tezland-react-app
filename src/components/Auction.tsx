@@ -177,7 +177,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <h4 className="text-center mb-0">Place #{this.props.tokenId}</h4>
                     <small className='text-center d-block mb-0'>Auction #{this.props.auctionId}</small>
                 </div>
-                <MapContainer className="auction-img" center={[500, 500]} zoom={2} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the Place">
+                <MapContainer className="auction-img" center={[500, 500]} zoom={1} attributionControl={false} dragging={false} zoomControl={false} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the Place">
                     <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url="/img/map.svg" />
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
