@@ -82,12 +82,16 @@ export type FileLike = {
   name: string
 }
 
-export const fileToFileLike = (file: File): Promise<FileLike> => {
+export type RefLike = {
+  topLevelRef: string
+}
+
+export const fileToFileLike = (file: File, mimeType?: string): Promise<FileLike> => {
   return new Promise((resolve) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onloadend = function () {
-          resolve({ dataUri: reader.result as string, type: file.type, name: file.name });
+          resolve({ dataUri: reader.result as string, type: (mimeType ? mimeType : file.type), name: file.name });
       };
   });
 };

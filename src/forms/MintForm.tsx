@@ -11,7 +11,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { FileLike, fileToFileLike, getFileType } from '../utils/Utils';
+import { FileLike, fileToFileLike, getFileType, RefLike } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
@@ -96,7 +96,11 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         // For some meshes (fox) you can't count the polygons...
         assert(this.modelPreviewRef.current.state.polycount >= 0);
 
-        const thumbnail = await this.modelPreviewRef.current.getThumbnail();
+        const thumbnailRes = 350;
+        const thumbnail = await this.modelPreviewRef.current.getThumbnail(thumbnailRes);
+
+        const displayRes = 1000;
+        const display = await this.modelPreviewRef.current.getThumbnail(displayRes);
 
         // TODO: validate mimeType in validation.
         var mime_type;
@@ -110,14 +114,34 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             description: values.itemDescription,
             date: new Date(),
             minter: this.context.walletPHK(),
-            artifactUri: await fileToFileLike(values.itemFile),
-            displayUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
+            artifactUri: await fileToFileLike(values.itemFile, mime_type),
+            displayUri: { dataUri: display, type: "image/png", name: "display.png" } as FileLike,
             thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
             tags: values.itemTags,
             formats: [
                 {
+                    uri: { topLevelRef: "artifactUri" } as RefLike,
                     mimeType: mime_type,
-                    fileSize: values.itemFile.size
+                    fileSize: values.itemFile.size,
+                    fileName: values.itemFile.name,
+                },
+                {
+                    uri: { topLevelRef: "displayUri" } as RefLike,
+                    mimeType: "image/png",
+                    fileName: "display.png",
+                    dimensions: {
+                        "value": displayRes + "x" + displayRes,
+                        "unit": "px"
+                    }
+                },
+                {
+                    uri: { topLevelRef: "thumbnailUri" } as RefLike,
+                    mimeType: "image/png",
+                    fileName: "thumbnail.png",
+                    dimensions: {
+                        "value": thumbnailRes + "x" + thumbnailRes,
+                        "unit": "px"
+                    }
                 }
             ],
             baseScale: 1,
