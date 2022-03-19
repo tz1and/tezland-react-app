@@ -14,5 +14,5 @@ export default class Conf {
     public static place_contract: string = process.env.REACT_APP_PLACE_CONTRACT;
     public static world_contract: string = process.env.REACT_APP_WORLD_CONTRACT;
     public static minter_contract: string = process.env.REACT_APP_MINTER_CONTRACT;
-    public static dutch_auchtion_contract: string = process.env.REACT_APP_DUTCH_AUCTION_CONTRACT;
+    public static dutch_auction_contract: string = process.env.REACT_APP_DUTCH_AUCTION_CONTRACT;
 }

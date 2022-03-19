@@ -388,12 +388,6 @@ export class Contracts {
             }).toTransferParams()
         }]);
 
-        // Not really needed unless you want to be extra careful.
-        /*if (operator_adds.length > 0) batch.with([{
-            kind: OpKind.TRANSACTION,
-            ...itemsWallet.methodsObject.update_adhoc_operators({ clear_adhoc_operators: null }).toTransferParams()
-        }]);*/
-
         try {
             const batch_op = await batch.send();
 

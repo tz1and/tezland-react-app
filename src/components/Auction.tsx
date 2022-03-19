@@ -3,7 +3,7 @@ import { MapContainer, ImageOverlay, Circle, Polygon } from 'react-leaflet'
 import L from 'leaflet';
 import './Auction.css'
 import 'leaflet/dist/leaflet.css';
-import { mutezToTez, signedArea } from '../utils/Utils';
+import { mutezToTez, signedArea, yesNo } from '../utils/Utils';
 import { MapSetCenter } from '../forms/CreateAuction';
 import React from 'react';
 import Metadata from '../world/Metadata';
@@ -19,7 +19,8 @@ type AuctionProps = {
     endTime: number;
     owner: string;
     tokenId: number;
-    canBid: boolean;
+    isPrimary: boolean;
+    userWhitelisted: boolean;
     removeFromAuctions(auction_id: number): void;
     // using `interface` is also ok
     //message: string;
@@ -193,12 +194,13 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                         Current owner: <a href={`https://tzkt.io/${this.props.owner}`} target='_blank' rel='noreferrer'>{this.props.owner.substring(0,12)}...</a><br/>
                         Start price: {mutezToTez(this.props.startPrice).toNumber()} &#42793;<br/>
                         End price: {mutezToTez(this.props.endPrice).toNumber()} &#42793;<br/>
-                        Duration: {this.duration / 3600}h
+                        Duration: {this.duration / 3600}h<br/>
+                        Primary: {yesNo(this.props.isPrimary)}
                     </p>
 
                     <Link to={`/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
                     {!this.context.isWalletConnected() ? <button onClick={this.bidOnAuction} className="btn btn-secondary btn-md w-100" disabled={true}>No wallet connected</button> :
-                    !this.props.canBid ? <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer" className="btn btn-warning btn-md w-100">Get Whitelisted</a> :
+                    (this.props.isPrimary && !this.props.userWhitelisted) ? <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer" className="btn btn-warning btn-md w-100">Get Whitelisted</a> :
                     <button onClick={this.bidOnAuction} className="btn btn-primary btn-md w-100" disabled={!this.started}>
                         {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>}
                 </div>

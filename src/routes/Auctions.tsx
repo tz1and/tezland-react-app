@@ -13,7 +13,12 @@ type AuctionsState = {
     auctions: any[], // TODO use a map. See Inventory.
     auction_offset: number,
     more_data: boolean,
-    can_bid: boolean,
+    user_is_whitelisted: boolean,
+
+    // global contract settings
+    secondary_enabled: boolean,
+    whitelist_enabled: boolean,
+    administrator: string
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
@@ -26,7 +31,12 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             auctions: [],
             auction_offset: 0,
             more_data: true,
-            can_bid: true
+            user_is_whitelisted: false,
+
+            // defaults from the contract
+            secondary_enabled: false,
+            whitelist_enabled: true,
+            administrator: ""
         };
     }
 
@@ -61,13 +71,29 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     private walletChangeListener = () => {
-        DutchAuction.canBidOnAuctions(this.context).then((res) => {
-            this.setState({can_bid: res});
+        DutchAuction.isWhitelisted(this.context).then((is_whitelisted) => {
+            this.setState({user_is_whitelisted: is_whitelisted});
         });
+    }
+
+    private async getAuctionSettings() {
+        const secondary_enabled = await DutchAuction.isSecondaryMarketEnabled(this.context);
+        const whitelist_enabled = await DutchAuction.isWhitelistEnabled(this.context);
+        const administrator = await DutchAuction.getAdministrator(this.context);
+
+        return [secondary_enabled, whitelist_enabled, administrator]
     }
 
     override componentDidMount() {
         this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
+
+        this.getAuctionSettings().then(([secondary_enabled, whitelist_enabled, administrator]) => {
+            this.setState({
+                secondary_enabled: secondary_enabled,
+                whitelist_enabled: whitelist_enabled,
+                administrator: administrator
+            });
+        });
 
         this.walletChangeListener();
 
@@ -122,9 +148,9 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     override render() {
         var rows = [];
         for(const auction of this.state.auctions) {
-            rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice}
+            rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.ownerId === this.state.administrator}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
-                canBid={this.state.can_bid} removeFromAuctions={this.removeFromAuctions} />);
+                userWhitelisted={this.state.user_is_whitelisted} removeFromAuctions={this.removeFromAuctions} />);
         }
 
         if(rows.length === 0) {
@@ -135,11 +161,11 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             <main>
                 <div className="position-relative container text-start mt-4">
                     <h1>Active Place Auctions</h1>
-                    <p>This is the <i>primary</i> (newly minted Places will end up here) and, when the whitelist will be disabled, also a secondary (everyone can create auctions) marketplace for Places.</p>
-                    <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price.<br/>Auctions can be cancelled by the creator before a bid.</p>
+                    <p>This is the <i>primary</i> (newly minted Places will end up here) and - when it will be enabled - also a secondary (everyone can create auctions) marketplace for Places.</p>
+                    <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price. Auctions can be cancelled by the creator before a bid.</p>
                     <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
-                    <p><b>For the time being, you will need a whitelist spot to get a Place, which you can get in the <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer">Discord</a>.</b></p>
-                    {DutchAuction.isAdministrator(this.context) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
+                    { this.state.whitelist_enabled ? <p><b>For primary actions, you need to be whitelisted. Join the <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer">Discord</a> to get whitelisted.</b></p> : null }
+                    { this.state.secondary_enabled || DutchAuction.isAdministrator(this.context, this.state.administrator) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
                     <hr/>
                     <InfiniteScroll
                         className="d-flex justify-content-left flex-wrap p-2"
