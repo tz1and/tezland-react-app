@@ -155,7 +155,7 @@ export class Contracts {
 
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
-        const contributors = [
+        const contributors = royalties === 0 ? [] : [
             { address: walletProvider.walletPHK(), relative_royalties: 1000, role: { minter: null } }
         ];
 
