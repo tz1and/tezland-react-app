@@ -106,7 +106,7 @@ class PreviewScene {
     }
 
     getScreenshot(res: number): Promise<string> {
-        return Tools.CreateScreenshotUsingRenderTargetAsync(this.engine, this.scene.activeCamera!, res, "image/png", 1, true);
+        return Tools.CreateScreenshotUsingRenderTargetAsync(this.engine, this.scene.activeCamera!, res, "image/png", this.engine.getCaps().maxSamples, true);
     }
 }
 
