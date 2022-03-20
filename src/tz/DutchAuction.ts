@@ -68,7 +68,7 @@ export default class DutchAuction {
     static async isSecondaryMarketEnabled(walletProvider: ITezosWalletProvider): Promise<boolean> {
         const auctions = await walletProvider.tezosToolkit().contract.at(Conf.dutch_auction_contract);
 
-        return auctions.contractViews.is_secondary_enabled(walletProvider.walletPHK()).executeView({ viewCaller: auctions.address });
+        return auctions.contractViews.is_secondary_enabled().executeView({ viewCaller: auctions.address });
     }
 
     // TODO: don't hardcode admin! use get_administrator view.
@@ -93,7 +93,7 @@ export default class DutchAuction {
     public static async isWhitelistEnabled(walletProvider: ITezosWalletProvider) {
         const auctions = await walletProvider.tezosToolkit().contract.at(Conf.dutch_auction_contract);
 
-        return auctions.contractViews.is_whitelist_enabled(walletProvider.walletPHK()).executeView({ viewCaller: auctions.address });
+        return auctions.contractViews.is_whitelist_enabled().executeView({ viewCaller: auctions.address });
     }
 
     public static async getAdministrator(walletProvider: ITezosWalletProvider) {
