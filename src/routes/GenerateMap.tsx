@@ -101,16 +101,18 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                         const centroid = lot.centroid();
                         const pointsrel: number[][] = [];
                         lot.verticesRelative(centroid).forEach((p) => {
-                            pointsrel.push([p.x, 0, p.y])
+                            pointsrel.push([parseFloat(p.x.toFixed(4)), 0, parseFloat(p.y.toFixed(4))])
                         });
+
+                        const centercoords: number[] = [parseFloat((centroid.x + district.center.x).toFixed(4)), 0, parseFloat((centroid.y + district.center.y).toFixed(4))];
 
                         places.push(createPlaceTokenMetadata({
                             name: `Place #${places.length}`,
                             description: `${lot.area().toFixed(2)} \u33A1`,
                             minter: walletphk,
-                            centerCoordinates: [centroid.x + district.center.x, 0, centroid.y + district.center.y],
+                            centerCoordinates: centercoords,
                             borderCoordinates: pointsrel,
-                            buildHeight: lot.buildHeight,
+                            buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
                             placeType: "exterior"
                         }));
                     }
@@ -159,7 +161,35 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     }
 
     private createAuctions = async () => {
-        const auction_id_list: number[] = []; //Array.from({length: 95}, (x, i) => i + 4);
+        const known_places: number[] = Array.from({length: 95}, (x, i) => i);
+        const exclude_places: Set<number> = new Set([
+            0, // spawn
+            1, // me
+            3, // spacegoodies
+            2,4,5, // reserved
+            8, // too small
+            10, // fyin
+            20, // kraznik
+            23, // public
+            25, // dr grackle
+            28, // public
+            34, 37, // too small
+            36, // public
+            41, 43, 46, 47, // too small
+            48, // public
+            52, 54, 58, 64, 65, 71, // too small
+            69, // public
+            79, // too small
+            82, // PureSpider
+            87, 90, 94 // public
+        ]);
+
+        const auction_id_list: number[] = [];
+
+        for (const place_id of known_places) {
+            if (!exclude_places.has(place_id))
+                auction_id_list.push(place_id);
+        }
 
         console.log(auction_id_list);
 
@@ -223,12 +253,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 ...placesWallet.methodsObject.update_adhoc_operators({ add_adhoc_operators: adhoc_ops
                 }).toTransferParams()
             },
-            ...create_ops,
-            {
+            ...create_ops
+            // would require FA2 admin...
+            /*{
                 kind: OpKind.TRANSACTION,
                 ...placesWallet.methodsObject.update_adhoc_operators({ clear_adhoc_operators: null
                 }).toTransferParams()
-            }
+            }*/
         ]).send();
 
         Contracts.handleOperation(this.context, batch_op, () => {});
