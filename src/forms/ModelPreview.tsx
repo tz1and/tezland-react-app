@@ -76,6 +76,9 @@ class PreviewScene {
             // TODO: use asset container.
             const file_type = await getFileType(file);
             const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null, '.' + file_type);
+            // remove all lights.
+            result.lights.forEach((l) => { l.dispose() });
+            // stop animations
             result.animationGroups.forEach((ag) => { ag.stop(); })
             this.previewObject = result.meshes[0] as Mesh;
 
