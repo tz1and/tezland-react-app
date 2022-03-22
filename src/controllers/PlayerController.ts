@@ -44,10 +44,10 @@ export default class PlayerController {
     private gravity: Vector3 = new Vector3();
     private player_speed: number = PlayerJogSpeed;
 
-    private static readonly GRAVITY = 0.5;
+    private static readonly GRAVITY = 0.225;
     private static readonly BODY_HEIGHT = 1.5;
     private static readonly LEGS_HEIGHT = 0.3;
-    private static readonly JUMP_VEL = 0.1;
+    private static readonly JUMP_VEL = 0.07;
 
     private _flyMode: boolean;
     public get flyMode(): boolean { return this._flyMode; }
