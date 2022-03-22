@@ -9,6 +9,7 @@ import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
 import { isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
+import Metadata from "../world/Metadata";
 import Place, { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
 import PickingGuiController from "./PickingGuiController";
@@ -84,14 +85,6 @@ export default class PlayerController {
         this.input.keysUpward = [];
         this.input.keysDownward = [86/*v*/];
 
-        // TEMP-ish: get coordinates from url.
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if(urlParams.has('coordx') && urlParams.has('coordz')) {
-            this.camera.position.x = parseFloat(urlParams.get('coordx')!);
-            this.camera.position.z = parseFloat(urlParams.get('coordz')!);
-        }
-
         // Mesh builder :  {height: PlayerController.BODY_HEIGHT, radius: 0.5, updatable: false}
         this.playerTrigger = new Mesh("player", this.scene);
         this.playerTrigger.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
@@ -100,6 +93,26 @@ export default class PlayerController {
         this.playerTrigger.isVisible = false;
         this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
+
+        // TEMP-ish: get coordinates from url.
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('coordx') && urlParams.has('coordz')) {
+            this.playerTrigger.position.x = parseFloat(urlParams.get('coordx')!);
+            this.playerTrigger.position.z = parseFloat(urlParams.get('coordz')!);
+        } else if (urlParams.has('placeid')) {
+            Metadata.getPlaceMetadata(parseInt(urlParams.get('placeid')!)).then((metadata) => {
+                const origin = Vector3.FromArray(metadata.centerCoordinates);
+                const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
+                
+                // TODO: move outwards a little.
+                this.playerTrigger.position.copyFrom(p0.addInPlace(origin));
+                
+                // Look towards center of place.
+                this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
+                    .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
+            })
+        }
 
         this.scene.registerAfterRender(this.updateController.bind(this));
 
