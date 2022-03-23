@@ -11,7 +11,7 @@ import './index.css';
 import AppRouter from './AppRouter';
 import Metadata from './world/Metadata';
 import { Notification } from './components/Notification';
-import { sleep } from './utils/Utils';
+import { isDev, sleep } from './utils/Utils';
 import Conf from './Config';
 
 
@@ -55,6 +55,7 @@ const renderApp = (element?: JSX.Element) => {
         <React.StrictMode>
             <AppRouter>
                 {element}
+                { isDev() ? <div className='bg-danger text-light text-center align-middle py-2 fixed-bottom'><b>DEVELOPMENT - DEVELOPMENT - DEVELOPMENT - DEVELOPMENT</b></div> : null }
                 {testnetNotify}
             </AppRouter>
         </React.StrictMode>,
