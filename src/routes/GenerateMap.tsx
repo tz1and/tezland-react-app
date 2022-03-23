@@ -91,34 +91,44 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         const minterWallet = await this.context.tezosToolkit().wallet.at(Conf.minter_contract);
         const walletphk = this.context.walletPHK();
+        assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
+
+        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
         const places = []
 
+        let lot_counter = 0;
         for (const district of worldgen.districts)
             for (const block of district.blocks)
                 for (const lot of block.lots) {
                     if(lot.isValid()) {
-                        const centroid = lot.centroid();
-                        const pointsrel: number[][] = [];
-                        lot.verticesRelative(centroid).forEach((p) => {
-                            pointsrel.push([parseFloat(p.x.toFixed(4)), 0, parseFloat(p.y.toFixed(4))])
-                        });
+                        if (lot_counter > last_minted_place_id) {
+                            const centroid = lot.centroid();
+                            const pointsrel: number[][] = [];
+                            lot.verticesRelative(centroid).forEach((p) => {
+                                pointsrel.push([parseFloat(p.x.toFixed(4)), 0, parseFloat(p.y.toFixed(4))])
+                            });
 
-                        const centercoords: number[] = [parseFloat((centroid.x + district.center.x).toFixed(4)), 0, parseFloat((centroid.y + district.center.y).toFixed(4))];
+                            const centercoords: number[] = [parseFloat((centroid.x + district.center.x).toFixed(4)), 0, parseFloat((centroid.y + district.center.y).toFixed(4))];
 
-                        places.push(createPlaceTokenMetadata({
-                            name: `Place #${places.length}`,
-                            description: `${lot.area().toFixed(2)} \u33A1`,
-                            minter: walletphk,
-                            centerCoordinates: centercoords,
-                            borderCoordinates: pointsrel,
-                            buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
-                            placeType: "exterior"
-                        }));
+                            places.push(createPlaceTokenMetadata({
+                                name: `Place #${lot_counter}`,
+                                description: `${lot.area().toFixed(2)} \u33A1`,
+                                minter: walletphk,
+                                centerCoordinates: centercoords,
+                                borderCoordinates: pointsrel,
+                                buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
+                                placeType: "exterior"
+                            }));
+                        }
+
+                        ++lot_counter;
                     }
                 }
 
         console.log("valid places", places.length);
+        console.log("frst new place", places[0]);
+        console.log("last new place", places[places.length - 1]);
 
         // Upload all places metadata
         // eslint-disable-next-line no-unreachable
@@ -161,6 +171,9 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     }
 
     private createAuctions = async () => {
+        const walletphk = this.context.walletPHK();
+        assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
+
         const known_places: number[] = Array.from({length: 95}, (x, i) => i);
         const exclude_places: Set<number> = new Set([
             0, // spawn
@@ -415,8 +428,48 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return district_2
     }
 
+    // It's the little island
+    private generateDistrict3() {
+
+        const district_3 = new VoronoiDistrict(new Vector2(0,0),
+            [
+                // right edge
+                new Vector2(180,-200),
+                new Vector2(120,-80),
+                new Vector2(50,-70),
+                new Vector2(10,0),
+                new Vector2(50,70),
+                new Vector2(120,80),
+                new Vector2(180,200),
+                new Vector2(-30,200),
+                new Vector2(-100,130),
+                new Vector2(-100,-130),
+                new Vector2(-30,-200),
+            ].reverse(), 255
+        );
+
+        // generate central circle
+        district_3.addCircle(new Vector2(45, -80), 50, 0, 6);
+        district_3.noSplit.push(new Vector2(45, -80));
+
+        district_3.addCircle(new Vector2(45, 80), 50, 0, 6);
+        district_3.noSplit.push(new Vector2(45, 80));
+
+        // generate a block
+        district_3.addCircle(new Vector2(-62.2, 0), 70, Angle.FromDegrees(0).radians(), 4);
+
+        //district_3.addSite(new Vector2(7.8, 0), false, true, 25);
+        district_3.noSplit.push(new Vector2(7.8, 0));
+        district_3.noSplit.push(new Vector2(20, -36.69872981077806));
+        district_3.noSplit.push(new Vector2(20, 36.69872981077806));
+
+        district_3.addRandomSites(5, 15589);
+
+        return district_3
+    }
+
     // Similar to componentDidMount and componentDidUpdate:
-    override componentDidMount() {
+    override async componentDidMount() {
         const dim = 1000;
 
         const worldgen = new WorldGen();
@@ -430,15 +483,25 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         district_2.center = new Vector2(-100, 0);
         worldgen.addDistrict(district_2);
 
-        //Bridging districts on (1 3) at distance  15.811388300841896
+        // Third district
+        const district_3 = this.generateDistrict3();
+        district_3.center = new Vector2(-200, 0);
+        worldgen.addDistrict(district_3);
 
-        //worldgen.addBridge({})
-        //worldgen.addConnection(district_1, district_2);
-        //worldgen.addBridge(new Bridge(district_1, 1, 0.05, district_2, 3, 0.8));
-        //worldgen.addBridge(new Bridge(district_1, 1, 0.7, district_2, 5, 0.85));
-        //worldgen.addBridge(new Bridge(district_1, 5, 0.5, district_2, 3, 0.35));
-        //worldgen.addBridge(new Bridge(district_1, 5, 0.3, district_2, 4, 0.15));
+
+        // Add birdges from district 1 to 2
         worldgen.addBridge(new Bridge(district_1, 3, 0.5, district_2, 2, 0.5));
+
+        // Add birdges from district 3 to 2
+        worldgen.addBridge(new Bridge(district_3, 8, 0.5, district_2, 4, 0.5));
+        worldgen.addBridge(new Bridge(district_3, 7, 0.5, district_2, 5, 0.5));
+        worldgen.addBridge(new Bridge(district_3, 6, 0.5, district_2, 6, 0.5));
+        worldgen.addBridge(new Bridge(district_3, 5, 0.5, district_2, 0, 0.5));
+
+        // Add birdges from district 3 to 1
+        worldgen.addBridge(new Bridge(district_3, 9, 0.5, district_1, 0, 0.64));
+        worldgen.addBridge(new Bridge(district_3, 4, 0.5, district_1, 6, 1-0.64));
+
 
         worldgen.generateWorld();
 
@@ -462,49 +525,67 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // Mirror map on x, to make it match the babylon coordinate system.
         // TODO: create canvas based on world extent.
         const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
-        draw.clear();
 
-        // Colors
-        const lotFillColor = '#d6f0ff';
-        const lotStrokeColor = '#3d8dba';
-        const blockFillColor = '#eaeaea';
-        const blockStrokeColor = '#777777'; // eslint-disable-line @typescript-eslint/no-unused-vars
-        const districtFillColor = '#f6f6f6';
-        const districtStrokeColor = '#888888';
-        const bridgeColor = '#888888';
+        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
-        // Draw the svg
-        // TODO: figure out which way to flip the map...
-        // TODO: lots should be realtive to blocks, blocks relative to districts.
-        for (const district of worldgen.districts) {
-            draw.polygon(district.verticesToArray(district.center)).fill(districtFillColor).stroke(districtStrokeColor).attr({'stroke-width': 0.5});
+        const drawMap = (mark_minted: boolean = false) => {
+            draw.clear();
 
-            for (const block of district.blocks) {
-                draw.polygon(block.verticesToArray(district.center)).fill(blockFillColor)/*.stroke(blockStrokeColor)*/.attr({'stroke-width': 0.5});
+            // Colors
+            const lotFillColor = '#d6f0ff';
+            const lotStrokeColor = '#3d8dba';
+            const lotMintedFillColor = '#d6fff0';
+            const lotMintedStrokeColor = '#3dba8d';
+            const blockFillColor = '#eaeaea';
+            const blockStrokeColor = '#777777'; // eslint-disable-line @typescript-eslint/no-unused-vars
+            const districtFillColor = '#f6f6f6';
+            const districtStrokeColor = '#888888';
+            const bridgeColor = '#888888';
 
-                for (const lot of block.lots) {
-                    if(lot.isValid()) {
-                        draw.polygon(lot.verticesToArray(district.center)).fill(lotFillColor).stroke(lotStrokeColor).attr({'stroke-width': 0.5});
-                        const centroid = lot.centroid(district.center);
-                        draw.circle(1).fill(lotFillColor).stroke(lotStrokeColor).move(centroid.x - 0.5, centroid.y - 0.5);
-                        //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5);
+            // Draw the svg
+            // TODO: figure out which way to flip the map...
+            // TODO: lots should be realtive to blocks, blocks relative to districts.
+            let lot_counter = 0;
+            for (const district of worldgen.districts) {
+                draw.polygon(district.verticesToArray(district.center)).fill(districtFillColor).stroke(districtStrokeColor).attr({'stroke-width': 0.5});
+
+                for (const block of district.blocks) {
+                    draw.polygon(block.verticesToArray(district.center)).fill(blockFillColor)/*.stroke(blockStrokeColor)*/.attr({'stroke-width': 0.5});
+
+                    for (const lot of block.lots) {
+                        if(lot.isValid()) {
+                            const fill = (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedFillColor : lotFillColor;
+                            const stroke = (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedStrokeColor : lotStrokeColor;
+
+                            draw.polygon(lot.verticesToArray(district.center)).fill(fill).stroke(stroke).attr({'stroke-width': 0.5});
+                            const centroid = lot.centroid(district.center);
+                            draw.circle(1).fill(fill).stroke(stroke).move(centroid.x - 0.5, centroid.y - 0.5);
+                            //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5);
+                            ++lot_counter;
+                        }
                     }
                 }
+
+                // Draw roads
+                /*for (const road of district.roads)
+                    draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
+
+                for (const curb of district.curbs)
+                    draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});*/
             }
 
-            // Draw roads
-            /*for (const road of district.roads)
-                draw.line(road.pointsToArray()).fill('red').stroke('red').attr({'stroke-width': 0.5});
+            for (const bridge of worldgen.bridges) {
+                draw.line(bridge.bridge_path[0].asArray().concat(bridge.bridge_path[1].asArray())).stroke(bridgeColor).attr({'stroke-width': 10});
+            }
 
-            for (const curb of district.curbs)
-                draw.line(curb.pointsToArray()).fill('green').stroke('green').attr({'stroke-width': 0.5});*/
+            return draw.svg();
         }
 
-        for (const bridge of worldgen.bridges) {
-            draw.line(bridge.bridge_path[0].asArray().concat(bridge.bridge_path[1].asArray())).stroke(bridgeColor).attr({'stroke-width': 10});
-        }
+        const map_final = drawMap();
 
-        this.setState({ worldgen: worldgen, svg: draw.svg(), world_def: worldgen.serialise() });
+        /*const map_preview =*/ drawMap(true);
+
+        this.setState({ worldgen: worldgen, svg: map_final, world_def: worldgen.serialise() });
     }
 
     override render(): React.ReactNode {
