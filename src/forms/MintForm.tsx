@@ -268,7 +268,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                             <div className="mb-3">
                                                 <label htmlFor="itemFile" className="form-label">3D Model file</label>
                                                 <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
-                                                <div id="fileHelp" className="form-text">Only glb models are supported.<br/>Self-contained gltf files will also work.</div>
+                                                <div id="fileHelp" className="form-text">Only glb models are supported.<br/>Self-contained gltf files will also work.<br/>
+                                                Current (default, soft) limit: {AppSettings.polygonLimit.defaultValue} triangles, {AppSettings.fileSizeLimit.defaultValue / 1024 / 1024} Mb</div>
                                                 <ErrorMessage name="itemFile" children={this.errorDisplay}/>
                                                 {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1">
                                                     <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
