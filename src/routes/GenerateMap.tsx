@@ -278,6 +278,22 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         Contracts.handleOperation(this.context, batch_op, () => {});
     }
 
+    private batchWhitelist = async () => {
+        const walletphk = this.context.walletPHK();
+        assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
+
+        const auctionsWallet = await this.context.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
+
+        const wl_op = await auctionsWallet.methodsObject.manage_whitelist([
+            {
+                whitelist_add: [
+
+                ]
+            }
+        ]).send();
+        await wl_op.confirmation();
+    }
+
     private generateDistrict1() {
         const district_1 = new VoronoiDistrict(new Vector2(0,0), [
             // right edge
@@ -593,8 +609,9 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     override render(): React.ReactNode {
         return (
             <main className="container">
-                <button className="btn btn-primary me-2" onClick={() => this.mintPlaces()}>Mint</button>
-                <button className="btn btn-primary me-2" onClick={() => this.createAuctions()}>Create Auctions</button>
+                <button className="btn btn-warning me-2" onClick={() => this.mintPlaces()}>Mint</button>
+                <button className="btn btn-warning me-2" onClick={() => this.createAuctions()}>Create Auctions</button>
+                <button className="btn btn-warning me-2" onClick={() => this.batchWhitelist()}>Whitelist</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadSvgFile()}>Download SVG</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadDistrictsFile()}>Download Districts</button>
                 <svg className="d-block" ref={this.svgRef}></svg>
