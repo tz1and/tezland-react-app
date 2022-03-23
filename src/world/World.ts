@@ -1,6 +1,6 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Vector2, Axis, Space, Angle } from "@babylonjs/core/Maths/math";
+import { Vector3, Color3, Vector2, Matrix, Vector4, Quaternion } from "@babylonjs/core/Maths/math";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -320,7 +320,7 @@ export class World {
             walls.receiveShadows = false;
             walls.visibility = 0;*/
 
-            this.loadRoadDecorations(district.curbs, counter);
+            //this.loadRoadDecorations(district.curbs, counter);
 
             counter++;
         }
@@ -341,7 +341,10 @@ export class World {
             const bridge_length = bridge_vector.length() + 2;
             //const half_bridge_length = bridge_length * 0.5;
             const bridge_pos = points[0].add(points[1]).multiplyByFloats(0.5, 0.5, 0.5);
-            const bridge_angle = Vector3.Dot(Vector3.Forward(), bridge_vector.normalize());
+            const rot_m = new Matrix();
+            rot_m.setRow(2, Vector4.FromVector3(bridge_vector.normalize(), 1));
+            rot_m.setRow(1, Vector4.FromVector3(Vector3.Up(), 1));
+            rot_m.setRow(0, Vector4.FromVector3(Vector3.Cross(Vector3.Up(), bridge_vector.normalize()), 1));
 
             const walkway0 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
@@ -408,7 +411,7 @@ export class World {
             bridgeNode.position = bridge_pos;
             bridgeNode.position.y = -0.525;
 
-            bridgeNode.rotate(Axis.Y, Angle.FromDegrees(90).radians() + bridge_angle, Space.LOCAL);
+            bridgeNode.rotation = Quaternion.FromRotationMatrix(rot_m).toEulerAngles();
 
             counter++;
         }
