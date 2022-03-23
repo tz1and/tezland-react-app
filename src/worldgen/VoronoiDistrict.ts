@@ -30,6 +30,16 @@ export default class VoronoiDistrict extends District {
         this.noSplit = [];
     }
 
+    public addSite(pos: Vector2, split: boolean, exclusion: boolean, radius: number = 0) {
+        this.sites.push({id: this.sites.length, x: pos.x, y: pos.y});
+
+        if(exclusion)
+            this.exclusion.push(new ExclusionZone(pos, radius));
+
+        if(!split)
+            this.noSplit.push(pos);
+    }
+
     public addCircle(pos: Vector2, radius: number, rotate: number, points: number) {
         this.sites.push({ id: this.sites.length, x: pos.x, y: pos.y});
 
