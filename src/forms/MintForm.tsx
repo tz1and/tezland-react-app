@@ -11,11 +11,12 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { FileLike, fileToFileLike, getFileType, RefLike } from '../utils/Utils';
+import { dataURItoBlob, FileLike, fileToFileLike, getFileType, RefLike } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
 import { Trilean, triHelper } from './FormUtils';
+import { decode, DecodedPng } from 'fast-png';
 import assert from 'assert';
 
 interface MintFormValues {
@@ -88,6 +89,22 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState }, validateCallback);
     }
 
+    private static checkImageValid(image: DecodedPng, w: number, h: number, title: string) {
+        // check channels.
+        if (image.channels < 3) throw new Error(`Invalid ${title} image: num channels < 3`);
+
+        // check resolution.
+        if (image.width !== w) throw new Error(`Invalid ${title} image: wrong width`);
+        if (image.height !== h) throw new Error(`Invalid ${title} image: wrong height`);
+
+        // Check most pixels aren't 0!
+        let zero_count = 0;
+        for (let i = 0; i < image.data.length; ++i) {
+            if(image.data[i] === 0) ++zero_count;
+        }
+        if (zero_count > image.data.length / 3) throw new Error(`Invalid ${title} image: data mostly empty`);
+    }
+
     private async uploadAndMint(values: MintFormValues, callback?: (completed: boolean) => void) {
         assert(values.itemFile);
         assert(this.modelPreviewRef.current);
@@ -96,11 +113,17 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         // For some meshes (fox) you can't count the polygons...
         assert(this.modelPreviewRef.current.state.polycount >= 0);
 
+        // Get thumbnail and check it's valid.
         const thumbnailRes = 350;
         const thumbnail = await this.modelPreviewRef.current.getThumbnail(thumbnailRes);
+        const decoded_thumbnail = decode(await dataURItoBlob(thumbnail).arrayBuffer());
+        MintFrom.checkImageValid(decoded_thumbnail, thumbnailRes, thumbnailRes, "thumbnail");
 
+        // Get display and check it's valid.
         const displayRes = 1000;
         const display = await this.modelPreviewRef.current.getThumbnail(displayRes);
+        const decoded_display = decode(await dataURItoBlob(display).arrayBuffer());
+        MintFrom.checkImageValid(decoded_display, displayRes, displayRes, "display");
 
         // TODO: validate mimeType in validation.
         var mime_type;
