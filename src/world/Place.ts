@@ -125,7 +125,8 @@ export default class Place {
 
         // unregister execution action
         if (this.executionAction) {
-            this.world.playerController.playerTrigger.actionManager?.unregisterAction(this.executionAction);
+            assert(this.world.playerController.playerTrigger.actionManager);
+            this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
         }
     }
 
@@ -221,7 +222,8 @@ export default class Place {
             );
 
             // register player trigger when place owner info has loaded.
-            this.world.playerController.playerTrigger.actionManager?.registerAction(this.executionAction);
+            assert(this.world.playerController.playerTrigger.actionManager);
+            this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
 
             // update owner and operator, excution action, loading items ansychronously
             (async () => {
