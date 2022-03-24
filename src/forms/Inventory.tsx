@@ -1,11 +1,9 @@
 import React from 'react';
-import './Inventory.css';
-import Conf from '../Config'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { Logging } from '../utils/Logging';
 import { fetchGraphQL } from '../ipfs/graphql';
-import { truncate } from '../utils/Utils';
+import { InventoryItem } from '../components/InventoryItem';
 
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
@@ -48,7 +46,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                 more_data: more_data
             });
             this.firstFetchDone = true;
-        })
+        });
     }
 
     private async fetchInventory() {
@@ -96,27 +94,11 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         this.props.selectItemFromInventory(Number.parseInt(event.currentTarget.id));
     }
 
-    private getThumbnailUrl(url: string | undefined): string {
-        if(url) return `${Conf.ipfs_gateway}/ipfs/${url.slice(7)}`;
-
-        return "/img/missing_thumbnail.png";
-    }
-
     override render() {
         const { error, more_data } = this.state;
 
         const items: JSX.Element[] = []
-         if (!error) this.itemMap.forEach(item => items.push(
-            <div className="card m-2 inventory-item" key={item.token.id} id={item.token.id} onClick={this.handleClick}>
-                <img src={this.getThumbnailUrl(item.token.thumbnailUri)} className="card-img-top" alt="..."/>
-                <div className="card-body">
-                <h5 className="card-title">{item.token.name !== "" ? truncate(item.token.name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
-                <p className="card-text">x{item.quantity}</p>
-                <p className="card-text small m-0">Minter: </p>
-                <p className="card-text small text-muted">{truncate(item.token.minterId, 16, '\u2026')}</p>
-                </div>
-            </div>
-        ))
+         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onClick={this.handleClick} item_metadata={item}/>))
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 
