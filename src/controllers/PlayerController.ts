@@ -94,25 +94,10 @@ export default class PlayerController {
         this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
 
-        // TEMP-ish: get coordinates from url.
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (urlParams.has('coordx') && urlParams.has('coordz')) {
-            this.playerTrigger.position.x = parseFloat(urlParams.get('coordx')!);
-            this.playerTrigger.position.z = parseFloat(urlParams.get('coordz')!);
-        } else if (urlParams.has('placeid')) {
-            Metadata.getPlaceMetadata(parseInt(urlParams.get('placeid')!)).then((metadata) => {
-                const origin = Vector3.FromArray(metadata.centerCoordinates);
-                const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
-                
-                // TODO: move outwards a little.
-                this.playerTrigger.position.copyFrom(p0.addInPlace(origin));
-                
-                // Look towards center of place.
-                this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
-                    .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
-            })
-        }
+        PlayerController.setPositionFromUrlParams(this.playerTrigger, this.camera);
+        // NOTE: the bounding info seems to get bugged for some reason.
+        // We need to update it here, otherwise collisions will be incorrect!
+        this.playerTrigger.refreshBoundingInfo();
 
         this.scene.registerAfterRender(this.updateController.bind(this));
 
@@ -330,6 +315,28 @@ export default class PlayerController {
                 }
             }
         }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
+    }
+
+    private static setPositionFromUrlParams(playerMesh: Mesh, playerCamera: FreeCamera) {
+        // TEMP-ish: get coordinates from url.
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('coordx') && urlParams.has('coordz')) {
+            playerMesh.position.x = parseFloat(urlParams.get('coordx')!);
+            playerMesh.position.z = parseFloat(urlParams.get('coordz')!);
+        } else if (urlParams.has('placeid')) {
+            Metadata.getPlaceMetadata(parseInt(urlParams.get('placeid')!)).then((metadata) => {
+                const origin = Vector3.FromArray(metadata.centerCoordinates);
+                const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
+                
+                // TODO: move outwards a little.
+                playerMesh.position.copyFrom(p0.addInPlace(origin));
+                
+                // Look towards center of place.
+                playerCamera.setTarget(playerMesh.position.subtract(origin).negate()
+                    .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
+            })
+        }
     }
 
     private initCamera(): FreeCamera {
