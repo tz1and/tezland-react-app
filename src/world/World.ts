@@ -277,9 +277,43 @@ export class World {
 
         Logging.InfoDev("world has " + placeCount + " places.");
 
-        // Load all the places. Slowly.
-        for(let i = 0; i < placeCount; ++i) {
-            await this.fetchPlace(i);
+        // First, load all unloaded places metadata.
+        await Metadata.getPlaceMetadataBatch(0, placeCount - 1);
+
+        // Then, figure ot which places are in the players draw distance,
+        // sort them by distance from player and load them.
+        const nearby_places: any[] = [];
+        const player_pos = this.playerController.getPosition();
+        for(let placeId = 0; placeId < placeCount; ++placeId) {
+            var placeMetadata = await Metadata.getPlaceMetadata(placeId);
+            if (placeMetadata === undefined) {
+                Logging.InfoDev("No metadata for place: " + placeId);
+                return;
+            }
+
+            const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
+
+            // Figure out by distance to player if the place should be loaded load.
+            if(player_pos.subtract(origin).length() < this.placeDrawDistance)
+                nearby_places.push(placeMetadata)
+
+            // add to world grid.
+            const set = this.worldGrid.getOrAddA(this.worldGridAccessor, [origin.x, origin.z], this.gridCreateCallback);
+            if(!set.has(placeId)) {
+                set.add(placeId);
+            }
+        }
+
+        // Sort by distance from player.
+        nearby_places.sort((a, b) => {
+            const origin_a = Vector3.FromArray(a.centerCoordinates);
+            const origin_b = Vector3.FromArray(b.centerCoordinates);
+            return player_pos.subtract(origin_a).length() - player_pos.subtract(origin_b).length();
+        });
+
+        // Finally, load places.
+        for (const place_metadata of nearby_places) {
+            this.fetchPlace(place_metadata.id);
         }
 
         // TEMP: workaround as long as loading owner and owned is delayed.
@@ -466,12 +500,6 @@ export class World {
             const player_pos = this.playerController.getPosition();
             if(player_pos.subtract(origin).length() < this.placeDrawDistance) {
                 await this.loadPlace(placeId, placeMetadata);
-            }
-
-            // add to grid AFTER loading.
-            const set = this.worldGrid.getOrAddA(this.worldGridAccessor, [origin.x, origin.z], this.gridCreateCallback);
-            if(!set.has(placeId)) {
-                set.add(placeId);
             }
         }
         catch(e) {
