@@ -7,6 +7,7 @@ import { InventoryItem } from '../components/InventoryItem';
 
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
+    burnItemFromInventory(id: number): void;
     closeForm(cancelled: boolean): void;
     // using `interface` is also ok
     //message: string;
@@ -90,15 +91,19 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    handleClick = (event: React.MouseEvent) => {
-        this.props.selectItemFromInventory(Number.parseInt(event.currentTarget.id));
+    handleClick = (item_id: number) => {
+        this.props.selectItemFromInventory(item_id);
+    }
+
+    handleBurn = (item_id: number) => {
+        this.props.burnItemFromInventory(item_id);
     }
 
     override render() {
         const { error, more_data } = this.state;
 
         const items: JSX.Element[] = []
-         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onClick={this.handleClick} item_metadata={item}/>))
+         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} item_metadata={item}/>))
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 

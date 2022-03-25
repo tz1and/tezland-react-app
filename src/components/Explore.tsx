@@ -17,6 +17,7 @@ import { LoadingError } from './LoadingError';
 import { PlacePermissions } from '../world/Place';
 import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
+import { BurnForm } from '../forms/BurnForm';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -30,6 +31,7 @@ type ExploreState = {
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     placeInfo: {placeId: number, owner: string, permissions: PlacePermissions};
     groundColor: string;
+    burnItemId: number;
     //count: number; // like this
 };
 
@@ -45,7 +47,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             showFps: AppSettings.showFps.value,
             notifications: [],
             placeInfo: {placeId: -1, owner: '', permissions: new PlacePermissions(PlacePermissions.permissionNone)},
-            groundColor: '#FFFFFF'
+            groundColor: '#FFFFFF',
+            burnItemId: -1
             // optional second annotation for better type inference
             //count: 0,
         };
@@ -94,6 +97,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }
     }
 
+    burnItemFromInventory = (id: number) => {
+        this.setState({ show_form: 'burn', dispaly_overlay: true, burnItemId: id });
+    }
+
     addNotification = (data: NotificationData) => {
         this.setState({ notifications: this.state.notifications.concat(data) });
 
@@ -139,7 +146,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
         else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
-        else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm} selectItemFromInventory={this.selectItemFromInventory} />;
+        else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm} selectItemFromInventory={this.selectItemFromInventory} burnItemFromInventory={this.burnItemFromInventory} />;
+        else if (this.state.show_form === 'burn') form = <BurnForm closeForm={this.closeForm} itemId={this.state.burnItemId} />;
         else if (this.state.show_form === 'placeproperties') form = <EditPlace closeForm={this.closeForm}
             placeOwner={this.state.placeInfo.owner} placeId={this.state.placeInfo.placeId} groundColor={this.state.groundColor} />;
 

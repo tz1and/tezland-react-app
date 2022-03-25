@@ -176,6 +176,27 @@ export class Contracts {
         }
     }
 
+    public async burnItem(walletProvider: ITezosWalletProvider, itemId: number, amount: number, callback?: (completed: boolean) => void) {
+        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+        if (!walletProvider.isWalletConnected()) throw new Error("mintItem: No wallet connected");
+
+        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
+
+        try {
+            const burn_item_op = await itemsWallet.methodsObject.burn([{
+                from_: walletProvider.walletPHK(),
+                amount: amount,
+                token_id: itemId
+            }]).send();
+
+            this.handleOperation(walletProvider, burn_item_op, callback);
+        }
+        catch(e: any) {
+            Logging.Error(e);
+            if(callback) callback(false);
+        }
+    }
+
     public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
