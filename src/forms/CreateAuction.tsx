@@ -56,6 +56,7 @@ type CreateAuctionFormState = {
     successState: Trilean,
     mapLocation: [number, number],
     placePoly: [number, number][],
+    placeInfo: JSX.Element,
     placeInventory?: any[]
 }
 
@@ -74,7 +75,8 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
             error: '',
             successState: 0,
             mapLocation: [500, 500],
-            placePoly: []
+            placePoly: [],
+            placeInfo: <br/>
         };
     }
 
@@ -93,7 +95,11 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                 placePoly.push([center_pos[0] + -pos[2], center_pos[1] + -pos[0]]);
             }
 
-            this.setState({ mapLocation: center_pos, placePoly: placePoly });
+            const placeInfo = <small>Description: ${res.description}<br/>
+Build height: ${res.buildHeight}<br/>
+Place type: ${res.placeType}</small>;
+
+            this.setState({ mapLocation: center_pos, placePoly: placePoly, placeInfo: placeInfo });
         }, () => {});
     }
 
@@ -230,6 +236,10 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
                                         <ErrorMessage name="placeId" children={this.errorDisplay}/>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label">Place Info</label><br/>
+                                        {this.state.placeInfo}
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="duration" className="form-label">Duration (in hours)</label>
