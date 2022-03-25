@@ -40,7 +40,7 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
     if(!asset) {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
         const itemCachedStats = await Metadata.Storage.loadObject(token_id.toNumber(), "itemPolycount");
-        const polygonLimit = AppSettings.polygonLimit.value;
+        const polygonLimit = AppSettings.triangleLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
         const hash = itemMetadata.artifactUri.slice(7) + '/';

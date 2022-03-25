@@ -51,7 +51,7 @@ export type ShadowMapRes = 512 | 1024 | 2048 | 4096;
 
 export default class AppSettings {
     // general
-    static polygonLimit = new AppSetting<number>("polygonLimit", 3072, parseNumber);
+    static triangleLimit = new AppSetting<number>("triangleLimit", 5120, parseNumber);
     static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, parseNumber); // MiB default.
 
     static drawDistance = new AppSetting<number>("drawDistance", 200, parseNumber);

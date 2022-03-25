@@ -10,7 +10,7 @@ import AppSettings, { ShadowMapRes, ShadowOptions } from '../storage/AppSettings
 
 interface SettingsFormValues {
     // general
-    polygonLimit: number;
+    triangleLimit: number;
     modelFileSizeLimit: number; // in MB
     displayPlaceBounds: boolean;
     drawDistance: number;
@@ -39,7 +39,7 @@ type SettingsFormState = {
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     const state: SettingsFormState = { error: "" }
     const initialValues: SettingsFormValues = {
-        polygonLimit: AppSettings.polygonLimit.value,
+        triangleLimit: AppSettings.triangleLimit.value,
         modelFileSizeLimit: AppSettings.fileSizeLimit.value / 1024 / 1024, // should be in MB
         displayPlaceBounds: AppSettings.displayPlaceBounds.value,
         drawDistance: AppSettings.drawDistance.value,
@@ -67,8 +67,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 validate = {(values) => {
                     const errors: FormikErrors<SettingsFormValues> = {};
 
-                    if (values.polygonLimit < 1000) {
-                        errors.polygonLimit = 'Polygon limit invalid';
+                    if (values.triangleLimit < 1000) {
+                        errors.triangleLimit = 'Triangle limit invalid';
                     }
 
                     if (values.modelFileSizeLimit < 1) {
@@ -84,7 +84,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 onSubmit={(values, actions) => {
                     try {
                         // general
-                        AppSettings.polygonLimit.value = values.polygonLimit;
+                        AppSettings.triangleLimit.value = values.triangleLimit;
                         AppSettings.fileSizeLimit.value = parseInt((values.modelFileSizeLimit * 1024 * 1024).toFixed(0));
                         AppSettings.displayPlaceBounds.value = values.displayPlaceBounds;
                         AppSettings.drawDistance.value = values.drawDistance;
@@ -132,10 +132,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                             <div className="tab-content" id="myTabContent">
                                 <div className="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                                     <div className="mb-3">
-                                        <label htmlFor="polygonLimit" className="form-label">Polygon limit</label>
-                                        <Field id="polygonLimit" name="polygonLimit" type="number" className="form-control" aria-describedby="polygonLimitHelp" disabled={isSubmitting} autoFocus={true} />
-                                        <div id="polygonLimitHelp" className="form-text">Items with more polygons than the limit will not be displayed.</div>
-                                        <ErrorMessage name="polygonLimit" children={errorDisplay}/>
+                                        <label htmlFor="triangleLimit" className="form-label">Triangle limit</label>
+                                        <Field id="triangleLimit" name="triangleLimit" type="number" className="form-control" aria-describedby="triangleLimitHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="triangleLimitHelp" className="form-text">Items with more triangles than the limit will not be displayed.</div>
+                                        <ErrorMessage name="triangleLimit" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="modelFileSizeLimit" className="form-label">Model file size limit (in MiB)</label>
