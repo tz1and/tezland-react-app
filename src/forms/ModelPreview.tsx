@@ -108,8 +108,15 @@ class PreviewScene {
         }
     }
 
-    getScreenshot(res: number): Promise<string> {
-        return Tools.CreateScreenshotUsingRenderTargetAsync(this.engine, this.scene.activeCamera!, res, "image/png", this.engine.getCaps().maxSamples, true);
+    public async getScreenshot(res: number): Promise<string> {
+        // call render to make sure everything is ready.
+        this.scene.render();
+        // take screenshot in requested res.
+        const screenshot = await Tools.CreateScreenshotUsingRenderTargetAsync(this.engine, this.scene.activeCamera!, res, "image/png", this.engine.getCaps().maxSamples, true);
+        // call render again, for good measure.
+        this.scene.render();
+        
+        return screenshot;
     }
 }
 
