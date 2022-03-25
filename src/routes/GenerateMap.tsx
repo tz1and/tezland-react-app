@@ -294,6 +294,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         await wl_op.confirmation();
     }
 
+    // The wing
     private generateDistrict1() {
         const district_1 = new VoronoiDistrict(new Vector2(0,0), [
             // right edge
@@ -444,7 +445,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return district_2
     }
 
-    // It's the little island
+    // The reverse C
     private generateDistrict3() {
 
         const district_3 = new VoronoiDistrict(new Vector2(0,0),
@@ -481,7 +482,55 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         district_3.addRandomSites(5, 15589);
 
-        return district_3
+        return district_3;
+    }
+
+    // The the lower right part of the ring
+    private generateDistrict4() {
+
+        const district_4 = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(250,-80), // top left
+                new Vector2(260,100), // bottom left
+                new Vector2(80,100), // bay bottom
+                new Vector2(80,60), // bay bottom
+                new Vector2(40,60), // bay bottom
+                new Vector2(40,100), // bay bottom
+                new Vector2(-100,100), // bend bottom left
+                new Vector2(-140,80), // bend bottom, right
+                new Vector2(-260,-40), // bend top, bottom
+                new Vector2(-280,-80), // bend top, top
+                new Vector2(-280,-250), // top right
+                //new Vector2(-220,-250), // bay top right
+                ////new Vector2(-220,-190), // bay top right
+                ////new Vector2(-180,-190), // bay top right
+                //new Vector2(-180,-250), // bay top right
+                new Vector2(-120,-250),
+                new Vector2(-120,-160),
+                new Vector2(-40,-80), // bay top
+                new Vector2(40,-80), // bay top
+                new Vector2(40,-40), // bay top
+                new Vector2(80,-40), // bay top
+                new Vector2(80,-80)
+            ].reverse(), 123456
+        );
+
+        // generate central circle
+        district_4.addCircle(new Vector2(-95, -105), 70, Angle.FromDegrees(45).radians(), 6);
+        district_4.noSplit.push(new Vector2(-95, -105));
+
+        // generate a block between the two bays left
+        district_4.addCircle(new Vector2(60, 10), 92, Angle.FromDegrees(0).radians(), 4);
+
+        // make some stuff on the left side
+        district_4.addSite(new Vector2(260,-80), true, true, 80);
+        //district_4.addSite(new Vector2(260,10), true, true, 80);
+        //district_4.addSite(new Vector2(160,10), true, true, 80);
+        district_4.addSite(new Vector2(260,100), true, true, 80);
+        
+        district_4.addRandomSites(25, 78415);
+
+        return district_4;
     }
 
     // Similar to componentDidMount and componentDidUpdate:
@@ -504,6 +553,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         district_3.center = new Vector2(-200, 0);
         worldgen.addDistrict(district_3);
 
+        // Fourth district
+        const district_4 = this.generateDistrict4();
+        district_4.center = new Vector2(-200, 300);
+        worldgen.addDistrict(district_4);
+
 
         // Add birdges from district 1 to 2
         worldgen.addBridge(new Bridge(district_1, 3, 0.5, district_2, 2, 0.5));
@@ -517,6 +571,15 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // Add birdges from district 3 to 1
         worldgen.addBridge(new Bridge(district_3, 9, 0.5, district_1, 0, 0.64));
         worldgen.addBridge(new Bridge(district_3, 4, 0.5, district_1, 6, 1-0.64));
+
+        // Add birdges from district 4 to 1
+        worldgen.addBridge(new Bridge(district_4, 17, 0.175, district_1, 7, 0.1));
+
+        // Add birdges from district 4 to 3
+        worldgen.addBridge(new Bridge(district_4, 17, 0.845, district_3, 3, 0.65));
+        worldgen.addBridge(new Bridge(district_4, 3, 0.5, district_3, 3, 0.145));
+        worldgen.addBridge(new Bridge(district_4, 4, 0.5, district_3, 2, 0.5));
+        worldgen.addBridge(new Bridge(district_4, 5, 0.5, district_3, 1, 0.865));
 
 
         worldgen.generateWorld();
