@@ -40,7 +40,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
     return (
         <div className="card m-2 inventory-item" id={item_metadata.token.id} ref={popoverRef}>
-            <button className='btn btn-sm btn-outline-danger position-absolute' style={{zIndex: 1040, right: "0.5rem", top: "0.5rem" }} onClick={() => props.onBurn(item_metadata.token.id)}>Burn Tokens</button>
+            <button className='btn btn-sm btn-outline-danger position-absolute' style={{zIndex: 1040, right: "0.5rem", top: "0.5rem" }} onClick={() => props.onBurn(item_metadata.token.id)}><i className="bi bi-trash-fill"></i></button>
 
             <div onClick={() => props.onSelect(item_metadata.token.id)}>
                 <img src={getThumbnailUrl(item_metadata.token.thumbnailUri)} className="card-img-top" alt="..."/>
