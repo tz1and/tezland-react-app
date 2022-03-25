@@ -95,9 +95,9 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
                 placePoly.push([center_pos[0] + -pos[2], center_pos[1] + -pos[0]]);
             }
 
-            const placeInfo = <small>Description: ${res.description}<br/>
-Build height: ${res.buildHeight}<br/>
-Place type: ${res.placeType}</small>;
+            const placeInfo = <small>Description: {res.description}<br/>
+Build height: {res.buildHeight}<br/>
+Place type: {res.placeType}</small>;
 
             this.setState({ mapLocation: center_pos, placePoly: placePoly, placeInfo: placeInfo });
         }, () => {});
