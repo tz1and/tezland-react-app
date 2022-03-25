@@ -7,7 +7,7 @@ import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
-import { isEpsilonEqual } from "../utils/Utils";
+import { isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
 import Place, { InstanceMetadata } from "../world/Place";
@@ -19,6 +19,7 @@ import TempObjectHelper from "./TempObjectHelper";
 
 const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
 const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
+const LimitFlyDistance = !isDev();
 
 export default class PlayerController {
     private appControlFunctions: AppControlFunctions;
@@ -611,7 +612,7 @@ export default class PlayerController {
         else this.velocity.set(vel_actual.x, 0, vel_actual.z);*/
 
         // Ensure player can't move too far from body in fly mode
-        if (this._flyMode) {
+        if (LimitFlyDistance && this._flyMode) {
             const distance_from_body = this.playerTrigger.position.subtract(this.position_prev_flymode).length();
             if (distance_from_body > 50)
                 this.playerTrigger.position.copyFrom(Vector3.Lerp(this.position_prev_flymode, this.playerTrigger.position, 50 / distance_from_body));
