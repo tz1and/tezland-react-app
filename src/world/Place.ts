@@ -372,6 +372,8 @@ export default class Place {
                 Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
             }
 
+            // Remove cached texture buffers, we don't need them.
+            this.world.scene.cleanCachedTextureBuffer();
             //this.octree = this.scene.createOrUpdateSelectionOctree();
         }
         catch(e: any) {
