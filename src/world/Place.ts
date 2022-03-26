@@ -65,6 +65,7 @@ export default class Place {
     readonly placeId: number;
     private world: World;
 
+    private placeRoot: Nullable<TransformNode>;
     private placeBounds: Nullable<Mesh>;
     private placeGround: Nullable<Mesh>;
 
@@ -98,6 +99,7 @@ export default class Place {
     constructor(placeId: number, world: World) {
         this.placeId = placeId;
         this.world = world;
+        this.placeRoot = null;
         this.placeBounds = null;
         this.placeGround = null;
         this._origin = new Vector3();
@@ -123,6 +125,11 @@ export default class Place {
         this._tempItemsNode?.dispose();
         this._tempItemsNode = null;
 
+        this.placeRoot?.dispose();
+        this.placeRoot = null;
+
+        // TODO: surely it's enough to remove the place root.
+
         // unregister execution action
         if (this.executionAction) {
             assert(this.world.playerController.playerTrigger.actionManager);
@@ -132,7 +139,7 @@ export default class Place {
 
     // TODO: use MeshUtils.extrudeMeshFromShape
     private extrudeMeshFromShape(shape: Vector3[], depth: number, pos: Vector3, mat: Material): Mesh {
-        const extrude = MeshBuilder.ExtrudePolygon(`placeBounds${this.placeId}`, {
+        const extrude = MeshBuilder.ExtrudePolygon(`bounds`, {
             shape: shape,
             depth: depth
         }, this.world.scene, earcut);
@@ -145,7 +152,7 @@ export default class Place {
     }
 
     private polygonMeshFromShape(shape: Vector3[], pos: Vector3, mat: Material): Mesh {
-        const poly = MeshBuilder.CreatePolygon(`placeGround${this.placeId}`, {
+        const poly = MeshBuilder.CreatePolygon(`ground`, {
             shape: shape
         }, this.world.scene, earcut);
 
@@ -173,24 +180,29 @@ export default class Place {
             // TODO: make sure the place coordinates are going right around!
             shape = shape.reverse();
 
+            this.placeRoot = new TransformNode(`placeRoot${this.placeId}`, this.world.scene);
+            this.placeRoot.position.copyFrom(this._origin);
+
             // create bounds
             // TODO: use MeshUtils.extrudeMeshFromShape
-            this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(this._origin.x, this._buildHeight, this._origin.z),
+            this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(0, this._buildHeight, 0),
                 this.world.transparentGridMat);
 
             this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
+            this.placeBounds.parent = this.placeRoot;
             // Call getHierarchyBoundingVectors to force updating the bounding info!
             this.placeBounds.getHierarchyBoundingVectors();
 
             // create ground
-            this.placeGround = this.polygonMeshFromShape(shape, new Vector3(this._origin.x, 0, this._origin.z),
+            this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
                 new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
             this.placeGround.receiveShadows = true;
+            this.placeGround.parent = this.placeRoot;
 
             // create temp items node
-            this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
-            this._tempItemsNode.position = this._origin.clone();
+            this._tempItemsNode = new TransformNode(`itemsTemp`, this.world.scene);
             this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
+            this._tempItemsNode.parent = this.placeRoot;
 
             this.executionAction = new ExecuteCodeAction(
                 {
@@ -276,9 +288,9 @@ export default class Place {
             }
 
             // itemsNode must be in the origin.
-            this._itemsNode = new TransformNode(`place${this.placeId}`, this.world.scene);
-            this._itemsNode.position = this._origin.clone();
+            this._itemsNode = new TransformNode(`items`, this.world.scene);
             this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
+            this._itemsNode.parent = this.placeRoot;
             
             const outOfBounds: number[] = [];
 
