@@ -174,27 +174,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const walletphk = this.context.walletPHK();
         assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
 
-        const last_batch_id = 94 + 1;
+        const last_batch_id = 176 + 1;
         const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
         const known_places: number[] = Array.from({length: last_minted_place_id - last_batch_id + 1}, (x, i) => last_batch_id + i);
         const exclude_places: Set<number> = new Set([
-            95, // public
-            106, 110, // too small
-            112, 113, // public
-            117, // public
-            118, // too small
-            122, // public
-            129, // too small
-            138, 139, // too small
-            142, // too small
-            147, // public
-            156, // too small
-            160, // public
-            164, // too small
-            169, // too small
-            172, // too small
-            174, // too small
         ]);
 
         const auction_id_list: number[] = [];
@@ -204,6 +188,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 auction_id_list.push(place_id);
         }
 
+        console.log(auction_id_list.length);
         console.log(auction_id_list);
 
         assert(auction_id_list.length > 0);
