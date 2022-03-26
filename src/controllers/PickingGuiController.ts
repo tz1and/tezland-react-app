@@ -25,9 +25,9 @@ class ItemInfoGui {
         rect.heightInPixels = 115 * 3/4;
         rect.cornerRadius = 5;
         rect.thickness = 0;
-        rect.color = "white";
-        rect.alpha = 0.95;
-        rect.background = "#6c757d";
+        rect.color = "black";
+        rect.alpha = 0.9;
+        rect.background = "#ffffff";
         rect.linkOffsetX = -200;
 
         this.control = rect;
