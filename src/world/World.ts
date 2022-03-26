@@ -79,7 +79,7 @@ export class World {
         this.places = new Map<number, Place>();
 
         // Associate a Babylon Engine to it.
-        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value);
+        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, { doNotHandleContextLost: true });
         this.engine.disableManifestCheck = true;
 
         // Allow cache on IndexedDB
