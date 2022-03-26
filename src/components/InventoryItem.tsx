@@ -49,7 +49,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                     <p className="card-text">x{item_metadata.quantity}<small>/{item_metadata.token.supply}</small></p>
                     <small className="card-text"></small>
                     <p className="card-text small m-0">
-                        Royalties: {item_metadata.token.royalties === 0 ? 0 : (1000 / item_metadata.token.royalties).toFixed(2)}{"\u0025"}<br/>
+                        Royalties: {item_metadata.token.royalties === 0 ? 0 : (item_metadata.token.royalties / 10).toFixed(2)}{"\u0025"}<br/>
                         Minter: </p>
                     <p className="card-text small text-muted">{truncate(item_metadata.token.minterId, 16, '\u2026')}</p>
                 </div>
