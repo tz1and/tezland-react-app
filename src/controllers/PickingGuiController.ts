@@ -88,26 +88,25 @@ class ItemInfoGui {
     }
 
     public updateInfo(item_id: number, current_node: TransformNode, metadata: InstanceMetadata) {
+        const isSaved = metadata.id !== undefined;
+
+        // If the item id changed, we need to fetch new metadata to update the title and minter.
         if (this.current_item_id !== item_id) {
             this.current_item_id = item_id;
 
-            // updade displayed info.
+            // Fetch updated metadata.
             (async () => {
                 const itemMetadata = await Metadata.getItemMetadata(this.current_item_id);
 
-                const isSaved = metadata.id !== undefined;
-
                 this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 16, '\u2026');
-
                 this.label_minter.text = `By: ${truncate(itemMetadata.minterId, 16, '\u2026')}`;
-
-                const forSale: boolean = isSaved && metadata.xtzPerItem !== 0;
-
-                this.label_price.text = !forSale && isSaved ? "" : `${metadata.itemAmount} Items - ${metadata.xtzPerItem === 0 ? "Not collectable." : metadata.xtzPerItem + " \uA729"}`;
-
-                this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not collectable.";
             })();
         }
+
+        const forSale: boolean = isSaved && metadata.xtzPerItem !== 0;
+
+        this.label_price.text = !forSale && isSaved ? "" : `${metadata.itemAmount} Items - ${metadata.xtzPerItem === 0 ? "Not collectable." : metadata.xtzPerItem + " \uA729"}`;
+        this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not collectable.";
 
         this.control.linkWithMesh(current_node);
         this.setVisible(true);
