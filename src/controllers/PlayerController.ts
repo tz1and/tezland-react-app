@@ -537,10 +537,8 @@ export default class PlayerController {
         const right = Vector3.Cross(Vector3.Up(), cam_dir);
         const fwd = this._flyMode ? cam_dir : Vector3.Cross(right, Vector3.Up());
 
-        // TODO: switch between jog and walk.
-
         // Player velocity.
-        const accel = delta_time * 3
+        const accel = delta_time * 3;
         const new_vel = (this._flyMode ?
             fwd.scale(moveFwd).add(right.scale(moveRight)).add(Vector3.Up().scale(moveUp)) :
             fwd.scale(moveFwd).add(right.scale(moveRight))
@@ -549,7 +547,7 @@ export default class PlayerController {
 
         // Not needed if accel and decel are eq.
         /*if(this.velocity.length() > PlayerJogSpeed) {
-            console.log("claming vel");
+            console.log("clamping vel");
             this.velocity.normalize().scaleInPlace(PlayerJogSpeed);
         }*/
 
@@ -625,9 +623,11 @@ export default class PlayerController {
         // Player movement.
         this.updateFromControls(delta_time);
 
+        const maxPickDistance = 50; // in m
+
         // cast a ray for picking guy and item placing
         const hit = this.scene.pickWithRay(this.camera.getForwardRay(
-            undefined,
+            maxPickDistance,
             this.camera.getWorldMatrix(),
             this.camera.globalPosition
         ));
@@ -648,7 +648,6 @@ export default class PlayerController {
                 this.tempObjectHelper.setValid(false);
             }
         } else if (hit) {
-            // TODO: await this somehow?
             this.pickingGui.updatePickingGui(hit.pickedMesh, hit.distance);
         }
     }
