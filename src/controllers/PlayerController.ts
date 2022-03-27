@@ -489,7 +489,7 @@ export default class PlayerController {
         const elapsed = now - this.lastDistanceUpdate;
         if(elapsed > 1000) {
             this.lastDistanceUpdate = now;
-            const travelled = this.lastPos.subtract(this.getPosition()).length();
+            const travelled = Vector3.Distance(this.lastPos, this.getPosition());
             this.lastPos = this.getPosition().clone();
             Logging.Log(`Travelled ${travelled}m in ${elapsed}ms`);
         }
@@ -611,7 +611,7 @@ export default class PlayerController {
 
         // Ensure player can't move too far from body in fly mode
         if (LimitFlyDistance && this._flyMode) {
-            const distance_from_body = this.playerTrigger.position.subtract(this.position_prev_flymode).length();
+            const distance_from_body = Vector3.Distance(this.playerTrigger.position, this.position_prev_flymode);
             if (distance_from_body > 50)
                 this.playerTrigger.position.copyFrom(Vector3.Lerp(this.position_prev_flymode, this.playerTrigger.position, 50 / distance_from_body));
         }

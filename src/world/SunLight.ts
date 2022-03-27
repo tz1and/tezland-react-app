@@ -40,7 +40,7 @@ export default class SunLight {
 
     update(pos: Vector3) {
         // only update if player moved more than 1m.
-        if(pos.subtract(this.dirLight.position).length() > 1) {
+        if(Vector3.Distance(pos, this.dirLight.position) > 1) {
             this.dirLight.position = pos.clone(); //.add(this.dirLight.direction.scale(-100));
 
             //Logging.Log(this.dirLight.position);

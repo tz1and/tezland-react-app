@@ -309,7 +309,7 @@ export class World {
             const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
 
             // Figure out by distance to player if the place should be loaded load.
-            if(player_pos.subtract(origin).length() < this.placeDrawDistance)
+            if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance)
                 nearby_places.push(placeMetadata)
 
             // add to world grid.
@@ -323,7 +323,7 @@ export class World {
         nearby_places.sort((a, b) => {
             const origin_a = Vector3.FromArray(a.centerCoordinates);
             const origin_b = Vector3.FromArray(b.centerCoordinates);
-            return player_pos.subtract(origin_a).length() - player_pos.subtract(origin_b).length();
+            return Vector3.Distance(player_pos, origin_a) - Vector3.Distance(player_pos, origin_b);
         });
 
         // Finally, load places.
@@ -513,7 +513,7 @@ export class World {
 
             // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
-            if(player_pos.subtract(origin).length() < this.placeDrawDistance) {
+            if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance) {
                 await this.loadPlace(placeId, placeMetadata);
             }
         }
@@ -570,7 +570,7 @@ export class World {
             this.shadowRenderList = [];
             // add items in places nearby.
             this.places.forEach(place => {
-                if (place.origin.subtract(playerPos).length() < 75) // TODO: don't hardcode this value.
+                if (Vector3.Distance(place.origin, playerPos) < 75) // TODO: don't hardcode this value.
                     place.itemsNode?.getChildMeshes().forEach(m => {
                         this.shadowRenderList.push(m);
                     })
@@ -590,7 +590,7 @@ export class World {
         this.updateMultiplayer();
 
         // Update world when player has moved a certain distance.
-        if(this.lastUpdatePosition.subtract(playerPos).length() > worldUpdateDistance)
+        if(Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)
         {
             // TEMP: do this asynchronously, getting lots of metadata
             // from storage is kinda slow.
@@ -602,7 +602,7 @@ export class World {
                 // Check all loaded places for distance and remove.
                 this.places.forEach((v, k) => {
                     // Multiply draw distance with small factor here to avoid imprecision and all that
-                    if(playerPos.subtract(v.origin).length() > this.placeDrawDistance * 1.02) {
+                    if(Vector3.Distance(playerPos, v.origin) > this.placeDrawDistance * 1.02) {
                         this.places.delete(k);
                         v.dispose();
                     }
@@ -631,7 +631,7 @@ export class World {
                                 // maybe load, depending on distance
                                 Metadata.getPlaceMetadata(id).then((placeMetadata) => {
                                     const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
-                                    if(playerPos.subtract(origin).length() < this.placeDrawDistance) {
+                                    if(Vector3.Distance(playerPos, origin) < this.placeDrawDistance) {
                                         // todo: add to pending updates instead.
                                         this.loadPlace(id, placeMetadata);
                                     }
