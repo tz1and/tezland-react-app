@@ -225,7 +225,10 @@ export default class PickingGuiController {
 
         const metadata = this.getInstanceMetadata(this.current_node);
 
-        if(!metadata) return;
+        if(!metadata) {
+            this.infoGui.setVisible(false);
+            return;
+        }
 
         this.infoGui.updateInfo(metadata.itemTokenId.toNumber(), this.current_node, metadata);
     }
