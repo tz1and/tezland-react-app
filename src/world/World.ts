@@ -8,7 +8,7 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { Database, MeshBuilder, Nullable, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+import { AbstractMesh, Database, MeshBuilder, Nullable, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -30,7 +30,8 @@ import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 
 
-const worldUpdateDistance = 10;
+const worldUpdateDistance = 10; // in m
+const shadowListUpdateInterval = 2000; // in ms
 
 
 export class World {
@@ -190,6 +191,19 @@ export class World {
         }
         else this.shadowGenerator = null;
 
+        if(this.shadowGenerator) {
+            let rtt = this.shadowGenerator.getShadowMap();
+
+            if(rtt) {
+                Logging.InfoDev("Setting up custom render list for shadow generator")
+                rtt.getCustomRenderList = (layer, renderList, renderListLength) => {
+                    if (!renderList) return renderList;
+
+                    return this.shadowRenderList;
+                };
+            }
+        }
+
         // set shadow generator on player controller.
         this.playerController.shadowGenerator = this.shadowGenerator;
 
@@ -203,6 +217,7 @@ export class World {
 
         window.addEventListener('resize', this.onResize);
 
+        this.scene.registerBeforeRender(this.updateShadowRenderList.bind(this));
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
         this.registerPlacesSubscription();
@@ -540,6 +555,28 @@ export class World {
 
             // interpolate other players
             this.multiClient.interpolateOtherPlayers();
+        }
+    }
+
+    private lastShadowListTime: number = 0;
+    private shadowRenderList: AbstractMesh[] = [];
+
+    public updateShadowRenderList() {
+        // Update shadow list if enough time has passed.
+        if(performance.now() - this.lastShadowListTime > shadowListUpdateInterval)
+        {
+            const playerPos = this.playerController.getPosition();
+            // clear list
+            this.shadowRenderList = [];
+            // add items in places nearby.
+            this.places.forEach(place => {
+                if (place.origin.subtract(playerPos).length() < 75) // TODO: don't hardcode this value.
+                    place.itemsNode?.getChildMeshes().forEach(m => {
+                        this.shadowRenderList.push(m);
+                    })
+            });
+
+            this.lastShadowListTime = performance.now();
         }
     }
 

@@ -147,7 +147,7 @@ export default class PlayerController {
                         const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
                         if(newObject) {
                             // Make sure item is place relative to place origin.
-                            newObject.position = this.tempObject.position.subtract(parent.position);
+                            newObject.position = this.tempObject.position.subtract(parent.absolutePosition);
                             newObject.rotationQuaternion = this.tempObjectRot.clone();
                             newObject.scaling = this.tempObject.scaling.clone();
                             newObject.metadata = {

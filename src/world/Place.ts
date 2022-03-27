@@ -349,7 +349,7 @@ export default class Place {
                         } as InstanceMetadata;
 
                         // Add instance to shadow casters.
-                        this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
+                        //this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
 
                         if(!this.isInBounds(instance)) {
                             outOfBounds.push(new BigNumber(element.item_id).toNumber());
