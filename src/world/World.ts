@@ -8,7 +8,7 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { AbstractMesh, Database, MeshBuilder, Nullable, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+import { AbstractMesh, Database, MeshBuilder, Nullable, ReflectionProbe, RenderTargetTexture, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -135,6 +135,13 @@ export class World {
 
         let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
         skybox.material = skyMaterial;
+
+        // reflection probe
+        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.scene);
+        assert(reflectionProbe.renderList);
+        reflectionProbe.renderList.push(skybox);
+        reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+        this.scene.environmentTexture = reflectionProbe.cubeTexture;
 
         // The worlds water.
         const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
