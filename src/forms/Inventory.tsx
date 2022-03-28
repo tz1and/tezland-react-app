@@ -19,6 +19,7 @@ type InventoryState = {
     //mount: HTMLDivElement | null;
     item_offset: number,
     more_data: boolean;
+    hide_zero_balances: boolean;
 };
 
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
@@ -29,7 +30,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         super(props);
         this.state = {
             item_offset: 0,
-            more_data: true
+            more_data: true,
+            hide_zero_balances: true
         };
     }
 
@@ -39,22 +41,15 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     private itemMap: Map<number, any> = new Map(); // TODO: map should belong to state?
 
     override componentDidMount() {
-        this.fetchInventory().then((res) => {
-            for (const r of res) this.itemMap.set(r.token.id, r);
-            const more_data = res.length === this.fetchAmount;
-            this.setState({
-                item_offset: this.fetchAmount,
-                more_data: more_data
-            });
-            this.firstFetchDone = true;
-        });
+        this.fetchData();
     }
 
     private async fetchInventory() {
         try {   
+            const hide_zero_cond = this.state.hide_zero_balances ? ", quantity: {_gt: 0}" : "";
             const data = await fetchGraphQL(`
                 query getInventory($address: String!, $offset: Int!, $amount: Int!) {
-                    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
+                    itemTokenHolder(where: {holderId: {_eq: $address}${hide_zero_cond}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
                       quantity
                       token {
                         id
@@ -78,16 +73,21 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
+    private fetchData = () => {
+        this.fetchInventory().then((res) => {
+            for (const r of res) this.itemMap.set(r.token.id, r);
+            const more_data = res.length === this.fetchAmount;
+            this.setState({
+                item_offset: this.state.item_offset + this.fetchAmount,
+                more_data: more_data
+            });
+            this.firstFetchDone = true;
+        })
+    }
+
     private fetchMoreData = () => {
         if(this.firstFetchDone) {
-            this.fetchInventory().then((res) => {
-                for (const r of res) this.itemMap.set(r.token.id, r);
-                const more_data = res.length === this.fetchAmount;
-                this.setState({
-                    item_offset: this.state.item_offset + this.fetchAmount,
-                    more_data: more_data
-                });
-            })
+            this.fetchData();
         }
     }
 
@@ -97,6 +97,16 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     handleBurn = (item_id: number) => {
         this.props.burnItemFromInventory(item_id);
+    }
+
+    handleShowZeroBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.itemMap.clear();
+        
+        this.setState({
+            hide_zero_balances: e.target.checked,
+            item_offset: 0,
+            more_data: true
+        }, this.fetchData);
     }
 
     override render() {
@@ -112,6 +122,12 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)}/>
                 <h2>inventory</h2>
                 Click to select an Item.
+                <div className="form-check">
+                    <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={true} onChange={this.handleShowZeroBalanceChange}/>
+                    <label className="form-check-label" htmlFor="flexCheckDefault">
+                        Hide zero balances
+                    </label>
+                </div>
                 <InfiniteScroll
                     className="d-flex flex-row flex-wrap justify-content-start align-items-start overflow-auto"
                     style={{height: '75vh'}}
