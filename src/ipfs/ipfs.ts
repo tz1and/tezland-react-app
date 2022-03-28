@@ -1,6 +1,6 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { AssetContainer, Mesh, Nullable, Scene, SceneLoader, TransformNode, Vector3 } from '@babylonjs/core';
+import { AssetContainer, Mesh, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { FileLike, countPolygons } from '../utils/Utils';
@@ -118,8 +118,21 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         result.lights.forEach((l) => { l.dispose() });
         result.cameras.forEach((c) => { c.dispose() });
 
+        // Disable refraction, for now.
+        result.materials.forEach((m) => {
+            if (m instanceof PBRMaterial) {
+                (m as PBRMaterial).refractionTexture = null;
+            } else if (m instanceof StandardMaterial) {
+                (m as StandardMaterial).refractionTexture = null;
+            }
+        })
+
         // Enabled collision on all meshes.
-        result.meshes.forEach((m) => { m.checkCollisions = true; })
+        result.meshes.forEach((m) => {
+            m.checkCollisions = true;
+            m.useOctreeForCollisions = true; // needed?
+            m.useOctreeForPicking = true; // needed?
+        })
         // Make sure to stop all animations.
         result.animationGroups.forEach((ag) => { ag.stop(); })
         asset = result;
