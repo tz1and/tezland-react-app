@@ -7,7 +7,7 @@ import { FormNames } from '../world/AppControlFunctions';
 type InstructionsProps = {
     closeForm(cancelled: boolean): void;
     loadForm(form_type: FormNames): void;
-    getCurrentLocation(): [number, number]
+    getCurrentLocation(): [number, number, number]
 }
 
 export const Instructions: React.FC<InstructionsProps> = (props) => {
@@ -33,7 +33,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
     const copyLocationAddress = () => {
         const pos = props.getCurrentLocation();
         const loc = window.location;
-        const address = loc.protocol + '//' + loc.host + loc.pathname + "?coordx=" + pos[0].toFixed(2) + "&coordz=" + pos[1].toFixed(2);
+        const address = loc.protocol + '//' + loc.host + loc.pathname + "?coordx=" + pos[0].toFixed(2) + "&coordz=" + pos[2].toFixed(2);
         navigator.clipboard.writeText(address);
     }
 

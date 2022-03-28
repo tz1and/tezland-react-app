@@ -122,10 +122,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }});
     }
 
-    getCurrentLocation = (): [number, number] => {
+    getCurrentLocation = (): [number, number, number] => {
         const curVS = this.virtualSpaceRef.current;
         if (curVS) return curVS.getCurrentLocation();
-        return [0,0];
+        return [0, 0, 0];
     }
 
     override componentDidMount() {

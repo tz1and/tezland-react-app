@@ -32,10 +32,10 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         this.world.playerController.setCurrentItem(id);
     }
 
-    getCurrentLocation(): [number, number] {
+    getCurrentLocation(): [number, number, number] {
         assert(this.world);
         const pos = this.world.playerController.getPosition();
-        return [pos.x, pos.z];
+        return [pos.x, pos.y, pos.z];
     }
 
     lockControls() {

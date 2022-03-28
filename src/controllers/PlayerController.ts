@@ -22,8 +22,8 @@ const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
 const LimitFlyDistance = !isDev();
 
 export default class PlayerController {
+    readonly camera: FreeCamera;
     private appControlFunctions: AppControlFunctions;
-    private camera: FreeCamera;
     private scene: Scene;
     private _shadowGenerator: Nullable<ShadowGenerator>;
     public set shadowGenerator(sg: Nullable<ShadowGenerator>) { this._shadowGenerator = sg; }
@@ -324,6 +324,8 @@ export default class PlayerController {
 
         if (urlParams.has('coordx') && urlParams.has('coordz')) {
             playerMesh.position.x = parseFloat(urlParams.get('coordx')!);
+            const yParam = urlParams.get('coordy');
+            playerMesh.position.y = yParam ? parseFloat(yParam) : 0;
             playerMesh.position.z = parseFloat(urlParams.get('coordz')!);
         } else if (urlParams.has('placeid')) {
             Metadata.getPlaceMetadata(parseInt(urlParams.get('placeid')!)).then((metadata) => {
