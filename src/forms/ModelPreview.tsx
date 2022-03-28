@@ -1,8 +1,11 @@
 import React from 'react';
 import '@babylonjs/loaders/glTF';
-import { ArcRotateCamera, Color4, DirectionalLight, Engine, HemisphericLight, Mesh,
-    Nullable, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
+import { SkyMaterial } from '@babylonjs/materials';
+import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
+    Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { countPolygons, getFileType } from '../utils/Utils';
+import SunLight from '../world/SunLight';
+import assert from 'assert';
 
 
 class PreviewScene {
@@ -49,12 +52,45 @@ class PreviewScene {
         const camera = new ArcRotateCamera("camera", Math.PI / 1.5, Math.PI / 2.5, 11, new Vector3(0, 0, 0), scene);
         camera.wheelPrecision = 25;
         camera.attachControl(this.canvas, true);
+        
+        // Create sun and skybox
+        const sun_direction = new Vector3(-50, -100, 50).normalize();
+        new SunLight("sunLight", sun_direction, scene);
 
-        const hemi_light = new HemisphericLight("light", new Vector3(0.1, 1, 0.1), scene);
-        hemi_light.intensity = 0.5;
+        const ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), scene);
+        ambient_light.intensity = 0.3;
+        ambient_light.diffuse = new Color3(0.7, 0.7, 1);
+        ambient_light.specular = new Color3(1, 1, 0.7);
+        ambient_light.groundColor = new Color3(1, 1, 0.7);
 
-        const dir_light = new DirectionalLight("light2", new Vector3(1,-1,-1), this.scene);
-        dir_light.intensity = 0.6;
+        // Create a scene for rendering the reflection probe.
+        let skyScene = new Scene(this.engine);
+
+        const skyMaterial = new SkyMaterial("skyMaterial", skyScene);
+        skyMaterial.backFaceCulling = false;
+        //skyMaterial.inclination = 0.25;
+        //skyMaterial.turbidity = 1;
+        //skyMaterial.rayleigh = 3;
+        //skyMaterial.luminance = 0.3;
+        skyMaterial.useSunPosition = true;
+        skyMaterial.sunPosition = sun_direction.scale(-1);
+
+        let skybox = Mesh.CreateBox("skyBox", 1000.0, skyScene);
+        skybox.material = skyMaterial;
+
+        // reflection probe
+        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, skyScene);
+        assert(reflectionProbe.renderList);
+        reflectionProbe.renderList.push(skybox);
+        reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+
+        new FreeCamera("camera", new Vector3(0, 0, 0), skyScene);
+
+        // render reflection.
+        skyScene.render();
+
+        // and set probe's texture as env texture.
+        scene.environmentTexture = reflectionProbe.cubeTexture;
 
         scene.clearColor = Color4.FromHexString("#DDEEFF");
     
