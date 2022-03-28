@@ -331,9 +331,12 @@ export default class PlayerController {
             Metadata.getPlaceMetadata(parseInt(urlParams.get('placeid')!)).then((metadata) => {
                 const origin = Vector3.FromArray(metadata.centerCoordinates);
                 const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
+
+                // Position is the first corner + 2m from center.
+                p0.addInPlace(origin);
+                p0.addInPlace(p0.subtract(origin).normalize().scale(2));
                 
-                // TODO: move outwards a little.
-                playerMesh.position.copyFrom(p0.addInPlace(origin));
+                playerMesh.position.copyFrom(p0);
                 
                 // Look towards center of place.
                 playerCamera.setTarget(playerMesh.position.subtract(origin).negate()
