@@ -72,7 +72,7 @@ I have to eat. But also, I live a rather humble life. Also, a pretty honest life
 
 A semi-fungible multi-token. The Item (meta)data is stored on IPFS.
 
-The Items contract also has an owner-only burn function, if you ever feel like burning some tokens.`
+The Items contract also has a burn function, if you ever feel like burning some tokens.`
             },
             {
                 question: "There's this 'tz1and DAO' token...",
