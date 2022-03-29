@@ -178,7 +178,7 @@ export class Contracts {
 
     public async burnItem(walletProvider: ITezosWalletProvider, itemId: number, amount: number, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-        if (!walletProvider.isWalletConnected()) throw new Error("mintItem: No wallet connected");
+        if (!walletProvider.isWalletConnected()) throw new Error("burnItem: No wallet connected");
 
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
@@ -190,6 +190,30 @@ export class Contracts {
             }]).send();
 
             this.handleOperation(walletProvider, burn_item_op, callback);
+        }
+        catch(e: any) {
+            Logging.Error(e);
+            if(callback) callback(false);
+        }
+    }
+
+    public async transferItem(walletProvider: ITezosWalletProvider, itemId: number, amount: number, to: string, callback?: (completed: boolean) => void) {
+        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
+        if (!walletProvider.isWalletConnected()) throw new Error("transferItem: No wallet connected");
+
+        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
+
+        try {
+            const transfer_item_op = await itemsWallet.methodsObject.transfer([{
+                from_: walletProvider.walletPHK(),
+                txs: [{
+                    to_: to,
+                    amount: amount,
+                    token_id: itemId
+                }]
+            }]).send();
+
+            this.handleOperation(walletProvider, transfer_item_op, callback);
         }
         catch(e: any) {
             Logging.Error(e);

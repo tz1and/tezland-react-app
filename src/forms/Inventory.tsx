@@ -8,6 +8,7 @@ import { InventoryItem } from '../components/InventoryItem';
 type InventoryProps = {
     selectItemFromInventory(id: number): void;
     burnItemFromInventory(id: number): void;
+    transferItemFromInventory(id: number): void;
     closeForm(cancelled: boolean): void;
     // using `interface` is also ok
     //message: string;
@@ -99,6 +100,10 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         this.props.burnItemFromInventory(item_id);
     }
 
+    handleTransfer = (item_id: number) => {
+        this.props.transferItemFromInventory(item_id);
+    }
+
     handleShowZeroBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.itemMap.clear();
         
@@ -113,7 +118,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         const { error, more_data } = this.state;
 
         const items: JSX.Element[] = []
-         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} item_metadata={item}/>))
+         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item}/>))
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 

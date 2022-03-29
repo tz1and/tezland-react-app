@@ -11,6 +11,7 @@ export type FormNames = 'placeproperties'
     | 'mint'
     | 'inventory'
     | 'burn'
+    | 'transfer'
     | 'loadingerror'
     | 'terms';
 

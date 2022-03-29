@@ -7,6 +7,7 @@ import { Popover } from 'bootstrap';
 type InventoryItemProps = {
     onSelect: (item_id: number) => void;
     onBurn: (item_id: number) => void;
+    onTransfer: (item_id: number) => void;
     item_metadata: any;
 }
 
@@ -40,7 +41,10 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
     return (
         <div className="card m-2 inventory-item" id={item_metadata.token.id} ref={popoverRef}>
-            <button className='btn btn-sm btn-outline-danger position-absolute' style={{zIndex: 1040, right: "0.5rem", top: "0.5rem" }} onClick={() => props.onBurn(item_metadata.token.id)}><i className="bi bi-trash-fill"></i></button>
+            <div className='position-absolute' style={{zIndex: 1040, right: "0.5rem", top: "0.5rem" }}>
+                <button className='btn btn-sm btn-outline-primary me-1' onClick={() => props.onTransfer(item_metadata.token.id)}><i className="bi bi-send-fill"></i></button>
+                <button className='btn btn-sm btn-outline-danger' onClick={() => props.onBurn(item_metadata.token.id)}><i className="bi bi-trash-fill"></i></button>
+            </div>
 
             <div onClick={() => props.onSelect(item_metadata.token.id)}>
                 <img src={getThumbnailUrl(item_metadata.token.thumbnailUri)} className="card-img-top" alt="..."/>
