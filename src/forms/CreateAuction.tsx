@@ -13,9 +13,8 @@ import BigNumber from 'bignumber.js';
 import DutchAuction from '../tz/DutchAuction';
 import Metadata from '../world/Metadata';
 import { useNavigate } from 'react-router-dom';
-import { fetchGraphQL } from '../ipfs/graphql';
+import { fetchPlaces } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
-import { Logging } from '../utils/Logging';
 import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
 
@@ -103,29 +102,8 @@ Place type: {res.placeType}</small>;
         }, () => {});
     }
 
-    private async fetchPlaces() {
-        if(!this.context.isWalletConnected()) return [];
-
-        // TODO: hasura limits to 100 results.
-        // Maybe need to keep fetching.
-
-        try {
-            const data = await fetchGraphQL(`
-                query getPlaces($address: String!) {
-                    placeTokenHolder(where: {holderId: {_eq: $address}}, order_by: {tokenId: asc}) {
-                        tokenId
-                    }
-                }`, "getPlaces", { address: this.context.walletPHK() });
-            
-            return data.placeTokenHolder;
-        } catch(e: any) {
-            Logging.InfoDev("failed to token holder: " + e.message);
-            return []
-        }
-    }
-
     private updatePlacesAndMap() {
-        this.fetchPlaces().then((result) => {
+        fetchPlaces(this.context).then((result) => {
             this.setState({ placeInventory: result });
             if(result.length > 0) {
                 this.panMapToPlace(result[0].tokenId);
