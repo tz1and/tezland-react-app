@@ -1,6 +1,6 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { AssetContainer, Mesh, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { AssetContainer, Material, Mesh, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { FileLike, countPolygons } from '../utils/Utils';
@@ -118,14 +118,33 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         result.lights.forEach((l) => { l.dispose() });
         result.cameras.forEach((c) => { c.dispose() });
 
-        // Disable refraction, for now.
-        result.materials.forEach((m) => {
-            if (m instanceof PBRMaterial) {
-                (m as PBRMaterial).refractionTexture = null;
-            } else if (m instanceof StandardMaterial) {
-                (m as StandardMaterial).refractionTexture = null;
-            }
-        })
+        const removeRefraction = (materials: Nullable<Material>[]) => {
+            materials.forEach((m) => {
+                if(m) {
+                    if (m instanceof PBRMaterial) {
+                        const pbr = m as PBRMaterial;
+                        pbr.refractionTexture = null;
+                        pbr.reflectionTexture = null;
+                    } else if (m instanceof StandardMaterial) {
+                        const std = m as StandardMaterial;
+                        std.refractionTexture = null;
+                        std.reflectionTexture = null;
+                    } else if (m instanceof MultiMaterial) {
+                        const multi = m as MultiMaterial;
+                        if(multi.subMaterials)
+                            removeRefraction(multi.subMaterials);
+                    }
+
+                    /*if (m.getRenderTargetTextures)
+                    m.getRenderTargetTextures().forEach((rtt: RenderTargetTexture) => {
+                        rtt.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+                        console.log("set rtt refresh")
+                    });*/
+                }
+            });
+        };
+
+        removeRefraction(result.materials);
 
         // Enabled collision on all meshes.
         result.meshes.forEach((m) => {
