@@ -11,6 +11,7 @@ type BridgeConnection = {
 export type DistrictDefinition = {
     vertices: Vector2[];
     center: Vector2;
+    spawn: Vector2;
     bridge_connections: BridgeConnection[];
     roads: Edge[];
     curbs: Edge[];
@@ -23,6 +24,7 @@ export default class District extends WorldPolygon {
     public curbs: Edge[];
     public seed: number;
     public build_height_provider: any | undefined;
+    public spawn: Vector2;
 
     constructor(center: Vector2, vertices: Vector2[], seed: number) {
         super(center, vertices);
@@ -31,6 +33,7 @@ export default class District extends WorldPolygon {
         this.curbs = [];
         this.bridge_connections = [];
         this.seed = seed;
+        this.spawn = new Vector2();
     }
 
     public generateBlocks() {
@@ -42,6 +45,6 @@ export default class District extends WorldPolygon {
     }
 
     public serialise(): DistrictDefinition {
-        return { center: this.center, vertices: this.vertices, bridge_connections: this.bridge_connections, roads: this.roads, curbs: this.curbs };
+        return { center: this.center, spawn: this.spawn, vertices: this.vertices, bridge_connections: this.bridge_connections, roads: this.roads, curbs: this.curbs };
     }
 }

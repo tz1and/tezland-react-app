@@ -450,6 +450,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             ].reverse(), 255
         );
 
+        district_3.spawn = new Vector2(-7.8, 0);
+
         // generate central circle
         district_3.addCircle(new Vector2(45, -80), 50, 0, 6);
         district_3.noSplit.push(new Vector2(45, -80));
@@ -499,6 +501,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 new Vector2(80,-80)
             ].reverse(), 123456
         );
+
+        district_4.spawn = new Vector2(-95, -105);
 
         // generate central circle
         district_4.addCircle(new Vector2(-95, -105), 70, Angle.FromDegrees(45).radians(), 6);
