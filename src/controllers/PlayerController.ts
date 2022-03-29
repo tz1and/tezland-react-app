@@ -1,6 +1,6 @@
 import { ActionManager, Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
     Mesh, Nullable, PointerEventTypes, Quaternion, Ray, Scene,
-    ShadowGenerator, Vector3 } from "@babylonjs/core";
+    ShadowGenerator, Vector2, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
@@ -12,6 +12,7 @@ import { AppControlFunctions } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
 import Place, { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
+import { WorldDefinition } from "../worldgen/WorldGen";
 import PickingGuiController from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
@@ -322,13 +323,8 @@ export default class PlayerController {
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
 
-        if (urlParams.has('coordx') && urlParams.has('coordz')) {
-            playerMesh.position.x = parseFloat(urlParams.get('coordx')!);
-            const yParam = urlParams.get('coordy');
-            playerMesh.position.y = yParam ? parseFloat(yParam) : 0;
-            playerMesh.position.z = parseFloat(urlParams.get('coordz')!);
-        } else if (urlParams.has('placeid')) {
-            Metadata.getPlaceMetadata(parseInt(urlParams.get('placeid')!)).then((metadata) => {
+        const teleportToPlace = (place_id: number) => {
+            Metadata.getPlaceMetadata(place_id).then((metadata) => {
                 const origin = Vector3.FromArray(metadata.centerCoordinates);
                 const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
 
@@ -342,6 +338,41 @@ export default class PlayerController {
                 playerCamera.setTarget(playerMesh.position.subtract(origin).negate()
                     .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
             })
+        }
+
+        if (urlParams.has('coordx') && urlParams.has('coordz')) {
+            playerMesh.position.x = parseFloat(urlParams.get('coordx')!);
+            const yParam = urlParams.get('coordy');
+            playerMesh.position.y = yParam ? parseFloat(yParam) : 0;
+            playerMesh.position.z = parseFloat(urlParams.get('coordz')!);
+        } else if (urlParams.has('placeid')) {
+            teleportToPlace(parseInt(urlParams.get('placeid')!));
+        } else {
+            // teleport to default spawn.
+            const defaultSpawn = AppSettings.defaultSpawn.value;
+
+            if (defaultSpawn.startsWith("district")) {
+                const district_id = parseInt(defaultSpawn.replace("district", ""));
+                (async () => {
+                    // TODO: WorldDefinition should be stored on World, instead of fetched here.
+                    // It's probably OK, browser will have it in cache.
+                    const req = await fetch("/models/districts.json");
+                    const world_def = (await req.json()) as WorldDefinition;
+
+                    const district = world_def.districts[district_id - 1];
+                    const spawn = new Vector2(district.spawn.x, district.spawn.y)
+                    const center = new Vector2(district.center.x, district.center.y)
+                    const spawn_point = spawn.add(center);
+
+                    playerMesh.position.x = spawn_point.x;
+                    playerMesh.position.y = 0;
+                    playerMesh.position.z = spawn_point.y;
+                })();
+
+            } else if (defaultSpawn.startsWith("place")) {
+                const place_id = parseInt(defaultSpawn.replace("place", ""));
+                teleportToPlace(place_id);
+            }
         }
     }
 
