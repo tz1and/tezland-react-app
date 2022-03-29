@@ -58,7 +58,7 @@ class PreviewScene {
         new SunLight("sunLight", sun_direction, scene);
 
         const ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), scene);
-        ambient_light.intensity = 0.3;
+        ambient_light.intensity = 0.25;
         ambient_light.diffuse = new Color3(0.7, 0.7, 1);
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
