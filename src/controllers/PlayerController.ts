@@ -96,6 +96,10 @@ export default class PlayerController {
         this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
 
+        // NOTE: the bounding info seems to get bugged for some reason.
+        // We need to update it here, otherwise collisions will be incorrect!
+        this.playerTrigger.refreshBoundingInfo();
+
         // Teleport to spawn location, either from URL or settings.
         this.teleportToSpawn();
 
@@ -331,10 +335,6 @@ export default class PlayerController {
             // Look towards center of place.
             this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
                 .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
-
-            // NOTE: the bounding info seems to get bugged for some reason.
-            // We need to update it here, otherwise collisions will be incorrect!
-            this.playerTrigger.refreshBoundingInfo();
         })
     }
 
@@ -355,10 +355,6 @@ export default class PlayerController {
                 this.playerTrigger.position.x = spawn_point.x;
                 this.playerTrigger.position.y = 0;
                 this.playerTrigger.position.z = spawn_point.y;
-
-                // NOTE: the bounding info seems to get bugged for some reason.
-                // We need to update it here, otherwise collisions will be incorrect!
-                this.playerTrigger.refreshBoundingInfo();
             })();
 
         } else if (location.startsWith("place")) {
@@ -376,10 +372,6 @@ export default class PlayerController {
             const yParam = urlParams.get('coordy');
             this.playerTrigger.position.y = yParam ? parseFloat(yParam) : 0;
             this.playerTrigger.position.z = parseFloat(urlParams.get('coordz')!);
-
-            // NOTE: the bounding info seems to get bugged for some reason.
-            // We need to update it here, otherwise collisions will be incorrect!
-            this.playerTrigger.refreshBoundingInfo();
         } else if (urlParams.has('placeid')) {
             this.teleportToPlace(parseInt(urlParams.get('placeid')!));
         } else {
