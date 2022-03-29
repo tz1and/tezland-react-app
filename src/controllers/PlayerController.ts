@@ -96,10 +96,8 @@ export default class PlayerController {
         this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
 
-        PlayerController.setPositionFromUrlParams(this.playerTrigger, this.camera);
-        // NOTE: the bounding info seems to get bugged for some reason.
-        // We need to update it here, otherwise collisions will be incorrect!
-        this.playerTrigger.refreshBoundingInfo();
+        // Teleport to spawn location, either from URL or settings.
+        this.teleportToSpawn();
 
         this.scene.registerAfterRender(this.updateController.bind(this));
 
@@ -319,60 +317,73 @@ export default class PlayerController {
         }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
     }
 
-    private static setPositionFromUrlParams(playerMesh: Mesh, playerCamera: FreeCamera) {
+    private teleportToPlace(place_id: number) {
+        Metadata.getPlaceMetadata(place_id).then((metadata) => {
+            const origin = Vector3.FromArray(metadata.centerCoordinates);
+            const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
+
+            // Position is the first corner + 2m from center.
+            p0.addInPlace(origin);
+            p0.addInPlace(p0.subtract(origin).normalize().scale(2));
+            
+            this.playerTrigger.position.copyFrom(p0);
+            
+            // Look towards center of place.
+            this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
+                .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
+
+            // NOTE: the bounding info seems to get bugged for some reason.
+            // We need to update it here, otherwise collisions will be incorrect!
+            this.playerTrigger.refreshBoundingInfo();
+        })
+    }
+
+    public teleportToLocation(location: string) {
+        if (location.startsWith("district")) {
+            const district_id = parseInt(location.replace("district", ""));
+            (async () => {
+                // TODO: WorldDefinition should be stored on World, instead of fetched here.
+                // It's probably OK, browser will have it in cache.
+                const req = await fetch("/models/districts.json");
+                const world_def = (await req.json()) as WorldDefinition;
+
+                const district = world_def.districts[district_id - 1];
+                const spawn = new Vector2(district.spawn.x, district.spawn.y)
+                const center = new Vector2(district.center.x, district.center.y)
+                const spawn_point = spawn.add(center);
+
+                this.playerTrigger.position.x = spawn_point.x;
+                this.playerTrigger.position.y = 0;
+                this.playerTrigger.position.z = spawn_point.y;
+
+                // NOTE: the bounding info seems to get bugged for some reason.
+                // We need to update it here, otherwise collisions will be incorrect!
+                this.playerTrigger.refreshBoundingInfo();
+            })();
+
+        } else if (location.startsWith("place")) {
+            const place_id = parseInt(location.replace("place", ""));
+            this.teleportToPlace(place_id);
+        }
+    }
+
+    private teleportToSpawn() {
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
 
-        const teleportToPlace = (place_id: number) => {
-            Metadata.getPlaceMetadata(place_id).then((metadata) => {
-                const origin = Vector3.FromArray(metadata.centerCoordinates);
-                const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
-
-                // Position is the first corner + 2m from center.
-                p0.addInPlace(origin);
-                p0.addInPlace(p0.subtract(origin).normalize().scale(2));
-                
-                playerMesh.position.copyFrom(p0);
-                
-                // Look towards center of place.
-                playerCamera.setTarget(playerMesh.position.subtract(origin).negate()
-                    .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
-            })
-        }
-
         if (urlParams.has('coordx') && urlParams.has('coordz')) {
-            playerMesh.position.x = parseFloat(urlParams.get('coordx')!);
+            this.playerTrigger.position.x = parseFloat(urlParams.get('coordx')!);
             const yParam = urlParams.get('coordy');
-            playerMesh.position.y = yParam ? parseFloat(yParam) : 0;
-            playerMesh.position.z = parseFloat(urlParams.get('coordz')!);
+            this.playerTrigger.position.y = yParam ? parseFloat(yParam) : 0;
+            this.playerTrigger.position.z = parseFloat(urlParams.get('coordz')!);
+
+            // NOTE: the bounding info seems to get bugged for some reason.
+            // We need to update it here, otherwise collisions will be incorrect!
+            this.playerTrigger.refreshBoundingInfo();
         } else if (urlParams.has('placeid')) {
-            teleportToPlace(parseInt(urlParams.get('placeid')!));
+            this.teleportToPlace(parseInt(urlParams.get('placeid')!));
         } else {
-            // teleport to default spawn.
-            const defaultSpawn = AppSettings.defaultSpawn.value;
-
-            if (defaultSpawn.startsWith("district")) {
-                const district_id = parseInt(defaultSpawn.replace("district", ""));
-                (async () => {
-                    // TODO: WorldDefinition should be stored on World, instead of fetched here.
-                    // It's probably OK, browser will have it in cache.
-                    const req = await fetch("/models/districts.json");
-                    const world_def = (await req.json()) as WorldDefinition;
-
-                    const district = world_def.districts[district_id - 1];
-                    const spawn = new Vector2(district.spawn.x, district.spawn.y)
-                    const center = new Vector2(district.center.x, district.center.y)
-                    const spawn_point = spawn.add(center);
-
-                    playerMesh.position.x = spawn_point.x;
-                    playerMesh.position.y = 0;
-                    playerMesh.position.z = spawn_point.y;
-                })();
-
-            } else if (defaultSpawn.startsWith("place")) {
-                const place_id = parseInt(defaultSpawn.replace("place", ""));
-                teleportToPlace(place_id);
-            }
+            this.teleportToLocation(AppSettings.defaultSpawn.value);
         }
     }
 

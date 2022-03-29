@@ -8,7 +8,8 @@ import { FormNames } from '../world/AppControlFunctions';
 type InstructionsProps = {
     closeForm(cancelled: boolean): void;
     loadForm(form_type: FormNames): void;
-    getCurrentLocation(): [number, number, number]
+    getCurrentLocation(): [number, number, number];
+    teleportToLocation(location: string): void;
 }
 
 export const Instructions: React.FC<InstructionsProps> = (props) => {
@@ -45,7 +46,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
                 <button className='btn btn-light ms-3 fs-4' onClick={() => { props.loadForm('settings') } }><i className="bi bi-gear-fill"></i></button>
                 <button className='btn btn-light ms-3 fs-4' ref={popoverRef} onClick={() => { copyLocationAddress(); } }><i className="bi bi-share-fill"></i></button>
                 <WalletWidget/>
-                <SpawnSelectWidget/>
+                <SpawnSelectWidget teleportToLocation={props.teleportToLocation}/>
             </div>
             <div id="explore-instructions" onClick={() => props.closeForm(false)}>
                 <img src="/logo_header.png" className='mb-4' style={{filter: "invert(1)", height: "calc(20px + 8vmin)"}} alt="tz1and" />

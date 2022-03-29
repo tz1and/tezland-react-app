@@ -38,6 +38,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         return [pos.x, pos.y, pos.z];
     }
 
+    teleportToLocation(location: string) {
+        assert(this.world);
+        this.world.playerController.teleportToLocation(location);
+    }
+
     lockControls() {
         // Well, it seems requestPointerLock can return a promise.
         // Try to handle it. To not get a top level DOM exception.

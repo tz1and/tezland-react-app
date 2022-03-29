@@ -128,6 +128,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         return [0, 0, 0];
     }
 
+    teleportToLocation = (location: string): void => {
+        const curVS = this.virtualSpaceRef.current;
+        if (curVS) curVS.teleportToLocation(location);
+    };
+
     override componentDidMount() {
         // check if the virtual world failed to load for some reason.
         // TODO: the way the loading errors are handled is kinda nasty. Improve!
@@ -141,7 +146,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         if(this.state.show_form === 'loadingerror') return <LoadingError/>;
 
         let form;
-        if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} />
+        if (this.state.show_form === 'instructions') form = <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} teleportToLocation={this.teleportToLocation} />
         else if (this.state.show_form === 'terms') form = <TermsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;

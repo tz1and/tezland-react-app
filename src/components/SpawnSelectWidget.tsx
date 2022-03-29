@@ -6,6 +6,7 @@ import AppSettings from "../storage/AppSettings";
 import assert from "assert";
 
 type SpawnSelectProps = {
+    teleportToLocation(location: string): void;
 };
 
 type SpawnSelectState = {
@@ -78,7 +79,9 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     }
 
     private teleportTo = () => {
+        assert(this.selectRef.current);
 
+        this.props.teleportToLocation(this.selectRef.current.value);
     }
 
     private changeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
