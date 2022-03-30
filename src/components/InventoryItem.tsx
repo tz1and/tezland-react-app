@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import Conf from "../Config";
 import { truncate } from '../utils/Utils';
 import { Popover } from 'bootstrap';
+import missing_thumbnail from '../img/missing_thumbnail.png';
 
 type InventoryItemProps = {
     onSelect: (item_id: number) => void;
@@ -34,7 +35,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     const getThumbnailUrl = (url: string | undefined): string => {
         if(url) return `${Conf.ipfs_gateway}/ipfs/${url.slice(7)}`;
 
-        return "/img/missing_thumbnail.png";
+        return missing_thumbnail;
     }
 
     const item_metadata = props.item_metadata;

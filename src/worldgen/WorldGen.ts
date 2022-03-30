@@ -39,9 +39,14 @@ type BridgeDefinition = {
     bridge_path: Vector2[];
 }
 
-export type WorldDefinition = {
+export class WorldDefinition {
     districts: DistrictDefinition[];
     bridges: BridgeDefinition[];
+
+    constructor() {
+        this.districts = [];
+        this.bridges = [];
+    }
 }
 
 /**

@@ -10,6 +10,7 @@ import Metadata from '../world/Metadata';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
 import { Popover } from 'bootstrap';
+import map from '../img/map.svg';
 
 type AuctionProps = {
     auctionId: number;
@@ -178,7 +179,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <small className='text-center d-block mb-0'>Auction #{this.props.auctionId}</small>
                 </div>
                 <MapContainer className="auction-img" center={[500, 500]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the Place">
-                    <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url="/img/map.svg" />
+                    <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url={map} />
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                     <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>

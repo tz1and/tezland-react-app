@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import './Frontpage.css'
 
+import world_screenshot from '../img/world_screenshot.png';
+import map_screenshot from '../img/map_screenshot.png';
+import tezos_ipfs from '../img/tezos_ipfs.png';
+
 export default function Frontpage() {
     return (
         <main>
@@ -15,7 +19,7 @@ export default function Frontpage() {
                 </div>
                 <div className="overflow-hidden" style={{maxHeight: "50vh"}}>
                     <div className="container px-0 px-md-5">
-                        <img src="/img/world_screenshot.png" className="img-fluid border rounded-3 shadow-lg mb-4" alt="A screenshot of the virtual world."
+                        <img src={world_screenshot} className="img-fluid border rounded-3 shadow-lg mb-4" alt="A screenshot of the virtual world."
                             width="100%" loading="lazy" />
                     </div>
                 </div>
@@ -30,7 +34,7 @@ export default function Frontpage() {
                             on <a className='link-info text-decoration-none' href="https://ipfs.io/" target="_blank" rel="noreferrer">IPFS</a>. This website is just a portal, there could be others.</p>
                     </div>
                     <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
-                        <img src="/img/tezos_ipfs.png" className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                        <img src={tezos_ipfs} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
                     </div>
                 </div>
@@ -39,7 +43,7 @@ export default function Frontpage() {
             <div className="container col-xxl-8 px-0 py-2">
                 <div className="row flex-lg-row-reverse align-items-center g-5 py-5">
                     <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
-                        <img src="/img/map_screenshot.png" className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                        <img src={map_screenshot} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
                     </div>
                     <div className="col-lg-6 mx-4 mx-md-0">
@@ -60,7 +64,7 @@ export default function Frontpage() {
                         </div>*/}
                     </div>
                     <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
-                        <img src="/img/world_screenshot.png" className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                        <img src={world_screenshot} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
                     </div>
                 </div>

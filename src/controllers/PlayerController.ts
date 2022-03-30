@@ -16,6 +16,8 @@ import { WorldDefinition } from "../worldgen/WorldGen";
 import PickingGuiController from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
+import world_definition from "../models/districts.json";
+Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
 const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
@@ -342,10 +344,7 @@ export default class PlayerController {
         if (location.startsWith("district")) {
             const district_id = parseInt(location.replace("district", ""));
             (async () => {
-                // TODO: WorldDefinition should be stored on World, instead of fetched here.
-                // It's probably OK, browser will have it in cache.
-                const req = await fetch("/models/districts.json");
-                const world_def = (await req.json()) as WorldDefinition;
+                const world_def = world_definition;
 
                 const district = world_def.districts[district_id - 1];
                 const spawn = new Vector2(district.spawn.x, district.spawn.y)

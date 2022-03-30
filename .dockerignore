@@ -12,6 +12,7 @@ Makefile
 node_modules/
 build/
 assets/
+TODO.txt
 
 # env files
 .env*

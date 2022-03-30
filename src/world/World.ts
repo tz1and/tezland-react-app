@@ -28,6 +28,9 @@ import { WorldDefinition } from "../worldgen/WorldGen";
 import { isDev } from "../utils/Utils";
 import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
+import waterbump from "../models/waterbump.png";
+import world_definition from "../models/districts.json";
+Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
 const worldUpdateDistance = 10; // in m
@@ -146,7 +149,7 @@ export class World {
         // The worlds water.
         const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
         waterMaterial.backFaceCulling = true;
-        const bumpTexture = new Texture("models/waterbump.png", this.scene);
+        const bumpTexture = new Texture(waterbump, this.scene);
         bumpTexture.uScale = 2;
         bumpTexture.vScale = 2;
         waterMaterial.bumpTexture = bumpTexture;
@@ -347,8 +350,7 @@ export class World {
     };
 
     private async loadDistricts() {
-        const req = await fetch("/models/districts.json");
-        const world_def = (await req.json()) as WorldDefinition;
+        const world_def = world_definition;
 
         let counter = 0;
         for (const district of world_def.districts) {
