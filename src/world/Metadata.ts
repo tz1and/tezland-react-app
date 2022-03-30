@@ -41,7 +41,7 @@ export default class Metadata {
 
             const data = await fetchGraphQL(`
                 query getPlaceTokenMetadataBatch($ids: [bigint!]) {
-                    placeToken(where: { id: { _in: $ids } }) {
+                    placeToken(where: { id: { _in: $ids }, metadataFetched: { _eq: true } }) {
                         id
                         name
                         description
@@ -74,7 +74,7 @@ export default class Metadata {
 
             const data = await fetchGraphQL(`
                 query getPlaceTokenMetadata($id: bigint!) {
-                    placeToken(where: { id: { _eq: $id } }) {
+                    placeToken(where: { id: { _eq: $id }, metadataFetched: { _eq: true } }) {
                         id
                         name
                         description
@@ -110,7 +110,7 @@ export default class Metadata {
 
             const data = await fetchGraphQL(`
                 query getItemTokenMetadata($id: bigint!) {
-                    itemToken(where: { id: { _eq: $id } }) {
+                    itemToken(where: { id: { _eq: $id }, metadataFetched: { _eq: true } }) {
                         id
                         name
                         description
