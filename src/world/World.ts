@@ -256,6 +256,7 @@ export class World {
         Logging.InfoDev(d);
         const tContent = d as OperationContentsAndResultTransaction;
 
+        // NOTE: might break with internal contract calls!
         if (tContent.parameters) {
             const ep = tContent.parameters.entrypoint;
             if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items" || ep === "set_item_data") {
