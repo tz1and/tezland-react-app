@@ -121,14 +121,14 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         const removeRefraction = (materials: Nullable<Material>[]) => {
             materials.forEach((m) => {
                 if(m) {
-                    if (m instanceof PBRMaterial) {
-                        const pbr = m as PBRMaterial;
-                        pbr.refractionTexture = null;
-                        pbr.reflectionTexture = null;
-                    } else if (m instanceof StandardMaterial) {
-                        const std = m as StandardMaterial;
-                        std.refractionTexture = null;
-                        std.reflectionTexture = null;
+                    if (m instanceof PBRMaterial || m instanceof StandardMaterial) {
+                        const mat = m as PBRMaterial | StandardMaterial;
+                        if (mat.refractionTexture) {
+                            mat.refractionTexture.dispose();
+                            mat.refractionTexture = null;
+                        }
+                        // remove relfection texture?
+                        //pbr.reflectionTexture = null;
                     } else if (m instanceof MultiMaterial) {
                         const multi = m as MultiMaterial;
                         if(multi.subMaterials)
