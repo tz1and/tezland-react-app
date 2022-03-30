@@ -38,6 +38,7 @@ type MintFormState = {
     successState: Trilean,
     modelLoadingState: ModelLoadingState;
     modelLimitWarning: string;
+    modelMintDate: Date;
 }
 
 export class MintFrom extends React.Component<MintFormProps, MintFormState> {
@@ -57,7 +58,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             error: "",
             successState: 0,
             modelLoadingState: "none",
-            modelLimitWarning: ""
+            modelLimitWarning: "",
+            modelMintDate: new Date()
         };
 
         this.isClosable = this.props.closable === undefined ? true : this.props.closable;
@@ -135,7 +137,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         const metadata = createItemTokenMetadata({
             name: values.itemTitle,
             description: values.itemDescription,
-            date: new Date(),
+            date: this.state.modelMintDate,
             minter: this.context.walletPHK(),
             artifactUri: await fileToFileLike(values.itemFile, mime_type),
             displayUri: { dataUri: display, type: "image/png", name: "display.png" } as FileLike,
@@ -195,7 +197,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             error: "",
             successState: 0,
             modelLoadingState: "none",
-            modelLimitWarning: ""
+            modelLimitWarning: "",
+            modelMintDate: new Date()
         });
     }
 
@@ -234,8 +237,14 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                     errors.itemFile = 'Mesh has too many triangles.';
                             }
 
+                            if (values.itemDescription.length > 1000) {
+                                errors.itemDescription = 'Description must be <= 1000 characters.';
+                            }
+
                             if (values.itemTitle.length === 0) {
                                 errors.itemTitle = 'Title required';
+                            } else if (values.itemTitle.length > 100) {
+                                errors.itemTitle = 'Title must be <= 100 characters.';
                             }
                         
                             if (values.itemRoyalties < 0 || values.itemRoyalties > 25) {
@@ -305,6 +314,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                             <div className="mb-3">
                                                 <label htmlFor="itemDescription" className="form-label">Description</label>
                                                 <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
+                                                <ErrorMessage name="itemDescription" children={this.errorDisplay}/>
                                             </div>
                                             <div className="mb-3">
                                                 <label htmlFor="itemTags" className="form-label">Tags</label>
