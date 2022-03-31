@@ -20,8 +20,8 @@ import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
-const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
-const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
+const PlayerWalkSpeed = 1.8; // should come out to about 1.8m/s
+const PlayerJogSpeed = 3; // comes out to about 3m/s
 const LimitFlyDistance = !isDev();
 const UnglitchCooldown = 10000; // 10s
 
@@ -94,7 +94,7 @@ export default class PlayerController {
 
         // Mesh builder :  {height: PlayerController.BODY_HEIGHT, radius: 0.5, updatable: false}
         this.playerTrigger = new Mesh("player", this.scene);
-        this.playerTrigger.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
+        this.playerTrigger.ellipsoid = new Vector3(0.375, PlayerController.BODY_HEIGHT * 0.5, 0.375);
         this.playerTrigger.ellipsoidOffset.set(0, PlayerController.LEGS_HEIGHT + (PlayerController.BODY_HEIGHT * 0.5), 0);
         this.playerTrigger.isPickable = false;
         this.playerTrigger.isVisible = false;
@@ -396,7 +396,9 @@ export default class PlayerController {
 
     private initCamera(): FreeCamera {
         // This creates and positions a free camera (non-mesh)
-        var camera = new FreeCamera("playerCamera", new Vector3(0, PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT, 0), this.scene);
+        var camera = new FreeCamera("playerCamera",
+            new Vector3(0, PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT - 0.15, 0),
+            this.scene);
 
         // Camera props
         camera.fovMode = FreeCamera.FOVMODE_HORIZONTAL_FIXED;
@@ -592,12 +594,13 @@ export default class PlayerController {
         const fwd = this._flyMode ? cam_dir : Vector3.Cross(right, Vector3.Up());
 
         // Player velocity.
-        const accel = delta_time * 3;
+        const accel = this.player_speed * delta_time;
         const new_vel = (this._flyMode ?
             fwd.scale(moveFwd).add(right.scale(moveRight)).add(Vector3.Up().scale(moveUp)) :
             fwd.scale(moveFwd).add(right.scale(moveRight))
-        ).normalize().scale(this.player_speed * accel);
-        this.velocity.scaleInPlace(1 - accel).addInPlace(new_vel);
+        ).normalize().scale(accel);
+        //this.velocity.scaleInPlace(1 - accel).addInPlace(new_vel);
+        this.velocity.copyFrom(new_vel);
 
         // Not needed if accel and decel are eq.
         /*if(this.velocity.length() > PlayerJogSpeed) {
