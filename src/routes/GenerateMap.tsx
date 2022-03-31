@@ -628,7 +628,14 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                             draw.polygon(lot.verticesToArray(district.center)).fill(fill).stroke(stroke).attr({'stroke-width': 0.5});
                             const centroid = lot.centroid(district.center);
                             draw.circle(1).fill(fill).stroke(stroke).move(centroid.x - 0.5, centroid.y - 0.5);
-                            //draw.circle(1).stroke('blue').fill('blue').move(land.center.x - 0.5, land.center.y - 0.5);
+
+                            if(!mark_minted) {
+                                const text = draw.text("Place #" + lot_counter).font({
+                                    family: 'Arial', size: 1.5//, anchor: 'middle'//, leading: '1.5em'
+                                }).fill('black');
+                                text.move(centroid.x - text.bbox().w / 2, centroid.y + 1.5).scale(-1, 1);
+                            }
+
                             ++lot_counter;
                         }
                     }
