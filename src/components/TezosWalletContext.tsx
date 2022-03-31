@@ -133,7 +133,7 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
                 this.state.beaconWallet.requestPermissions({ network: {
                     type: TezosWalletProvider.getNetworkType(),
                     name: Conf.tezos_network,
-                    rpcUrl: Conf.tezos_node } }) // for dev
+                    rpcUrl: Conf.tezos_node } })
                 .then(() => this.state.beaconWallet!.getPKH())
                 .then((address) => this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange")));
             }
