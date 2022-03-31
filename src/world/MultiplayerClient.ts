@@ -152,9 +152,20 @@ export default class MultiplayerClient { //extends EventEmitter {
         //Logging.Log(`update other players took: ${elapsed}ms`);
     }
 
+    private last_pos = new Vector3();
+    private last_rot = new Vector3();
+
     public updatePlayerPosition(pos: Vector3, rot: Vector3) {
         assert(this.ws && this.ws.readyState === WebSocket.OPEN, "Not connected");
         assert(this.connected, "Not authenticated");
+
+        // dont send update if nothing changed.
+        if (this.last_pos.equalsWithEpsilon(pos) && this.last_rot.equalsWithEpsilon(this.last_rot))
+            return;
+
+        // update last pos.
+        this.last_pos.copyFrom(pos);
+        this.last_rot.copyFrom(rot);
 
         // TODO: optimize this. Write some tests.
         const from_float32 = (data: Float32Array) => {
@@ -267,17 +278,17 @@ class OtherPlayer {
 
     constructor(name: string, parent: TransformNode) {
         this.tranformNode = new TransformNode(name);
-        this.head = Mesh.CreateBox("head", 0.5, null, false);
+        this.head = Mesh.CreateBox("head", 0.4, null, false);
         this.head.isPickable = false;
         this.head.parent = this.tranformNode;
-        this.head.position.y = 1.8; // TODO: don't hardocde this
+        this.head.position.y = 1.8 - 0.15; // TODO: don't hardocde this
 
-        const nose = Mesh.CreateBox("nose", 0.1, null, false);
+        const nose = Mesh.CreateBox("nose", 0.075, null, false);
         nose.isPickable = false;
         nose.parent = this.head;
-        nose.position.z = 0.3;
+        nose.position.z = 0.225;
 
-        this.body = Mesh.CreateCylinder("body", 1, 0.9, 0.9, 12, null, undefined, false);
+        this.body = Mesh.CreateCylinder("body", 0.8, 0.75, 0.75, 12, null, undefined, false);
         this.body.isPickable = false;
         this.body.parent = this.tranformNode;
         this.body.position.y = 0.95; // TODO: don't hardocde this
