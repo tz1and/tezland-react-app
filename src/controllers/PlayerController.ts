@@ -358,17 +358,14 @@ export default class PlayerController {
     public teleportToLocation(location: string) {
         if (location.startsWith("district")) {
             const district_id = parseInt(location.replace("district", ""));
-            (async () => {
-                const world_def = world_definition;
+            const world_def = world_definition;
 
-                const district = world_def.districts[district_id - 1];
-                const spawn = new Vector2(district.spawn.x, district.spawn.y)
-                const center = new Vector2(district.center.x, district.center.y)
-                const spawn_point = spawn.add(center);
+            const district = world_def.districts[district_id - 1];
+            const spawn = new Vector2(district.spawn.x, district.spawn.y)
+            const center = new Vector2(district.center.x, district.center.y)
+            const spawn_point = spawn.add(center);
 
-                this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
-            })();
-
+            this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
         } else if (location.startsWith("place")) {
             const place_id = parseInt(location.replace("place", ""));
             this.teleportToPlace(place_id);
