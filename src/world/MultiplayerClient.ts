@@ -43,7 +43,7 @@ export default class MultiplayerClient { //extends EventEmitter {
         this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.world.scene);
 
         this.identity = this.world.walletProvider.isWalletConnected() ?
-            this.world.walletProvider.walletPHK() : crypto.randomBytes(32).toString('hex');
+            this.world.walletProvider.walletPHK() : crypto.randomBytes(18).toString('hex');
 
         ws.onopen = () => {
             this.handshake();
@@ -131,8 +131,9 @@ export default class MultiplayerClient { //extends EventEmitter {
             if(u.dc === true) {
                 let p = this.otherPlayers.get(u.name);
                 if(p) {
-                    p.dispose();
                     this.otherPlayers.delete(u.name);
+                    p.dispose();
+                    Logging.LogDev("MultiplayerClient: player disconnected:", u.name);
                 }
                 return;
             }
@@ -144,8 +145,11 @@ export default class MultiplayerClient { //extends EventEmitter {
                 this.world.shadowGenerator?.addShadowCaster(p.head);
                 this.world.shadowGenerator?.addShadowCaster(p.body);
                 this.otherPlayers.set(u.name, p);
+                p.update(u.upd);
+                p.moveToLast();
+                Logging.LogDev("MultiplayerClient: player connected:", u.name);
             }
-            p.update(u.upd);
+            else p.update(u.upd);
         });
 
         //const elapsed = performance.now() - start_time;
@@ -301,8 +305,6 @@ class OtherPlayer {
 
         this.lastPos = new Vector3(0,0,0);
         this.lastRot = new Vector3(0,0,0);
-
-        Logging.LogDev("MultiplayerClient: added player", name)
     }
 
     update(tranformData: string) {
@@ -313,7 +315,18 @@ class OtherPlayer {
         this.lastRot.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
     }
 
+    moveToLast() {
+        this.tranformNode.position = this.lastPos;
+        this.head.rotation = this.lastRot;
+    }
+
     interpolate(delta: number) {
+        // when player moves far, for example when teleporting, don't interpolate.
+        if (Vector3.Distance(this.tranformNode.position, this.lastPos) > 10) {
+            this.moveToLast();
+            return;
+        }
+
         this.tranformNode.position = Vector3.Lerp(this.tranformNode.position, this.lastPos, delta);
         this.head.rotation = Vector3.Lerp(this.head.rotation, this.lastRot, delta);
     }
