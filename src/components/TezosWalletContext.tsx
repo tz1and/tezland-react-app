@@ -10,13 +10,13 @@ import { OperationPending, OperationPendingData } from "./OperationPending";
 import assert from "assert";
 
 export type ITezosWalletProvider = {
-    //setWalletAddress(walletAddress: string): void
-    connectWallet: () => void,
-    disconnectWallet: () => void,
-    isWalletConnected: () => boolean,
-    tezosToolkit: () => TezosToolkit,
-    walletPHK: () => string,
-    walletEvents: () => EventEmitter
+    //setWalletAddress(walletAddress: string): void;
+    connectWallet: () => void;
+    disconnectWallet: () => void;
+    isWalletConnected: () => boolean;
+    tezosToolkit: () => TezosToolkit;
+    walletPHK: () => string;
+    walletEvents: () => EventEmitter;
 
     addWalletOperation(hash: string): void;
     walletOperationDone(hash: string, completed: boolean, message?: string): void;
@@ -106,29 +106,38 @@ class TezosWalletProvider extends React.Component<TezosWalletProviderProps, Tezo
             }*/
         };
         this.setState({ beaconWallet: new BeaconWallet(options) }, () => {
+            assert(this.state.beaconWallet);
+
+            // Set wallet provider.
             this.state.tezos.setWalletProvider(this.state.beaconWallet);
 
-            this.state.beaconWallet!.getPKH().then((address) => {
-                this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange"));
-            }, () => { });
+            // Check if wallet is already connected.
+            this.state.beaconWallet!.client.getActiveAccount().then((activeAccount) => {
+                if(activeAccount) {
+                    this.setState({ walletAddress: activeAccount.address }, () => this.state.walletEventEmitter.emit("walletChange"));
+                }
+            });
         });
     }
 
     public connectWallet = () => {
         if (!this.state.beaconWallet) return;
 
-        this.state.beaconWallet.getPKH().then((address) => {
-            this.setState({ walletAddress: address });
-        }, () => {
-            this.state.beaconWallet!
-                //.requestPermissions({ network: { type: NetworkType.MAINNET } }) // For mainnet
-                .requestPermissions({ network: {
+        // Check if wallet is already connected.
+        this.state.beaconWallet.client.getActiveAccount().then((activeAccount) => {
+            if(activeAccount) {
+                this.setState({ walletAddress: activeAccount.address });
+            } else {
+                assert(this.state.beaconWallet);
+
+                this.state.beaconWallet.requestPermissions({ network: {
                     type: TezosWalletProvider.getNetworkType(),
                     name: Conf.tezos_network,
                     rpcUrl: Conf.tezos_node } }) // for dev
-                .then((_) => this.state.beaconWallet!.getPKH())
+                .then(() => this.state.beaconWallet!.getPKH())
                 .then((address) => this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange")));
-        })
+            }
+        });
     }
 
     public disconnectWallet = () => {
