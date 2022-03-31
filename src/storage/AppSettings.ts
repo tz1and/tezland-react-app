@@ -89,6 +89,8 @@ const current_settings_version = () => settingsVersion.settingExists() ? setting
 
 // Updating client settings. To be used for increasing the defaults, etc.
 export const upgradeSettings = () => {
+    Logging.InfoDev("Checking for settings updates.");
+
     // upgrade to version 1
     if (current_settings_version() < 1) {
         Logging.Info("Updating client settings to version 1");
