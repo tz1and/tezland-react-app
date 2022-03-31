@@ -1,3 +1,5 @@
+import { Logging } from "../utils/Logging";
+
 interface IAppSetting<T> {
     readonly defaultValue: T;
 
@@ -29,6 +31,11 @@ class AppSetting<T extends Object> implements IAppSetting<T> {
         return res ? this.parseFunc(res) : this.defaultValue;
     }
 
+    settingExists(): boolean {
+        const res = localStorage.getItem("tezland:settings:" + this.settingName);
+        return res !== null;
+    }
+
     get value(): T {
         return this._value;
     }
@@ -54,9 +61,9 @@ export default class AppSettings {
     static triangleLimit = new AppSetting<number>("triangleLimit", 5120, parseNumber);
     static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, parseNumber); // MiB default.
 
-    static drawDistance = new AppSetting<number>("drawDistance", 200, parseNumber);
+    static drawDistance = new AppSetting<number>("drawDistance", 125, parseNumber);
 
-    static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", true, parseBool);
+    static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", false, parseBool);
     static showFps = new AppSetting<boolean>("showFps", true, parseBool);
 
     // controls
@@ -65,7 +72,7 @@ export default class AppSettings {
 
     // graphics
     static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);
-    static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "cascaded", parseShadowOptions);
+    static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "none", parseShadowOptions);
     static shadowMapRes = new AppSetting<ShadowMapRes>("shadowMapRes", 1024, parseShadowMapRes);
     static fovHorizontal = new AppSetting<number>("fovHorizontal", 90, parseNumber);
 
@@ -75,4 +82,19 @@ export default class AppSettings {
 
 export class AppTerms {
     static termsAccepted = new AppSetting<boolean>("termsAccepted", false, parseBool);
+}
+
+export const settingsVersion = new AppSetting<number>("settingsVersion", 1, parseNumber);
+const current_settings_version = () => settingsVersion.settingExists() ? settingsVersion.loadSetting() : 0;
+
+// Updating client settings. To be used for increasing the defaults, etc.
+export const upgradeSettings = () => {
+    // upgrade to version 1
+    if (current_settings_version() < 1) {
+        Logging.Info("Updating client settings to version 1");
+        AppSettings.shadowOptions.value = "none";
+        AppSettings.displayPlaceBounds.value = false;
+        AppSettings.drawDistance.value = 125;
+        settingsVersion.value = 1;
+    }
 }

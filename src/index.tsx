@@ -12,8 +12,11 @@ import AppRouter from './AppRouter';
 import Metadata from './world/Metadata';
 import { Notification } from './components/Notification';
 import { isDev, sleep } from './utils/Utils';
+import { upgradeSettings } from './storage';
 import Conf from './Config';
 
+// make sure the default settings are up to date.
+upgradeSettings();
 
 Metadata.Storage.open(() => {
     renderApp();
