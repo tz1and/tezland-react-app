@@ -1,6 +1,14 @@
 import React from 'react';
 
 export const ControlsHelp: React.FC<{}> = () => {
+
+    const key_icon = (icon: string | JSX.Element) => {
+        return <span className="glyphicon-stack m-1 mx-0 me-1">
+            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
+            <span className="glyphicon-stack-2x text-white">{icon}</span>
+        </span>
+    }
+
     return (
         <div>
             <div className='position-absolute bottom-0 start-0'>
@@ -18,63 +26,35 @@ export const ControlsHelp: React.FC<{}> = () => {
                         <span className="glyphicon-stack m-1 mx-0">
                             <i className="bi bi-square-fill glyphicon-stack-1x text-white"></i>
                         </span>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">W</span>
-                        </span><br/>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">A</span>
-                        </span>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">S</span>
-                        </span>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">D</span>
-                        </span>
+                        {key_icon("W")}<br/>
+                        {key_icon("A")}
+                        {key_icon("S")}
+                        {key_icon("D")}
                         Move (arrow keys as well)<br/>
                         <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-arrow-up-square-fill glyphicon-stack-1x"></i>
                         </span>
                         Walk (left shift)<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">G</span>
-                        </span>
+                        {key_icon("G")}
                         Toggle Fly-mode<br/>
                         <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-mouse-fill glyphicon-stack-1x"></i>
                         </span>
-                        Look
+                        Look<br/>
+                        {key_icon("X")}
+                        Unglitch me
                     </p>
 
                     <p>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">I</span>
-                        </span>
+                        {key_icon("I")}
                         Open inventory<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">M</span>
-                        </span>
+                        {key_icon("M")}
                         Mint item<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">P</span>
-                        </span>
+                        {key_icon("P")}
                         Edit Place properties<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">C</span>
-                        </span>
+                        {key_icon("C")}
                         Clear item selection<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">U</span>
-                        </span>
+                        {key_icon("U")}
                         Save changes
                     </p>
 
@@ -92,54 +72,20 @@ export const ControlsHelp: React.FC<{}> = () => {
                             <i className="glyphicon-stack-2x bi-arrow-repeat text-white"></i>
                         </span>
                         Adjust height (mouse wheel)<br/>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">1</span>
-                        </span>/
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">2</span>
-                        </span>
+                        {key_icon("1")}/{key_icon("2")}
                         Rotate Item around Y (up)<br/>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">3</span>
-                        </span>/
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">4</span>
-                        </span>
+                        {key_icon("3")}/{key_icon("4")}
                         Rotate Item around Z (forward)<br/>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">5</span>
-                        </span>/
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">6</span>
-                        </span>
+                        {key_icon("5")}/{key_icon("6")}
                         Rotate Item around X (right)<br/>
-                        <span className="glyphicon-stack m-1 mx-0">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">R</span>
-                        </span>/
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">F</span>
-                        </span>
+                        {key_icon("R")}/{key_icon("F")}
                         Scale item<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">Del</span>
-                        </span>
+                        {key_icon("Del")}
                         Remove item
                     </p>
 
                     <p>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <span className="glyphicon-stack-2x text-white">Esc</span>
-                        </span>
+                        {key_icon("Esc")}
                         Exit pointer lock
                     </p>
                 </div>

@@ -23,6 +23,7 @@ Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 const PlayerWalkSpeed = 0.05; // should come out to about 1.6m/s
 const PlayerJogSpeed = PlayerWalkSpeed * 1.6; // comes out to about 2.5m/s
 const LimitFlyDistance = !isDev();
+const UnglitchCooldown = 10000; // 10s
 
 export default class PlayerController {
     readonly camera: FreeCamera;
@@ -65,6 +66,8 @@ export default class PlayerController {
 
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
+
+    private last_unglitch_time: number = 0;
 
     constructor(world: World, canvas: HTMLCanvasElement, appControlFunctions: AppControlFunctions) {
         this.appControlFunctions = appControlFunctions;
@@ -300,6 +303,14 @@ export default class PlayerController {
                         this.player_speed = PlayerWalkSpeed;
                         break;
 
+                    case 'KeyX':
+                        if (performance.now() - this.last_unglitch_time > UnglitchCooldown) {
+                            this.last_unglitch_time = performance.now();
+                            const dir = this.camera.getForwardRay().direction.multiplyByFloats(1,0,1).normalize().scale(2);
+                            this.teleportToWorldPos(this.playerTrigger.position.add(dir));
+                        }
+                        break;
+
                     case 'Delete': // Mark item for deletion
                         const current_item = this.pickingGui.getCurrentItem();
                         if(current_item) {
@@ -332,12 +343,16 @@ export default class PlayerController {
             p0.addInPlace(origin);
             p0.addInPlace(p0.subtract(origin).normalize().scale(2));
             
-            this.playerTrigger.position.copyFrom(p0);
+            this.teleportToWorldPos(p0);
             
             // Look towards center of place.
             this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
                 .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
         })
+    }
+
+    private teleportToWorldPos(pos: Vector3) {
+        this.playerTrigger.position.copyFrom(pos);
     }
 
     public teleportToLocation(location: string) {
@@ -351,9 +366,7 @@ export default class PlayerController {
                 const center = new Vector2(district.center.x, district.center.y)
                 const spawn_point = spawn.add(center);
 
-                this.playerTrigger.position.x = spawn_point.x;
-                this.playerTrigger.position.y = 0;
-                this.playerTrigger.position.z = spawn_point.y;
+                this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
             })();
 
         } else if (location.startsWith("place")) {
@@ -367,10 +380,13 @@ export default class PlayerController {
         const urlParams = new URLSearchParams(window.location.search);
 
         if (urlParams.has('coordx') && urlParams.has('coordz')) {
-            this.playerTrigger.position.x = parseFloat(urlParams.get('coordx')!);
             const yParam = urlParams.get('coordy');
-            this.playerTrigger.position.y = yParam ? parseFloat(yParam) : 0;
-            this.playerTrigger.position.z = parseFloat(urlParams.get('coordz')!);
+
+            this.teleportToWorldPos(new Vector3(
+                parseFloat(urlParams.get('coordx')!),
+                yParam ? parseFloat(yParam) : 0,
+                parseFloat(urlParams.get('coordz')!))
+            );
         } else if (urlParams.has('placeid')) {
             this.teleportToPlace(parseInt(urlParams.get('placeid')!));
         } else {
