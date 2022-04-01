@@ -33,6 +33,48 @@ export function disposeAssetMap() {
     assetMap.clear();
 }
 
+const removeRefraction = (materials: Nullable<Material>[]) => {
+    materials.forEach((m) => {
+        if(m) {
+            if (m instanceof PBRMaterial) {
+                const mat = m as PBRMaterial;
+                //mat.subSurface.linkRefractionWithTransparency = false;
+                mat.subSurface.isRefractionEnabled = false;
+                mat.subSurface.isScatteringEnabled = false;
+                mat.subSurface.isTranslucencyEnabled = false;
+            } else if (m instanceof StandardMaterial) {
+                const mat = m as StandardMaterial;
+                if (mat.refractionTexture) {
+                    mat.refractionTexture.dispose();
+                    mat.refractionTexture = null;
+                    Logging.InfoDev("removing refraction from", mat.name);
+                }
+                if (mat.opacityTexture) {
+                    mat.opacityTexture.dispose();
+                    mat.opacityTexture = null;
+                    Logging.InfoDev("removing opacity from", mat.name);
+                }
+                /*if (mat.reflectionTexture) {
+                    mat.reflectionTexture.dispose();
+                    mat.reflectionTexture = null;
+                }*/
+                // remove relfection texture?
+                //pbr.reflectionTexture = null;
+            } else if (m instanceof MultiMaterial) {
+                const mat = m as MultiMaterial;
+                if(mat.subMaterials)
+                    removeRefraction(mat.subMaterials);
+            }
+
+            /*if (m.getRenderTargetTextures)
+            m.getRenderTargetTextures().forEach((rtt: RenderTargetTexture) => {
+                rtt.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+                console.log("set rtt refresh")
+            });*/
+        }
+    });
+};
+
 export async function download_item(token_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
@@ -117,40 +159,6 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         // remove all lights and cameras.
         result.lights.forEach((l) => { l.dispose() });
         result.cameras.forEach((c) => { c.dispose() });
-
-        const removeRefraction = (materials: Nullable<Material>[]) => {
-            materials.forEach((m) => {
-                if(m) {
-                    if (m instanceof PBRMaterial || m instanceof StandardMaterial) {
-                        const mat = m as PBRMaterial | StandardMaterial;
-                        if (mat.refractionTexture) {
-                            mat.refractionTexture.dispose();
-                            mat.refractionTexture = null;
-                        }
-                        if (mat.opacityTexture) {
-                            mat.opacityTexture.dispose();
-                            mat.opacityTexture = null;
-                        }
-                        if (mat.reflectionTexture) {
-                            mat.reflectionTexture.dispose();
-                            mat.reflectionTexture = null;
-                        }
-                        // remove relfection texture?
-                        //pbr.reflectionTexture = null;
-                    } else if (m instanceof MultiMaterial) {
-                        const multi = m as MultiMaterial;
-                        if(multi.subMaterials)
-                            removeRefraction(multi.subMaterials);
-                    }
-
-                    /*if (m.getRenderTargetTextures)
-                    m.getRenderTargetTextures().forEach((rtt: RenderTargetTexture) => {
-                        rtt.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-                        console.log("set rtt refresh")
-                    });*/
-                }
-            });
-        };
 
         removeRefraction(result.materials);
 
