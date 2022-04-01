@@ -37,22 +37,20 @@ const removeRefraction = (materials: Nullable<Material>[]) => {
     materials.forEach((m) => {
         if(m) {
             if (m instanceof PBRMaterial) {
-                const mat = m as PBRMaterial;
                 //mat.subSurface.linkRefractionWithTransparency = false;
-                mat.subSurface.isRefractionEnabled = false;
-                mat.subSurface.isScatteringEnabled = false;
-                mat.subSurface.isTranslucencyEnabled = false;
+                m.subSurface.isRefractionEnabled = false;
+                m.subSurface.isScatteringEnabled = false;
+                m.subSurface.isTranslucencyEnabled = false;
             } else if (m instanceof StandardMaterial) {
-                const mat = m as StandardMaterial;
-                if (mat.refractionTexture) {
-                    mat.refractionTexture.dispose();
-                    mat.refractionTexture = null;
-                    Logging.InfoDev("removing refraction from", mat.name);
+                if (m.refractionTexture) {
+                    m.refractionTexture.dispose();
+                    m.refractionTexture = null;
+                    Logging.InfoDev("removing refraction from", m.name);
                 }
-                if (mat.opacityTexture) {
-                    mat.opacityTexture.dispose();
-                    mat.opacityTexture = null;
-                    Logging.InfoDev("removing opacity from", mat.name);
+                if (m.opacityTexture) {
+                    m.opacityTexture.dispose();
+                    m.opacityTexture = null;
+                    Logging.InfoDev("removing opacity from", m.name);
                 }
                 /*if (mat.reflectionTexture) {
                     mat.reflectionTexture.dispose();
@@ -61,9 +59,8 @@ const removeRefraction = (materials: Nullable<Material>[]) => {
                 // remove relfection texture?
                 //pbr.reflectionTexture = null;
             } else if (m instanceof MultiMaterial) {
-                const mat = m as MultiMaterial;
-                if(mat.subMaterials)
-                    removeRefraction(mat.subMaterials);
+                if(m.subMaterials)
+                    removeRefraction(m.subMaterials);
             }
 
             /*if (m.getRenderTargetTextures)
