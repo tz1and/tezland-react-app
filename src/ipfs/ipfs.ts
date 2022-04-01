@@ -127,6 +127,14 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
                             mat.refractionTexture.dispose();
                             mat.refractionTexture = null;
                         }
+                        if (mat.opacityTexture) {
+                            mat.opacityTexture.dispose();
+                            mat.opacityTexture = null;
+                        }
+                        if (mat.reflectionTexture) {
+                            mat.reflectionTexture.dispose();
+                            mat.reflectionTexture = null;
+                        }
                         // remove relfection texture?
                         //pbr.reflectionTexture = null;
                     } else if (m instanceof MultiMaterial) {
