@@ -37,6 +37,7 @@ const removeRefraction = (materials: Nullable<Material>[]) => {
     materials.forEach((m) => {
         if(m) {
             if (m instanceof PBRMaterial) {
+                //m.transparencyMode = 0;
                 //mat.subSurface.linkRefractionWithTransparency = false;
                 m.subSurface.isRefractionEnabled = false;
                 m.subSurface.isScatteringEnabled = false;
@@ -162,8 +163,10 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         // Enabled collision on all meshes.
         result.meshes.forEach((m) => {
             m.checkCollisions = true;
-            //m.useOctreeForCollisions = true; // needed?
-            //m.useOctreeForPicking = true; // needed?
+            // needed? maybe decide based on polycount!
+            //m.useOctreeForCollisions = true;
+            //m.useOctreeForPicking = true;
+            //m.useOctreeForRenderingSelection = true;
         })
         // Make sure to stop all animations.
         result.animationGroups.forEach((ag) => { ag.stop(); })
