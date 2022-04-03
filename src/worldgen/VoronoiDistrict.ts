@@ -7,7 +7,7 @@ import District from "./District";
 import WorldPolygon, { Edge } from "./WorldPolygon";
 
 
-class ExclusionZone {
+export class ExclusionZone {
     public center: Vector2;
     public radius: number;
 
@@ -20,10 +20,10 @@ class ExclusionZone {
 export default class VoronoiDistrict extends District {
     public sites: Site[];
     public noSplit: Vector2[];
-    private exclusion: ExclusionZone[];
+    public exclusion: ExclusionZone[];
         
-    constructor(center: Vector2, vertices: Vector2[], seed: number) {
-        super(center, vertices, seed);
+    constructor(center: Vector2, vertices: Vector2[], seed: number, allow_rotation: boolean = false) {
+        super(center, vertices, seed, allow_rotation);
 
         this.sites = [];
         this.exclusion = [];
@@ -104,7 +104,7 @@ export default class VoronoiDistrict extends District {
                     vertices.push(new Vector2(halfedge.edge.vb.x, halfedge.edge.vb.y));
             }
 
-            const block = new Block(center, vertices);
+            const block = new Block(center, vertices, this.allow_rotation);
 
             block.straightSkeleton(3);
 
@@ -125,6 +125,7 @@ export default class VoronoiDistrict extends District {
             const blocks = WorldPolygon.clipAgainst<District, Block>(d_srunk, block.verticesToPolygon(), Block);
             // TODO: clip agains could call clone? Then we wouldn't have to do this.
             if(block.dont_split) blocks.forEach((b) => { b.dont_split = true; });
+            if(block.allow_rotation) blocks.forEach((b) => { b.allow_rotation = true; });
             this.blocks.push(...blocks);
         });
 

@@ -1,18 +1,23 @@
 import { Vector2 } from '@babylonjs/core';
+import { Matrix2D } from '@babylonjs/gui';
+import assert from 'assert';
 import { Polygon } from 'polygon-clipping';
 import Prando from 'prando';
 import Lot from './Lot';
-import WorldPolygon from './WorldPolygon'
+import Rectangle, { translateAndRotate } from './Rectangle';
+import WorldPolygon, { Edge } from './WorldPolygon'
 
 
 export default class Block extends WorldPolygon {
     public lots: Lot[];
     public dont_split: boolean;
+    public allow_rotation: boolean;
     
-    constructor(center: Vector2, vertices: Vector2[]) {
+    constructor(center: Vector2, vertices: Vector2[], allow_rotation: boolean) {
         super(center, vertices);
         this.lots = [];
         this.dont_split = false;
+        this.allow_rotation = allow_rotation;
     }
 
     public generateLots(seed: number, build_height_provider: any | undefined) {
@@ -37,6 +42,8 @@ export default class Block extends WorldPolygon {
 
         for (const poly of grid) {
             const newland = WorldPolygon.clipAgainst<Block, Lot>(this, poly, Lot);
+            // For debugging:
+            //const newland = WorldPolygon.clipAgainst<Block, Lot>(new Block(new Vector2(), [new Vector2(1000,1000), new Vector2(-1000,1000), new Vector2(-1000,-1000), new Vector2(1000,-1000)], false), poly, Lot);
 
             // shrink then clip again to get rid of some of the weird ones
             newland.forEach((l) => {
@@ -60,7 +67,7 @@ export default class Block extends WorldPolygon {
         const safeEps = 0.001;
         // TODO: New code using subdivided Rectangle
         // Find the longest edge (to rotate along)
-        /*let longest_edge_len = -Infinity;
+        let longest_edge_len = -Infinity;
         let longest_edge: Edge | undefined;
         this.edges().forEach((edge) => {
             const len = edge.length();
@@ -71,53 +78,31 @@ export default class Block extends WorldPolygon {
         });
 
         assert(longest_edge);
-        const angle = Vector2.Dot(new Vector2(1,0), longest_edge.b.subtract(longest_edge.a))
+        const edge_dir = longest_edge.b.subtract(longest_edge.a).normalize();
+        const angle = this.allow_rotation ? Math.atan2(edge_dir.y, edge_dir.x) : 0;
 
         // compute bounds
         const transform = translateAndRotate(this.center.x, this.center.y, angle);
-        const [min, max] = this.extent(safeEps); //, transform);
+        const transform_inv = Matrix2D.Identity();
+        transform.invertToRef(transform_inv);
 
+        const [min, max] = this.extent(safeEps, transform_inv);
         const extent = max.subtract(min);
-        const max_extent = Math.max(extent.x, extent.y);
-        const gridSize = new Vector2(Math.ceil(max_extent / prando.next(30, 40)), Math.ceil(max_extent / prando.next(30, 40)));
+        
+        const new_center = min.add(extent.divide(new Vector2(2,2)));
+        transform.transformCoordinates(new_center.x, new_center.y, new_center);
 
-        let rect = new Rectangle(max_extent * 1, max_extent * 1, min.add(extent.divide(new Vector2(2,2))), angle);
+        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(30, 45)), Math.ceil(extent.y / prando.next(30, 45)));
+
+        let rect = new Rectangle(extent.x, extent.y, new_center, angle);
         //draw.polygon(rect.pointsToArray()).stroke('red').fill('none');
 
         const grid: Polygon[] = [];
 
-        for (const s of rect.subdivide(gridSize.x, gridSize.x)) {
+        for (const s of rect.subdivide(gridSize.x, gridSize.y)) {
             //draw.polygon(s.pointsToArray()).stroke('red').fill('none');
 
             grid.push(s.pointsToPolygon());
-        }
-
-        return grid;*/
-
-        // OLD CODE. TBH: old code was better
-        // compute bounds
-        const [min, max] = this.extent(safeEps);
-
-        const extent = max.subtract(min);
-        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(30, 45)), Math.ceil(extent.y / prando.next(30, 45)));
-        const spacing = new Vector2(extent.x / gridSize.x, extent.y / gridSize.y);
-        
-        const grid: Polygon[] = [];
-
-        for (let i = 0; i < gridSize.x; ++i) {
-            for (let j = 0; j < gridSize.y; ++j) {
-                const pos = new Vector2(min.x + spacing.x * i + spacing.x / 2, min.y + spacing.y * j + spacing.y / 2);
-
-                const poly: Polygon = [[
-                    [spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
-                    [-spacing.x / 2 + pos.x, spacing.y / 2 + pos.y],
-                    [-spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
-                    [spacing.x / 2 + pos.x, -spacing.y / 2 + pos.y],
-                    //[spacing.x / 2 + pos.x, spacing.y / 2 + pos.y]
-                ]];
-
-                grid.push(poly);
-            }
         }
 
         return grid;

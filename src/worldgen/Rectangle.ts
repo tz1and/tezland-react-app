@@ -52,8 +52,8 @@ export default class Rectangle {
 
         for (let i = 0; i < x; ++i) {
             for (let j = 0; j < y; ++j) {
-                const pos = new Vector2();
-                transform.transformCoordinates(xoff * i + tx, yoff * j + ty, pos);
+                const pos = new Vector2(xoff * i + tx, yoff * j + ty);
+                transform.transformCoordinates(pos.x, pos.y, pos);
                 arr.push(new Rectangle(this.width / x, this.height / y, pos, this.angle))
             }
         }

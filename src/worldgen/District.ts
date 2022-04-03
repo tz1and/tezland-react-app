@@ -25,8 +25,9 @@ export default class District extends WorldPolygon {
     public seed: number;
     public build_height_provider: any | undefined;
     public spawn: Vector2;
+    readonly allow_rotation: boolean;
 
-    constructor(center: Vector2, vertices: Vector2[], seed: number) {
+    constructor(center: Vector2, vertices: Vector2[], seed: number, allow_rotation: boolean = false) {
         super(center, vertices);
         this.blocks = [];
         this.roads = [];
@@ -34,6 +35,7 @@ export default class District extends WorldPolygon {
         this.bridge_connections = [];
         this.seed = seed;
         this.spawn = new Vector2();
+        this.allow_rotation = allow_rotation;
     }
 
     public generateBlocks() {
