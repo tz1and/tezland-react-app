@@ -71,6 +71,13 @@ export default class WorldGen {
     }
 
     public addBridge(bridge: Bridge) {
+        // validate bridge
+        /*if (bridge.district0.vertices.length <= bridge.edge0idx
+            || bridge.district1.vertices.length <= bridge.edge1idx) {
+            Logging.Error("Bridge: invlid edge");
+            return;
+        }*/
+
         this.bridges.push(bridge);
 
         bridge.district0.addBridgeConnection({

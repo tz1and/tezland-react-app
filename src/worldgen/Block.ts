@@ -3,6 +3,7 @@ import { Matrix2D } from '@babylonjs/gui';
 import assert from 'assert';
 import { Polygon } from 'polygon-clipping';
 import Prando from 'prando';
+import { BlockGenOptions } from './District';
 import Lot from './Lot';
 import Rectangle, { translateAndRotate } from './Rectangle';
 import WorldPolygon, { Edge } from './WorldPolygon'
@@ -12,12 +13,14 @@ export default class Block extends WorldPolygon {
     public lots: Lot[];
     public dont_split: boolean;
     public allow_rotation: boolean;
+    public block_gen_opts: BlockGenOptions;
     
-    constructor(center: Vector2, vertices: Vector2[], allow_rotation: boolean) {
+    constructor(center: Vector2, vertices: Vector2[], allow_rotation: boolean, block_gen_opts: BlockGenOptions) {
         super(center, vertices);
         this.lots = [];
         this.dont_split = false;
         this.allow_rotation = allow_rotation;
+        this.block_gen_opts = block_gen_opts
     }
 
     public generateLots(seed: number, build_height_provider: any | undefined) {
@@ -92,7 +95,9 @@ export default class Block extends WorldPolygon {
         const new_center = min.add(extent.divide(new Vector2(2,2)));
         transform.transformCoordinates(new_center.x, new_center.y, new_center);
 
-        const gridSize = new Vector2(Math.ceil(extent.x / prando.next(30, 45)), Math.ceil(extent.y / prando.next(30, 45)));
+        const gridSize = new Vector2(
+            Math.ceil(extent.x / prando.next(this.block_gen_opts.minSize, this.block_gen_opts.maxSize)),
+            Math.ceil(extent.y / prando.next(this.block_gen_opts.minSize, this.block_gen_opts.maxSize)));
 
         let rect = new Rectangle(extent.x, extent.y, new_center, angle);
         //draw.polygon(rect.pointsToArray()).stroke('red').fill('none');

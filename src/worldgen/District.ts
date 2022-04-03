@@ -17,6 +17,11 @@ export type DistrictDefinition = {
     curbs: Edge[];
 }
 
+export type BlockGenOptions = {
+    minSize: number;
+    maxSize: number;
+}
+
 export default class District extends WorldPolygon {
     public blocks: Block[];
     public bridge_connections: BridgeConnection[];
@@ -26,8 +31,9 @@ export default class District extends WorldPolygon {
     public build_height_provider: any | undefined;
     public spawn: Vector2;
     readonly allow_rotation: boolean;
+    readonly block_gen_opts: BlockGenOptions;
 
-    constructor(center: Vector2, vertices: Vector2[], seed: number, allow_rotation: boolean = false) {
+    constructor(center: Vector2, vertices: Vector2[], seed: number, allow_rotation: boolean = false, block_gen_opts?: BlockGenOptions) {
         super(center, vertices);
         this.blocks = [];
         this.roads = [];
@@ -36,6 +42,11 @@ export default class District extends WorldPolygon {
         this.seed = seed;
         this.spawn = new Vector2();
         this.allow_rotation = allow_rotation;
+
+        if (block_gen_opts)
+            this.block_gen_opts = block_gen_opts;
+        else
+            this.block_gen_opts = { minSize: 30, maxSize: 45 };
     }
 
     public generateBlocks() {

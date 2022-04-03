@@ -3,7 +3,7 @@ import Prando from "prando";
 import { BoundingBox, Diagram, Site, Voronoi } from "voronoijs";
 import { DeepEqualsSet } from "../utils/Sets";
 import Block from "./Block";
-import District from "./District";
+import District, { BlockGenOptions } from "./District";
 import WorldPolygon, { Edge } from "./WorldPolygon";
 
 
@@ -22,8 +22,8 @@ export default class VoronoiDistrict extends District {
     public noSplit: Vector2[];
     public exclusion: ExclusionZone[];
         
-    constructor(center: Vector2, vertices: Vector2[], seed: number, allow_rotation: boolean = false) {
-        super(center, vertices, seed, allow_rotation);
+    constructor(center: Vector2, vertices: Vector2[], seed: number, allow_rotation: boolean = false, block_gen_opts?: BlockGenOptions) {
+        super(center, vertices, seed, allow_rotation, block_gen_opts);
 
         this.sites = [];
         this.exclusion = [];
@@ -104,7 +104,7 @@ export default class VoronoiDistrict extends District {
                     vertices.push(new Vector2(halfedge.edge.vb.x, halfedge.edge.vb.y));
             }
 
-            const block = new Block(center, vertices, this.allow_rotation);
+            const block = new Block(center, vertices, this.allow_rotation, this.block_gen_opts);
 
             block.straightSkeleton(3);
 
@@ -126,6 +126,7 @@ export default class VoronoiDistrict extends District {
             // TODO: clip agains could call clone? Then we wouldn't have to do this.
             if(block.dont_split) blocks.forEach((b) => { b.dont_split = true; });
             if(block.allow_rotation) blocks.forEach((b) => { b.allow_rotation = true; });
+            blocks.forEach((b) => { b.block_gen_opts = block.block_gen_opts; });
             this.blocks.push(...blocks);
         });
 
