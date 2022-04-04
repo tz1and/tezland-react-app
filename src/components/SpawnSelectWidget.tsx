@@ -105,6 +105,8 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
                     <option key="d2" value="district2">District #2</option>
                     <option key="d3" value="district3">District #3</option>
                     <option key="d4" value="district4">District #4</option>
+                    <option key="d5" value="district5">District #5</option>
+                    <option key="d6" value="district6">District #6</option>
                     {listElements}
                 </select>
                 <button className={`btn btn-${this.state.currentIsDefault ? "success" : "secondary"} mb-auto`} onClick={this.setDefaultSpawn} ref={this.popoverDefaultRef}><i className="bi bi-check2"></i></button>
