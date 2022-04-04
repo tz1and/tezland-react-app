@@ -8,12 +8,14 @@ import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
 import { mutezToTez, signedArea, sleep, tezToMutez } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
 import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
-import VoronoiDistrict from "../worldgen/VoronoiDistrict";
+import VoronoiDistrict, { ExclusionZone } from "../worldgen/VoronoiDistrict";
 import assert from "assert";
 import Config from "../Config";
 import Contracts from "../tz/Contracts";
 import Metadata from "../world/Metadata";
 import BigNumber from "bignumber.js";
+
+const prodAdminAddress = "tz1Ly2nrAF7p4dYGHYfuDNTX6M3Ly8tDZ7Pn";
 
 type GenerateMapState = {
     svg?: string;
@@ -91,7 +93,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         const minterWallet = await this.context.tezosToolkit().wallet.at(Conf.minter_contract);
         const walletphk = this.context.walletPHK();
-        assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
+        assert(walletphk === prodAdminAddress, "Not admin!");
 
         const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
@@ -172,7 +174,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
     private createAuctions = async () => {
         const walletphk = this.context.walletPHK();
-        assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
+        assert(walletphk === prodAdminAddress, "Not admin!");
 
         const last_batch_id = 176 + 1;
         const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
@@ -265,7 +267,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
     private batchWhitelist = async () => {
         const walletphk = this.context.walletPHK();
-        assert(walletphk === "tz1andXaJQEfu6DCGDa7dyDJRXqQZXjvdxNA", "Not admin!");
+        assert(walletphk === prodAdminAddress, "Not admin!");
 
         const auctionsWallet = await this.context.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
 
@@ -427,6 +429,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             district_2.noSplit.push(new Vector2(s.x, s.y));
         }
 
+        district_2.center = new Vector2(-100, 0);
+
         return district_2
     }
 
@@ -469,6 +473,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         district_3.addRandomSites(5, 15589);
 
+        district_3.center = new Vector2(-200, 0);
+
         return district_3;
     }
 
@@ -488,10 +494,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 new Vector2(-260,-40), // bend top, bottom
                 new Vector2(-280,-80), // bend top, top
                 new Vector2(-280,-250), // top right
-                //new Vector2(-220,-250), // bay top right
-                ////new Vector2(-220,-190), // bay top right
-                ////new Vector2(-180,-190), // bay top right
-                //new Vector2(-180,-250), // bay top right
                 new Vector2(-120,-250),
                 new Vector2(-120,-160),
                 new Vector2(-40,-80), // bay top
@@ -519,7 +521,94 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         
         district_4.addRandomSites(25, 78415);
 
+        district_4.center = new Vector2(-200, 300);
+
         return district_4;
+    }
+
+    private generateDistrict5() {
+
+        const district_5 = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(-100, 100),
+                new Vector2(10, 180),
+                new Vector2(100, 180), // bottom left corner
+                //new Vector2(70, 70), // bottom left corner center
+                new Vector2(180, 70), // bottom left corner
+                new Vector2(180, -60),
+                new Vector2(100, -165),
+                new Vector2(100, -250), // top
+                new Vector2(10, -250), // top
+                new Vector2(-60, -170),
+                new Vector2(-60, -60), // inner corner
+                new Vector2(-180, -60), // right
+                new Vector2(-180, 100), // right
+            ], 65897522, true, { minSize: 35, maxSize: 45 }
+        );
+
+        // generate central circle
+        const central = new Vector2(50,100);
+        district_5.addCircle(central, 60, Angle.FromDegrees(0).radians(), 4);
+        district_5.noSplit.push(central);
+
+        const central2 = new Vector2(50,-20);
+        district_5.addCircle(central2, 80, Angle.FromDegrees(0).radians(), 4);
+        district_5.noSplit.push(central2);
+
+        // top blocks
+        const top = new Vector2(55,-205);
+        district_5.addCircle(top, 85, Angle.FromDegrees(0).radians(), 4);
+
+        // make some stuff on the right side
+        district_5.addSite(new Vector2(-180, 100), true, true, 100);
+        district_5.exclusion.push(new ExclusionZone(new Vector2(-180, -60), 50));
+
+        district_5.center = new Vector2(300, 300);
+        district_5.spawn = central2;
+
+        return district_5;
+    }
+
+    private generateDistrict6() {
+
+        const district_6 = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(-100, -100),
+                new Vector2(10, -180),
+                new Vector2(100, -180), // bottom left corner
+                //new Vector2(70, -70), // bottom left corner center
+                new Vector2(180, -70), // bottom left corner
+                new Vector2(180, 60),
+                new Vector2(100, 165),
+                new Vector2(100, 250), // top
+                new Vector2(10, 250), // top
+                new Vector2(-60, 170),
+                new Vector2(-60, 60), // inner corner
+                new Vector2(-180, 60), // right
+                new Vector2(-180, -100), // right
+            ].reverse(), 458781, true, { minSize: 35, maxSize: 45 }
+        );
+
+        // generate central circle
+        const central = new Vector2(-150,-65);
+        district_6.addCircle(central, 60, Angle.FromDegrees(0).radians(), 4);
+        district_6.exclusion.push(new ExclusionZone(central, 150));
+        district_6.noSplit.push(central);
+
+        const central2 = new Vector2(50,20);
+        district_6.addCircle(central2, 80, Angle.FromDegrees(0).radians(), 4);
+        district_6.noSplit.push(central2);
+
+        // top blocks
+        const top = new Vector2(55,205);
+        district_6.addCircle(top, 85, Angle.FromDegrees(0).radians(), 4);
+        
+        district_6.addRandomSites(10, 98758);
+
+        district_6.center = new Vector2(300, -300);
+        district_6.spawn = central2;
+
+        return district_6;
     }
 
     // Similar to componentDidMount and componentDidUpdate:
@@ -534,18 +623,23 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         // Second district
         const district_2 = this.generateDistrict2();
-        district_2.center = new Vector2(-100, 0);
         worldgen.addDistrict(district_2);
 
         // Third district
         const district_3 = this.generateDistrict3();
-        district_3.center = new Vector2(-200, 0);
         worldgen.addDistrict(district_3);
 
         // Fourth district
         const district_4 = this.generateDistrict4();
-        district_4.center = new Vector2(-200, 300);
         worldgen.addDistrict(district_4);
+
+        // Fifth district
+        const district_5 = this.generateDistrict5();
+        worldgen.addDistrict(district_5);
+
+        // sixth district
+        const district_6 = this.generateDistrict6();
+        worldgen.addDistrict(district_6);
 
 
         // Add birdges from district 1 to 2
@@ -569,6 +663,20 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         worldgen.addBridge(new Bridge(district_4, 3, 0.5, district_3, 3, 0.145));
         worldgen.addBridge(new Bridge(district_4, 4, 0.5, district_3, 2, 0.5));
         worldgen.addBridge(new Bridge(district_4, 5, 0.5, district_3, 1, 0.865));
+
+        // Add birdges from district 5 to 1
+        worldgen.addBridge(new Bridge(district_5, 9, 0.9, district_1, 7, 0.66));
+        worldgen.addBridge(new Bridge(district_5, 8, 0.54, district_1, 8, 0.145));
+
+        // Add birdges from district 5 to 3
+        worldgen.addBridge(new Bridge(district_5, 10, 0.445, district_4, 16, 0.5));
+
+        // Add birdges from district 6 to 1
+        worldgen.addBridge(new Bridge(district_6, 1, 0.1, district_1, 13, 0.34));
+        worldgen.addBridge(new Bridge(district_6, 2, 0.46, district_1, 12, 0.855));
+
+        // Add birdges from district 5 to 6
+        worldgen.addBridge(new Bridge(district_5, 6, 0.5, district_6, 4, 0.5));
 
 
         worldgen.generateWorld();
@@ -594,7 +702,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // TODO: create canvas based on world extent.
         const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
 
-        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
+        const last_minted_place_id = 290 // (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
         const drawMap = (mark_minted: boolean = false) => {
             draw.clear();
