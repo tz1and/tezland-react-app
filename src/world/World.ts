@@ -47,6 +47,7 @@ export class World {
     readonly transparentGridMat: GridMaterial;
     
     private sunLight: SunLight;
+    private skybox: Mesh;
     
     readonly playerController: PlayerController;
     readonly shadowGenerator: Nullable<ShadowGenerator>;
@@ -136,13 +137,13 @@ export class World {
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
 
-        let skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
-        skybox.material = skyMaterial;
+        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
+        this.skybox.material = skyMaterial;
 
         // reflection probe
         let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.scene);
         assert(reflectionProbe.renderList);
-        reflectionProbe.renderList.push(skybox);
+        reflectionProbe.renderList.push(this.skybox);
         reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
         this.scene.environmentTexture = reflectionProbe.cubeTexture;
 
@@ -150,8 +151,8 @@ export class World {
         const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
         waterMaterial.backFaceCulling = true;
         const bumpTexture = new Texture(waterbump, this.scene);
-        bumpTexture.uScale = 2;
-        bumpTexture.vScale = 2;
+        bumpTexture.uScale = 4;
+        bumpTexture.vScale = 4;
         waterMaterial.bumpTexture = bumpTexture;
         waterMaterial.windForce = -1;
         waterMaterial.waveHeight = 0; //0.05;
@@ -159,10 +160,10 @@ export class World {
         waterMaterial.windDirection = new Vector2(1, 1);
         waterMaterial.waterColor = new Color3(0.02, 0.06, 0.24);
         waterMaterial.colorBlendFactor = 0.7;
-        waterMaterial.addToRenderList(skybox);
+        waterMaterial.addToRenderList(this.skybox);
         this.waterMaterial = waterMaterial
 
-        const water = Mesh.CreateGround("water", 1000, 1000, 4, this.scene);
+        const water = Mesh.CreateGround("water", 2000, 2000, 4, this.scene);
         water.material = this.waterMaterial;
         water.isPickable = false;
         water.checkCollisions = true;
@@ -595,6 +596,7 @@ export class World {
         const playerPos = this.playerController.getPosition();
 
         this.sunLight.update(playerPos);
+        this.skybox.position.set(playerPos.x, 0, playerPos.z)
 
         // update multiplayer
         this.updateMultiplayer();
