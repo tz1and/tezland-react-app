@@ -702,7 +702,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // TODO: create canvas based on world extent.
         const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
 
-        const last_minted_place_id = 290 // (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
+        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
         const drawMap = (mark_minted: boolean = false) => {
             draw.clear();
