@@ -151,7 +151,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 metadata: metadata_map
             });
 
-            if(batch.length >= 150) {
+            if(batch.length >= 120) {
                 console.log("batch limit reached, sending batch");
 
                 const batch_op = await minterWallet.methodsObject.mint_Place(batch).send();
