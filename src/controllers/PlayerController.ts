@@ -337,7 +337,7 @@ export default class PlayerController {
                             engine, this.scene.activeCamera!,
                             { width: canvas.width, height: canvas.height },
                             "image/png", engine.getCaps().maxSamples, true)
-                        .then(res => downloadFile(res, "screenshot.png"));
+                        .then(res => downloadFile(res, "tz1and_screenshot.png"));
                         break;
                 }
             }
