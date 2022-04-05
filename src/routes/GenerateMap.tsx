@@ -176,7 +176,9 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const walletphk = this.context.walletPHK();
         assert(walletphk === prodAdminAddress, "Not admin!");
 
-        const last_batch_id = 176 + 1;
+        // TODO: add batch support!
+
+        const last_batch_id = 380 + 1;
         const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
         const known_places: number[] = Array.from({length: last_minted_place_id - last_batch_id + 1}, (x, i) => last_batch_id + i);
