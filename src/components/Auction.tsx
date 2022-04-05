@@ -3,7 +3,7 @@ import { MapContainer, ImageOverlay, Circle, Polygon } from 'react-leaflet'
 import L from 'leaflet';
 import './Auction.css'
 import 'leaflet/dist/leaflet.css';
-import { mutezToTez, signedArea, yesNo } from '../utils/Utils';
+import { mutezToTez, signedArea } from '../utils/Utils';
 import { MapSetCenter } from '../forms/CreateAuction';
 import React from 'react';
 import Metadata from '../world/Metadata';
@@ -35,6 +35,8 @@ type AuctionState = {
     placeArea: number,
     buildHeight: number
 }
+
+export const discordInviteLink = "https://discord.gg/AAwpbStzZf";
 
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
     static override contextType = TezosWalletContext;
@@ -136,6 +138,10 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         })
     }
 
+    private placeLink(): string {
+        return `/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`
+    }
+
     override componentDidMount() {
         // set Interval
         // NOTE: could figure out the exact time the price drops by granularity
@@ -169,14 +175,22 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     override render() {
+        const current_price = this.calculateCurrentPrice();
+        const is_approximate_price = this.props.startPrice !== current_price && this.props.endPrice !== current_price;
+        const price_str = (is_approximate_price ? "~" : "") + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729";
+
         return (
             <div className="m-3 Auction">
-                <div className='p-3 position-relative'>
-                    {(this.context.isWalletConnected() && this.props.owner === this.context.walletPHK()) &&
-                        <button onClick={this.cancelAuction} className="position-absolute btn btn-outline-danger btn-sm mt-1">Cancel</button>}
+                {(this.context.isWalletConnected() && this.props.owner === this.context.walletPHK()) &&
+                        <button onClick={this.cancelAuction} className="position-absolute btn btn-outline-danger btn-sm mt-3 me-3 end-0">Cancel</button>}
+
+                {this.props.isPrimary ? <button className="position-absolute btn btn-outline-success btn-sm mt-3 ms-3" disabled>Primary</button> :
+                    <button className="position-absolute btn btn-outline-secondary btn-sm mt-3 ms-3" disabled>Secondary</button>}
+                <div className='p-3 position-relative text-center'>
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
-                    <h4 className="text-center mb-0">Place #{this.props.tokenId}</h4>
-                    <small className='text-center d-block mb-0'>Auction #{this.props.auctionId}</small>
+                    <h4 className="mb-0">Place #{this.props.tokenId}</h4>
+                    <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
+                    <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
                 <MapContainer className="auction-img" center={[500, 500]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the Place">
                     <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url={map} />
@@ -189,21 +203,21 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                         <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: `${this.progress}%` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={this.progress}></div>
                     </div>
 
-                    <p className='small'>
+                    <p className='small mb-2'>
                         Place area: {this.state.placeArea.toFixed(2)} m<sup>2</sup><br/>
                         Build height: {this.state.buildHeight.toFixed(2)} m<br/>
                         Current owner: <a href={`https://tzkt.io/${this.props.owner}`} target='_blank' rel='noreferrer'>{this.props.owner.substring(0,12)}...</a><br/>
                         Start price: {mutezToTez(this.props.startPrice).toNumber()} &#42793;<br/>
                         End price: {mutezToTez(this.props.endPrice).toNumber()} &#42793;<br/>
-                        Duration: {this.duration / 3600}h<br/>
-                        Primary: {yesNo(this.props.isPrimary)}
+                        Duration: {this.duration / 3600}h
                     </p>
 
-                    <Link to={`/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`} target='_blank' className="btn btn-outline-secondary btn-sm w-100 mb-1">Visit place</Link>
+                    <h6 className='text-center'>{"Current bid: " + price_str}</h6>
+
                     {!this.context.isWalletConnected() ? <button onClick={this.bidOnAuction} className="btn btn-secondary btn-md w-100" disabled={true}>No wallet connected</button> :
-                    (this.props.isPrimary && !this.props.userWhitelisted) ? <a href="https://discord.gg/AAwpbStzZf" target="_blank" rel="noreferrer" className="btn btn-warning btn-md w-100">Get Whitelisted</a> :
-                    <button onClick={this.bidOnAuction} className="btn btn-primary btn-md w-100" disabled={!this.started}>
-                        {!this.started ? "Not started" : "Get for ~" + mutezToTez(this.calculateCurrentPrice()).toNumber().toFixed(2) + " \uA729"}</button>}
+                        (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Get Whitelisted</a> :
+                        <button onClick={this.bidOnAuction} className="btn btn-primary btn-md mb-1 w-100" disabled={!this.started}>
+                            {!this.started ? "Not started" : "Get for " + price_str}</button>}
                 </div>
             </div>
         );
