@@ -300,8 +300,8 @@ export class World {
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
-        // Load districts
-        await this.loadDistricts();
+        // Load districts, ie: ground meshes, bridges, etc.
+        this.loadDistricts();
 
         const placeCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
 
@@ -353,7 +353,7 @@ export class World {
                 currentPlace.currentOwner, currentPlace.getPermissions);
     };
 
-    private async loadDistricts() {
+    private loadDistricts() {
         const world_def = world_definition;
 
         let counter = 0;
