@@ -157,3 +157,21 @@ export const yesNo = (v: boolean): string => {
 export const isEpsilonEqual = (a: number, b: number, epsilon: number = Number.EPSILON) => {
   return (Math.abs(a - b) < epsilon);
 }
+
+// Triggers download of a data url as a file.
+export const downloadFile = (data_url: string, filename: string) => {
+  // create download file link
+  const link = document.createElement('a');
+  link.href = data_url;
+  link.setAttribute(
+    'download',
+    filename,
+  );
+
+  // Append to html link element and cick it
+  document.body.appendChild(link);
+  link.click();
+
+  // Clean up and remove the link
+  document.body.removeChild(link);
+}

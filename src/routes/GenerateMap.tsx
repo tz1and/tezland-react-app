@@ -5,7 +5,7 @@ import Conf from "../Config";
 import { MichelsonMap, OpKind, WalletParamsWithKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
-import { mutezToTez, signedArea, sleep, tezToMutez } from "../utils/Utils";
+import { downloadFile, mutezToTez, signedArea, sleep, tezToMutez } from "../utils/Utils";
 import TezosWalletContext from "../components/TezosWalletContext";
 import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict, { ExclusionZone } from "../worldgen/VoronoiDistrict";
@@ -47,20 +47,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const data = new Blob([this.state.svg], { type: 'image/svg+xml' });
         const downloadLink = window.URL.createObjectURL(data);
 
-        // create download file link
-        const link = document.createElement('a');
-        link.href = downloadLink;
-        link.setAttribute(
-            'download',
-            `map.svg`,
-        );
-
-        // Append to html link element and cick it
-        document.body.appendChild(link);
-        link.click();
-
-        // Clean up and remove the link
-        document.body.removeChild(link);
+        downloadFile(downloadLink, "map.svg");
     }
 
     private downloadDistrictsFile = () => {
@@ -70,20 +57,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const data = new Blob([JSON.stringify(this.state.world_def)], { type: 'application/json' });
         const downloadLink = window.URL.createObjectURL(data);
 
-        // create download file link
-        const link = document.createElement('a');
-        link.href = downloadLink;
-        link.setAttribute(
-            'download',
-            `districts.json`,
-        );
-
-        // Append to html link element and cick it
-        document.body.appendChild(link);
-        link.click();
-
-        // Clean up and remove the link
-        document.body.removeChild(link);
+        downloadFile(downloadLink, "districts.json");
     }
 
     private mintPlaces = async () => {

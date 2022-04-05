@@ -1,13 +1,13 @@
 import { ActionManager, Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
     Mesh, Nullable, PointerEventTypes, Quaternion, Ray, Scene,
-    ShadowGenerator, Vector2, Vector3 } from "@babylonjs/core";
+    ShadowGenerator, Tools, Vector2, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
-import { isDev, isEpsilonEqual } from "../utils/Utils";
+import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
 import Place, { InstanceMetadata } from "../world/Place";
@@ -328,6 +328,16 @@ export default class PlayerController {
                                 }
                             }
                         }
+                        break;
+
+                    case 'F10': // Screenshot
+                        // TODO: Sometimes screenshots are empty. Same issue as in ModelPreview.
+                        const engine = this.scene.getEngine();
+                        Tools.CreateScreenshotUsingRenderTargetAsync(
+                            engine, this.scene.activeCamera!,
+                            { width: canvas.width, height: canvas.height },
+                            "image/png", engine.getCaps().maxSamples, true)
+                        .then(res => downloadFile(res, "screenshot.png"));
                         break;
                 }
             }

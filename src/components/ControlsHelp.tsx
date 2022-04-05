@@ -85,6 +85,8 @@ export const ControlsHelp: React.FC<{}> = () => {
                     </p>
 
                     <p>
+                        {key_icon("F10")}
+                        Take screenshot<br/>
                         {key_icon("Esc")}
                         Exit pointer lock
                     </p>

@@ -83,8 +83,11 @@ export class World {
         // This represents the currently loaded places.
         this.places = new Map<number, Place>();
 
-        // Associate a Babylon Engine to it.
-        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, { doNotHandleContextLost: true });
+        // Create Babylon engine.
+        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
+            preserveDrawingBuffer: true,
+            stencil: true,
+            doNotHandleContextLost: true});
         this.engine.disableManifestCheck = true;
 
         // Allow cache on IndexedDB
