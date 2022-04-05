@@ -94,7 +94,7 @@ You can allow others to place their Items on in your Place by giving them permis
 
 Items always belong to who placed them. Items can always be removed from places by who placed them, even if permissions are removed.<br/><br/>
 
-The World contract has permissions, kind similar to FA2 operators, but there is nothing to worry about, it does not grant any transfer rights on the Place token itself. No potential for broken marriages or ruined friendships. :)</span>
+The World contract has permissions, similar to FA2 operators, but there is nothing to worry about, it does not grant any transfer rights on the Place token itself. No potential for broken marriages or ruined friendships. :)</span>
             }
         ]
     },
