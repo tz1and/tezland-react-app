@@ -498,8 +498,9 @@ export default class PlayerController {
 
         // Resetting is important for the TempObjectHelper.
         // as it doesn't seem to be possible to get a hierarchical OOBB.
-        this.tempObjectPos = new Vector3();
-        this.tempObjectRot = new Quaternion();
+        this.tempObjectOffsetY = 0;
+        this.tempObjectPos.setAll(0);
+        this.tempObjectRot.copyFrom(Quaternion.Identity());
 
         try {
             this.tempObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, null) as Mesh;
