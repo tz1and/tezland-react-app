@@ -1,6 +1,6 @@
 {
   "name": "tezland-react-app",
-  "version": "0.4.16",
+  "version": "0.4.17",
   "private": true,
   "license": "Apache-2.0",
   "dependencies": {
@@ -10,9 +10,9 @@
     "@babylonjs/materials": "^5.0.0",
     "@popperjs/core": "^2.10.2",
     "@svgdotjs/svg.js": "^3.1.1",
-    "@taquito/beacon-wallet": "^12.0.0",
-    "@taquito/signer": "^12.0.0",
-    "@taquito/taquito": "^12.0.0",
+    "@taquito/beacon-wallet": "^12.0.3",
+    "@taquito/signer": "^12.0.3",
+    "@taquito/taquito": "^12.0.3",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^12.1.0",
     "@testing-library/user-event": "^13.5.0",
