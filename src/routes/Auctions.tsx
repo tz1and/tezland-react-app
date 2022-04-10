@@ -18,7 +18,9 @@ type AuctionsState = {
     // global contract settings
     secondary_enabled: boolean,
     whitelist_enabled: boolean,
-    administrator: string
+    administrator: string,
+
+    show_finished: boolean,
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
@@ -36,14 +38,15 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             // defaults from the contract
             secondary_enabled: false,
             whitelist_enabled: true,
-            administrator: ""
+            administrator: "",
+            show_finished: false
         };
     }
 
     private fetchAmount: number = 8;
     private firstFetchDone: boolean = false;
 
-    private async getAuctions(last: number) {
+    private async getAuctions(last: number, finished: boolean = false) {
         //query getAuctions($offset: Int!, $amount: Int!) {
         //    dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
         // Fetch with a less than to make sure we get don't
@@ -51,8 +54,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
         try {   
             const data = await fetchGraphQL(`
-                query getAuctions($last: bigint!, $amount: Int!) {
-                    dutchAuction(limit: $amount, where: {id: {_lt: $last}}, order_by: {id: desc}) {
+                query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean) {
+                    dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}}, order_by: {id: desc}) {
                         endPrice
                         endTime
                         id
@@ -60,8 +63,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         startPrice
                         startTime
                         tokenId
+                        finished
+                        finishingBid
                     }
-                }`, "getAuctions", { amount: this.fetchAmount, last: last });
+                }`, "getAuctions", { amount: this.fetchAmount, last: last, finished: finished });
             
             return data.dutchAuction;
         } catch(e: any) {
@@ -117,7 +122,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     private reloadAuctions = () => {
         // TODO: first fetch should probably be by offset 0,
         // but we can also just use a very large id.
-        this.getAuctions(10000000).then((res) => {
+        this.getAuctions(10000000, this.state.show_finished).then((res) => {
             const more_data = res.length === this.fetchAmount;
             this.setState({
                 auctions: res,
@@ -130,7 +135,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     private fetchMoreData = () => {
         if(this.firstFetchDone) {
-            this.getAuctions(this.state.auctions[this.state.auctions.length-1].id).then((res) => {
+            this.getAuctions(this.state.auctions[this.state.auctions.length-1].id, this.state.show_finished).then((res) => {
                 const more_data = res.length === this.fetchAmount;
                 this.setState({
                     auctions: this.state.auctions.concat(res),
@@ -150,6 +155,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         for(const auction of this.state.auctions) {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.ownerId === this.state.administrator}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
+                finished={auction.finished} finishingBid={auction.finishingBid}
                 userWhitelisted={this.state.user_is_whitelisted} removeFromAuctions={this.removeFromAuctions} />);
         }
 
