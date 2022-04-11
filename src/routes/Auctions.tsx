@@ -10,9 +10,9 @@ import { Logging } from '../utils/Logging';
 type AuctionsProps = {}
 
 type AuctionsState = {
-    auctions: any[], // TODO use a map. See Inventory.
-    auction_offset: number,
+    auctions: Map<number, any>,
     more_data: boolean,
+    last_auction_id: number,
     user_is_whitelisted: boolean,
 
     // global contract settings
@@ -21,6 +21,7 @@ type AuctionsState = {
     administrator: string,
 
     show_finished: boolean,
+    hide_secondary: boolean,
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
@@ -30,32 +31,34 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     constructor(props: AuctionsProps) {
         super(props);
         this.state = {
-            auctions: [],
-            auction_offset: 0,
+            auctions: new Map(),
             more_data: true,
+            last_auction_id: 10000000,
             user_is_whitelisted: false,
 
             // defaults from the contract
             secondary_enabled: false,
             whitelist_enabled: true,
             administrator: "",
-            show_finished: false
+            show_finished: false,
+            hide_secondary: false
         };
     }
 
     private fetchAmount: number = 8;
     private firstFetchDone: boolean = false;
 
-    private async getAuctions(last: number, finished: boolean = false) {
+    private async getAuctions(last: number) {
         //query getAuctions($offset: Int!, $amount: Int!) {
         //    dutchAuction(offset: $offset, limit: $amount, order_by: {id: desc}) {
         // Fetch with a less than to make sure we get don't
         // load auctions twice because of new added and offset.
         // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
-        try {   
+        try {
+            const secondary_filter = this.state.hide_secondary ? ", isPrimary: {_eq: true}" : "";
             const data = await fetchGraphQL(`
                 query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean) {
-                    dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}}, order_by: {id: desc}) {
+                    dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}${secondary_filter}}, order_by: {id: desc}) {
                         endPrice
                         endTime
                         id
@@ -63,10 +66,11 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         startPrice
                         startTime
                         tokenId
+                        isPrimary
                         finished
                         finishingBid
                     }
-                }`, "getAuctions", { amount: this.fetchAmount, last: last, finished: finished });
+                }`, "getAuctions", { amount: this.fetchAmount, last: last, finished: this.state.show_finished });
             
             return data.dutchAuction;
         } catch(e: any) {
@@ -110,11 +114,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     private removeFromAuctions = (auction_id: number) => {
-        const newAuctions: any[] = [];
-        for(const a of this.state.auctions) {
-            if(a.id !== auction_id) newAuctions.push(a);
-        }
-        this.setState({auctions: newAuctions});
+        this.state.auctions.delete(auction_id);
+        this.setState({auctions: this.state.auctions});
 
         this.walletChangeListener();
     }
@@ -122,12 +123,19 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     private reloadAuctions = () => {
         // TODO: first fetch should probably be by offset 0,
         // but we can also just use a very large id.
-        this.getAuctions(10000000, this.state.show_finished).then((res) => {
+        this.getAuctions(10000000).then((res) => {
             const more_data = res.length === this.fetchAmount;
+            let last_auction_id = 0;
+            const new_auctions = new Map<number, any>();
+            for (const r of res) {
+                new_auctions.set(r.id, r);
+                last_auction_id = r.id;
+            }
+
             this.setState({
-                auctions: res,
-                auction_offset: this.fetchAmount,
-                more_data: more_data
+                auctions: new_auctions,
+                more_data: more_data,
+                last_auction_id: last_auction_id
             });
             this.firstFetchDone = true;
         });
@@ -135,12 +143,18 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
     private fetchMoreData = () => {
         if(this.firstFetchDone) {
-            this.getAuctions(this.state.auctions[this.state.auctions.length-1].id, this.state.show_finished).then((res) => {
+            this.getAuctions(this.state.last_auction_id).then((res) => {
                 const more_data = res.length === this.fetchAmount;
+                let last_auction_id = 0;
+                for (const r of res) {
+                    this.state.auctions.set(r.id, r);
+                    last_auction_id = r.id;
+                }
+
                 this.setState({
-                    auctions: this.state.auctions.concat(res),
-                    auction_offset: this.state.auction_offset + this.fetchAmount,
-                    more_data: more_data
+                    auctions: this.state.auctions,
+                    more_data: more_data,
+                    last_auction_id: last_auction_id
                 });
             });
         }
@@ -150,14 +164,30 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         return Math.floor(Date.parse(t) / 1000);
     }
 
+    private handleActiveFilter(e: React.ChangeEvent<HTMLInputElement>) {
+        console.log("handleActiveFilter");
+        const val = e.currentTarget.value;
+        console.log(val);
+
+        this.setState({ show_finished: (val !== "0") }, () => { this.reloadAuctions() });
+    }
+
+    private handleSecondaryFilter(e: React.ChangeEvent<HTMLInputElement>) {
+        console.log("handleSecondaryFilter");
+        const val = e.currentTarget.checked;
+        console.log(val);
+
+        this.setState({ hide_secondary: val }, () => { this.reloadAuctions() });
+    }
+
     override render() {
         var rows = [];
-        for(const auction of this.state.auctions) {
-            rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.ownerId === this.state.administrator}
+       this.state.auctions.forEach((auction) => {
+            rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
                 finished={auction.finished} finishingBid={auction.finishingBid}
                 userWhitelisted={this.state.user_is_whitelisted} removeFromAuctions={this.removeFromAuctions} />);
-        }
+        });
 
         if(rows.length === 0) {
             rows.push(<div key={0} className='mt-5 mb-5'>It looks like there aren't any active auctions. Check back later :)</div>)
@@ -166,17 +196,31 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         return (
             <main>
                 <div className="position-relative container text-start mt-4">
-                    <h1>Active Place Auctions</h1>
+                    <h1>Place Auctions</h1>
                     <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>
                     <p>All auctions are price drop (dutch) auctions, with the price lowering continually to an end price. Auctions remain active unless cancelled, they can be cancelled by the creator before a bid.</p>
                     <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
                     { this.state.whitelist_enabled ? <p><b>For primary actions, you need to be whitelisted. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to get whitelisted.</b></p> : null }
                     { this.state.secondary_enabled || DutchAuction.isAdministrator(this.context, this.state.administrator) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
                     { this.state.secondary_enabled && <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be affordable and below 10tez. It may be worth waiting.</p>}
+
+                    <div className="btn-group me-2" role="group" aria-label="Toggle active and finished auctions">
+                        <input onChange={e => this.handleActiveFilter(e)} type="radio" className="btn-check" name="btnradio" id="btnactive" autoComplete="off" value={0} defaultChecked/>
+                        <label className="btn btn-outline-primary" htmlFor="btnactive">Active</label>
+
+                        <input onChange={e => this.handleActiveFilter(e)} type="radio" className="btn-check" name="btnradio" id="btnfinished" autoComplete="off" value={1}/>
+                        <label className="btn btn-outline-primary" htmlFor="btnfinished">Finished</label>
+                    </div>
+
+                    <div className="btn-group" role="group" aria-label="Toggle secondary auctions">
+                        <input onChange={e => this.handleSecondaryFilter(e)} type="checkbox" className="btn-check" id="btnSecondary" autoComplete="off"/>
+                        <label className="btn btn-outline-primary" htmlFor="btnSecondary">Hide secondary</label>
+                    </div>
+
                     <hr/>
                     <InfiniteScroll
                         className="d-flex justify-content-left flex-wrap p-2"
-                        dataLength={this.state.auctions.length} //This is important field to render the next data
+                        dataLength={this.state.auctions.size} //This is important field to render the next data
                         next={this.fetchMoreData}
                         hasMore={this.state.more_data}
                         loader={<h4>Loading...</h4>}
