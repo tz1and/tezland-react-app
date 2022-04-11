@@ -263,7 +263,7 @@ Place type: {res.placeType}</small>;
                             <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
                         </MapContainer>
                         <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The the Place will be transferred to the auction contract. Auctions can be cancelled, but please make sure you really intend to create the auction.</div>
-                        <div className='bg-info bg-warning p-3 text-dark rounded small'>If the place you are auctioning has items in it, you will not be able to access them after creating the auction. But their ownership does not transfer with the place.</div>
+                        <div className='bg-info bg-warning p-3 text-dark rounded small'>If the place you are auctioning has items in it, you will still be able to access them after creating the auction. <b>Item ownership <i>does not</i> transfer with the place.</b></div>
                     </div>
                     <div className='col-lg-2 col-md-0'></div>
                 </div>
