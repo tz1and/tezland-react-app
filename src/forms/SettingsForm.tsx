@@ -176,7 +176,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                 </div>
                                 <div className="tab-pane fade" id="graphics" role="tabpanel" aria-labelledby="graphics-tab">
                                     <div className="mb-3">
-                                        <label htmlFor="fovHorizontal" className="form-label">Mouse Inertia</label>
+                                        <label htmlFor="fovHorizontal" className="form-label">Horizontal FOV</label>
                                         <Field id="fovHorizontal" name="fovHorizontal" type="number" min={85} max={125} step={1} className="form-control" aria-describedby="fovHorizontalHelp" disabled={isSubmitting} autoFocus={true} />
                                         <div id="fovHorizontalHelp" className="form-text">Viewport horizontal field of view.</div>
                                         <ErrorMessage name="fovHorizontal" children={errorDisplay}/>
