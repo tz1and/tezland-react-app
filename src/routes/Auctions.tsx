@@ -69,6 +69,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         isPrimary
                         finished
                         finishingBid
+                        bidOpHash
                     }
                 }`, "getAuctions", { amount: this.fetchAmount, last: last, finished: this.state.show_finished });
             
@@ -185,7 +186,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
        this.state.auctions.forEach((auction) => {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
-                finished={auction.finished} finishingBid={auction.finishingBid}
+                finished={auction.finished} finishingBid={auction.finishingBid} bidOpHash={auction.bidOpHash}
                 userWhitelisted={this.state.user_is_whitelisted} removeFromAuctions={this.removeFromAuctions} />);
         });
 

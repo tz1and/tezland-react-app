@@ -24,6 +24,7 @@ type AuctionProps = {
     userWhitelisted: boolean;
     finished: boolean;
     finishingBid: number;
+    bidOpHash?: string;
     removeFromAuctions(auction_id: number): void;
     // using `interface` is also ok
     //message: string;
@@ -229,7 +230,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
                     <h6 className='text-center'>{(this.props.finished ? "Final bid: " : "Current bid: ") + price_str}</h6>
 
-                    {this.props.finished ? <button className="btn btn-success btn-md w-100" disabled={true}>Finished</button> :
+                    {this.props.finished ? <a className="btn btn-success btn-md w-100" href={`https://tzkt.io/${this.props.bidOpHash}`} target='_blank' rel='noreferrer'>Finished</a> :
                         !this.context.isWalletConnected() ? <button className="btn btn-secondary btn-md w-100" disabled={true}>No wallet connected</button> :
                             (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Get Whitelisted</a> :
                             <button onClick={this.bidOnAuction} className="btn btn-primary btn-md mb-1 w-100" disabled={!this.started}>
