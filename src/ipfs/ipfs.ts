@@ -210,7 +210,9 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
     // Getting first root node is probably enough.
     // Note: imported glTFs are rotate because of the difference in coordinate systems.
     // Don't flip em.
-    const instance = asset.instantiateModelsToScene();
+    // NOTE: when an object is supposed to animate, instancing won't work.
+    const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+    instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
     instance.rootNodes[0].name = `item${token_id}_clone`;
     instance.rootNodes[0].parent = rootNode;
 
