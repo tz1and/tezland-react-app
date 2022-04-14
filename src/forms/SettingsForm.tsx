@@ -140,7 +140,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                     <div className="mb-3">
                                         <label htmlFor="modelFileSizeLimit" className="form-label">Model file size limit (in MiB)</label>
                                         <Field id="modelFileSizeLimit" name="modelFileSizeLimit" type="number" className="form-control" aria-describedby="modelFileSizeLimitHelp" disabled={isSubmitting} autoFocus={true} />
-                                        <div id="modelFileSizeLimitHelp" className="form-text">Items models larger than this won't be displayed.</div>
+                                        <div id="modelFileSizeLimitHelp" className="form-text">Items larger than this won't be displayed.</div>
                                         <ErrorMessage name="modelFileSizeLimit" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
