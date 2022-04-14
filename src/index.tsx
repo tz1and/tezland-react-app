@@ -45,12 +45,12 @@ const renderCallback = () => {
 }
 
 const renderApp = (element?: JSX.Element) => {
-    const testnetNotify = Conf.tezos_network === "hangzhou2net" ?
+    const testnetNotify = Conf.tezos_network !== "mainnet" ?
         <div className="toast-container position-fixed bottom-0 start-50 translate-middle-x p-4" style={{zIndex: "1050"}}>
             <Notification data={{
                 id: "liveOnTestnet",
                 title: "Live on testnet",
-                body: <span>tz1and is live on the testnet! Again!<br/><br/>Among other things, this is about testing out the whitelist, you can get whitelisted in the <a href="https://discord.gg/fbpy4QdzSp" target="_blank" rel="noreferrer">discord</a>.<br/><br/>To give it a try, grab an account <a href="https://teztnets.xyz/hangzhounet-faucet" target="_blank" rel="noreferrer">from the faucet</a> and import it in TempleWallet.</span>,
+                body: <span>tz1and is live on the testnet! Again! To give it a try, grab an account <a href="https://teztnets.xyz/" target="_blank" rel="noreferrer">from the faucet</a> and import it in TempleWallet.</span>,
                 type: 'info' }}/>
         </div> : null
 

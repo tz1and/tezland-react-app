@@ -232,7 +232,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
                     {this.props.finished ? <a className="btn btn-success btn-md w-100" href={`https://tzkt.io/${this.props.bidOpHash}`} target='_blank' rel='noreferrer'>Finished</a> :
                         !this.context.isWalletConnected() ? <button className="btn btn-secondary btn-md w-100" disabled={true}>No wallet connected</button> :
-                            (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Get Whitelisted</a> :
+                            (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Apply for Primary</a> :
                             <button onClick={this.bidOnAuction} className="btn btn-primary btn-md mb-1 w-100" disabled={!this.started}>
                                 {!this.started ? "Not started" : "Get for " + price_str}</button>}
                 </div>
