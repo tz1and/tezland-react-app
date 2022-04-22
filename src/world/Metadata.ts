@@ -40,26 +40,19 @@ export default class Metadata {
             const chunk = places_to_fetch.slice(i, i + chunk_size);
 
             const data = await fetchGraphQL(`
-                query getPlaceTokenMetadataBatch($ids: [bigint!]) {
-                    placeToken(where: { id: { _in: $ids }, metadataFetched: { _eq: true } }) {
-                        id
-                        name
-                        description
-                        placeType
-                        buildHeight
-                        borderCoordinates
-                        centerCoordinates
-                        thumbnailUri
-                        minterId
+                query getPlaceTokenMetadataBatch($ids: [numeric!]) {
+                    place_token_metadata(where: { token_id: { _in: $ids } }) {
+                        token_id
+                        metadata
                     }
                 }`, "getPlaceTokenMetadataBatch", { ids: chunk });
 
-            for (const placeToken of data.placeToken) {
-                // fix up border and center coords
-                placeToken.borderCoordinates = JSON.parse(placeToken.borderCoordinates);
-                placeToken.centerCoordinates = JSON.parse(placeToken.centerCoordinates);
-
-                await Metadata.Storage.saveObject(placeToken.id, "placeMetadata", placeToken);
+            for (const placeToken of data.place_token_metadata) {
+                const metadata = placeToken.metadata;
+                if (metadata) {
+                    metadata.id = placeToken.token_id;
+                    await Metadata.Storage.saveObject(placeToken.token_id, "placeMetadata", metadata);
+                }
             }
         }
     }
@@ -73,28 +66,22 @@ export default class Metadata {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
             const data = await fetchGraphQL(`
-                query getPlaceTokenMetadata($id: bigint!) {
-                    placeToken(where: { id: { _eq: $id }, metadataFetched: { _eq: true } }) {
-                        id
-                        name
-                        description
-                        placeType
-                        buildHeight
-                        borderCoordinates
-                        centerCoordinates
-                        thumbnailUri
-                        minterId
+                query getPlaceTokenMetadata($id: numeric!) {
+                    place_token_metadata(where: { token_id: { _eq: $id } }) {
+                        token_id
+                        metadata
                     }
                 }`, "getPlaceTokenMetadata", { id: token_id });
 
             // fix up border and center coords
-            const placeToken = data.placeToken[0];
-            placeToken.borderCoordinates = JSON.parse(placeToken.borderCoordinates);
-            placeToken.centerCoordinates = JSON.parse(placeToken.centerCoordinates);
-
+            const placeToken = data.place_token_metadata[0];
+            const metadata = placeToken.metadata;
             // TODO: await store?
-            Metadata.Storage.saveObject(token_id, "placeMetadata", placeToken);
-            tokenMetadata = placeToken;
+            if (metadata) {
+                metadata.id = placeToken.token_id;
+                Metadata.Storage.saveObject(token_id, "placeMetadata", metadata);
+            }
+            tokenMetadata = metadata;
         }
 
         return tokenMetadata;
@@ -109,26 +96,23 @@ export default class Metadata {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
             const data = await fetchGraphQL(`
-                query getItemTokenMetadata($id: bigint!) {
-                    itemToken(where: { id: { _eq: $id }, metadataFetched: { _eq: true } }) {
-                        id
-                        name
-                        description
-                        thumbnailUri
-                        artifactUri
-                        minterId
-                        mimeType
-                        fileSize
-                        royalties
-                        supply
-                        baseScale
-                        polygonCount
+                query getItemTokenMetadata($id: numeric!) {
+                    item_token_metadata(where: { token_id: { _eq: $id } }) {
+                        token_id
+                        metadata
                     }
                 }`, "getItemTokenMetadata", { id: token_id });
 
+            const itemToken = data.item_token_metadata[0];
+            const metadata = itemToken.metadata;
+            // TODO: we're relying on minter from json to be correct, maybe get from item_token
+            // relationship instead and patch it up.
             // TODO: await store?
-            Metadata.Storage.saveObject(token_id, "itemMetadata", data.itemToken[0]);
-            tokenMetadata = data.itemToken[0];
+            if (metadata) {
+                metadata.id = itemToken.token_id;
+                Metadata.Storage.saveObject(token_id, "itemMetadata", metadata);
+            }
+            tokenMetadata = metadata;
         }
 
         return tokenMetadata;

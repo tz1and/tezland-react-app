@@ -316,9 +316,9 @@ export class World {
         const player_pos = this.playerController.getPosition();
         for(let placeId = 0; placeId < placeCount; ++placeId) {
             var placeMetadata = await Metadata.getPlaceMetadata(placeId);
-            if (placeMetadata === undefined) {
+            if (!placeMetadata) {
                 Logging.InfoDev("No metadata for place: " + placeId);
-                return;
+                continue;
             }
 
             const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
@@ -343,6 +343,7 @@ export class World {
 
         // Finally, load places.
         for (const place_metadata of nearby_places) {
+            // TODO: await?
             this.fetchPlace(place_metadata.id);
         }
 
@@ -518,7 +519,7 @@ export class World {
         try {
             // If the place isn't in the grid yet, add it.
             var placeMetadata = await Metadata.getPlaceMetadata(placeId);
-            if (placeMetadata === undefined) {
+            if (!placeMetadata) {
                 Logging.InfoDev("No metadata for place: " + placeId);
                 return;
             }

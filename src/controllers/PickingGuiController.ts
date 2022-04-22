@@ -99,7 +99,7 @@ class ItemInfoGui {
                 const itemMetadata = await Metadata.getItemMetadata(this.current_item_id);
 
                 this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 16, '\u2026');
-                this.label_minter.text = `By: ${truncate(itemMetadata.minterId, 16, '\u2026')}`;
+                this.label_minter.text = `By: ${truncate(itemMetadata.minter, 16, '\u2026')}`;
             })();
         }
 

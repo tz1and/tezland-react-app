@@ -51,19 +51,16 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
             const data = await fetchGraphQL(`
                 query getInventory($address: String!, $offset: Int!, $amount: Int!) {
                     itemTokenHolder(where: {holderId: {_eq: $address}${hide_zero_cond}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
-                      quantity
-                      token {
-                        id
-                        description
-                        artifactUri
-                        metadataFetched
-                        mimeType
-                        royalties
-                        supply
-                        thumbnailUri
-                        name
-                        minterId
-                      }
+                        quantity
+                        token {
+                            id
+                            item_metadata {
+                                metadata
+                            }
+                            royalties
+                            supply
+                            minterId
+                        }
                     }
                   }`, "getInventory", { address: this.context.walletPHK(), amount: this.fetchAmount, offset: this.state.item_offset });
             

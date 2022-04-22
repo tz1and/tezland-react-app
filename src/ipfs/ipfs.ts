@@ -79,66 +79,35 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
     let asset = assetMap.get(token_id.toNumber());
     if(!asset) {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
-        const itemCachedStats = await Metadata.Storage.loadObject(token_id.toNumber(), "itemPolycount");
         const polygonLimit = AppSettings.triangleLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
         const hash = itemMetadata.artifactUri.slice(7) + '/';
 
-        // early out if file size in metadata is missing.
-        // NOTE: can't really be missing as default in indexer db is 34359738368.
-        // but indexer may change in the future...
-        if(!itemMetadata.fileSize) {
+        const artifact_format = itemMetadata.formats.find((e: any) => e.uri === itemMetadata.artifactUri);
+        if (!artifact_format) throw new Error('Artifact format not found');
+
+        // early out if file size in artifact format is missing.
+        if(!artifact_format.fileSize) {
             Logging.Warn("Item " + token_id + " metadata is missing fileSize. Ignoring.");
             return null;
         }
 
-        let fileSize = itemMetadata.fileSize;
+        let fileSize = artifact_format.fileSize;
         let polygonCount = itemMetadata.polygonCount;
-        // early out if cached stats exceed limits
-        if(itemCachedStats) {
-            fileSize = itemCachedStats.fileSize;
-            polygonCount = itemCachedStats.polygonCount;
-
-            // early out if the cached fileSize is > sizeLimit.
-            if(itemCachedStats.fileSize > AppSettings.fileSizeLimit.value) {
-                Logging.Warn("Item " + token_id + " exceeds size limits. Ignoring.");
-                return null;
-            }
-
-            // early out if the cached polycount is > -1 and >= polygonLimit.
-            if(itemCachedStats.polygonCount >= 0 && itemCachedStats.polygonCount >= polygonLimit) {
-                Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
-                return null;
-            }
+        // early out if the file size from metadata is > sizeLimit.
+        if(fileSize > AppSettings.fileSizeLimit.value) {
+            Logging.Warn("Item " + token_id + " exceeds size limits. Ignoring.");
+            return null;
         }
-        // NOTE: while we can't do head requests to a gateway, rely on the item metadata.
-        else {
-            // early out if the file size from metadata is > sizeLimit.
-            if(fileSize > AppSettings.fileSizeLimit.value) {
-                Logging.Warn("Item " + token_id + " exceeds size limits. Ignoring.");
-                return null;
-            }
 
-            // early out if the polygon count from metadata is > polygonLimit.
-            if(polygonCount > polygonLimit) {
-                Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
-                return null;
-            }
+        // early out if the polygon count from metadata is > polygonLimit.
+        if(polygonCount > polygonLimit) {
+            Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
+            return null;
         }
-        // If no cached stats, get file size from url
-        // TODO: cloudfalre ipfs gateway doesn't like this
-        /*else {
-            // Item metadata may be lying. Lets make sure.
-            fileSize = await getUrlFileSizeHead(Conf.ipfs_gateway + '/ipfs/' + hash);
-            if(fileSize > AppSettings.getFileSizeLimit()) {
-                Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polygonCount: -1, fileSize: fileSize});
-                Logging.Warn("Item " + token_id + " file exceeds size limits. Ignoring.");
-                return null;
-            }
-        }*/
 
-        const mime_type = itemMetadata.mimeType;
+        const mime_type = artifact_format.mimeType;
 
         let plugin_ext;
         if (mime_type === "model/gltf-binary")
@@ -171,25 +140,6 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         // Make sure to stop all animations.
         result.animationGroups.forEach((ag) => { ag.stop(); })
         asset = result;
-
-        // If we don't have a cache, calculate polycount and store it.
-        // NOTE: we cound polygons even if we have a count in the metadata, metadata could be lying.
-        // TODO: this might not be good enough, since animated meshes don't have polygons?
-        // Could be a babylon beta bug.
-        if(itemCachedStats === null || itemCachedStats.polygonCount < 0) {
-            const polycount = countPolygons(result.meshes);
-            Metadata.Storage.saveObject(token_id.toNumber(), "itemPolycount", {polygonCount: polycount, fileSize: fileSize});
-
-            if(polycount >= polygonLimit) {
-                Logging.Warn("Item " + token_id + " has too many polygons. Ignoring.");
-
-                // remove from asset map and dispose.
-                assetMap.delete(token_id.toNumber());
-                result.dispose();
-
-                return null;
-            }
-        }
 
         // Normalise scale to base scale (1m by default).
         // NOTE: use result.meshes[0] instead of transformNodes

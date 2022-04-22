@@ -6,11 +6,10 @@ const databaseTables: string[] = [
     "placeMetadata",
     "placeItems",
     "placeSeq",
-    "itemMetadata",
-    "itemPolycount"
+    "itemMetadata"
 ]
 
-const databaseVersion = 7;
+const databaseVersion = 8;
 
 export class DatabaseStorage implements IStorageProvider {
     public isSupported: boolean;
