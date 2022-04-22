@@ -20,8 +20,9 @@ import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
-const PlayerWalkSpeed = 1.8; // should come out to about 1.8m/s
-const PlayerJogSpeed = 3; // comes out to about 3m/s
+const PlayerWalkSpeed = 2; // m/s
+const PlayerJogSpeed = 3.3; // m/s
+const PlayerFlySpeedMult = 1.2;
 const LimitFlyDistance = !isDev();
 const UnglitchCooldown = 10000; // 10s
 
@@ -47,7 +48,7 @@ export default class PlayerController {
     private input: PlayerKeyboardInput;
     private velocity: Vector3 = new Vector3();
     private gravity: Vector3 = new Vector3();
-    private player_speed: number = PlayerJogSpeed;
+    private walk: boolean = false;
 
     private static readonly GRAVITY = 0.225;
     private static readonly BODY_HEIGHT = 1.5;
@@ -188,7 +189,7 @@ export default class PlayerController {
                 switch(kbInfo.event.code) {
                     // Scale
                     case "ShiftLeft":
-                        this.player_speed = PlayerJogSpeed;
+                        this.walk = false;
                         break;
                 }
             }
@@ -299,8 +300,8 @@ export default class PlayerController {
                         });
                         break;*/
 
-                    case 'ShiftLeft': // Enable jog
-                        this.player_speed = PlayerWalkSpeed;
+                    case 'ShiftLeft': // Enable walk
+                        this.walk = true;
                         break;
 
                     case 'KeyX':
@@ -602,7 +603,8 @@ export default class PlayerController {
         const fwd = this._flyMode ? cam_dir : Vector3.Cross(right, Vector3.Up());
 
         // Player velocity.
-        const accel = this.player_speed * delta_time;
+        const playerSpeed = (this.walk ? PlayerWalkSpeed : PlayerJogSpeed) * (this._flyMode ? PlayerFlySpeedMult : 1);
+        const accel = playerSpeed * delta_time;
         const new_vel = (this._flyMode ?
             fwd.scale(moveFwd).add(right.scale(moveRight)).add(Vector3.Up().scale(moveUp)) :
             fwd.scale(moveFwd).add(right.scale(moveRight))
