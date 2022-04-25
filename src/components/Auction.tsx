@@ -203,7 +203,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
                     <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
-                <MapContainer className="auction-img" center={[500, 500]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple} alt="A preview map of the Place">
+                <MapContainer className="auction-img" center={[500, 500]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
                     <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url={map} />
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />

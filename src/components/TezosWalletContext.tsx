@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react"
+import React, { createContext, PropsWithChildren, useContext } from "react"
 import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from '@taquito/beacon-wallet';
 import { NetworkType, DAppClientOptions } from '@airgap/beacon-sdk';
@@ -44,7 +44,7 @@ type TezosWalletProviderState = {
 // For development only.
 const useInMemorySigner = false;
 
-class TezosWalletProvider extends React.Component<TezosWalletProviderProps, TezosWalletProviderState> {
+class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletProviderProps>, TezosWalletProviderState> {
 
     constructor(props: TezosWalletProviderProps) {
         super(props);
