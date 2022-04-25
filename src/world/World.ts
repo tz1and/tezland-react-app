@@ -90,6 +90,10 @@ export class World {
             doNotHandleContextLost: true});
         this.engine.disableManifestCheck = true;
 
+        // Set max texture res
+        const caps = this.engine.getCaps();
+        caps.maxTextureSize = Math.min(caps.maxTextureSize, AppSettings.textureRes.value);
+
         // Allow cache on IndexedDB
         Database.IDBStorageEnabled = true;
 
