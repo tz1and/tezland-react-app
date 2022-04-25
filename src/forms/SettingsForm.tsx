@@ -6,7 +6,7 @@ import {
     FormikErrors,
     ErrorMessage
 } from 'formik';
-import AppSettings, { ShadowMapRes, ShadowOptions } from '../storage/AppSettings';
+import AppSettings, { TextureRes, ShadowOptions } from '../storage/AppSettings';
 
 interface SettingsFormValues {
     // general
@@ -23,7 +23,8 @@ interface SettingsFormValues {
     // graphics
     enableAntialiasing: boolean;
     shadowOptions: ShadowOptions;
-    shadowMapRes: ShadowMapRes;
+    shadowMapRes: TextureRes;
+    textureRes: TextureRes;
     fovHorizontal: number;
 }
 
@@ -53,6 +54,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         enableAntialiasing: AppSettings.enableAntialiasing.value,
         shadowOptions: AppSettings.shadowOptions.value,
         shadowMapRes: AppSettings.shadowMapRes.value,
+        textureRes: AppSettings.textureRes.value,
         fovHorizontal: AppSettings.fovHorizontal.value
     };
 
@@ -98,6 +100,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         AppSettings.enableAntialiasing.value = values.enableAntialiasing;
                         AppSettings.shadowOptions.value = values.shadowOptions;
                         AppSettings.shadowMapRes.value = values.shadowMapRes;
+                        AppSettings.textureRes.value = values.textureRes;
                         AppSettings.fovHorizontal.value = values.fovHorizontal;
 
                         props.closeForm(false);
@@ -199,6 +202,16 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                             <option key={4096} value={4096}>Utra</option>
                                         </Field>
                                         <div id="shadowMapResHelp" className="form-text">Shadow map resolution. Affects shadow quality.</div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="textureRes" className="form-label">Texture resolution</label>
+                                        <Field id="textureRes" name="textureRes" as="select" value={values.textureRes} className="form-select" aria-describedby="shadowMapResHelp" disabled={isSubmitting} >
+                                            <option key={512} value={512}>Low</option>
+                                            <option key={1024} value={1024}>Medium</option>
+                                            <option key={2048} value={2048}>High</option>
+                                            <option key={4096} value={4096}>Utra</option>
+                                        </Field>
+                                        <div id="shadowMapResHelp" className="form-text">Texture resolution. Sets the maximum resolution of textures.</div>
                                     </div>
                                     <div className="mb-3">
                                         <Field id="enableAntialiasing" name="enableAntialiasing" type="checkbox" className="form-check-input me-2" aria-describedby="enableAntialiasingHelp" disabled={isSubmitting}/>
