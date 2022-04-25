@@ -14,8 +14,8 @@
     "@taquito/signer": "^12.0.3",
     "@taquito/taquito": "^12.0.3",
     "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^12.1.0",
-    "@testing-library/user-event": "^13.5.0",
+    "@testing-library/react": "^13.1.1",
+    "@testing-library/user-event": "^14.1.1",
     "bignumber.js": "^9.0.2",
     "bootstrap": "^5.1.3",
     "bootstrap-icons": "^1.7.2",
@@ -36,13 +36,13 @@
     "react-scripts": "4.0.3",
     "typescript": "^4.1.2",
     "voronoijs": "^1.0.0",
-    "web-vitals": "^1.0.1"
+    "web-vitals": "^2.1.4"
   },
   "devDependencies": {
     "@babylonjs/inspector": "^5.1.0",
     "@types/bootstrap": "^5.1.9",
     "@types/earcut": "^2.1.1",
-    "@types/jest": "^26.0.15",
+    "@types/jest": "^27.4.1",
     "@types/jquery": "^3.5.9",
     "@types/leaflet": "^1.7.8",
     "@types/node": "^16",
