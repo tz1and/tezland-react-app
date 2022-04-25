@@ -33,6 +33,7 @@ Metadata.Storage.open(() => {
 })
 
 
+// TODO: Use <Suspense> ?
 function Root(props: React.PropsWithChildren<{}>) {
     useEffect(() => {
         sleep(500).then(() => {
