@@ -13,6 +13,7 @@ import { Logging } from "../utils/Logging";
 import BigNumber from "bignumber.js";
 import AppSettings from "../storage/AppSettings";
 import assert from "assert";
+import Metadata, { StorageKey } from "./Metadata";
 
 
 export type InstanceMetadata = {
@@ -25,6 +26,11 @@ export type InstanceMetadata = {
     markForRemoval: boolean;
 }
 
+export type PlaceData = {
+    stored_items: any[];
+    place_props: Map<string, string>;
+    place_seq: string;
+}
 
 export type PlaceId = number;
 
@@ -64,53 +70,50 @@ export class PlacePermissions {
 export default class Place {
     readonly placeId: number;
     readonly metadata: any;
+    public placeData: Nullable<PlaceData> = null;
     private world: World;
 
-    private placeRoot: Nullable<TransformNode>;
-    private placeBounds: Nullable<Mesh>;
-    private placeGround: Nullable<Mesh>;
+    private placeRoot: Nullable<TransformNode> = null;
+    private placeBounds: Nullable<Mesh> = null;
+    private placeGround: Nullable<Mesh> = null;
 
     private executionAction: Nullable<ExecuteCodeAction> = null;
 
-    private _origin: Vector3;
+    private _origin: Vector3 = new Vector3();
     get origin(): Vector3 { return this._origin.clone(); }
 
-    private _buildHeight: number;
+    private _buildHeight: number = 0;
     get buildHeight(): number { return this._buildHeight; }
 
     // All saved items are stored in this.
-    private _itemsNode: Nullable<TransformNode>;
+    private _itemsNode: Nullable<TransformNode> = null;
     get itemsNode() { return this._itemsNode; }
     private set itemsNode(val: Nullable<TransformNode>) { this._itemsNode = val; }
 
     // Unsaved items are stored in here.
     // TODO: this really is a crutch. should be smarter about clearing items.
-    private _tempItemsNode: Nullable<TransformNode>;
+    private _tempItemsNode: Nullable<TransformNode> = null;
     get tempItemsNode() { return this._tempItemsNode; }
     private set tempItemsNode(val: Nullable<TransformNode>) { this._tempItemsNode = val; }
 
     get getPermissions(): PlacePermissions { return this.permissions; }
     get currentOwner(): string { return this.owner; }
-    private owner: string;
-    private permissions: PlacePermissions;
+    private owner: string = "";
+    private permissions: PlacePermissions = new PlacePermissions(PlacePermissions.permissionNone);
     private last_owner_and_permission_update = 0;
 
-    private savePending: boolean;
+    private savePending: boolean = false;
+
+    // This flag is set when the place is disposed
+    // so operations on the place can be stopped.
+    private disposed: boolean = false;
 
     constructor(placeId: number, metadata: any, world: World) {
         this.placeId = placeId;
         this.metadata = metadata;
         this.world = world;
-        this.placeRoot = null;
-        this.placeBounds = null;
-        this.placeGround = null;
-        this._origin = new Vector3();
-        this._buildHeight = 0;
-        this._itemsNode = null;
-        this._tempItemsNode = null;
-        this.savePending = false;
-        this.owner = "";
-        this.permissions = new PlacePermissions(PlacePermissions.permissionNone);
+
+        this.initialisePlace();
     }
 
     public dispose() {
@@ -137,6 +140,8 @@ export default class Place {
             assert(this.world.playerController.playerTrigger.actionManager);
             this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
         }
+
+        this.disposed = true;
     }
 
     // TODO: use MeshUtils.extrudeMeshFromShape
@@ -165,122 +170,101 @@ export default class Place {
         return poly;
     }
 
-    // TODO: be smarter about loading items. don't reload everthing, maybe.
-    public async load() {
-        try {
-            //let start_time = performance.now()
+    private initialisePlace() {
+        // Using ExtrudePolygon
+        this._origin = Vector3.FromArray(this.metadata.centerCoordinates);
+        this._buildHeight = this.metadata.buildHeight;
 
-            // Using ExtrudePolygon
-            this._origin = Vector3.FromArray(this.metadata.centerCoordinates);
-            this._buildHeight = this.metadata.buildHeight;
+        var shape = new Array<Vector3>();
+        this.metadata.borderCoordinates.forEach((v: Array<number>) => {
+            shape.push(Vector3.FromArray(v));
+        });
 
-            var shape = new Array<Vector3>();
-            this.metadata.borderCoordinates.forEach((v: Array<number>) => {
-                shape.push(Vector3.FromArray(v));
-            });
+        // TODO: make sure the place coordinates are going right around!
+        shape = shape.reverse();
 
-            // TODO: make sure the place coordinates are going right around!
-            shape = shape.reverse();
+        this.placeRoot = new TransformNode(`placeRoot${this.placeId}`, this.world.scene);
+        this.placeRoot.position.copyFrom(this._origin);
 
-            this.placeRoot = new TransformNode(`placeRoot${this.placeId}`, this.world.scene);
-            this.placeRoot.position.copyFrom(this._origin);
+        // create bounds
+        // TODO: use MeshUtils.extrudeMeshFromShape
+        this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(0, this._buildHeight, 0),
+            this.world.transparentGridMat);
 
-            // create bounds
-            // TODO: use MeshUtils.extrudeMeshFromShape
-            this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(0, this._buildHeight, 0),
-                this.world.transparentGridMat);
+        this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
+        this.placeBounds.parent = this.placeRoot;
+        // Call getHierarchyBoundingVectors to force updating the bounding info!
+        this.placeBounds.getHierarchyBoundingVectors();
 
-            this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
-            this.placeBounds.parent = this.placeRoot;
-            // Call getHierarchyBoundingVectors to force updating the bounding info!
-            this.placeBounds.getHierarchyBoundingVectors();
+        // create ground
+        this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
+            new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
+        this.placeGround.receiveShadows = true;
+        this.placeGround.parent = this.placeRoot;
 
-            // create ground
-            this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
-                new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
-            this.placeGround.receiveShadows = true;
-            this.placeGround.parent = this.placeRoot;
+        // create temp items node
+        this._tempItemsNode = new TransformNode(`itemsTemp`, this.world.scene);
+        this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
+        this._tempItemsNode.parent = this.placeRoot;
 
-            // create temp items node
-            this._tempItemsNode = new TransformNode(`itemsTemp`, this.world.scene);
-            this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
-            this._tempItemsNode.parent = this.placeRoot;
-
-            this.executionAction = new ExecuteCodeAction(
-                {
-                    trigger: ActionManager.OnIntersectionEnterTrigger,
-                    parameter: {
-                        mesh: this.placeBounds,
-                        usePreciseIntersection: true
+        this.executionAction = new ExecuteCodeAction(
+            {
+                trigger: ActionManager.OnIntersectionEnterTrigger,
+                parameter: {
+                    mesh: this.placeBounds,
+                    usePreciseIntersection: true
+                }
+            },
+            async () => {
+                // Update owner and permissions, if they weren't updated recently.
+                if(Date.now() - 60000 > this.last_owner_and_permission_update) {
+                    Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
+                    try {
+                        this.owner = await Contracts.getPlaceOwner(this.placeId);
+                        this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
+                        this.last_owner_and_permission_update = Date.now();
                     }
-                },
-                async () => {
-                    // Update owner and permissions, if they weren't updated recently.
-                    if(Date.now() - 60000 > this.last_owner_and_permission_update) {
-                        Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
-                        try {
-                            this.owner = await Contracts.getPlaceOwner(this.placeId);
-                            this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
-                            this.last_owner_and_permission_update = Date.now();
-                        }
-                        catch(reason: any) {
-                            Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
-                            Logging.InfoDev(reason);
-                        }
+                    catch(reason: any) {
+                        Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
+                        Logging.InfoDev(reason);
                     }
+                }
 
-                    // Then set current place. Updates the UI as well.
-                    this.world.playerController.setCurrentPlace(this);
-                    Logging.InfoDev("entered place: " + this.placeId)
-                },
-            );
+                // Then set current place. Updates the UI as well.
+                this.world.playerController.setCurrentPlace(this);
+                Logging.InfoDev("entered place: " + this.placeId)
+            },
+        );
 
-            // register player trigger when place owner info has loaded.
-            assert(this.world.playerController.playerTrigger.actionManager, "action manager doesn't exist");
-            this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
-
-            // update owner and operator, excution action, loading items ansychronously
-            (async () => {
-                //const load_start_time = performance.now();
-
-                // TODO:
-                // Problem with loading asynchronously is that meshes could be loaded into the scene twice.
-                // Needs to be fixed!
-                await this.loadItems(false);
-
-                //const load_elapsed = performance.now() - load_start_time;
-                //Logging.InfoDev(`Place loading took ${load_elapsed}ms`)
-            })().catch((reason: any) => {
-                Logging.InfoDev("failed to load items " + this.placeId);
-                Logging.InfoDev(reason);
-            })
-
-            //const elapsed = performance.now() - start_time;
-            //Logging.InfoDev(`generating place took ${elapsed}ms`)
-        } catch(e) {
-            Logging.InfoDev("failed to load place " + this.placeId);
-            Logging.InfoDev(e);
-        }
+        // register player trigger when place owner info has loaded.
+        assert(this.world.playerController.playerTrigger.actionManager, "action manager doesn't exist");
+        this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
     }
 
+    // TODO: be smarter about loading items. don't reload everthing, maybe.
     // isUpdate should pretty much always be true unless called from Place.load()
     // TODO: make sure it doesn't throw exception is potentially not caught.
-    public async loadItems(isUpdate: boolean) {
+    public async load(isUpdate: boolean) {
         try {
-            if(!this.placeBounds) {
-                Logging.InfoDev("place bounds don't exist: " + this.placeId);
-                return;
-            }
+            assert(this.placeBounds && this.placeGround, "Place not initialised.");
 
-            const placeHasUpdated = await Contracts.hasPlaceUpdated(this.world.walletProvider, this.placeId);
+            if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, StorageKey.PlaceItems);
+            if (this.disposed) return;
 
-            if(isUpdate && !placeHasUpdated) return;
+            const newSeqNum = await Contracts.getPlaceSeqNum(this.world.walletProvider, this.placeId);
+            if (this.disposed) return;
+            const placeDataChanged = !this.placeData || this.placeData.place_seq !== newSeqNum;
 
-            // Load items
-            const items = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, placeHasUpdated);
+            // If this is an update and nothing changed, return.
+            if(isUpdate && !placeDataChanged) return;
 
-            if(this.placeGround)
-                (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${items.place_props.get('00')}`);
+            // reload place data if it changed or we don't have any.
+            if (placeDataChanged) this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, newSeqNum);
+            if (this.disposed) return;
+
+            // Load place gound, items, etc.
+            assert(this.placeData);
+            (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${this.placeData.place_props.get('00')}`);
 
             // remove old place items if they exist.
             if(this._itemsNode) {
@@ -297,7 +281,7 @@ export default class Place {
             const outOfBounds: number[] = [];
 
             //items.forEach(async (element: any) => {
-            for (const element of items.stored_items) {
+            for (const element of this.placeData.stored_items) {
                 if(!element.data.item) continue;
 
                 // Set prototype to make sure BigNumbers get recognised.
@@ -332,6 +316,7 @@ export default class Place {
                     const scale = unpack(uint8array, type, 13);
 
                     const instance = await ipfs.download_item(token_id, this.world.scene, this._itemsNode);
+                    if (this.disposed) return;
 
                     if(instance) {
                         instance.rotationQuaternion = quat;

@@ -117,7 +117,7 @@ export class World {
         this.lastUpdatePosition = this.playerController.getPosition().clone();
 
         // Create a default material
-        this.defaultMaterial = new SimpleMaterial("defaulMat", this.scene);
+        this.defaultMaterial = new SimpleMaterial("defaulDistrictMat", this.scene);
         this.defaultMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9);
 
         // transparent grid material for place bounds
@@ -510,7 +510,7 @@ export class World {
 
     private async reloadPlace(placeId: PlaceId) {
         const place = this.places.get(placeId);
-        if (place) await place.load();
+        if (place) await place.load(true);
     }
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
@@ -534,14 +534,17 @@ export class World {
             if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
                 // Just to be sure, make sure place doesn't exist
                 // after awaiting metadata.
-                if(this.places.has(placeId)) throw new Error("Place already existed.");
+                if(this.places.has(placeId)) {
+                    Logging.WarnDev("Place already existed.");
+                    return;
+                }
 
                 // Create place.
                 const new_place = new Place(placeId, placeMetadata, this);
                 this.places.set(placeId, new_place);
 
                 // Load items.
-                await new_place.load();
+                await new_place.load(false);
             }
         }
         catch(e) {

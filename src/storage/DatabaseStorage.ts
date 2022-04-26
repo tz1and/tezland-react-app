@@ -5,7 +5,6 @@ import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
 const databaseTables: string[] = [
     "placeMetadata",
     "placeItems",
-    "placeSeq",
     "itemMetadata",
     "worldGrid"
 ]

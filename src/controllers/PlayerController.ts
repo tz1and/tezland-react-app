@@ -5,7 +5,6 @@ import assert from "assert";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
-import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
@@ -253,14 +252,11 @@ export default class PlayerController {
 
                     // Opens the place properties form
                     case 'KeyP':
-                        if(this.currentPlace) {
+                        if(this.currentPlace && this.currentPlace.placeData) {
                             if (this.currentPlace.getPermissions.hasProps()) {
-                                Contracts.getItemsForPlaceView(world.walletProvider, this.currentPlace.placeId, false).then((res) => {
-                                    assert(this.currentPlace);
-                                    document.exitPointerLock();
-                                    // NOTE: we just assume, placeInfo in Explore is up to date.
-                                    this.appControlFunctions.editPlaceProperties('#' + res.place_props.get('00'));
-                                });
+                                document.exitPointerLock();
+                                // NOTE: we just assume, placeInfo in Explore is up to date.
+                                this.appControlFunctions.editPlaceProperties('#' + this.currentPlace.placeData.place_props.get('00'));
                             } else {
                                 this.appControlFunctions.addNotification({
                                     id: "permissionsProps" + this.currentPlace.placeId,

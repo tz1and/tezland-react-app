@@ -4,8 +4,8 @@ import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { packTo } from 'byte-data';
 import { char2Bytes } from '@taquito/utils'
-import Metadata from "../world/Metadata";
-import { InstanceMetadata, PlacePermissions } from "../world/Place";
+import Metadata, { StorageKey } from "../world/Metadata";
+import { PlaceData, InstanceMetadata, PlacePermissions } from "../world/Place";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
@@ -267,41 +267,19 @@ export class Contracts {
         return this.places.contractViews.count_tokens().executeView({ viewCaller: this.places.address });
     }
 
-    public async hasPlaceUpdated(walletProvider: ITezosWalletProvider, place_id: number): Promise<boolean> {
+    public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_id: number): Promise<string> {
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
-        const stSeqKey = "placeSeq";
-
-        // Read sequence number from storage and contract
-        const placeSequenceStore = await Metadata.Storage.loadObject(place_id, stSeqKey);
-        const seqRes = await this.marketplaces.contractViews.get_place_seqnum(place_id).executeView({ viewCaller: this.marketplaces.address });
-
-        // If they are not the same, reload from blockchain
-        if (placeSequenceStore !== seqRes) {
-            Metadata.Storage.saveObject(place_id, stSeqKey, seqRes);
-            return true;
-        }
-        else return false;
+        return this.marketplaces.contractViews.get_place_seqnum(place_id).executeView({ viewCaller: this.marketplaces.address });
     }
 
-    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, placeUpdated: boolean): Promise<any> {
+    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, newSeqNum: string): Promise<any> {
         // use get_place_data on-chain view.
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
-        const stItemsKey = "placeItems";
-
-        // Try to read from local storage.
-        if(!placeUpdated) {
-            Logging.InfoDev("reading place from local storage")
-
-            const placeItemsStore = await Metadata.Storage.loadObject(place_id, stItemsKey);
-
-            if (placeItemsStore !== null) return placeItemsStore;
-        }
-
-        Logging.InfoDev("place items outdated, reading from chain");
+        Logging.InfoDev("Place data outdated, reading from chain", place_id);
 
         const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
 
@@ -321,14 +299,12 @@ export class Contracts {
             place_props.set(key, value);
         }
 
-        const place_data = { stored_items: flattened_item_data, place_props: place_props };
+        const place_data = { stored_items: flattened_item_data, place_props: place_props, place_seq: newSeqNum } as PlaceData;
 
         // TODO: await save?
-        Metadata.Storage.saveObject(place_id, stItemsKey, place_data);
+        Metadata.Storage.saveObject(place_id, StorageKey.PlaceItems, place_data);
 
         return place_data;
-
-        //return result; // as MichelsonMap<MichelsonTypeNat, any>;
     }
 
     public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, place_id: number, owner: string, callback?: (completed: boolean) => void) {

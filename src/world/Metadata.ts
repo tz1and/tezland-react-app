@@ -2,6 +2,12 @@ import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
 
+export enum StorageKey {
+    PlaceMetadata = "placeMetadata",
+    ItemMetadata = "itemMetadata",
+    PlaceItems = "placeItems"
+  }
+
 export default class Metadata {
     public static Storage: IStorageProvider = Metadata.GetStorageProvider();
 
@@ -25,7 +31,7 @@ export default class Metadata {
 
         for (let token_id = token_id_start; token_id <= token_id_end; ++token_id) {
             // Try to read the token metadata from storage.
-            let tokenMetadata = await Metadata.Storage.loadObject(token_id, "placeMetadata");
+            let tokenMetadata = await Metadata.Storage.loadObject(token_id, StorageKey.PlaceMetadata);
 
             // If it doesn't exist, add to fetch array.
             if(!tokenMetadata) places_to_fetch.push(token_id);
@@ -51,7 +57,7 @@ export default class Metadata {
                 const metadata = placeToken.metadata;
                 if (metadata) {
                     metadata.id = placeToken.token_id;
-                    await Metadata.Storage.saveObject(placeToken.token_id, "placeMetadata", metadata);
+                    await Metadata.Storage.saveObject(placeToken.token_id, StorageKey.PlaceMetadata, metadata);
                 }
             }
         }
@@ -59,7 +65,7 @@ export default class Metadata {
 
     public static async getPlaceMetadata(token_id: number): Promise<any> {
         // Try to read the token metadata from storage.
-        let tokenMetadata = await Metadata.Storage.loadObject(token_id, "placeMetadata");
+        let tokenMetadata = await Metadata.Storage.loadObject(token_id, StorageKey.PlaceMetadata);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
@@ -79,7 +85,7 @@ export default class Metadata {
             // TODO: await store?
             if (metadata) {
                 metadata.id = placeToken.token_id;
-                Metadata.Storage.saveObject(token_id, "placeMetadata", metadata);
+                Metadata.Storage.saveObject(token_id, StorageKey.PlaceMetadata, metadata);
             }
             tokenMetadata = metadata;
         }
@@ -89,7 +95,7 @@ export default class Metadata {
 
     public static async getItemMetadata(token_id: number): Promise<any> {
         // Try to read the token metadata from storage.
-        let tokenMetadata = await Metadata.Storage.loadObject(token_id, "itemMetadata");
+        let tokenMetadata = await Metadata.Storage.loadObject(token_id, StorageKey.ItemMetadata);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
@@ -110,7 +116,7 @@ export default class Metadata {
             // TODO: await store?
             if (metadata) {
                 metadata.id = itemToken.token_id;
-                Metadata.Storage.saveObject(token_id, "itemMetadata", metadata);
+                Metadata.Storage.saveObject(token_id, StorageKey.ItemMetadata, metadata);
             }
             tokenMetadata = metadata;
         }
