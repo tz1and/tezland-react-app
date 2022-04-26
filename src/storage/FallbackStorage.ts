@@ -1,4 +1,4 @@
-import { IStorageProvider } from "./IStorageProvider";
+import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
 
 interface IStorage {
     getItem: (key: string) => string | null;
@@ -47,7 +47,7 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @returns the fetched object or null
      */
-    loadObject(key: number, table: string): Promise<any> {
+    loadObject(key: StorageKeyType, table: string): Promise<any> {
         return new Promise((resolve) => {
             const value = this.storage.getItem(table + key);
             if (value === null) resolve(null);
@@ -61,7 +61,7 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: number, table: string, data: any): Promise<void> {
+    saveObject(key: StorageKeyType, table: string, data: any): Promise<void> {
         return new Promise((resolve) => {
             this.storage.setItem(table + key, JSON.stringify(data));
             resolve();

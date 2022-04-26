@@ -1,3 +1,6 @@
+
+export type StorageKeyType = number | string;
+
 /**
  * Interface for browser storage providers
 
@@ -15,7 +18,7 @@
      * @param url defines the key to load from.
      * @param table the table to store the object in.
      */
-    loadObject(key: number, table: string): Promise<any>;
+    loadObject(key: StorageKeyType, table: string): Promise<any>;
 
     /**
      * Save an object to storage.
@@ -23,5 +26,5 @@
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: number, table: string, data: any): Promise<void>;
+    saveObject(key: StorageKeyType, table: string, data: any): Promise<void>;
 }

@@ -63,6 +63,7 @@ export class PlacePermissions {
 
 export default class Place {
     readonly placeId: number;
+    readonly metadata: any;
     private world: World;
 
     private placeRoot: Nullable<TransformNode>;
@@ -96,8 +97,9 @@ export default class Place {
 
     private savePending: boolean;
 
-    constructor(placeId: number, world: World) {
+    constructor(placeId: number, metadata: any, world: World) {
         this.placeId = placeId;
+        this.metadata = metadata;
         this.world = world;
         this.placeRoot = null;
         this.placeBounds = null;
@@ -164,16 +166,16 @@ export default class Place {
     }
 
     // TODO: be smarter about loading items. don't reload everthing, maybe.
-    public async load(placeMetadata: any) {
+    public async load() {
         try {
             //let start_time = performance.now()
 
             // Using ExtrudePolygon
-            this._origin = Vector3.FromArray(placeMetadata.centerCoordinates);
-            this._buildHeight = placeMetadata.buildHeight;
+            this._origin = Vector3.FromArray(this.metadata.centerCoordinates);
+            this._buildHeight = this.metadata.buildHeight;
 
             var shape = new Array<Vector3>();
-            placeMetadata.borderCoordinates.forEach((v: Array<number>) => {
+            this.metadata.borderCoordinates.forEach((v: Array<number>) => {
                 shape.push(Vector3.FromArray(v));
             });
 
@@ -234,7 +236,7 @@ export default class Place {
             );
 
             // register player trigger when place owner info has loaded.
-            assert(this.world.playerController.playerTrigger.actionManager);
+            assert(this.world.playerController.playerTrigger.actionManager, "action manager doesn't exist");
             this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
 
             // update owner and operator, excution action, loading items ansychronously
@@ -358,7 +360,7 @@ export default class Place {
                     }
                 }
                 catch(e) {
-                    Logging.InfoDev("Failed to load placed item: ", e);
+                    Logging.InfoDev("Failed to load placed item", token_id.toNumber(), e);
                 }
             };
 
@@ -435,10 +437,6 @@ export default class Place {
                     this._tempItemsNode.position = this._origin.clone();
                     this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
                 }
-
-                // TODO: does this really need to be called here?
-                // subscription should handle it.
-                this.loadItems(true);
             }
         });
 

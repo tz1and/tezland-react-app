@@ -8,11 +8,12 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { AbstractMesh, Database, MeshBuilder, Nullable, ReflectionProbe, RenderTargetTexture, SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+import { AbstractMesh, Database, MeshBuilder,
+    Nullable, ReflectionProbe, RenderTargetTexture,
+    SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import Place, { PlaceId } from "./Place";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
-import Grid2D, { Tuple, WorldGridAccessor } from "../utils/Grid2D";
 import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
@@ -30,6 +31,7 @@ import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
 import world_definition from "../models/districts.json";
+import WorldGrid from "../utils/WorldGrid";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -56,11 +58,9 @@ export class World {
 
     readonly walletProvider: ITezosWalletProvider;
 
-    readonly worldGrid: Grid2D<Set<PlaceId>>;
-    readonly worldGridAccessor: WorldGridAccessor;
-    private gridCreateCallback = () => { return new Set<PlaceId>() }
+    private implicitWorldGrid: WorldGrid;
+    private worldPlaceCount: number = 0;
 
-    private placeDrawDistance = AppSettings.drawDistance.value;
     private lastUpdatePosition: Vector3;
     // TODO
     //private queuedPlaceUpdates: PlaceId[] = [];
@@ -77,11 +77,9 @@ export class World {
 
         this.walletProvider = walletProvider;
 
-        // This represents the whole map, all known places.
-        this.worldGrid = new Grid2D<Set<PlaceId>>([50, 50]);
-        this.worldGridAccessor = new WorldGridAccessor([1000, 1000], [500, 500]);
         // This represents the currently loaded places.
         this.places = new Map<number, Place>();
+        this.implicitWorldGrid = new WorldGrid();
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
@@ -98,7 +96,11 @@ export class World {
         Database.IDBStorageEnabled = true;
 
         // Create our first scene.
-        this.scene = new Scene(this.engine);
+        this.scene = new Scene(this.engine, {
+            useGeometryUniqueIdsMap: true,
+            useMaterialMeshMap: true,
+            useClonedMeshMap: true
+        });
         this.scene.collisionsEnabled = true;
 
         // Enable inspector in dev
@@ -275,7 +277,8 @@ export class World {
                     const schema = new ParameterSchema(Contracts.marketplaces!.entrypoints.entrypoints[ep])
                     const params = schema.Execute(tContent.parameters.value);
 
-                    this.fetchPlace(params.lot_id.toNumber());
+                    // Reload place
+                    this.reloadPlace(params.lot_id.toNumber());
                 }
                 catch (e) {
                     Logging.InfoDev("Failed to parse parameters.");
@@ -291,7 +294,6 @@ export class World {
         this.unregisterPlacesSubscription();
         this.multiClient?.disconnectAndDispose();
 
-        this.worldGrid.clear();
         this.places.clear();
 
         this.playerController.dispose();
@@ -307,49 +309,41 @@ export class World {
         // Load districts, ie: ground meshes, bridges, etc.
         this.loadDistricts();
 
-        const placeCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
+        // fetch the most recent world place count
+        this.worldPlaceCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
+        Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
-        Logging.InfoDev("world has " + placeCount + " places.");
+        // Teleport player to his starting position
+        await this.playerController.teleportToSpawn();
 
-        // First, load all unloaded places metadata.
-        await Metadata.getPlaceMetadataBatch(0, placeCount - 1);
+        const playerPos = this.playerController.getPosition();
+        // Make sure updateWorld() doesn't immediately run again
+        this.lastUpdatePosition = playerPos.clone();
 
-        // Then, figure ot which places are in the players draw distance,
-        // sort them by distance from player and load them.
-        const nearby_places: any[] = [];
-        const player_pos = this.playerController.getPosition();
-        for(let placeId = 0; placeId < placeCount; ++placeId) {
-            var placeMetadata = await Metadata.getPlaceMetadata(placeId);
-            if (!placeMetadata) {
-                Logging.InfoDev("No metadata for place: " + placeId);
-                continue;
-            }
+        // Get grid cells close to player position.
+        const gridCells = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount);
 
-            const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
+        // TODO: Batch load all unloaded places metadata?
+        //await Metadata.getPlaceMetadataBatch(0, placeCount - 1);
 
-            // Figure out by distance to player if the place should be loaded load.
-            if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance)
-                nearby_places.push(placeMetadata)
+        // TODO: Sort by distance from player?
+        /*// Figure out by distance to player if the place should be loaded load.
+        if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance)
+            nearby_places.push(placeMetadata)
 
-            // add to world grid.
-            const set = this.worldGrid.getOrAddA(this.worldGridAccessor, [origin.x, origin.z], this.gridCreateCallback);
-            if(!set.has(placeId)) {
-                set.add(placeId);
-            }
-        }
-
-        // Sort by distance from player.
         nearby_places.sort((a, b) => {
             const origin_a = Vector3.FromArray(a.centerCoordinates);
             const origin_b = Vector3.FromArray(b.centerCoordinates);
             return Vector3.Distance(player_pos, origin_a) - Vector3.Distance(player_pos, origin_b);
-        });
+        });*/
 
         // Finally, load places.
-        for (const place_metadata of nearby_places) {
-            // TODO: await?
-            this.fetchPlace(place_metadata.id);
-        }
+        gridCells.forEach((c) => {
+            c.places.forEach((id) => {
+                // TODO: await?
+                this.loadPlace(id);
+            });
+        });
 
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.playerController.getCurrentPlace()
@@ -514,12 +508,17 @@ export class World {
         }
     }
 
-    // TODO: metadata gets re-loaded too often.
-    // loadPlace should be definite. add another functio
-    // that initially adds all places or soemthing.
-    // Then go over this agiain.
-    // distingquish between fetchPlace and loadPlace
-    private async fetchPlace(placeId: PlaceId) {
+    private async reloadPlace(placeId: PlaceId) {
+        const place = this.places.get(placeId);
+        if (place) await place.load();
+    }
+
+    // TODO: metadata gets (re)loaded too often and isn't batched.
+    // Should probably be batched before loading places.
+    private async loadPlace(placeId: PlaceId) {
+        // early out if it's already loaded.
+        if(this.places.has(placeId)) return;
+
         try {
             // If the place isn't in the grid yet, add it.
             var placeMetadata = await Metadata.getPlaceMetadata(placeId);
@@ -532,27 +531,23 @@ export class World {
 
             // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
-            if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance) {
-                await this.loadPlace(placeId, placeMetadata);
+            if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
+                // Just to be sure, make sure place doesn't exist
+                // after awaiting metadata.
+                if(this.places.has(placeId)) throw new Error("Place already existed.");
+
+                // Create place.
+                const new_place = new Place(placeId, placeMetadata, this);
+                this.places.set(placeId, new_place);
+
+                // Load items.
+                await new_place.load();
             }
         }
         catch(e) {
             Logging.InfoDev("Error fetching place: " + placeId);
             Logging.InfoDev(e);
             Logging.InfoDev(placeMetadata);
-        }
-    }
-
-    private async loadPlace(placeId: PlaceId, placeMetadata: any) {
-        if(this.places.has(placeId)) {
-            // reload place
-            this.places.get(placeId)!.loadItems(true);
-        }
-        else {
-            const new_place = new Place(placeId, this);
-            await new_place.load(placeMetadata);
-            
-            this.places.set(placeId, new_place);
         }
     }
 
@@ -612,53 +607,30 @@ export class World {
         // Update world when player has moved a certain distance.
         if(Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)
         {
+            this.lastUpdatePosition = playerPos.clone();
+            
             // TEMP: do this asynchronously, getting lots of metadata
             // from storage is kinda slow.
             // TODO: Maybe have a position cache?
             (async () => {
+                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount);
+
                 //const start_time = performance.now();
-                this.lastUpdatePosition = playerPos.clone();
 
                 // Check all loaded places for distance and remove.
                 this.places.forEach((v, k) => {
                     // Multiply draw distance with small factor here to avoid imprecision and all that
-                    if(Vector3.Distance(playerPos, v.origin) > this.placeDrawDistance * 1.02) {
+                    if(Vector3.Distance(playerPos, v.origin) > AppSettings.drawDistance.value * 1.02) {
                         this.places.delete(k);
                         v.dispose();
                     }
                 });
 
-                // search coords in world
-                const minWorld: Tuple = [playerPos.x - this.placeDrawDistance, playerPos.z - this.placeDrawDistance];
-                const maxWorld: Tuple = [playerPos.x + this.placeDrawDistance, playerPos.z + this.placeDrawDistance];
-
-                // search coords in cells
-                const minCell = Grid2D.max([0, 0], this.worldGridAccessor.accessor(minWorld, this.worldGrid.getSize()));
-                const maxCell = Grid2D.min(this.worldGrid.getSize(), this.worldGridAccessor.accessor(maxWorld, this.worldGrid.getSize()));
-
-                // iterate over all places in all found cells and see if they need to be loaded.
-                //var places_checked = 0;
-                //var cells_checked = 0;
-                for(let j = minCell[1]; j < maxCell[1]; ++j)
-                    for(let i = minCell[0]; i < maxCell[0]; ++i) {
-                        //cells_checked++;
-                        const set = this.worldGrid.get([i, j])
-                        if (set) {
-                            set.forEach((id) => {
-                                //places_checked++;
-                                // early out if loaded
-                                if(this.places.has(id)) return;
-                                // maybe load, depending on distance
-                                Metadata.getPlaceMetadata(id).then((placeMetadata) => {
-                                    const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
-                                    if(Vector3.Distance(playerPos, origin) < this.placeDrawDistance) {
-                                        // todo: add to pending updates instead.
-                                        this.loadPlace(id, placeMetadata);
-                                    }
-                                });
-                            })
-                        }
-                    }
+                gridCell.forEach((c) => {
+                    c.places.forEach((id) => {
+                        this.loadPlace(id);
+                    });
+                });
 
                 //const elapsed_total = performance.now() - start_time;
                 //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");

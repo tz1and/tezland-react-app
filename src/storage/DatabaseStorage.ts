@@ -1,12 +1,13 @@
 import { Nullable } from "@babylonjs/core";
 import { Logging } from "../utils/Logging";
-import { IStorageProvider } from "./IStorageProvider";
+import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
 
 const databaseTables: string[] = [
     "placeMetadata",
     "placeItems",
     "placeSeq",
-    "itemMetadata"
+    "itemMetadata",
+    "worldGrid"
 ]
 
 const databaseVersion = 8;
@@ -106,7 +107,7 @@ export class DatabaseStorage implements IStorageProvider {
      * @param url defines the key to load from.
      * @param table the table to store the object in.
      */
-    loadObject(key: number, table: string): Promise<any> {
+    loadObject(key: StorageKeyType, table: string): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.isSupported && this.db) {
                 var object: any;
@@ -153,7 +154,7 @@ export class DatabaseStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: number, table: string, data: any): Promise<void> {
+    saveObject(key: StorageKeyType, table: string, data: any): Promise<void> {
         return new Promise((resolve, reject) => {
             if (this.isSupported && !this.hasReachedQuota && this.db) {
                 try {
