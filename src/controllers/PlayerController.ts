@@ -22,7 +22,7 @@ Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 const PlayerWalkSpeed = 2; // m/s
 const PlayerJogSpeed = 3.3; // m/s
-const PlayerFlySpeedMult = 1.2;
+const PlayerFlySpeedMult = isDev() ? 10.0 : 1.2;
 const LimitFlyDistance = !isDev();
 const UnglitchCooldown = 10000; // 10s
 
@@ -105,9 +105,6 @@ export default class PlayerController {
         // NOTE: the bounding info seems to get bugged for some reason.
         // We need to update it here, otherwise collisions will be incorrect!
         this.playerTrigger.refreshBoundingInfo();
-
-        // Teleport to spawn location, either from URL or settings.
-        this.teleportToSpawn();
 
         this.scene.registerAfterRender(this.updateController.bind(this));
 
@@ -345,28 +342,27 @@ export default class PlayerController {
         }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
     }
 
-    private teleportToPlace(place_id: number) {
-        Metadata.getPlaceMetadata(place_id).then((metadata) => {
-            const origin = Vector3.FromArray(metadata.centerCoordinates);
-            const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
+    private async teleportToPlace(place_id: number) {
+        const metadata = await Metadata.getPlaceMetadata(place_id);
+        const origin = Vector3.FromArray(metadata.centerCoordinates);
+        const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
 
-            // Position is the first corner + 2m from center.
-            p0.addInPlace(origin);
-            p0.addInPlace(p0.subtract(origin).normalize().scale(2));
-            
-            this.teleportToWorldPos(p0);
-            
-            // Look towards center of place.
-            this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
-                .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
-        })
+        // Position is the first corner + 2m from center.
+        p0.addInPlace(origin);
+        p0.addInPlace(p0.subtract(origin).normalize().scale(2));
+        
+        this.teleportToWorldPos(p0);
+        
+        // Look towards center of place.
+        this.camera.setTarget(this.playerTrigger.position.subtract(origin).negate()
+            .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
     }
 
     private teleportToWorldPos(pos: Vector3) {
         this.playerTrigger.position.copyFrom(pos);
     }
 
-    public teleportToLocation(location: string) {
+    public async teleportToLocation(location: string) {
         if (location.startsWith("district")) {
             const district_id = parseInt(location.replace("district", ""));
             const world_def = world_definition;
@@ -379,11 +375,11 @@ export default class PlayerController {
             this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
         } else if (location.startsWith("place")) {
             const place_id = parseInt(location.replace("place", ""));
-            this.teleportToPlace(place_id);
+            await this.teleportToPlace(place_id);
         }
     }
 
-    private teleportToSpawn() {
+    public async teleportToSpawn() {
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -396,9 +392,9 @@ export default class PlayerController {
                 parseFloat(urlParams.get('coordz')!))
             );
         } else if (urlParams.has('placeid')) {
-            this.teleportToPlace(parseInt(urlParams.get('placeid')!));
+            await this.teleportToPlace(parseInt(urlParams.get('placeid')!));
         } else {
-            this.teleportToLocation(AppSettings.defaultSpawn.value);
+            await this.teleportToLocation(AppSettings.defaultSpawn.value);
         }
     }
 
