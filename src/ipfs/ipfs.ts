@@ -1,6 +1,7 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { AssetContainer, Material, Mesh, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { AssetContainer, Material, Mesh, MultiMaterial, Nullable, PBRMaterial,
+    Scene, SceneLoader, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
 import { FileLike } from '../utils/Utils';
