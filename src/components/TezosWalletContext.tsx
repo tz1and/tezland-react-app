@@ -1,7 +1,7 @@
 import React, { createContext, PropsWithChildren, useContext } from "react"
 import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from '@taquito/beacon-wallet';
-import { NetworkType, DAppClientOptions } from '@airgap/beacon-sdk';
+import { NetworkType, DAppClientOptions } from '@airgap/beacon-dapp';
 import Conf from "../Config";
 import { isDev } from "../utils/Utils";
 import { InMemorySigner } from "@taquito/signer";
