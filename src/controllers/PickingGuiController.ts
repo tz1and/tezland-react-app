@@ -149,10 +149,7 @@ export default class PickingGuiController {
 
                     if(metadata && metadata.xtzPerItem !== 0) {
                         document.exitPointerLock();
-                        Contracts.getItem(this.world.walletProvider, metadata.placeId, metadata.id.toNumber(), metadata.issuer, metadata.xtzPerItem, (completed: boolean) => {
-                            // NOTE: subscription handles this, but subscription could take a while to update.
-                            if(completed) world.places.get(metadata.placeId)?.loadItems(true);
-                        });
+                        Contracts.getItem(this.world.walletProvider, metadata.placeId, metadata.id.toNumber(), metadata.issuer, metadata.xtzPerItem);
                     }
 
                     eventState.skipNextObservers = true;
