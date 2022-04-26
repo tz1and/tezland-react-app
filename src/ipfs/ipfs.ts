@@ -125,8 +125,8 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
         assetMap.set(token_id.toNumber(), result);
 
         // remove all lights and cameras.
-        result.lights.forEach((l) => { l.dispose() });
-        result.cameras.forEach((c) => { c.dispose() });
+        while (result.lights.length) result.lights[0].dispose();
+        while (result.cameras.length) result.cameras[0].dispose();
 
         removeRefraction(result.materials);
 
