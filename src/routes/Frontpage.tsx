@@ -3,6 +3,7 @@ import './Frontpage.css'
 
 import world_screenshot from '../img/world_screenshot.png';
 import map_screenshot from '../img/map_screenshot.png';
+import community_screenshot from '../img/district4_snapshot.png';
 import tezos_ipfs from '../img/tezos_ipfs.png';
 
 export default function Frontpage() {
@@ -66,6 +67,20 @@ export default function Frontpage() {
                     <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
                         <img src={world_screenshot} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                             height="500" loading="lazy" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="container col-xxl-8 px-0 py-2">
+                <div className="row flex-lg-row-reverse align-items-center g-5 py-5">
+                    <div className="col-10 col-sm-8 col-lg-6 mx-auto mx-md-0">
+                        <img src={community_screenshot} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
+                            height="500" loading="lazy" />
+                    </div>
+                    <div className="col-lg-6 mx-4 mx-md-0">
+                        <h1 className="display-5 fw-bold lh-1 mb-3">Community</h1>
+                        <p className="lead">Feel free to join our Discord for discussion, updates and to meet nice people.</p>
+                        <a href="https://discord.gg/fbpy4QdzSp" target="_blank" rel="noreferrer" className="btn btn-primary">Join Discord</a>
                     </div>
                 </div>
             </div>
