@@ -316,7 +316,10 @@ export default class Place {
                     const scale = unpack(uint8array, type, 13);
 
                     const instance = await ipfs.download_item(token_id, this.world.scene, this._itemsNode);
-                    if (this.disposed) return;
+                    if (this.disposed) {
+                        instance?.dispose();
+                        return;
+                    }
 
                     if(instance) {
                         instance.rotationQuaternion = quat;
