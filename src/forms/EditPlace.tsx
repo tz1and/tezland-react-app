@@ -1,20 +1,19 @@
 import React from 'react';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
+import Place from '../world/Place';
 import { PlaceAddPermissionsForm } from './PlaceAddPermissions';
 import { PlacePropertiesForm } from './PlaceProperties';
 import { PlaceRemovePermissionsForm } from './PlaceRemovePermissions';
 
 type EditPlaceProps = {
     closeForm(cancelled: boolean): void;
-    placeId: number;
-    placeOwner: string;
-    groundColor: string;
+    place: Place;
 }
 
 export const EditPlace: React.FC<EditPlaceProps> = (props) => {
     const context = useTezosWalletContext();
 
-    const is_owner = context.walletPHK() === props.placeOwner;
+    const is_owner = context.walletPHK() === props.place.currentOwner;
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
@@ -33,13 +32,13 @@ export const EditPlace: React.FC<EditPlaceProps> = (props) => {
             </ul>
             <div className="tab-content" id="myTabContent">
                 <div className="tab-pane fade show active" id="properties" role="tabpanel" aria-labelledby="properties-tab">
-                    <PlacePropertiesForm placeId={props.placeId} placeOwner={props.placeOwner} groundColor={props.groundColor} />
+                    <PlacePropertiesForm place={props.place} />
                 </div>
                 { is_owner ? <div className="tab-pane fade" id="add-permissions" role="tabpanel" aria-labelledby="add-permissions-tab">
-                    <PlaceAddPermissionsForm placeId={props.placeId} placeOwner={props.placeOwner}/>
+                    <PlaceAddPermissionsForm place={props.place} />
                 </div> : null }
                 { is_owner ? <div className="tab-pane fade" id="remove-permissions" role="tabpanel" aria-labelledby="remove-permissions-tab">
-                    <PlaceRemovePermissionsForm placeId={props.placeId} placeOwner={props.placeOwner}/>
+                    <PlaceRemovePermissionsForm place={props.place} />
                 </div> : null }
             </div>
         </div>

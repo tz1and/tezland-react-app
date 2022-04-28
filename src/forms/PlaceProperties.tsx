@@ -9,15 +9,17 @@ import {
 import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
+import { char2Bytes, bytes2Char } from "@taquito/utils";
+import Place from '../world/Place';
+import assert from 'assert';
 
 interface PlacePropertiesFormValues {
     placeGroundColor: string;
+    placeName: string;
 }
 
 type PlacePropertiesFormProps = {
-    placeId: number;
-    placeOwner: string;
-    groundColor: string;
+    place: Place;
 }
 
 type PlacePropertiesFormState = {
@@ -37,10 +39,17 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
     const context = useTezosWalletContext();
 
     const [state, setState] = useState<PlacePropertiesFormState>({error: "", successState: 0});
+
+    assert(props.place.placeData);
+    const place_props = props.place.placeData.place_props;
+    const place_color = place_props.get('00');
+    const place_name = place_props.get('01');
     
     //const state: PlacePropertiesFormState = { error: "" }
+    // 
     const initialValues: PlacePropertiesFormValues = {
-        placeGroundColor: props.groundColor
+        placeGroundColor: place_color ? '#' + place_color : "#bbbbbb",
+        placeName: place_name ? bytes2Char(place_name) : ""
     };
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -52,8 +61,12 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                 const errors: FormikErrors<PlacePropertiesFormValues> = {};
 
                 const bytes = colorToBytes(values.placeGroundColor)
-                if(bytes.length !== 6 /*|| not hex*/) {
+                if (bytes.length !== 6 /*|| not hex*/) {
                     errors.placeGroundColor = "Ground color invalid.";
+                }
+
+                if (values.placeName.length > 32) {
+                    errors.placeName = "Place name is too long (max. 32 characters)."
                 }
 
                 // revalidation clears trisate and error
@@ -62,7 +75,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                 return errors;
             }}
             onSubmit={(values, actions) => {
-                Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), props.placeId, props.placeOwner, (completed: boolean) => {
+                Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), char2Bytes(values.placeName), props.place.placeId, props.place.currentOwner, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed)
@@ -87,7 +100,14 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                             <div id="placeGroundColorHelp" className="form-text">You can change the ground color in your place.</div>
                             <ErrorMessage name="placeGroundColor" children={errorDisplay}/>
                         </div>
-                                
+
+                        <div className="mb-3">
+                            <label htmlFor="placeName" className="form-label">Place Name</label>
+                            <Field id="placeName" name="placeName" type="text" className="form-control" aria-describedby="placeNameHelp" disabled={isSubmitting} />
+                            <div id="placeNameHelp" className="form-text">The Place's name. Leave empty if you don't want to assign a custom name.</div>
+                            <ErrorMessage name="placeName" children={errorDisplay}/>
+                        </div>
+
                         <button type="submit" className={`btn btn-${triHelper(state.successState, "danger", "primary", "success")}`} disabled={isSubmitting || !isValid}>
                             {isSubmitting && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button><br/>
                         {state.error && ( <small className='text-danger d-inline-block mt-2'>Saving Place properties failed: {state.error}</small> )}

@@ -307,12 +307,13 @@ export class Contracts {
         return place_data;
     }
 
-    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, place_id: number, owner: string, callback?: (completed: boolean) => void) {
+    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, placeName: string, place_id: number, owner: string, callback?: (completed: boolean) => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
         // owner is optional.
         const props_map = new MichelsonMap<string, string>();
         props_map.set('00', groundColor);
+        props_map.set('01', placeName);
         let params: any = { lot_id: place_id, props: props_map };
         if(owner) params.owner = owner;
 

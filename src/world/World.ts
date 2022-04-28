@@ -348,8 +348,7 @@ export class World {
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.playerController.getCurrentPlace()
         if(currentPlace)
-            this.appControlFunctions.updatePlaceInfo(currentPlace.placeId,
-                currentPlace.currentOwner, currentPlace.getPermissions);
+            this.appControlFunctions.updatePlaceInfo(currentPlace);
     };
 
     private loadDistricts() {

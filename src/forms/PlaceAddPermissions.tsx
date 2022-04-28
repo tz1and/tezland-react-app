@@ -10,6 +10,7 @@ import Contracts from '../tz/Contracts';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
+import Place from '../world/Place';
 
 interface PlaceAddPermissionsFormValues {
     permissionsTo: string;
@@ -22,8 +23,7 @@ interface PlaceAddPermissionsFormValues {
 }
 
 type PlaceAddPermissionsFormProps = {
-    placeId: number;
-    placeOwner: string;
+    place: Place;
 }
 
 type PlaceAddPermissionsFormState = {
@@ -88,7 +88,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                     //if (values.permissionCanSell) permissions |= permCanSell;
                 }
                 
-                Contracts.addPlacePermissions(context, props.placeOwner, props.placeId, values.permissionsTo, permissions, (completed: boolean) => {
+                Contracts.addPlacePermissions(context, props.place.currentOwner, props.place.placeId, values.permissionsTo, permissions, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed) {

@@ -14,6 +14,7 @@ import BigNumber from "bignumber.js";
 import AppSettings from "../storage/AppSettings";
 import assert from "assert";
 import Metadata, { StorageKey } from "./Metadata";
+import { bytes2Char } from "@taquito/utils";
 
 
 export type InstanceMetadata = {
@@ -447,5 +448,14 @@ export default class Place {
         }
 
         return true;
+    }
+
+    public getName() {
+        if (this.placeData) {
+            const place_name = this.placeData.place_props.get('01');
+            if (place_name) return bytes2Char(place_name);
+        }
+
+        return `Place #${this.placeId}`;
     }
 }

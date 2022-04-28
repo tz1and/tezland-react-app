@@ -14,7 +14,7 @@ import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { FormNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
-import { PlacePermissions } from '../world/Place';
+import Place from '../world/Place';
 import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
@@ -30,7 +30,7 @@ type ExploreState = {
     placedItem: Nullable<Node>;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
-    placeInfo: {placeId: number, owner: string, permissions: PlacePermissions};
+    currentPlace: Nullable<Place>;
     groundColor: string;
     burnItemId: number;
     transferItemId: number;
@@ -48,7 +48,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             placedItem: null,
             showFps: AppSettings.showFps.value,
             notifications: [],
-            placeInfo: {placeId: -1, owner: '', permissions: new PlacePermissions(PlacePermissions.permissionNone)},
+            currentPlace: null,
             groundColor: '#FFFFFF',
             burnItemId: -1,
             transferItemId: -1
@@ -70,10 +70,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
     placeItem = (node: Node) => {
         this.setState({ show_form: 'placeitem', dispaly_overlay: true, placedItem: node });
-    }
-
-    editPlaceProperties = (groundColor: string) => {
-        this.setState({ show_form: 'placeproperties', dispaly_overlay: true, groundColor: groundColor });
     }
 
     closeForm = (cancelled: boolean) => {
@@ -121,12 +117,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
-    updatePlaceInfo = (placeId: number, owner: string, permissions: PlacePermissions) => {
-        this.setState({placeInfo: {
-            placeId: placeId,
-            owner: owner,
-            permissions: permissions
-        }});
+    updatePlaceInfo = (place: Nullable<Place>) => {
+        this.setState({currentPlace: place});
     }
 
     getCurrentLocation = (): [number, number, number] => {
@@ -164,8 +156,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             transferItemFromInventory={this.transferItemFromInventory} />;
         else if (this.state.show_form === 'burn') form = <BurnForm closeForm={this.closeForm} itemId={this.state.burnItemId} />;
         else if (this.state.show_form === 'transfer') form = <TransferForm closeForm={this.closeForm} itemId={this.state.transferItemId} />;
-        else if (this.state.show_form === 'placeproperties') form = <EditPlace closeForm={this.closeForm}
-            placeOwner={this.state.placeInfo.owner} placeId={this.state.placeInfo.placeId} groundColor={this.state.groundColor} />;
+        else if (this.state.show_form === 'placeproperties') form = <EditPlace closeForm={this.closeForm} place={this.state.currentPlace!} />;
 
         let overlay = !this.state.dispaly_overlay ? null :
             <div className="Explore-overlay">
@@ -176,12 +167,12 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         let controlInfo = this.state.dispaly_overlay ? <ControlsHelp/> : null;
 
-        let placeInfoOverlay = !this.state.dispaly_overlay && this.state.placeInfo.placeId !== -1 ?
+        let placeInfoOverlay = !this.state.dispaly_overlay && this.state.currentPlace ?
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
-                <h5>Place #{this.state.placeInfo.placeId}</h5>
+                <h5>{this.state.currentPlace.getName()}</h5>
                 <hr/>
-                Owner: {this.state.placeInfo.owner}<br/>
-                Permissions: {this.state.placeInfo.permissions.toString()}
+                Owner: {this.state.currentPlace.currentOwner}<br/>
+                Permissions: {this.state.currentPlace.getPermissions.toString()}
             </div> : null;
 
         let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
@@ -198,7 +189,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                     setOverlayDispaly: this.setOverlayDispaly,
                     loadForm: this.loadForm,
                     placeItem: this.placeItem,
-                    editPlaceProperties: this.editPlaceProperties,
                     addNotification: this.addNotification,
                     updatePlaceInfo: this.updatePlaceInfo,
                 }} />

@@ -10,14 +10,14 @@ import Contracts from '../tz/Contracts';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
+import Place from '../world/Place';
 
 interface PlaceRemovePermissionsFormValues {
     permissionsTo: string;
 }
 
 type PlaceRemovePermissionsFormProps = {
-    placeId: number;
-    placeOwner: string;
+    place: Place;
 }
 
 type PlaceRemovePermissionsFormState = {
@@ -54,7 +54,7 @@ export const PlaceRemovePermissionsForm: React.FC<PlaceRemovePermissionsFormProp
                 return errors;
             }}
             onSubmit={(values, actions) => {
-                Contracts.removePlacePermissions(context, props.placeOwner, props.placeId, values.permissionsTo, (completed: boolean) => {
+                Contracts.removePlacePermissions(context, props.place.currentOwner, props.place.placeId, values.permissionsTo, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed) {

@@ -256,7 +256,7 @@ export default class PlayerController {
                             if (this.currentPlace.getPermissions.hasProps()) {
                                 document.exitPointerLock();
                                 // NOTE: we just assume, placeInfo in Explore is up to date.
-                                this.appControlFunctions.editPlaceProperties('#' + this.currentPlace.placeData.place_props.get('00'));
+                                this.appControlFunctions.loadForm("placeproperties");
                             } else {
                                 this.appControlFunctions.addNotification({
                                     id: "permissionsProps" + this.currentPlace.placeId,
@@ -469,7 +469,7 @@ export default class PlayerController {
 
     public setCurrentPlace(place: Place) {
         this.currentPlace = place;
-        this.appControlFunctions.updatePlaceInfo(place.placeId, place.currentOwner, place.getPermissions);
+        this.appControlFunctions.updatePlaceInfo(place);
     }
 
     public getCurrentPlace() { return this.currentPlace; }
