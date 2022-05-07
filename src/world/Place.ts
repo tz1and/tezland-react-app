@@ -208,6 +208,9 @@ export default class Place {
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
         this._tempItemsNode.parent = this.placeRoot;
 
+        // NOTE: mesh to mesh intersection is only checking bounding boxes.
+        // Rather use a pick trigger and work out if inside or outside.
+        // Maybe do it manually.
         this.executionAction = new ExecuteCodeAction(
             {
                 trigger: ActionManager.OnIntersectionEnterTrigger,
@@ -242,42 +245,57 @@ export default class Place {
         this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
     }
 
-    // TODO: be smarter about loading items. don't reload everthing, maybe.
-    // isUpdate should pretty much always be true unless called from Place.load()
     // TODO: make sure it doesn't throw exception is potentially not caught.
-    public async load(isUpdate: boolean) {
+    public async load() {
+        assert(this.placeBounds && this.placeGround, "Place not initialised.");
+
+        // First, load the palce data from disk.
+        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, StorageKey.PlaceItems);
+        if (this.disposed) return;
+
+        // If we have place data, load the items.
+        // TODO: maybe have another queue for this. loadingQueue.
+        if (this.placeData) await this.loadItems();
+
+        // Queue and update - checking the seq number and possbily fetching updated items
+        this.world.onchainQueue.add(() => this.update());
+    }
+
+    public async update(force: boolean = false) {
         try {
-            assert(this.placeBounds && this.placeGround, "Place not initialised.");
-
-            if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, StorageKey.PlaceItems);
-            if (this.disposed) return;
-
+            // catch exceptions and queue another update.
             const newSeqNum = await Contracts.getPlaceSeqNum(this.world.walletProvider, this.placeId);
             if (this.disposed) return;
-            const placeDataChanged = !this.placeData || this.placeData.place_seq !== newSeqNum;
+            const updateNeeded = force || !this.placeData || this.placeData.place_seq !== newSeqNum;
 
-            // If this is an update and nothing changed, return.
-            if(isUpdate && !placeDataChanged) return;
+            // If the palce data doesn't need to be updated, return.
+            if(!updateNeeded) return;
 
             // reload place data if it changed or we don't have any.
-            if (placeDataChanged) this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, newSeqNum);
+            this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, newSeqNum);
             if (this.disposed) return;
+        }
+        catch(e: any) {
+            // Handle failiures to fetch updates. Queue again.
+            Logging.InfoDev("Updating place failed", this.placeId, e);
+            this.world.onchainQueue.add(() => this.update());
+            return;
+        }
 
+        // If successful, load Items. Don't await, this should run outside the queue.
+        // TODO: maybe have another queue for this. loadingQueue.
+        this.loadItems();
+    }
+
+    // TODO: be smarter about loading items. don't reload everthing, maybe.
+    private async loadItems() {
+        try {
             // Load place gound, items, etc.
             assert(this.placeData);
+            assert(this.placeGround);
             (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${this.placeData.place_props.get('00')}`);
 
-            // remove old place items if they exist.
-            if(this._itemsNode) {
-                this._itemsNode.dispose();
-                this._itemsNode = null;
-                Logging.InfoDev("cleared old items");
-            }
-
-            // itemsNode must be in the origin.
-            this._itemsNode = new TransformNode(`items`, this.world.scene);
-            this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
-            this._itemsNode.parent = this.placeRoot;
+            this.clearItems();
             
             const outOfBounds: number[] = [];
 
@@ -349,7 +367,7 @@ export default class Place {
                     }
                 }
                 catch(e) {
-                    Logging.InfoDev("Failed to load placed item", token_id.toNumber(), e);
+                    Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
                 }
             };
 
@@ -374,12 +392,12 @@ export default class Place {
 
     public save(): boolean {
         if(!this._tempItemsNode || !this._itemsNode) {
-            Logging.InfoDev("can't save: items not loaded: " + this.placeId);
+            Logging.InfoDev("can't save: items not loaded", this.placeId);
             return false;
         }
 
         if(this.savePending) {
-            Logging.Info("Can't save again while operaton is pending: " + this.placeId);
+            Logging.Info("Can't save again while operaton is pending", this.placeId);
             return false;
         }
 
@@ -406,7 +424,7 @@ export default class Place {
 
         if (add_children.length === 0 && remove_children.length === 0) {
             // TODO: probably should throw exceptions here.
-            Logging.InfoDev("Nothing to save");
+            Logging.InfoDev("Nothing to save", this.placeId);
             return false;
         }
 
@@ -417,15 +435,7 @@ export default class Place {
 
             // Only remove temp items if op completed.
             if(completed) {
-                if(this._tempItemsNode) {
-                    this._tempItemsNode.dispose();
-                    Logging.InfoDev("cleared temp items");
-
-                    // create NEW temp items node
-                    this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
-                    this._tempItemsNode.position = this._origin.clone();
-                    this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
-                }
+                this.clearTempItems();
             }
         });
 
@@ -457,5 +467,32 @@ export default class Place {
         }
 
         return `Place #${this.placeId}`;
+    }
+
+    private clearItems() {
+        // remove old place items if they exist.
+        if(this._itemsNode) {
+            this._itemsNode.dispose();
+            this._itemsNode = null;
+            Logging.InfoDev("cleared old items", this.placeId);
+        }
+
+        // itemsNode must be in the origin.
+        this._itemsNode = new TransformNode(`items`, this.world.scene);
+        this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
+        this._itemsNode.parent = this.placeRoot;
+    }
+
+    private clearTempItems() {
+        if(this._tempItemsNode) {
+            this._tempItemsNode.dispose();
+            this._tempItemsNode = null;
+            Logging.InfoDev("cleared temp items", this.placeId);
+        }
+
+        // create NEW temp items node
+        this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
+        this._tempItemsNode.position = this._origin.clone();
+        this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
     }
 }

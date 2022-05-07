@@ -279,7 +279,7 @@ export class Contracts {
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
-        Logging.InfoDev("Place data outdated, reading from chain", place_id);
+        Logging.InfoDev("Reading place data from chain", place_id);
 
         const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
 

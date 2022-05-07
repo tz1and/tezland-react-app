@@ -30,8 +30,9 @@ import { isDev } from "../utils/Utils";
 import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
-import world_definition from "../models/districts.json";
 import WorldGrid from "../utils/WorldGrid";
+import PQueue from 'p-queue/dist';
+import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -60,6 +61,7 @@ export class World {
 
     private implicitWorldGrid: WorldGrid;
     private worldPlaceCount: number = 0;
+    readonly onchainQueue;
 
     private lastUpdatePosition: Vector3;
     // TODO
@@ -80,6 +82,7 @@ export class World {
         // This represents the currently loaded places.
         this.places = new Map<number, Place>();
         this.implicitWorldGrid = new WorldGrid();
+        this.onchainQueue = new PQueue({concurrency: 1});
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
@@ -323,27 +326,34 @@ export class World {
         // Get grid cells close to player position.
         const gridCells = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount);
 
-        // TODO: Batch load all unloaded places metadata?
-        //await Metadata.getPlaceMetadataBatch(0, placeCount - 1);
-
-        // TODO: Sort by distance from player?
-        /*// Figure out by distance to player if the place should be loaded load.
-        if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance)
-            nearby_places.push(placeMetadata)
-
-        nearby_places.sort((a, b) => {
-            const origin_a = Vector3.FromArray(a.centerCoordinates);
-            const origin_b = Vector3.FromArray(b.centerCoordinates);
-            return Vector3.Distance(player_pos, origin_a) - Vector3.Distance(player_pos, origin_b);
-        });*/
-
-        // Finally, load places.
+        // Get list of place ids from cells.
+        // TODO: maybe do this in getPlacesForPosition.
+        const placeIds: number[] = []
         gridCells.forEach((c) => {
             c.places.forEach((id) => {
-                // TODO: await?
-                this.loadPlace(id);
+                placeIds.push(id);
             });
         });
+
+        // Batch load all (un)loaded places metadata and return
+        const place_metadatas = await Metadata.getPlaceMetadataBatch(placeIds);
+
+        // TODO: Get rid of places out of reach?
+        /*// Figure out by distance to player if the place should be loaded load.
+        if(Vector3.Distance(player_pos, origin) < this.placeDrawDistance)
+            nearby_places.push(placeMetadata)*/
+
+        // Sort by distance to player.
+        place_metadatas.sort((a, b) => {
+            const origin_a = Vector3.FromArray(a.centerCoordinates);
+            const origin_b = Vector3.FromArray(b.centerCoordinates);
+            return Vector3.Distance(playerPos, origin_a) - Vector3.Distance(playerPos, origin_b);
+        });
+
+        // Finally, load places.
+        place_metadatas.forEach((metadata) => {
+            this.loadPlace(metadata.id);
+        })
 
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.playerController.getCurrentPlace()
@@ -508,8 +518,9 @@ export class World {
     }
 
     private async reloadPlace(placeId: PlaceId) {
+        // Queue a place update.
         const place = this.places.get(placeId);
-        if (place) await place.load(true);
+        if (place) this.onchainQueue.add(() => place.update(true));
     }
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
@@ -543,7 +554,7 @@ export class World {
                 this.places.set(placeId, new_place);
 
                 // Load items.
-                await new_place.load(false);
+                await new_place.load();
             }
         }
         catch(e) {

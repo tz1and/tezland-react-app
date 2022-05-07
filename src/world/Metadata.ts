@@ -26,18 +26,21 @@ export default class Metadata {
             return dbstorage;*/
     }
 
-    public static async getPlaceMetadataBatch(token_id_start: number, token_id_end: number) {
+    public static async getPlaceMetadataBatch(places: number[]) {
+        const place_metadatas = [];
         const places_to_fetch = [];
 
-        for (let token_id = token_id_start; token_id <= token_id_end; ++token_id) {
+        for (const place_id of places) {
             // Try to read the token metadata from storage.
-            let tokenMetadata = await Metadata.Storage.loadObject(token_id, StorageKey.PlaceMetadata);
+            let tokenMetadata = await Metadata.Storage.loadObject(place_id, StorageKey.PlaceMetadata);
 
             // If it doesn't exist, add to fetch array.
-            if(!tokenMetadata) places_to_fetch.push(token_id);
+            if(!tokenMetadata) places_to_fetch.push(place_id);
+
+            place_metadatas.push(tokenMetadata);
         }
 
-        if (places_to_fetch.length === 0) return;
+        if (places_to_fetch.length === 0) return place_metadatas;
 
         Logging.Info(`batch fetching ${places_to_fetch.length} places from indexer`);
 
@@ -58,9 +61,12 @@ export default class Metadata {
                 if (metadata) {
                     metadata.id = placeToken.token_id;
                     await Metadata.Storage.saveObject(placeToken.token_id, StorageKey.PlaceMetadata, metadata);
+                    place_metadatas.push(metadata);
                 }
             }
         }
+
+        return place_metadatas;
     }
 
     public static async getPlaceMetadata(token_id: number): Promise<any> {
