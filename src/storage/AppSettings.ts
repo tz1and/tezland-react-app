@@ -77,6 +77,9 @@ export default class AppSettings {
     static textureRes = new AppSetting<TextureRes>("textureRes", 1024, parseTextureRes);
     static fovHorizontal = new AppSetting<number>("fovHorizontal", 90, parseNumber);
 
+    // rpc and related options
+    static rpcNode = new AppSetting<number>("rpcNode", 0, parseNumber);
+
     // default spawn
     static defaultSpawn = new AppSetting<string>("defaultSpawn", "district1", parseString);
 }

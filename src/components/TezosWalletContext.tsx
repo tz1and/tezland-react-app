@@ -8,6 +8,8 @@ import { InMemorySigner } from "@taquito/signer";
 import EventEmitter from "events";
 import { OperationPending, OperationPendingData } from "./OperationPending";
 import assert from "assert";
+import AppSettings from "../storage/AppSettings";
+import Config from "../Config";
 
 export type ITezosWalletProvider = {
     //setWalletAddress(walletAddress: string): void;
@@ -49,7 +51,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
     constructor(props: TezosWalletProviderProps) {
         super(props);
         this.state = {
-            tezos: new TezosToolkit(Conf.tezos_node),
+            tezos: new TezosToolkit(Config.allowed_tezos_nodes[AppSettings.rpcNode.value]),
             pendingOps: [],
             walletEventEmitter: new EventEmitter()
         };
@@ -133,7 +135,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
                 this.state.beaconWallet.requestPermissions({ network: {
                     type: TezosWalletProvider.getNetworkType(),
                     name: Conf.tezos_network,
-                    rpcUrl: Conf.tezos_node } })
+                    rpcUrl: Config.allowed_tezos_nodes[AppSettings.rpcNode.value] } })
                 .then(() => this.state.beaconWallet!.getPKH())
                 .then((address) => this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange")));
             }

@@ -7,6 +7,7 @@ import {
     ErrorMessage
 } from 'formik';
 import AppSettings, { TextureRes, ShadowOptions } from '../storage/AppSettings';
+import Config from '../Config';
 
 interface SettingsFormValues {
     // general
@@ -26,6 +27,9 @@ interface SettingsFormValues {
     shadowMapRes: TextureRes;
     textureRes: TextureRes;
     fovHorizontal: number;
+
+    // rpc etc
+    rpcNode: number;
 }
 
 type SettingsFormProps = {
@@ -55,7 +59,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         shadowOptions: AppSettings.shadowOptions.value,
         shadowMapRes: AppSettings.shadowMapRes.value,
         textureRes: AppSettings.textureRes.value,
-        fovHorizontal: AppSettings.fovHorizontal.value
+        fovHorizontal: AppSettings.fovHorizontal.value,
+
+        // rpc etc
+        rpcNode: AppSettings.rpcNode.value
     };
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -102,6 +109,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         AppSettings.shadowMapRes.value = values.shadowMapRes;
                         AppSettings.textureRes.value = values.textureRes;
                         AppSettings.fovHorizontal.value = values.fovHorizontal;
+
+                        // rpc etc
+                        AppSettings.rpcNode.value = values.rpcNode;
 
                         props.closeForm(false);
 
@@ -161,6 +171,13 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                         <Field id="showFps" name="showFps" type="checkbox" className="form-check-input me-2" aria-describedby="showFpsHelp" disabled={isSubmitting}/>
                                         <label htmlFor="showFps" className="form-label">Show FPS</label>
                                         <div id="showFpsHelp" className="form-text">Show frames per second.</div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="rpcNode" className="form-label">RPC Node</label>
+                                        <Field id="rpcNode" name="rpcNode" as="select" value={values.rpcNode} className="form-select" aria-describedby="shadowMapResHelp" disabled={isSubmitting} >
+                                            {Config.allowed_tezos_nodes.map((url, index) => <option key={index} value={index}>{url}</option>)}
+                                        </Field>
+                                        <div id="shadowMapResHelp" className="form-text">Your preferred RPC node.</div>
                                     </div>
                                 </div>
                                 <div className="tab-pane fade" id="controls" role="tabpanel" aria-labelledby="controls-tab">
