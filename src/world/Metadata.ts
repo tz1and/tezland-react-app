@@ -36,8 +36,8 @@ export default class Metadata {
 
             // If it doesn't exist, add to fetch array.
             if(!tokenMetadata) places_to_fetch.push(place_id);
-
-            place_metadatas.push(tokenMetadata);
+            // else, append
+            else place_metadatas.push(tokenMetadata);
         }
 
         if (places_to_fetch.length === 0) return place_metadatas;
@@ -60,7 +60,8 @@ export default class Metadata {
                 const metadata = placeToken.metadata;
                 if (metadata) {
                     metadata.id = placeToken.token_id;
-                    await Metadata.Storage.saveObject(placeToken.token_id, StorageKey.PlaceMetadata, metadata);
+                    // Probably OK not to await this.
+                    Metadata.Storage.saveObject(placeToken.token_id, StorageKey.PlaceMetadata, metadata);
                     place_metadatas.push(metadata);
                 }
             }
@@ -91,6 +92,7 @@ export default class Metadata {
             // TODO: await store?
             if (metadata) {
                 metadata.id = placeToken.token_id;
+                // Probably OK not to await this.
                 Metadata.Storage.saveObject(token_id, StorageKey.PlaceMetadata, metadata);
             }
             tokenMetadata = metadata;
