@@ -17,7 +17,8 @@ export default class WorldGrid {
     private static gridSize = 100.0;
 
     public async getPlacesForPosition(x: number, y: number, z: number, worldPlaceCount: number) {
-        const range = Math.ceil(AppSettings.drawDistance.value / WorldGrid.gridSize) * WorldGrid.gridSize;
+        //const range = Math.ceil(AppSettings.drawDistance.value / WorldGrid.gridSize) * WorldGrid.gridSize;
+        const range = AppSettings.drawDistance.value;
         
         const grid_min = WorldGrid.getGridCell(x - range, y, z - range, WorldGrid.gridSize);
         const grid_max = WorldGrid.getGridCell(x + range, y, z + range, WorldGrid.gridSize);
