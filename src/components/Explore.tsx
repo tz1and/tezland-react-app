@@ -14,12 +14,12 @@ import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { FormNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
-import Place from '../world/Place';
+import Place from '../world/PlaceNode';
+import ItemNode from '../world/ItemNode';
 import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
-import ItemNode from '../world/ItemNode';
 
 type ExploreProps = {
     // using `interface` is also ok

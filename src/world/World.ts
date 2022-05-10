@@ -11,7 +11,7 @@ import PlayerController from "../controllers/PlayerController";
 import { AbstractMesh, Database, MeshBuilder,
     Nullable, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
-import Place, { PlaceId } from "./Place";
+import Place, { PlaceId } from "./PlaceNode";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata from "./Metadata";
@@ -61,12 +61,10 @@ export class World {
 
     private implicitWorldGrid: WorldGrid;
     private worldPlaceCount: number = 0;
-    readonly onchainQueue;
-    readonly loadingQueue;
+    readonly onchainQueue; // For onchain views.
+    readonly loadingQueue; // For loading items.
 
     private lastUpdatePosition: Vector3;
-    // TODO
-    //private queuedPlaceUpdates: PlaceId[] = [];
 
     private multiClient?: MultiplayerClient | undefined;
 
@@ -83,7 +81,7 @@ export class World {
         // This represents the currently loaded places.
         this.places = new Map<number, Place>();
         this.implicitWorldGrid = new WorldGrid();
-        this.onchainQueue = new PQueue({concurrency: 1});
+        this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
         this.loadingQueue = new PQueue({concurrency: 4});
 
         // Create Babylon engine.

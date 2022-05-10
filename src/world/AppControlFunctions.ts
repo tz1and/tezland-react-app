@@ -2,7 +2,7 @@
 
 import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
-import Place from "./Place";
+import Place from "./PlaceNode";
 
 export type FormNames = 'placeproperties'
     | 'instructions'

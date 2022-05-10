@@ -58,13 +58,12 @@ export class PlacePermissions {
 };
 
 
-export default class Place {
+export default class Place extends TransformNode {
     readonly placeId: number;
-    readonly metadata: any;
+    readonly placeMetadata: any;
     public placeData: Nullable<PlaceData> = null;
     private world: World;
 
-    private placeRoot: Nullable<TransformNode> = null;
     private placeBounds: Nullable<Mesh> = null;
     private placeGround: Nullable<Mesh> = null;
 
@@ -95,19 +94,17 @@ export default class Place {
 
     private savePending: boolean = false;
 
-    // This flag is set when the place is disposed
-    // so operations on the place can be stopped.
-    private disposed: boolean = false;
+    constructor(placeId: number, placeMetadata: any, world: World) {
+        super(`placeRoot${placeId}`, world.scene);
 
-    constructor(placeId: number, metadata: any, world: World) {
         this.placeId = placeId;
-        this.metadata = metadata;
+        this.placeMetadata = placeMetadata;
         this.world = world;
 
         this.initialisePlace();
     }
 
-    public dispose() {
+    public override dispose() {
         // TODO: have some flag if it's loading right now or something.
         this.placeBounds?.dispose();
         this.placeBounds = null;
@@ -121,9 +118,6 @@ export default class Place {
         this._tempItemsNode?.dispose();
         this._tempItemsNode = null;
 
-        this.placeRoot?.dispose();
-        this.placeRoot = null;
-
         // TODO: surely it's enough to remove the place root.
 
         // unregister execution action
@@ -132,7 +126,7 @@ export default class Place {
             this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
         }
 
-        this.disposed = true;
+        super.dispose();
     }
 
     // TODO: use MeshUtils.extrudeMeshFromShape
@@ -163,19 +157,18 @@ export default class Place {
 
     private initialisePlace() {
         // Using ExtrudePolygon
-        this._origin = Vector3.FromArray(this.metadata.centerCoordinates);
-        this._buildHeight = this.metadata.buildHeight;
+        this._origin = Vector3.FromArray(this.placeMetadata.centerCoordinates);
+        this._buildHeight = this.placeMetadata.buildHeight;
 
         var shape = new Array<Vector3>();
-        this.metadata.borderCoordinates.forEach((v: Array<number>) => {
+        this.placeMetadata.borderCoordinates.forEach((v: Array<number>) => {
             shape.push(Vector3.FromArray(v));
         });
 
         // TODO: make sure the place coordinates are going right around!
         shape = shape.reverse();
 
-        this.placeRoot = new TransformNode(`placeRoot${this.placeId}`, this.world.scene);
-        this.placeRoot.position.copyFrom(this._origin);
+        this.position.copyFrom(this._origin);
 
         // create bounds
         // TODO: use MeshUtils.extrudeMeshFromShape
@@ -183,7 +176,7 @@ export default class Place {
             this.world.transparentGridMat);
 
         this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
-        this.placeBounds.parent = this.placeRoot;
+        this.placeBounds.parent = this;
         // Call getHierarchyBoundingVectors to force updating the bounding info!
         this.placeBounds.getHierarchyBoundingVectors();
 
@@ -191,12 +184,12 @@ export default class Place {
         this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
             new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
         this.placeGround.receiveShadows = true;
-        this.placeGround.parent = this.placeRoot;
+        this.placeGround.parent = this;
 
         // create temp items node
         this._tempItemsNode = new TransformNode(`itemsTemp`, this.world.scene);
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
-        this._tempItemsNode.parent = this.placeRoot;
+        this._tempItemsNode.parent = this;
 
         // NOTE: mesh to mesh intersection is only checking bounding boxes.
         // Rather use a pick trigger and work out if inside or outside.
@@ -241,7 +234,7 @@ export default class Place {
 
         // First, load the palce data from disk.
         if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, StorageKey.PlaceItems);
-        if (this.disposed) return;
+        if (this.isDisposed()) return;
 
         // If we have place data, load the items.
         // TODO: maybe have another queue for this. loadingQueue.
@@ -255,7 +248,7 @@ export default class Place {
         try {
             // catch exceptions and queue another update.
             const newSeqNum = await Contracts.getPlaceSeqNum(this.world.walletProvider, this.placeId);
-            if (this.disposed) return;
+            if (this.isDisposed()) return;
             const updateNeeded = force || !this.placeData || this.placeData.place_seq !== newSeqNum;
 
             // If the palce data doesn't need to be updated, return.
@@ -263,7 +256,7 @@ export default class Place {
 
             // reload place data if it changed or we don't have any.
             this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, newSeqNum);
-            if (this.disposed) return;
+            if (this.isDisposed()) return;
         }
         catch(e: any) {
             // Handle failiures to fetch updates. Queue again.
@@ -286,8 +279,6 @@ export default class Place {
             (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${this.placeData.place_props.get('00')}`);
 
             this.clearItems();
-            
-            const outOfBounds: number[] = [];
 
             //items.forEach(async (element: any) => {
             for (const element of this.placeData.stored_items) {
@@ -341,16 +332,6 @@ export default class Place {
                     Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
                 }
             };
-
-            if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
-                this.world.appControlFunctions.addNotification({
-                    id: "oobItems" + this.placeId,
-                    title: "Out of bounds items!",
-                    body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
-                    type: 'warning'
-                })
-                Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
-            }
 
             // Remove cached texture buffers, we don't need them.
             this.world.scene.cleanCachedTextureBuffer();
@@ -450,7 +431,7 @@ export default class Place {
         // itemsNode must be in the origin.
         this._itemsNode = new TransformNode(`items`, this.world.scene);
         this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
-        this._itemsNode.parent = this.placeRoot;
+        this._itemsNode.parent = this;
     }
 
     private clearTempItems() {
@@ -464,5 +445,6 @@ export default class Place {
         this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
         this._tempItemsNode.position = this._origin.clone();
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
+        this._tempItemsNode.parent = this;
     }
 }

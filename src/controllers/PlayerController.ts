@@ -8,14 +8,14 @@ import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
-import Place from "../world/Place";
+import Place from "../world/PlaceNode";
+import ItemNode from "../world/ItemNode";
 import { World } from "../world/World";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import PickingGuiController from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
 import world_definition from "../models/districts.json";
-import ItemNode from "../world/ItemNode";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 

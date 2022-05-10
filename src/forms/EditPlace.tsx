@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
-import Place from '../world/Place';
+import Place from '../world/PlaceNode';
 import { PlaceAddPermissionsForm } from './PlaceAddPermissions';
 import { PlacePropertiesForm } from './PlaceProperties';
 import { PlaceRemovePermissionsForm } from './PlaceRemovePermissions';

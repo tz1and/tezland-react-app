@@ -1,7 +1,8 @@
 import { Nullable, Scene, Node, TransformNode } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
-import Place from "./Place";
+import { Logging } from "../utils/Logging";
+import Place from "./PlaceNode";
 import { World } from "./World";
 
 
@@ -39,15 +40,28 @@ export default class ItemNode extends TransformNode {
 
         // TODO: bounds check needs to happen after loading.
         if(boundsCheck && !boundsCheck.isInBounds(this)) {
-            //outOfBounds.push(new BigNumber(element.item_id).toNumber());
+            Logging.Warn(`place #${boundsCheck.placeId} doesn't fully contain item with id`, this.itemId.toNumber());
             // TODO: mark as out of bounds if place is player owned, otherwise dispose.
+            // TODO: maybe show notifications?
+            //outOfBounds.push(new BigNumber(element.item_id).toNumber());
+            /*if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
+                this.world.appControlFunctions.addNotification({
+                    id: "oobItems" + this.placeId,
+                    title: "Out of bounds items!",
+                    body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
+                    type: 'warning'
+                })
+                Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
+            }*/
             this.dispose();
         }
     }
 
     public queueLoadItem(world: World, place: Place) {
         // TODO: priority, retry, etc
-        world.loadingQueue.add(() => this.loadItem(place), { priority: this.scaling.x * 10 });
+        // TODO: priority should depend on distance
+        const priority = this.scaling.x * (1 / this.getDistanceToCamera()) * 1000;
+        world.loadingQueue.add(() => this.loadItem(place), { priority: priority });
     }
 
     public static CreateItemNode(placeId: number, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {
