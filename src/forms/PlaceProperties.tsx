@@ -10,7 +10,7 @@ import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
 import { char2Bytes, bytes2Char } from "@taquito/utils";
-import Place from '../world/PlaceNode';
+import PlaceNode from '../world/PlaceNode';
 import assert from 'assert';
 
 interface PlacePropertiesFormValues {
@@ -19,7 +19,7 @@ interface PlacePropertiesFormValues {
 }
 
 type PlacePropertiesFormProps = {
-    place: Place;
+    place: PlaceNode;
 }
 
 type PlacePropertiesFormState = {

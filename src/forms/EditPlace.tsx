@@ -1,13 +1,13 @@
 import React from 'react';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
-import Place from '../world/PlaceNode';
+import PlaceNode from '../world/PlaceNode';
 import { PlaceAddPermissionsForm } from './PlaceAddPermissions';
 import { PlacePropertiesForm } from './PlaceProperties';
 import { PlaceRemovePermissionsForm } from './PlaceRemovePermissions';
 
 type EditPlaceProps = {
     closeForm(cancelled: boolean): void;
-    place: Place;
+    place: PlaceNode;
 }
 
 export const EditPlace: React.FC<EditPlaceProps> = (props) => {

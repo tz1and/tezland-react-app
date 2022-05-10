@@ -58,7 +58,7 @@ export class PlacePermissions {
 };
 
 
-export default class Place extends TransformNode {
+export default class PlaceNode extends TransformNode {
     readonly placeId: number;
     readonly placeMetadata: any;
     public placeData: Nullable<PlaceData> = null;

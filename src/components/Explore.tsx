@@ -14,7 +14,7 @@ import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { FormNames } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
-import Place from '../world/PlaceNode';
+import PlaceNode from '../world/PlaceNode';
 import ItemNode from '../world/ItemNode';
 import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
@@ -31,7 +31,7 @@ type ExploreState = {
     placedItem: Nullable<ItemNode>;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
-    currentPlace: Nullable<Place>;
+    currentPlace: Nullable<PlaceNode>;
     groundColor: string;
     burnItemId: number;
     transferItemId: number;
@@ -118,7 +118,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
-    updatePlaceInfo = (place: Nullable<Place>) => {
+    updatePlaceInfo = (place: Nullable<PlaceNode>) => {
         this.setState({currentPlace: place});
     }
 

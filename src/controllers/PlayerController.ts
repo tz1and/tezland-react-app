@@ -8,7 +8,7 @@ import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
-import Place from "../world/PlaceNode";
+import PlaceNode from "../world/PlaceNode";
 import ItemNode from "../world/ItemNode";
 import { World } from "../world/World";
 import { WorldDefinition } from "../worldgen/WorldGen";
@@ -61,7 +61,7 @@ export default class PlayerController {
     private handleKeyDown: (e: KeyboardEvent) => void;*/
 
     //private isPointerLocked: boolean = false; // TODO: still needed for something?
-    private currentPlace: Nullable<Place>;
+    private currentPlace: Nullable<PlaceNode>;
     private currentItem?: number | undefined;
 
     private onPointerlockChange: () => void;
@@ -462,7 +462,7 @@ export default class PlayerController {
         return this.camera.rotation;
     }
 
-    public setCurrentPlace(place: Place) {
+    public setCurrentPlace(place: PlaceNode) {
         this.currentPlace = place;
         this.appControlFunctions.updatePlaceInfo(place);
     }

@@ -2,7 +2,7 @@ import { Nullable, Scene, Node, TransformNode } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
 import { Logging } from "../utils/Logging";
-import Place from "./PlaceNode";
+import PlaceNode from "./PlaceNode";
 import { World } from "./World";
 
 
@@ -33,7 +33,7 @@ export default class ItemNode extends TransformNode {
         return "ItemNode";
     }*/
 
-    public async loadItem(boundsCheck?: Place) {
+    public async loadItem(boundsCheck?: PlaceNode) {
         // TODO: queue, retry, etc
         //const instance =
         await ipfs.download_item(this.tokenId, this._scene, this);
@@ -57,7 +57,7 @@ export default class ItemNode extends TransformNode {
         }
     }
 
-    public queueLoadItem(world: World, place: Place) {
+    public queueLoadItem(world: World, place: PlaceNode) {
         // TODO: priority, retry, etc
         // TODO: priority should depend on distance
         const priority = this.scaling.x * (1 / this.getDistanceToCamera()) * 1000;

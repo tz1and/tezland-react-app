@@ -2,7 +2,7 @@
 
 import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
-import Place from "./PlaceNode";
+import PlaceNode from "./PlaceNode";
 
 export type FormNames = 'placeproperties'
     | 'instructions'
@@ -20,5 +20,5 @@ export type AppControlFunctions = {
     setOverlayDispaly(display: boolean): void;
     placeItem(node: Node): void;
     addNotification(data: NotificationData): void;
-    updatePlaceInfo(place: Place): void;
+    updatePlaceInfo(place: PlaceNode): void;
 };

@@ -11,7 +11,7 @@ import PlayerController from "../controllers/PlayerController";
 import { AbstractMesh, Database, MeshBuilder,
     Nullable, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
-import Place, { PlaceId } from "./PlaceNode";
+import PlaceNode, { PlaceId } from "./PlaceNode";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata from "./Metadata";
@@ -55,7 +55,7 @@ export class World {
     readonly playerController: PlayerController;
     readonly shadowGenerator: Nullable<ShadowGenerator>;
 
-    readonly places: Map<number, Place>;
+    readonly places: Map<number, PlaceNode>;
 
     readonly walletProvider: ITezosWalletProvider;
 
@@ -79,7 +79,7 @@ export class World {
         this.walletProvider = walletProvider;
 
         // This represents the currently loaded places.
-        this.places = new Map<number, Place>();
+        this.places = new Map<number, PlaceNode>();
         this.implicitWorldGrid = new WorldGrid();
         this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
         this.loadingQueue = new PQueue({concurrency: 4});
@@ -550,7 +550,7 @@ export class World {
                 }
 
                 // Create place.
-                const new_place = new Place(placeId, placeMetadata, this);
+                const new_place = new PlaceNode(placeId, placeMetadata, this);
                 this.places.set(placeId, new_place);
 
                 // Load items.

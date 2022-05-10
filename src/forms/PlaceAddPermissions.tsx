@@ -10,7 +10,7 @@ import Contracts from '../tz/Contracts';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
-import Place from '../world/PlaceNode';
+import PlaceNode from '../world/PlaceNode';
 
 interface PlaceAddPermissionsFormValues {
     permissionsTo: string;
@@ -23,7 +23,7 @@ interface PlaceAddPermissionsFormValues {
 }
 
 type PlaceAddPermissionsFormProps = {
-    place: Place;
+    place: PlaceNode;
 }
 
 type PlaceAddPermissionsFormState = {
