@@ -1,5 +1,6 @@
 import { Color3, Mesh, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials";
+import ItemNode from "../world/ItemNode";
 
 export default class TempObjectHelper {
 
@@ -32,7 +33,7 @@ export default class TempObjectHelper {
         this.node.dispose();
     }
 
-    public modelUpdate(mesh: Mesh) {
+    public modelUpdate(mesh: ItemNode) {
         const {min, max} = mesh.getHierarchyBoundingVectors(true);
         const extent = max.subtract(min);
         this.cube.scaling = extent;

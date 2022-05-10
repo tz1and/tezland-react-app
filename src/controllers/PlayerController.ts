@@ -3,19 +3,19 @@ import { ActionManager, Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes
     ShadowGenerator, Tools, Vector2, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import BigNumber from "bignumber.js";
-import * as ipfs from "../ipfs/ipfs";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
-import Place, { InstanceMetadata } from "../world/Place";
+import Place from "../world/Place";
 import { World } from "../world/World";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import PickingGuiController from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
 import world_definition from "../models/districts.json";
+import ItemNode from "../world/ItemNode";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -33,7 +33,7 @@ export default class PlayerController {
     public set shadowGenerator(sg: Nullable<ShadowGenerator>) { this._shadowGenerator = sg; }
     public get shadowGenerator(): Nullable<ShadowGenerator> { return this._shadowGenerator; }
 
-    private tempObject: Nullable<Mesh>;
+    private tempObject: Nullable<ItemNode>;
     private tempObjectHelper: Nullable<TempObjectHelper>;
     private tempObjectOffsetY: number;
     private tempObjectRot: Quaternion;
@@ -149,18 +149,14 @@ export default class PlayerController {
                         const parent = this.currentPlace.tempItemsNode;
                         assert(parent);
 
-                        const newObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, parent) as Mesh;
+                        const newObject = ItemNode.CreateItemNode(this.currentPlace.placeId, new BigNumber(this.currentItem), this.scene, parent);
+                        await newObject.loadItem();
+
                         if(newObject) {
                             // Make sure item is place relative to place origin.
                             newObject.position = this.tempObject.position.subtract(parent.absolutePosition);
                             newObject.rotationQuaternion = this.tempObjectRot.clone();
                             newObject.scaling = this.tempObject.scaling.clone();
-                            newObject.metadata = {
-                                itemTokenId: new BigNumber(this.currentItem),
-                                placeId: this.currentPlace.placeId
-                            } as InstanceMetadata;
-
-                            this.shadowGenerator?.addShadowCaster(newObject);
 
                             eventState.skipNextObservers = true;
 
@@ -308,16 +304,15 @@ export default class PlayerController {
                     case 'Delete': // Mark item for deletion
                         const current_item = this.pickingGui.getCurrentItem();
                         if(current_item) {
-                            const metadata = current_item.metadata as InstanceMetadata;
-                            const place = world.places.get(metadata.placeId);
-                            if(place && (metadata.issuer === world.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
+                            const place = world.places.get(current_item.placeId);
+                            if(place && (current_item.issuer === world.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
                                 // If the item is unsaved, remove it directly.
-                                if(metadata.id === undefined) {
+                                if(current_item.itemId.lt(0)) {
                                     current_item.dispose();
                                 }
                                 // Otherwise mark it for removal.
                                 else {
-                                    metadata.markForRemoval = true;
+                                    current_item.markForRemoval = true;
                                     current_item.setEnabled(false);
                                 }
                             }
@@ -496,7 +491,9 @@ export default class PlayerController {
         this.tempObjectRot.copyFrom(Quaternion.Identity());
 
         try {
-            this.tempObject = await ipfs.download_item(new BigNumber(this.currentItem), this.scene, null) as Mesh;
+            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(this.currentItem), this.scene, null);
+            await this.tempObject.loadItem();
+
             if(this.tempObject) {
                 // the temp object.
                 this.tempObject.rotationQuaternion = this.tempObjectRot;
@@ -512,9 +509,6 @@ export default class PlayerController {
                 // positioning helper.
                 this.tempObjectHelper = new TempObjectHelper(this.scene, this.tempObjectRot);
                 this.tempObjectHelper.modelUpdate(this.tempObject);
-                
-                // add shadows caster.
-                this.shadowGenerator?.addShadowCaster(this.tempObject as Mesh);
 
                 // make sure picking gui goes away.
                 await this.pickingGui.updatePickingGui(null, 0);

@@ -4,7 +4,7 @@ import VirtualSpace from './VirtualSpace';
 import { MintFrom } from '../forms/MintForm';
 import { PlaceForm } from '../forms/PlaceForm';
 import { Inventory } from '../forms/Inventory';
-import { Node, Nullable } from '@babylonjs/core';
+import { Nullable } from '@babylonjs/core';
 import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
@@ -19,6 +19,7 @@ import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
+import ItemNode from '../world/ItemNode';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -27,7 +28,7 @@ type ExploreProps = {
 type ExploreState = {
     show_form: FormNames;
     dispaly_overlay: boolean;
-    placedItem: Nullable<Node>;
+    placedItem: Nullable<ItemNode>;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     currentPlace: Nullable<Place>;
@@ -68,7 +69,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             this.setState({ dispaly_overlay: display });
     }
 
-    placeItem = (node: Node) => {
+    placeItem = (node: ItemNode) => {
         this.setState({ show_form: 'placeitem', dispaly_overlay: true, placedItem: node });
     }
 
@@ -149,7 +150,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'terms') form = <TermsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
-        else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem} />;
+        else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem!} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm}
             selectItemFromInventory={this.selectItemFromInventory}
             burnItemFromInventory={this.burnItemFromInventory}

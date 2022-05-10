@@ -62,6 +62,7 @@ export class World {
     private implicitWorldGrid: WorldGrid;
     private worldPlaceCount: number = 0;
     readonly onchainQueue;
+    readonly loadingQueue;
 
     private lastUpdatePosition: Vector3;
     // TODO
@@ -83,6 +84,7 @@ export class World {
         this.places = new Map<number, Place>();
         this.implicitWorldGrid = new WorldGrid();
         this.onchainQueue = new PQueue({concurrency: 1});
+        this.loadingQueue = new PQueue({concurrency: 4});
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {

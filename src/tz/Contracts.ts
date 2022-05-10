@@ -1,17 +1,18 @@
-import { Mesh, Node, Quaternion } from "@babylonjs/core";
+import { Quaternion } from "@babylonjs/core";
 import { Contract, MichelsonMap, OpKind, PollingSubscribeProvider, TransactionWalletOperation } from "@taquito/taquito";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { packTo } from 'byte-data';
 import { char2Bytes } from '@taquito/utils'
 import Metadata, { StorageKey } from "../world/Metadata";
-import { PlaceData, InstanceMetadata, PlacePermissions } from "../world/Place";
+import { PlaceData, PlacePermissions } from "../world/Place";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
 import { Logging } from "../utils/Logging";
 import { fetchGraphQL } from "../ipfs/graphql";
 import assert from "assert";
+import ItemNode from "../world/ItemNode";
 
 
 export class Contracts {
@@ -328,31 +329,27 @@ export class Contracts {
         }
     }
 
-    public async saveItems(walletProvider: ITezosWalletProvider, remove: Node[], add: Node[], place_id: number, owner: string, callback?: (completed: boolean) => void) {
+    public async saveItems(walletProvider: ITezosWalletProvider, remove: ItemNode[], add: ItemNode[], place_id: number, owner: string, callback?: (completed: boolean) => void) {
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
         // build remove item map
         const remove_item_map: MichelsonMap<string, BigNumber[]> = new MichelsonMap();
         remove.forEach((item) => {
-            const metadata = item.metadata as InstanceMetadata;
-
-            if (remove_item_map.has(metadata.issuer))
-                remove_item_map.get(metadata.issuer)!.push(metadata.id);
+            if (remove_item_map.has(item.issuer))
+                remove_item_map.get(item.issuer)!.push(item.itemId);
             else
-                remove_item_map.set(metadata.issuer, [metadata.id]);
+                remove_item_map.set(item.issuer, [item.itemId]);
         });
 
         // build add item list
         const add_item_list: object[] = [];
         const item_set = new Set<number>();
         add.forEach((item) => {
-            const mesh = item as Mesh;
-            const metadata = mesh.metadata as InstanceMetadata;
-            const token_id = metadata.itemTokenId;
-            const item_amount = metadata.itemAmount;
-            const item_price = tezToMutez(metadata.xtzPerItem);
-            const rot = mesh.rotationQuaternion ? mesh.rotationQuaternion : new Quaternion();
+            const token_id = item.tokenId;
+            const item_amount = item.itemAmount;
+            const item_price = tezToMutez(item.xtzPerItem);
+            const rot = item.rotationQuaternion ? item.rotationQuaternion : new Quaternion();
             const euler_angles = rot.toEulerAngles();
             // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
             const array = new Uint8Array(15);
@@ -365,11 +362,11 @@ export class Contracts {
             packTo(euler_angles.y, type, array, 3);
             packTo(euler_angles.z, type, array, 5);
             // pos
-            packTo(mesh.position.x, type, array, 7);
-            packTo(mesh.position.y, type, array, 9);
-            packTo(mesh.position.z, type, array, 11);
+            packTo(item.position.x, type, array, 7);
+            packTo(item.position.y, type, array, 9);
+            packTo(item.position.z, type, array, 11);
             // scale
-            packTo(Math.abs(mesh.scaling.x), type, array, 13);
+            packTo(Math.abs(item.scaling.x), type, array, 13);
             const item_data = toHexString(array);
 
             add_item_list.push({ item: { token_id: token_id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });

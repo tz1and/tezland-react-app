@@ -3,8 +3,8 @@ import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBl
 import assert from "assert";
 import Contracts from "../tz/Contracts";
 import { truncate } from "../utils/Utils";
+import ItemNode from "../world/ItemNode";
 import Metadata from "../world/Metadata";
-import { InstanceMetadata } from "../world/Place";
 import { World } from "../world/World";
 
 class ItemInfoGui {
@@ -16,7 +16,7 @@ class ItemInfoGui {
     private label_price: TextBlock
     private label_instructions: TextBlock;
 
-    private current_item_id: number = -1;
+    private current_token_id: number = -1;
 
     constructor(advancedTexture: AdvancedDynamicTexture) {
         // top level control
@@ -87,25 +87,25 @@ class ItemInfoGui {
         this.setVisible(false);
     }
 
-    public updateInfo(item_id: number, current_node: TransformNode, metadata: InstanceMetadata) {
-        const isSaved = metadata.id !== undefined;
+    public updateInfo(token_id: number, current_node: TransformNode, current_item: ItemNode) {
+        const isSaved = current_item.itemId.gte(0);
 
         // If the item id changed, we need to fetch new metadata to update the title and minter.
-        if (this.current_item_id !== item_id) {
-            this.current_item_id = item_id;
+        if (this.current_token_id !== token_id) {
+            this.current_token_id = token_id;
 
             // Fetch updated metadata.
             (async () => {
-                const itemMetadata = await Metadata.getItemMetadata(this.current_item_id);
+                const itemMetadata = await Metadata.getItemMetadata(this.current_token_id);
 
                 this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 16, '\u2026');
                 this.label_minter.text = `By: ${truncate(itemMetadata.minter, 16, '\u2026')}`;
             })();
         }
 
-        const forSale: boolean = isSaved && metadata.xtzPerItem !== 0;
+        const forSale: boolean = isSaved && current_item.xtzPerItem !== 0;
 
-        this.label_price.text = !forSale && isSaved ? "" : `${metadata.itemAmount} Items - ${metadata.xtzPerItem === 0 ? "Not collectable." : metadata.xtzPerItem + " \uA729"}`;
+        this.label_price.text = !forSale && isSaved ? "" : `${current_item.itemAmount} Items - ${current_item.xtzPerItem === 0 ? "Not collectable." : current_item.xtzPerItem + " \uA729"}`;
         this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not collectable.";
 
         this.control.linkWithMesh(current_node);
@@ -145,11 +145,12 @@ export default class PickingGuiController {
             if (info.type === PointerEventTypes.POINTERDOWN && info.event.button === 2) {
                 assert(this.world);
                 if(this.current_node) {
-                    const metadata = this.getInstanceMetadata(this.current_node);
+                    const instanceRoot = this.getInstanceRoot(this.current_node);
 
-                    if(metadata && metadata.xtzPerItem !== 0) {
+                    if(instanceRoot && instanceRoot.xtzPerItem !== 0) {
                         document.exitPointerLock();
-                        Contracts.getItem(this.world.walletProvider, metadata.placeId, metadata.id.toNumber(), metadata.issuer, metadata.xtzPerItem);
+
+                        Contracts.getItem(this.world.walletProvider, instanceRoot.placeId, instanceRoot.itemId.toNumber(), instanceRoot.issuer, instanceRoot.xtzPerItem);
                     }
 
                     eventState.skipNextObservers = true;
@@ -188,23 +189,16 @@ export default class PickingGuiController {
         this.advancedTexture.dispose();
     }
 
-    private getInstanceRoot(node: Nullable<Node>): Nullable<Node> {
+    private getInstanceRoot(node: Nullable<Node>): Nullable<ItemNode> {
         let parent: Nullable<Node> = node;
         while(parent) {
-            const metadata = parent.metadata as InstanceMetadata;
-            if(metadata && metadata.itemTokenId) return parent;
+            if (parent instanceof ItemNode) return parent;
             parent = parent.parent;
         }
         return null;
     }
 
-    private getInstanceMetadata(node: Node): InstanceMetadata | null {
-        const root = this.getInstanceRoot(node);
-        if(root) return root.metadata as InstanceMetadata;
-        return null;
-    }
-
-    public getCurrentItem(): Nullable<Node> {
+    public getCurrentItem(): Nullable<ItemNode> {
         return this.getInstanceRoot(this.current_node);
     }
 
@@ -220,13 +214,13 @@ export default class PickingGuiController {
             return;
         }
 
-        const metadata = this.getInstanceMetadata(this.current_node);
+        const current_item = this.getCurrentItem();
 
-        if(!metadata) {
+        if(!current_item) {
             this.infoGui.setVisible(false);
             return;
         }
 
-        this.infoGui.updateInfo(metadata.itemTokenId.toNumber(), this.current_node, metadata);
+        this.infoGui.updateInfo(current_item.tokenId.toNumber(), this.current_node, current_item);
     }
 }

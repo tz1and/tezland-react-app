@@ -1,6 +1,6 @@
 import Conf from '../Config';
 import '@babylonjs/loaders/glTF';
-import { AssetContainer, Material, Mesh, MultiMaterial, Nullable, PBRMaterial,
+import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial,
     Scene, SceneLoader, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import Metadata from '../world/Metadata';
 import BigNumber from 'bignumber.js';
@@ -8,6 +8,7 @@ import { FileLike } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import AppSettings from '../storage/AppSettings';
 import assert from 'assert';
+import ItemNode from '../world/ItemNode';
 
 
 /*const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway });
@@ -74,7 +75,7 @@ const removeRefraction = (materials: Nullable<Material>[]) => {
     });
 };
 
-export async function download_item(token_id: BigNumber, scene: Scene, parent: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
+export async function download_item(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
     // check if we have this item in the scene already.
     // Otherwise, download it.
     let asset = assetMap.get(token_id.toNumber());
@@ -155,7 +156,9 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
     //else Logging.InfoDev("mesh found in cache");
     
     // Parent for our instance.
-    const rootNode = new Mesh(`item${token_id}`, scene, parent);
+    //const rootNode = new Mesh(`item${token_id}`, scene, parent);
+
+    if (parent.isDisposed()) return null;
 
     // Instantiate.
     // Getting first root node is probably enough.
@@ -165,9 +168,9 @@ export async function download_item(token_id: BigNumber, scene: Scene, parent: N
     const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
     instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
     instance.rootNodes[0].name = `item${token_id}_clone`;
-    instance.rootNodes[0].parent = rootNode;
+    instance.rootNodes[0].parent = parent;
 
-    return rootNode;
+    return parent;
 }
 
 type ItemMetadata = {

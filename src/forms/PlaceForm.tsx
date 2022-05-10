@@ -6,29 +6,24 @@ import {
     FormikErrors,
     ErrorMessage
 } from 'formik';
-import { Node, Nullable } from '@babylonjs/core';
-import { InstanceMetadata } from '../world/Place';
 import BigNumber from 'bignumber.js';
 import assert from 'assert';
+import ItemNode from '../world/ItemNode';
 
 interface PlaceFormValues {
-    /*itemTitle: string;
-    itemDescription: string;
-    itemTags: string;*/
-    itemId: number;
+    tokenId: number;
     itemAmount: number;
     itemPrice: number;
-    //itemFile: ArrayBuffer;
 }
 
 type PlaceFormProps = {
     closeForm(cancelled: boolean): void;
-    placedItem: Nullable<Node>;
+    placedItem: ItemNode;
 }
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
     const initialValues: PlaceFormValues = {
-        itemId: (props.placedItem?.metadata as InstanceMetadata).itemTokenId.toNumber(),
+        tokenId: props.placedItem.tokenId.toNumber(),
         itemAmount: 1,
         itemPrice: 0
     };
@@ -58,9 +53,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     assert(props.placedItem);
                     // set amount and price on Node (item) metadata.
                     if (props.placedItem) {
-                        const metadata = props.placedItem.metadata as InstanceMetadata;
-                        metadata.itemAmount = new BigNumber(values.itemAmount);
-                        metadata.xtzPerItem = values.itemPrice;
+                        props.placedItem.itemAmount = new BigNumber(values.itemAmount);
+                        props.placedItem.xtzPerItem = values.itemPrice;
                     }
 
                     actions.setSubmitting(false);
@@ -76,9 +70,9 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     return (
                         <Form>
                             <div className="mb-3">
-                                <label htmlFor="itemId" className="form-label">Item ID</label>
-                                <Field id="itemId" name="itemId" type="number" className="form-control" aria-describedby="idHelp" disabled={true} />
-                                <div id="idHelp" className="form-text">The id of the item you want to place. Must be owned.</div>
+                                <label htmlFor="tokenId" className="form-label">Token ID</label>
+                                <Field id="tokenId" name="tokenId" type="number" className="form-control" aria-describedby="idHelp" disabled={true} />
+                                <div id="idHelp" className="form-text">The id of the Item you want to place. Must be owned.</div>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>

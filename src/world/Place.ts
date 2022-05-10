@@ -5,7 +5,6 @@ import earcut from 'earcut';
 
 import { unpack } from 'byte-data';
 import Contracts from "../tz/Contracts";
-import * as ipfs from "../ipfs/ipfs";
 import { fromHexString, mutezToTez, pointIsInside, yesNo } from "../utils/Utils";
 import { World } from "./World";
 import { SimpleMaterial } from "@babylonjs/materials";
@@ -15,17 +14,8 @@ import AppSettings from "../storage/AppSettings";
 import assert from "assert";
 import Metadata, { StorageKey } from "./Metadata";
 import { bytes2Char } from "@taquito/utils";
+import ItemNode from "./ItemNode";
 
-
-export type InstanceMetadata = {
-    id: BigNumber;
-    issuer: string;
-    placeId: number;
-    itemTokenId: BigNumber;
-    xtzPerItem: number;
-    itemAmount: BigNumber;
-    markForRemoval: boolean;
-}
 
 export type PlaceData = {
     stored_items: any[];
@@ -255,7 +245,7 @@ export default class Place {
 
         // If we have place data, load the items.
         // TODO: maybe have another queue for this. loadingQueue.
-        if (this.placeData) await this.loadItems();
+        if (this.placeData) this.loadItems();
 
         // Queue and update - checking the seq number and possbily fetching updated items
         this.world.onchainQueue.add(() => this.update());
@@ -288,7 +278,7 @@ export default class Place {
     }
 
     // TODO: be smarter about loading items. don't reload everthing, maybe.
-    private async loadItems() {
+    private loadItems() {
         try {
             // Load place gound, items, etc.
             assert(this.placeData);
@@ -312,12 +302,12 @@ export default class Place {
 
                 const issuer = element.issuer;
                 const token_id = new BigNumber(element.data.item.token_id);
-                const item_coords = element.data.item.item_data;
+                const item_data = element.data.item.item_data;
                 const item_amount = element.data.item.item_amount;
                 const xtz_per_item = mutezToTez(element.data.item.mutez_per_item).toNumber();
                 
                 try {
-                    const uint8array: Uint8Array = fromHexString(item_coords);
+                    const uint8array: Uint8Array = fromHexString(item_data);
                     // NOTE: for now we assume format version 1
                     // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
                     assert(uint8array.length >= 15);
@@ -334,37 +324,18 @@ export default class Place {
                         unpack(uint8array, type, 11));
                     const scale = unpack(uint8array, type, 13);
 
-                    const instance = await ipfs.download_item(token_id, this.world.scene, this._itemsNode);
-                    if (this.disposed) {
-                        instance?.dispose();
-                        return;
-                    }
+                    const itemNode = ItemNode.CreateItemNode(this.placeId, token_id, this.world.scene, this._itemsNode);
 
-                    if(instance) {
-                        instance.rotationQuaternion = quat;
-                        instance.position = pos;
-                        instance.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
-                        /*sphere.position.x = Math.random() * 20 - 10;
-                        sphere.position.y = 1;
-                        sphere.position.z = Math.random() * 20 - 10;*/
-                        //sphere.material = this.defaultMaterial;
-                        instance.metadata = {
-                            id: new BigNumber(element.item_id),
-                            issuer: issuer,
-                            placeId: this.placeId,
-                            itemTokenId: token_id,
-                            xtzPerItem: xtz_per_item,
-                            itemAmount: new BigNumber(item_amount)
-                        } as InstanceMetadata;
+                    itemNode.rotationQuaternion = quat;
+                    itemNode.position = pos;
+                    itemNode.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
 
-                        // Add instance to shadow casters.
-                        //this.world.shadowGenerator?.addShadowCaster(instance as Mesh);
+                    itemNode.itemId = new BigNumber(element.item_id);
+                    itemNode.issuer = issuer;
+                    itemNode.xtzPerItem = xtz_per_item;
+                    itemNode.itemAmount = new BigNumber(item_amount);
 
-                        if(!this.isInBounds(instance)) {
-                            outOfBounds.push(new BigNumber(element.item_id).toNumber());
-                            instance.dispose();
-                        }
-                    }
+                    itemNode.queueLoadItem(this.world, this);
                 }
                 catch(e) {
                     Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
@@ -403,21 +374,20 @@ export default class Place {
 
         // try to save items.
         const tempChildren = this._tempItemsNode.getChildren();
-        const add_children = new Array<Node>();
+        const add_children = new Array<ItemNode>();
 
         tempChildren.forEach((child) => {
-            const metadata = child.metadata as InstanceMetadata;
-            if(metadata.id === undefined) {
-                add_children.push(child);
-            }
+            assert(child instanceof ItemNode);
+            assert(child.itemId.lt(0));
+            add_children.push(child);
         });
 
         const children = this._itemsNode.getChildren();
-        const remove_children = new Array<Node>();
+        const remove_children = new Array<ItemNode>();
 
         children.forEach((child) => {
-            const metadata = child.metadata as InstanceMetadata;
-            if(metadata.markForRemoval === true) {
+            assert(child instanceof ItemNode);
+            if(child.markForRemoval === true) {
                 remove_children.push(child);
             }
         });
