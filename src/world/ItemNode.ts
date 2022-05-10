@@ -33,27 +33,30 @@ export default class ItemNode extends TransformNode {
         return "ItemNode";
     }*/
 
-    public async loadItem(boundsCheck?: PlaceNode) {
+    public async loadItem(place?: PlaceNode) {
         // TODO: queue, retry, etc
         //const instance =
         await ipfs.download_item(this.tokenId, this._scene, this);
 
         // TODO: bounds check needs to happen after loading.
-        if(boundsCheck && !boundsCheck.isInBounds(this)) {
-            Logging.Warn(`place #${boundsCheck.placeId} doesn't fully contain item with id`, this.itemId.toNumber());
-            // TODO: mark as out of bounds if place is player owned, otherwise dispose.
-            // TODO: maybe show notifications?
-            //outOfBounds.push(new BigNumber(element.item_id).toNumber());
-            /*if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
-                this.world.appControlFunctions.addNotification({
-                    id: "oobItems" + this.placeId,
-                    title: "Out of bounds items!",
-                    body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
-                    type: 'warning'
-                })
-                Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
-            }*/
-            this.dispose();
+        if (place) {
+            if (place.isDisposed()) this.dispose();
+            else if (!place.isInBounds(this)) {
+                Logging.Warn(`place #${place.placeId} doesn't fully contain item with id`, this.itemId.toNumber());
+                // TODO: mark as out of bounds if place is player owned, otherwise dispose.
+                // TODO: maybe show notifications?
+                //outOfBounds.push(new BigNumber(element.item_id).toNumber());
+                /*if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
+                    this.world.appControlFunctions.addNotification({
+                        id: "oobItems" + this.placeId,
+                        title: "Out of bounds items!",
+                        body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
+                        type: 'warning'
+                    })
+                    Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
+                }*/
+                this.dispose();
+            }
         }
     }
 
