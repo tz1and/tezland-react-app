@@ -1,6 +1,7 @@
 import { Nullable, Scene, Node, TransformNode } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
+import ItemData from "../utils/ItemData";
 import { Logging } from "../utils/Logging";
 import PlaceNode from "./PlaceNode";
 import { World } from "./World";
@@ -67,6 +68,15 @@ export default class ItemNode extends TransformNode {
     /*public override getClassName(): string {
         return "ItemNode";
     }*/
+
+    public updateFromData(data: string) {
+        const [quat, pos, scale] = ItemData.parse(data);
+
+        this.rotationQuaternion = quat;
+        this.position = pos;
+        this.scaling.set(scale, scale, scale);
+        //this.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
+    }
 
     public async loadItem() {
         // TODO: check if items been disposed?

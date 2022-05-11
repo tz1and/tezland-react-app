@@ -5,7 +5,7 @@ import { tezToMutez, toHexString } from "../utils/Utils";
 import { packTo } from 'byte-data';
 import { char2Bytes } from '@taquito/utils'
 import Metadata, { StorageKey } from "../world/Metadata";
-import { PlaceData, PlacePermissions } from "../world/PlaceNode";
+import { PlaceData, PlaceItemData, PlacePermissions } from "../world/PlaceNode";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
@@ -286,7 +286,7 @@ export class Contracts {
 
         // We have to flatten the michelson map into something serialisable.
         const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
-        const flattened_item_data: { item_id: BigNumber; issuer: string, data: object }[] = [];
+        const flattened_item_data: PlaceItemData[] = [];
         for (const [issuer, issuer_items] of michelson_map.entries()) {
             for (const [item_id, item] of issuer_items.entries()) {
                 flattened_item_data.push({ item_id: item_id, issuer: issuer, data: item });

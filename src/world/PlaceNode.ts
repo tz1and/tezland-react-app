@@ -1,11 +1,10 @@
-import { BoundingBox, Mesh, MeshBuilder, Nullable, Quaternion, Node,
+import { BoundingBox, Mesh, MeshBuilder, Nullable, Node,
     TransformNode, Vector3, ExecuteCodeAction, ActionManager, Color3, Material } from "@babylonjs/core";
 
 import earcut from 'earcut';
 
-import { unpack } from 'byte-data';
 import Contracts from "../tz/Contracts";
-import { fromHexString, mutezToTez, pointIsInside, yesNo } from "../utils/Utils";
+import { mutezToTez, pointIsInside, yesNo } from "../utils/Utils";
 import { World } from "./World";
 import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
@@ -17,8 +16,14 @@ import { bytes2Char } from "@taquito/utils";
 import ItemNode from "./ItemNode";
 
 
+export type PlaceItemData = {
+    item_id: BigNumber;
+    issuer: string;
+    data: any;
+}
+
 export type PlaceData = {
-    stored_items: any[];
+    stored_items: PlaceItemData[];
     place_props: Map<string, string>;
     place_seq: string;
 }
@@ -94,6 +99,8 @@ export default class PlaceNode extends TransformNode {
 
     private savePending: boolean = false;
 
+    private items: Map<number, ItemNode> = new Map();
+
     constructor(placeId: number, placeMetadata: any, world: World) {
         super(`placeRoot${placeId}`, world.scene);
 
@@ -117,6 +124,8 @@ export default class PlaceNode extends TransformNode {
 
         this._tempItemsNode?.dispose();
         this._tempItemsNode = null;
+
+        this.items.clear();
 
         // TODO: surely it's enough to remove the place root.
 
@@ -184,6 +193,11 @@ export default class PlaceNode extends TransformNode {
             new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
         this.placeGround.receiveShadows = true;
         this.placeGround.parent = this;
+
+        // create items node
+        this._itemsNode = new TransformNode(`items`, this.world.scene);
+        this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
+        this._itemsNode.parent = this;
 
         // create temp items node
         this._tempItemsNode = new TransformNode(`itemsTemp`, this.world.scene);
@@ -275,9 +289,12 @@ export default class PlaceNode extends TransformNode {
             // Load place gound, items, etc.
             assert(this.placeData);
             assert(this.placeGround);
-            (this.placeGround.material as SimpleMaterial).diffuseColor = Color3.FromHexString(`#${this.placeData.place_props.get('00')}`);
+            assert(this.placeGround.material instanceof SimpleMaterial);
+            this.placeGround.material.diffuseColor = Color3.FromHexString(`#${this.placeData.place_props.get('00')}`);
 
-            this.clearItems();
+            // The new item map.
+            // We add new additions and move existing items to this one.
+            const newItems: Map<number, ItemNode> = new Map();
 
             //items.forEach(async (element: any) => {
             for (const element of this.placeData.stored_items) {
@@ -291,46 +308,51 @@ export default class PlaceNode extends TransformNode {
                 Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
 
                 const issuer = element.issuer;
+                const item_id = new BigNumber(element.item_id);
+                const item_id_num = item_id.toNumber();
                 const token_id = new BigNumber(element.data.item.token_id);
-                const item_data = element.data.item.item_data;
-                const item_amount = element.data.item.item_amount;
+                const item_amount = new BigNumber(element.data.item.item_amount);
                 const xtz_per_item = mutezToTez(element.data.item.mutez_per_item).toNumber();
-                
-                try {
-                    const uint8array: Uint8Array = fromHexString(item_data);
-                    // NOTE: for now we assume format version 1
-                    // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
-                    assert(uint8array.length >= 15);
-                    const format = unpack(uint8array, { bits: 8, signed: false, be: true }, 0);
-                    assert(format === 1);
-                    const type = { bits: 16, fp: true, be: true };
-                    const quat = Quaternion.FromEulerAngles(
-                        unpack(uint8array, type, 1),
-                        unpack(uint8array, type, 3),
-                        unpack(uint8array, type, 5));
-                    const pos = new Vector3(
-                        unpack(uint8array, type, 7),
-                        unpack(uint8array, type, 9),
-                        unpack(uint8array, type, 11));
-                    const scale = unpack(uint8array, type, 13);
+                const item_data = element.data.item.item_data;
 
-                    const itemNode = ItemNode.CreateItemNode(this.placeId, token_id, this.world.scene, this._itemsNode);
+                const existing_item = this.items.get(item_id_num);
+                if (existing_item) {
+                    existing_item.updateFromData(item_data);
+                    existing_item.itemAmount = item_amount;
 
-                    itemNode.rotationQuaternion = quat;
-                    itemNode.position = pos;
-                    itemNode.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
+                    // TODO: bounds check again.
 
-                    itemNode.itemId = new BigNumber(element.item_id);
-                    itemNode.issuer = issuer;
-                    itemNode.xtzPerItem = xtz_per_item;
-                    itemNode.itemAmount = new BigNumber(item_amount);
-
-                    itemNode.queueLoadItemTask(this.world, this);
+                    // add to new items, remove from old items.
+                    newItems.set(item_id_num, existing_item);
+                    this.items.delete(item_id_num);
                 }
-                catch(e) {
-                    Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
+                else {
+                    try {
+                        const itemNode = ItemNode.CreateItemNode(this.placeId, token_id, this.world.scene, this._itemsNode);
+                        itemNode.updateFromData(item_data);
+
+                        // Set issuer, etc.
+                        itemNode.itemId = item_id;
+                        itemNode.issuer = issuer;
+                        itemNode.itemAmount = item_amount;
+                        itemNode.xtzPerItem = xtz_per_item;
+
+                        itemNode.queueLoadItemTask(this.world, this);
+
+                        newItems.set(item_id_num, itemNode);
+                    }
+                    catch(e) {
+                        Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
+                    }
                 }
             };
+
+            // Everything left in the old items can be disposed now.
+            this.items.forEach((n) => n.dispose());
+            this.items.clear();
+
+            // Assign new items.
+            this.items = newItems;
 
             // Remove cached texture buffers, we don't need them.
             this.world.scene.cleanCachedTextureBuffer();
@@ -419,20 +441,6 @@ export default class PlaceNode extends TransformNode {
         return `Place #${this.placeId}`;
     }
 
-    private clearItems() {
-        // remove old place items if they exist.
-        if(this._itemsNode) {
-            this._itemsNode.dispose();
-            this._itemsNode = null;
-            Logging.InfoDev("cleared old items", this.placeId);
-        }
-
-        // itemsNode must be in the origin.
-        this._itemsNode = new TransformNode(`items`, this.world.scene);
-        this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
-        this._itemsNode.parent = this;
-    }
-
     private clearTempItems() {
         if(this._tempItemsNode) {
             this._tempItemsNode.dispose();
@@ -442,7 +450,6 @@ export default class PlaceNode extends TransformNode {
 
         // create NEW temp items node
         this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.scene);
-        this._tempItemsNode.position = this._origin.clone();
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
         this._tempItemsNode.parent = this;
     }
