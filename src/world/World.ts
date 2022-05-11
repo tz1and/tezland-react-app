@@ -55,12 +55,13 @@ export class World {
     readonly playerController: PlayerController;
     readonly shadowGenerator: Nullable<ShadowGenerator>;
 
-    readonly places: Map<number, PlaceNode>;
-
     readonly walletProvider: ITezosWalletProvider;
+
+    readonly places: Map<number, PlaceNode>; // The currently loaded places.
 
     private implicitWorldGrid: WorldGrid;
     private worldPlaceCount: number = 0;
+
     readonly onchainQueue; // For onchain views.
     readonly loadingQueue; // For loading items.
 
@@ -78,11 +79,11 @@ export class World {
 
         this.walletProvider = walletProvider;
 
-        // This represents the currently loaded places.
         this.places = new Map<number, PlaceNode>();
         this.implicitWorldGrid = new WorldGrid();
+
         this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
-        this.loadingQueue = new PQueue({concurrency: 4});
+        this.loadingQueue = new PQueue({concurrency: 5}); //, interval: 125, intervalCap: 4});
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
@@ -292,6 +293,9 @@ export class World {
     }
 
     public dispose() {
+        // Hide inspector in dev
+        if(isDev()) this.scene.debugLayer.hide();
+
         window.removeEventListener('resize', this.onResize);
         
         this.unregisterPlacesSubscription();
@@ -301,6 +305,11 @@ export class World {
 
         this.playerController.dispose();
 
+        // Clear queues.
+        this.onchainQueue.clear();
+        this.loadingQueue.clear();
+
+        // Dispose assets.
         disposeAssetMap();
 
         // Destorying the engine should prbably be enough.
