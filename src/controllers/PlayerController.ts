@@ -328,6 +328,13 @@ export default class PlayerController {
                             "image/png", engine.getCaps().maxSamples, true)
                         .then(res => downloadFile(res, "tz1and_screenshot.png"));
                         break;
+
+                    // Reload place
+                    case "KeyL":
+                        if(isDev() && this.currentPlace) {
+                            this.currentPlace.update(true);
+                        }
+                        break;
                 }
             }
         }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
