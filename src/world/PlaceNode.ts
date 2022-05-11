@@ -376,10 +376,28 @@ export default class PlaceNode extends TransformNode {
             // Remove cached texture buffers, we don't need them.
             this.world.scene.cleanCachedTextureBuffer();
             //this.octree = this.scene.createOrUpdateSelectionOctree();
+
+            this.updateLOD();
         }
         catch(e: any) {
             Logging.Error("Failed to load items for place " + this.placeId, e);
         }
+    }
+
+    public updateLOD() {
+        assert(this._scene.activeCamera);
+        const pos = this._scene.activeCamera.globalPosition;
+        this.items.forEach(item => {
+            const distance = Vector3.Distance(pos, item.absolutePosition);
+            if (distance < 20) {
+                item.setEnabled(true);
+                return;
+            }
+
+            const scale = item.scaling.x;
+            const alpha = Math.tanh(scale / distance);
+            item.setEnabled(alpha > 0.04);
+        })
     }
 
     public save(): boolean {

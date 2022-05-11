@@ -639,13 +639,14 @@ export class World {
 
                 //const start_time = performance.now();
 
-                // Check all loaded places for distance and remove.
+                // Check all loaded places for distance and remove or update LOD
                 this.places.forEach((v, k) => {
                     // Multiply draw distance with small factor here to avoid imprecision and all that
                     if(Vector3.Distance(playerPos, v.origin) > AppSettings.drawDistance.value * 1.02) {
                         this.places.delete(k);
                         v.dispose();
                     }
+                    else v.updateLOD();
                 });
 
                 gridCell.forEach((c) => {
