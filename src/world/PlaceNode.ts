@@ -99,7 +99,11 @@ export default class PlaceNode extends TransformNode {
 
     private savePending: boolean = false;
 
+    // The items loaded in this place.
     private items: Map<number, ItemNode> = new Map();
+
+    // Set of out of bounds items in this place.
+    public outOfBoundsItems: Set<number> = new Set();
 
     constructor(placeId: number, placeMetadata: any, world: World) {
         super(`placeRoot${placeId}`, world.scene);
@@ -126,6 +130,7 @@ export default class PlaceNode extends TransformNode {
         this._tempItemsNode = null;
 
         this.items.clear();
+        this.outOfBoundsItems.clear();
 
         // TODO: surely it's enough to remove the place root.
 
@@ -232,7 +237,19 @@ export default class PlaceNode extends TransformNode {
 
                 // Then set current place. Updates the UI as well.
                 this.world.playerController.setCurrentPlace(this);
-                Logging.InfoDev("entered place: " + this.placeId)
+                Logging.InfoDev("entered place: " + this.placeId);
+
+                // Display out of bounds notifications if there are any.
+                if (this.outOfBoundsItems.size > 0 && this.permissions.hasFull()) {
+                    const itemList = Array.from(this.outOfBoundsItems).join(', ');
+                    this.world.appControlFunctions.addNotification({
+                        id: "oobItems" + this.placeId,
+                        title: "Out of bounds items!",
+                        body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
+                        type: 'warning'
+                    })
+                    Logging.Warn("place doesn't fully contain objects: " + itemList);
+                }
             },
         );
 
@@ -316,7 +333,9 @@ export default class PlaceNode extends TransformNode {
                 const item_data = element.data.item.item_data;
 
                 const existing_item = this.items.get(item_id_num);
-                if (existing_item) {
+                // TEMP: currently items are disposed if the boundcheck fails.
+                // If they aren't disposed they should be attempted to be loaded again.
+                if (existing_item && !existing_item.isDisposed()) {
                     existing_item.updateFromData(item_data);
                     existing_item.itemAmount = item_amount;
 

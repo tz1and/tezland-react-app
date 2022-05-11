@@ -106,6 +106,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     addNotification = (data: NotificationData) => {
+        // TODO: move notification hadnling into it's own component.
+        // Don't add notification if one with the same id exists.
+        if(this.state.notifications.find((n) => data.id === n.id)) return;
+
         this.setState({ notifications: this.state.notifications.concat(data) });
 
         // warnign: dangling timeout

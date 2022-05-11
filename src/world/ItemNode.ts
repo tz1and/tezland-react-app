@@ -19,19 +19,14 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
         }
         
         if (!place.isInBounds(item)) {
-            Logging.Warn(`place #${place.placeId} doesn't fully contain item with id`, item.itemId.toNumber());
-            // TODO: mark as out of bounds if place is player owned, otherwise dispose.
-            // TODO: maybe show notifications?
-            //outOfBounds.push(new BigNumber(element.item_id).toNumber());
-            /*if (outOfBounds.length > 0 && this.owner === this.world.walletProvider.walletPHK()) {
-                this.world.appControlFunctions.addNotification({
-                    id: "oobItems" + this.placeId,
-                    title: "Out of bounds items!",
-                    body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${outOfBounds.join(', ')}.`,
-                    type: 'warning'
-                })
-                Logging.Warn("place doesn't fully contain objects: " + outOfBounds.join(', '));
-            }*/
+            Logging.WarnDev(`place #${place.placeId} doesn't fully contain item with id`, item.itemId.toNumber());
+
+            // Add to out of bounds items to be displayed when owner enters.
+            place.outOfBoundsItems.add(item.itemId.toNumber());
+
+            // Dispose item.
+            // TODO: Probably better to hide/disable items.
+            // So they can eventually be shown to the owner for removal.
             item.dispose();
         }
     }
