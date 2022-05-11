@@ -121,8 +121,7 @@ export default class PlaceNode extends TransformNode {
         // TODO: surely it's enough to remove the place root.
 
         // unregister execution action
-        if (this.executionAction) {
-            assert(this.world.playerController.playerTrigger.actionManager);
+        if (this.executionAction && this.world.playerController.playerTrigger.actionManager) {
             this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
         }
 
@@ -326,7 +325,7 @@ export default class PlaceNode extends TransformNode {
                     itemNode.xtzPerItem = xtz_per_item;
                     itemNode.itemAmount = new BigNumber(item_amount);
 
-                    itemNode.queueLoadItem(this.world, this);
+                    itemNode.queueLoadItemTask(this.world, this);
                 }
                 catch(e) {
                     Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
