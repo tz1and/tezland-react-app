@@ -388,15 +388,18 @@ export default class PlaceNode extends TransformNode {
         assert(this._scene.activeCamera);
         const pos = this._scene.activeCamera.globalPosition;
         this.items.forEach(item => {
+            const previousEnabled = item.isEnabled(false);
+            let newEnabled = previousEnabled;
             const distance = Vector3.Distance(pos, item.absolutePosition);
             if (distance < 20) {
-                item.setEnabled(true);
-                return;
+                newEnabled = true;
             }
-
-            const scale = item.scaling.x;
-            const alpha = Math.tanh(scale / distance);
-            item.setEnabled(alpha > 0.04);
+            else {
+                const scale = item.scaling.x;
+                const alpha = Math.tanh(scale / distance);
+                newEnabled = alpha > 0.04
+            }
+            if (newEnabled != previousEnabled) item.setEnabled(newEnabled);
         })
     }
 
