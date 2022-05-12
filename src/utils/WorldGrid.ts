@@ -15,6 +15,7 @@ export type WorldGridCell = {
 export default class WorldGrid {
     private static dbName = "worldGrid";
     private static gridSize = 100.0;
+    private static cellCache: Map<string, WorldGridCell> = new Map();
 
     public async getPlacesForPosition(x: number, y: number, z: number, worldPlaceCount: number) {
         //const range = Math.ceil(AppSettings.drawDistance.value / WorldGrid.gridSize) * WorldGrid.gridSize;
@@ -23,7 +24,8 @@ export default class WorldGrid {
         const grid_min = WorldGrid.getGridCell(x - range, y, z - range, WorldGrid.gridSize);
         const grid_max = WorldGrid.getGridCell(x + range, y, z + range, WorldGrid.gridSize);
 
-        const cells: Promise<WorldGridCell>[] = [];
+        const cells: WorldGridCell[] = [];
+        const promisedCells: Promise<WorldGridCell>[] = [];
         const tempVec = new Vector3();
 
         for (let z = grid_min.z; z <= grid_max.z; ++z)
@@ -34,34 +36,47 @@ export default class WorldGrid {
                 tempVec.set(x, 1, z);
                 const gridHash = WorldGrid.toCellHash(tempVec);
 
-                cells.push(new Promise((resolve) => {
-                    Metadata.Storage.loadObject(gridHash, WorldGrid.dbName).then((cell) => {
-                        // Fetch cell if updated or doesn't exist.
-                        if (!cell || cell.worldPlaceCount !== worldPlaceCount) {
-                            Logging.InfoDev("fetching cell", gridHash, cell ? cell.worldPlaceCount : "unknown cell");
-                            fetchGraphQL(`
-                                query getWorldGridCell($gridHash: String) {
-                                    place_token_metadata(where: { grid_hash: { _eq: $gridHash } }) {
-                                        token_id
-                                    }
-                                }`, "getWorldGridCell", { gridHash: gridHash }).then((data) => {
-                                    const places_in_cell: number[] = [];
-                                    for (const placeToken of data.place_token_metadata)
-                                        places_in_cell.push(placeToken.token_id);
+                const cachedCell = WorldGrid.cellCache.get(gridHash)
 
-                                    cell = { places: places_in_cell, worldPlaceCount: worldPlaceCount };
+                if (cachedCell && cachedCell.worldPlaceCount === worldPlaceCount) {
+                    cells.push(cachedCell);
+                }
+                else {
+                    promisedCells.push(new Promise((resolve) => {
+                        Metadata.Storage.loadObject(gridHash, WorldGrid.dbName).then((cell) => {
+                            // Fetch cell if updated or doesn't exist.
+                            if (!cell || cell.worldPlaceCount !== worldPlaceCount) {
+                                Logging.InfoDev("fetching cell", gridHash, cell ? cell.worldPlaceCount : "unknown cell");
+                                fetchGraphQL(`
+                                    query getWorldGridCell($gridHash: String) {
+                                        place_token_metadata(where: { grid_hash: { _eq: $gridHash } }) {
+                                            token_id
+                                        }
+                                    }`, "getWorldGridCell", { gridHash: gridHash }).then((data) => {
+                                        const places_in_cell: number[] = [];
+                                        for (const placeToken of data.place_token_metadata)
+                                            places_in_cell.push(placeToken.token_id);
 
-                                    Metadata.Storage.saveObject(gridHash, WorldGrid.dbName, cell);
+                                        const cell = { places: places_in_cell, worldPlaceCount: worldPlaceCount };
 
-                                    resolve(cell);
-                                });
-                        }
-                        else resolve(cell);
-                    });
-                }));
+                                        Metadata.Storage.saveObject(gridHash, WorldGrid.dbName, cell);
+
+                                        // Add to cell cache
+                                        WorldGrid.cellCache.set(gridHash, cell);
+                                        resolve(cell);
+                                    });
+                            }
+                            else {
+                                // Add to cell cache
+                                WorldGrid.cellCache.set(gridHash, cell);
+                                resolve(cell);
+                            }
+                        });
+                    }));
+                }
             }
 
-        return Promise.all(cells);
+        return cells.concat(await Promise.all(promisedCells));
     }
 
     private static toGrid(coordinate: number, gridSize: number): number {

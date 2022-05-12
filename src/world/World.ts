@@ -87,6 +87,7 @@ export class World {
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
+            powerPreference: "high-performance",
             preserveDrawingBuffer: true,
             stencil: true,
             doNotHandleContextLost: true});
@@ -635,9 +636,9 @@ export class World {
             // from storage is kinda slow.
             // TODO: Maybe have a position cache?
             (async () => {
-                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount);
-
                 //const start_time = performance.now();
+
+                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount);
 
                 // Check all loaded places for distance and remove or update LOD
                 this.places.forEach((v, k) => {
