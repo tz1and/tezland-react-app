@@ -399,7 +399,7 @@ export default class PlaceNode extends TransformNode {
                 const alpha = Math.tanh(scale / distance);
                 newEnabled = alpha > 0.04
             }
-            if (newEnabled != previousEnabled) item.setEnabled(newEnabled);
+            if (newEnabled !== previousEnabled) item.setEnabled(newEnabled);
         })
     }
 
