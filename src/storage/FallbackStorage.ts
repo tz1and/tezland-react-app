@@ -12,23 +12,16 @@ export class FallbackStorage implements IStorageProvider {
     private storage: IStorage;
 
     constructor() {
-        try {
-            localStorage.setItem("test", "");
-            localStorage.removeItem("test");
-            this.storage = localStorage;
-        }
-        catch {
-            const inMemoryStorage: { [key: string]: string } = {};
-            this.storage = {
-                getItem: (key) => {
-                    const value = inMemoryStorage[key];
-                    return value === undefined ? null : value;
-                },
-                setItem: (key, value) => {
-                    inMemoryStorage[key] = value;
-                }
-            };
-        }
+        const inMemoryStorage: { [key: string]: string } = {};
+        this.storage = {
+            getItem: (key) => {
+                const value = inMemoryStorage[key];
+                return value === undefined ? null : value;
+            },
+            setItem: (key, value) => {
+                inMemoryStorage[key] = value;
+            }
+        };
     }
 
     /**
