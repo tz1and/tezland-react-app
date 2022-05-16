@@ -1,6 +1,7 @@
 import { isDev } from "./Utils"
 
 export namespace Logging {
+    // TODO: window or globalThis
     export const Log = console.log.bind(window.console);
     export const Info = console.info.bind(window.console);
     export const Warn = console.warn.bind(window.console);
