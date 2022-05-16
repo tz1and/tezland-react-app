@@ -1,4 +1,4 @@
-import { Nullable, Scene, Node, TransformNode } from "@babylonjs/core";
+import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3 } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
 import * as ipfs from "../ipfs/ipfs";
 import ItemData from "../utils/ItemData";
@@ -17,7 +17,8 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
             item.dispose();
             return;
         }
-        
+
+        // TODO: isInBounds fails if artifact failed to load for some reason (limits or whatever)
         if (!place.isInBounds(item)) {
             Logging.WarnDev(`place #${place.placeId} doesn't fully contain item with id`, item.itemId.toNumber());
 
@@ -33,6 +34,13 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
 }
 
 
+export enum ItemLoadState {
+    NotLoaded = 0,
+    Queued = 1,
+    Loaded = 2
+}
+
+
 export default class ItemNode extends TransformNode {
     readonly placeId: number; // The place the item belongs to
     readonly tokenId: BigNumber; // The token this item represents
@@ -42,7 +50,7 @@ export default class ItemNode extends TransformNode {
     public itemAmount: BigNumber; // The number of items
     public markForRemoval: boolean; // If the item should be removed
 
-    private modelLoaded: boolean;
+    public loadState: ItemLoadState;
     
     constructor(placeId: number, tokenId: BigNumber,
         name: string, scene?: Nullable<Scene>, isPure?: boolean) {
@@ -56,7 +64,7 @@ export default class ItemNode extends TransformNode {
         this.itemAmount = new BigNumber(0);
         this.markForRemoval = false;
 
-        this.modelLoaded = false;
+        this.loadState = ItemLoadState.NotLoaded;
     }
 
     // TODO: needs some custom stuff for displying in inspector.
@@ -73,19 +81,38 @@ export default class ItemNode extends TransformNode {
         //this.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
     }
 
+    public updateLOD(camPos: DeepImmutable<Vector3>): boolean {
+        const previousEnabled = this.isEnabled(false);
+        let newEnabled = previousEnabled;
+        const distance = Vector3.Distance(camPos, this.absolutePosition);
+        if (distance < 20) {
+            newEnabled = true;
+        }
+        else {
+            const scale = this.scaling.x;
+            const alpha = Math.tanh(scale / distance);
+            newEnabled = alpha > 0.04;
+        }
+        if (newEnabled !== previousEnabled) this.setEnabled(newEnabled);
+
+        return newEnabled;
+    }
+
     public async loadItem() {
         // TODO: check if items been disposed?
-        if (this.modelLoaded) {
+        if (this.loadState === ItemLoadState.Loaded) {
             Logging.WarnDev("Attempted to reload token", this.tokenId.toNumber());
             return;
         }
 
         await ipfs.download_item(this.tokenId, this._scene, this);
 
-        this.modelLoaded = true;
+        this.loadState = ItemLoadState.Loaded;
     }
 
     public queueLoadItemTask(world: World, place: PlaceNode) {
+        this.loadState = ItemLoadState.Queued;
+
         // TODO: priority, retry, etc
         // TODO: priority should depend on distance
         const dist = this.getDistanceToCamera();
@@ -94,7 +121,7 @@ export default class ItemNode extends TransformNode {
         world.loadingQueue.add(
             LoadItemTask(this, place),
             { priority: priority })
-        .catch(reason => Logging.Warn("Failed to load token", this.tokenId.toNumber())); // TODO: handle error somehow
+        .catch(reason => Logging.Warn("Failed to load token", this.tokenId.toNumber(), reason)); // TODO: handle error somehow
     }
 
     public static CreateItemNode(placeId: number, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {

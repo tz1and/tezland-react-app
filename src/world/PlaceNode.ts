@@ -13,7 +13,7 @@ import AppSettings from "../storage/AppSettings";
 import assert from "assert";
 import Metadata, { StorageKey } from "./Metadata";
 import { bytes2Char } from "@taquito/utils";
-import ItemNode from "./ItemNode";
+import ItemNode, { ItemLoadState } from "./ItemNode";
 
 
 export type PlaceItemData = {
@@ -356,8 +356,6 @@ export default class PlaceNode extends TransformNode {
                         itemNode.itemAmount = item_amount;
                         itemNode.xtzPerItem = xtz_per_item;
 
-                        itemNode.queueLoadItemTask(this.world, this);
-
                         newItems.set(item_id_num, itemNode);
                     }
                     catch(e) {
@@ -388,18 +386,13 @@ export default class PlaceNode extends TransformNode {
         assert(this._scene.activeCamera);
         const pos = this._scene.activeCamera.globalPosition;
         this.items.forEach(item => {
-            const previousEnabled = item.isEnabled(false);
-            let newEnabled = previousEnabled;
-            const distance = Vector3.Distance(pos, item.absolutePosition);
-            if (distance < 20) {
-                newEnabled = true;
+            // Update enabled state based on LOD.
+            const newEnabled = item.updateLOD(pos);
+
+            // If item is enabled and not loaded, queue item load.
+            if (newEnabled && item.loadState === ItemLoadState.NotLoaded) {
+                item.queueLoadItemTask(this.world, this);
             }
-            else {
-                const scale = item.scaling.x;
-                const alpha = Math.tanh(scale / distance);
-                newEnabled = alpha > 0.04
-            }
-            if (newEnabled !== previousEnabled) item.setEnabled(newEnabled);
         })
     }
 
