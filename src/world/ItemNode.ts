@@ -37,7 +37,8 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
 export enum ItemLoadState {
     NotLoaded = 0,
     Queued = 1,
-    Loaded = 2
+    Loaded = 2,
+    Failed = 3
 }
 
 
@@ -105,9 +106,15 @@ export default class ItemNode extends TransformNode {
             return;
         }
 
-        await ipfs.download_item(this.tokenId, this._scene, this);
+        try {
+            await ipfs.download_item(this.tokenId, this._scene, this);
+            this.loadState = ItemLoadState.Loaded;
+        }
+        catch(e: any) {
+            this.loadState = ItemLoadState.Failed;
+            throw e;
+        }
 
-        this.loadState = ItemLoadState.Loaded;
     }
 
     public queueLoadItemTask(world: World, place: PlaceNode) {
@@ -121,7 +128,9 @@ export default class ItemNode extends TransformNode {
         world.loadingQueue.add(
             LoadItemTask(this, place),
             { priority: priority })
-        .catch(reason => Logging.Warn("Failed to load token", this.tokenId.toNumber(), reason)); // TODO: handle error somehow
+        .catch(reason => {
+            Logging.Warn("Failed to load token", this.tokenId.toNumber(), reason);
+        }); // TODO: handle error somehow
     }
 
     public static CreateItemNode(placeId: number, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {
