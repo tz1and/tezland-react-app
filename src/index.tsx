@@ -18,7 +18,7 @@ import Conf from './Config';
 // make sure the default settings are up to date.
 upgradeSettings();
 
-Metadata.Storage.open(() => {
+Metadata.InitialiseStorage().then(() => {
     renderApp();
 }, () => {
     renderApp(

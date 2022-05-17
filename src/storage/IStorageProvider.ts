@@ -11,7 +11,7 @@ export type StorageKeyType = number | string;
      * @param successCallback defines the callback to call on success
      * @param errorCallback defines the callback to call on error
      */
-    open(successCallback: () => void, errorCallback: () => void): void;
+    open(): Promise<void>;
 
     /**
      * Load an object from storage.
@@ -26,5 +26,5 @@ export type StorageKeyType = number | string;
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: StorageKeyType, table: string, data: any): Promise<void>;
+    saveObject(key: StorageKeyType, table: string, data: any): Promise<IDBValidKey>;
 }

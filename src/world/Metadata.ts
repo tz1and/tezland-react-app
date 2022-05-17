@@ -9,21 +9,14 @@ export enum StorageKey {
   }
 
 export default class Metadata {
-    public static Storage: IStorageProvider = Metadata.GetStorageProvider();
+    public static Storage: IStorageProvider = new FallbackStorage();
 
-    private static GetStorageProvider(): IStorageProvider {
-        const dbstorage = new DatabaseStorage();
-        if(!dbstorage.isSupported)
-            return new FallbackStorage();
-        else return dbstorage;
-            // OLD: this is done in index.tsx now.
-            /*{
-            dbstorage.open(() => {
-                Logging.InfoDev("Opened Database storage");
-            }, () => {
-                Logging.Error("Failed to open database storage");
-            });
-            return dbstorage;*/
+    public static async InitialiseStorage() {
+        if(DatabaseStorage.isSupported()) {
+            const dbStorage = new DatabaseStorage();
+            await dbStorage.open();
+            Metadata.Storage = dbStorage;
+        }
     }
 
     public static async getPlaceMetadataBatch(places: number[]) {

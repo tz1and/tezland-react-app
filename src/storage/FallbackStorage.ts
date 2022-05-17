@@ -29,9 +29,8 @@ export class FallbackStorage implements IStorageProvider {
      * @param successCallback defines the callback to call on success
      * @param errorCallback defines the callback to call on error
      */
-    open(successCallback: () => void, errorCallback: () => void): void {
-        // will always succeed.
-        successCallback();
+    open(): Promise<void> {
+        return Promise.resolve();
     }
 
     /**
@@ -54,10 +53,10 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: StorageKeyType, table: string, data: any): Promise<void> {
+    saveObject(key: StorageKeyType, table: string, data: any): Promise<IDBValidKey> {
         return new Promise((resolve) => {
             this.storage.setItem(table + key, JSON.stringify(data));
-            resolve();
+            resolve(key);
         });
     }
 
