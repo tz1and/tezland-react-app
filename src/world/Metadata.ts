@@ -1,3 +1,4 @@
+import { deleteDB } from "idb";
 import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
@@ -16,6 +17,34 @@ export default class Metadata {
             const dbStorage = new DatabaseStorage();
             await dbStorage.open();
             Metadata.Storage = dbStorage;
+
+            // remove babylonjs db if it exists
+            await Metadata.deleteBabylonJsDb();
+        }
+    }
+
+    private static async deleteBabylonJsDb() {
+        try {
+            const babylonDbName = "babylonjs";
+            let babylonDbExists = false;
+
+            // Check if it exists.
+            const databases = await indexedDB.databases();
+            for (const db of databases) {
+                if (db.name === babylonDbName) {
+                    babylonDbExists = true;
+                    break;
+                }
+            }
+
+            // Remove if it exists.
+            if (babylonDbExists) {
+                await deleteDB(babylonDbName);
+                Logging.Info("Deleted babylonjs database.");
+            }
+        }
+        catch (e: any) {
+            Logging.Warn("Failed to delete babylonjs database:", e.message);
         }
     }
 
