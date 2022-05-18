@@ -1,22 +1,49 @@
 import { Logging } from "../utils/Logging";
 import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import { Nullable } from "@babylonjs/core";
+import assert from "assert";
 
-const databaseTables: string[] = [
-    "placeMetadata",
-    "placeItems",
-    "itemMetadata",
-    "worldGrid"
-]
+const databaseVersion = 9;
 
-const databaseVersion = 8;
+type ArtifactMetaType = {
+    lastAccess: Date;
+    size: number;
+}
+
+interface TezlandDB extends DBSchema {
+    placeMetadata: {
+        key: number;
+        value: any;
+    };
+    placeItems: {
+        key: number;
+        value: any;
+    };
+    itemMetadata: {
+        key: number;
+        value: any;
+    };
+    worldGrid: {
+        key: string;
+        value: any;
+    };
+    artifactCache: {
+        key: string;
+        value: ArrayBuffer;
+    };
+    artifactMeta: {
+        key: string;
+        value: ArtifactMetaType;
+        indexes: { lastAccess: Date, size: number };
+    };
+}
 
 export class DatabaseStorage implements IStorageProvider {
-    private db: Nullable<IDBPDatabase>;
+    private _db: Nullable<IDBPDatabase<TezlandDB>>;
 
     constructor() {
-        this.db = null;
+        this._db = null;
     }
 
     static isSupported(): boolean {
@@ -25,26 +52,38 @@ export class DatabaseStorage implements IStorageProvider {
         else return true;
     }
 
+    public get db(): IDBPDatabase<TezlandDB> {
+        assert(this._db);
+        return this._db;
+    }
+
     /**
      * Open DB and return promise
      * @param successCallback defines the callback to call on success
      * @param errorCallback defines the callback to call on error
      */
     async open(): Promise<void> {
-        if (!this.db) {
-            this.db = await openDB("tezland", databaseVersion, {
+        if (!this._db) {
+            this._db = await openDB<TezlandDB>("tezland", databaseVersion, {
                 upgrade(db, oldVersion, newVersion, transaction) {
                     try {
-                        // add tables that don't exist
-                        for (const table of databaseTables) {
-                            if(!db.objectStoreNames.contains(table))
-                                db.createObjectStore(table); //, { keyPath: "key" });
-                        }
+                        if (oldVersion < 9) {
+                            const untypedDb = db as unknown as IDBPDatabase;
 
-                        // remove tables that shouldn't exist
-                        for (const table of db.objectStoreNames) {
-                            if(databaseTables.indexOf(table) === -1)
-                                db.deleteObjectStore(table);
+                            // Remove all old tables.
+                            for (const table of untypedDb.objectStoreNames) {
+                                untypedDb.deleteObjectStore(table);
+                            }
+
+                            db.createObjectStore("placeMetadata");
+                            db.createObjectStore("placeItems");
+                            db.createObjectStore("itemMetadata");
+                            db.createObjectStore("worldGrid");
+                            db.createObjectStore("artifactCache");
+
+                            const artifactCache = db.createObjectStore("artifactMeta");
+                            artifactCache.createIndex("lastAccess", "lastAccess");
+                            artifactCache.createIndex("size", "size");
                         }
                     } catch (ex: any) {
                         Logging.Error("Error while creating object stores. Exception: " + ex.message);
@@ -71,8 +110,9 @@ export class DatabaseStorage implements IStorageProvider {
      * @param url defines the key to load from.
      * @param table the table to store the object in.
      */
-    async loadObject(key: StorageKeyType, table: string): Promise<any> {
-        return this.db!.get(table, key);
+    async loadObject(key: StorageKeyType, table: StoreNames<TezlandDB>): Promise<any> {
+        assert(this._db);
+        return this._db.get(table, key);
     }
 
     /**
@@ -81,7 +121,8 @@ export class DatabaseStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    async saveObject(key: StorageKeyType, table: string, data: any): Promise<IDBValidKey> {
-        return this.db!.put(table, data, key);
+    async saveObject(key: StorageKeyType, table: StoreNames<TezlandDB>, data: any): Promise<IDBValidKey> {
+        assert(this._db);
+        return this._db.put(table, data, key);
     }
 }
