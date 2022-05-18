@@ -32,7 +32,7 @@ import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
 import PQueue from 'p-queue/dist';
 import world_definition from "../models/districts.json";
-import ArtifactCache from "../utils/ArtifactCache";
+import ArtifactMemCache from "../utils/ArtifactMemCache";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -308,7 +308,7 @@ export class World {
         this.loadingQueue.clear();
 
         // Dispose assets and processing queues.
-        ArtifactCache.dispose();
+        ArtifactMemCache.dispose();
 
         // Destorying the engine should prbably be enough.
         this.engine.dispose();

@@ -5,7 +5,7 @@ import ArtifactDownloadQueue from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 //import { Logging } from "./Logging";
 
-class ArtifactCache {
+class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
 
     constructor() {
@@ -54,4 +54,4 @@ class ArtifactCache {
     }
 }
 
-export default new ArtifactCache();
+export default new ArtifactMemCache();
