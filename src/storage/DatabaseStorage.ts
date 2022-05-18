@@ -35,14 +35,16 @@ export class DatabaseStorage implements IStorageProvider {
             this.db = await openDB("tezland", databaseVersion, {
                 upgrade(db, oldVersion, newVersion, transaction) {
                     try {
-                        for(const table of databaseTables) {
+                        // add tables that don't exist
+                        for (const table of databaseTables) {
                             if(!db.objectStoreNames.contains(table))
                                 db.createObjectStore(table); //, { keyPath: "key" });
-                            else {
-                                // On db upgrade, recreate stores.
+                        }
+
+                        // remove tables that shouldn't exist
+                        for (const table of db.objectStoreNames) {
+                            if(databaseTables.indexOf(table) === -1)
                                 db.deleteObjectStore(table);
-                                db.createObjectStore(table);
-                            }
                         }
                     } catch (ex: any) {
                         Logging.Error("Error while creating object stores. Exception: " + ex.message);

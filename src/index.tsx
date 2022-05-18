@@ -14,13 +14,15 @@ import { Notification } from './components/Notification';
 import { isDev, sleep } from './utils/Utils';
 import { upgradeSettings } from './storage';
 import Conf from './Config';
+import { Logging } from './utils/Logging';
 
 // make sure the default settings are up to date.
 upgradeSettings();
 
 Metadata.InitialiseStorage().then(() => {
     renderApp();
-}, () => {
+}, (reason: any) => {
+    Logging.Error("Failed to initialise database:", reason);
     renderApp(
         (<div className="toast-container position-fixed bottom-0 start-50 translate-middle-x p-4" style={{zIndex: "1050"}}>
             <Notification data={{
