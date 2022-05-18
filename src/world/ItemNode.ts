@@ -1,6 +1,6 @@
 import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3 } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
-import * as ipfs from "../ipfs/ipfs";
+import ArtifactCache from "../utils/ArtifactCache";
 import ItemData from "../utils/ItemData";
 import { Logging } from "../utils/Logging";
 import PlaceNode from "./PlaceNode";
@@ -107,7 +107,7 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
-            await ipfs.download_item(this.tokenId, this._scene, this);
+            await ArtifactCache.loadArtifact(this.tokenId, this._scene, this);
             this.loadState = ItemLoadState.Loaded;
         }
         catch(e: any) {

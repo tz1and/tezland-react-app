@@ -8,7 +8,7 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { AbstractMesh, Database, MeshBuilder,
+import { AbstractMesh, MeshBuilder,
     Nullable, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import PlaceNode, { PlaceId } from "./PlaceNode";
@@ -22,7 +22,6 @@ import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
-import { disposeAssetMap } from "../ipfs/ipfs";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import { WorldDefinition } from "../worldgen/WorldGen";
@@ -33,6 +32,7 @@ import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
 import PQueue from 'p-queue/dist';
 import world_definition from "../models/districts.json";
+import ArtifactCache from "../utils/ArtifactCache";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -83,7 +83,7 @@ export class World {
         this.implicitWorldGrid = new WorldGrid();
 
         this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
-        this.loadingQueue = new PQueue({concurrency: 5}); //, interval: 125, intervalCap: 4});
+        this.loadingQueue = new PQueue({concurrency: 10}); //, interval: 1/60, intervalCap: 1});
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
@@ -96,9 +96,6 @@ export class World {
         // Set max texture res
         const caps = this.engine.getCaps();
         caps.maxTextureSize = Math.min(caps.maxTextureSize, AppSettings.textureRes.value);
-
-        // Allow cache on IndexedDB
-        Database.IDBStorageEnabled = true;
 
         // Create our first scene.
         this.scene = new Scene(this.engine, {
@@ -310,8 +307,8 @@ export class World {
         this.onchainQueue.clear();
         this.loadingQueue.clear();
 
-        // Dispose assets.
-        disposeAssetMap();
+        // Dispose assets and processing queues.
+        ArtifactCache.dispose();
 
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
