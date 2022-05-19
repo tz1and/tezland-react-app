@@ -1,5 +1,6 @@
 import React, { createContext, PropsWithChildren, useContext } from "react"
 import { TezosToolkit } from "@taquito/taquito";
+import { RpcClient, RpcClientCache } from '@taquito/rpc';
 import { BeaconWallet } from '@taquito/beacon-wallet';
 import { NetworkType, DAppClientOptions } from '@airgap/beacon-dapp';
 import Conf from "../Config";
@@ -51,7 +52,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
     constructor(props: TezosWalletProviderProps) {
         super(props);
         this.state = {
-            tezos: new TezosToolkit(Config.allowed_tezos_nodes[AppSettings.rpcNode.value]),
+            tezos: new TezosToolkit(new RpcClientCache(new RpcClient(Config.allowed_tezos_nodes[AppSettings.rpcNode.value]))),
             pendingOps: [],
             walletEventEmitter: new EventEmitter()
         };
