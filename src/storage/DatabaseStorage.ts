@@ -4,7 +4,7 @@ import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import { Nullable } from "@babylonjs/core";
 import assert from "assert";
 
-const databaseVersion = 9;
+const databaseVersion = 10;
 
 type ArtifactMetaType = {
     lastAccess: Date;
@@ -68,7 +68,7 @@ export class DatabaseStorage implements IStorageProvider {
                 upgrade(db, oldVersion, newVersion, transaction) {
                     try {
                         // Upgrade from before artifact cache and using idb package.
-                        if (oldVersion < 9) {
+                        if (oldVersion < 10) {
                             const untypedDb = db as unknown as IDBPDatabase;
 
                             // Remove all old tables.
