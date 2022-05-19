@@ -274,7 +274,12 @@ export default class PlaceNode extends TransformNode {
         this.world.onchainQueue.add(() => this.update());
     }
 
-    public async update(force: boolean = false) {
+    public async update(force: boolean = false, attempt: number = 1) {
+        if (attempt > 5) {
+            Logging.Warn("Too many failed attempts updating place. Giving up. Place id:", this.placeId);
+            return;
+        }
+
         try {
             // catch exceptions and queue another update.
             const newSeqNum = await Contracts.getPlaceSeqNum(this.world.walletProvider, this.placeId);
@@ -291,7 +296,7 @@ export default class PlaceNode extends TransformNode {
         catch(e: any) {
             // Handle failiures to fetch updates. Queue again.
             Logging.InfoDev("Updating place failed", this.placeId, e);
-            this.world.onchainQueue.add(() => this.update());
+            setTimeout(() => this.world.onchainQueue.add(() => this.update(force, attempt + 1)), 1000);
             return;
         }
 
