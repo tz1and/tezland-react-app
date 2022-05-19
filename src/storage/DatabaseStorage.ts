@@ -112,7 +112,8 @@ export class DatabaseStorage implements IStorageProvider {
      */
     async loadObject(key: StorageKeyType, table: StoreNames<TezlandDB>): Promise<any> {
         assert(this._db);
-        return this._db.get(table, key);
+        const tx = this._db.transaction(table, "readonly", { durability: "relaxed" })
+        return tx.store.get(key);
     }
 
     /**
@@ -123,6 +124,7 @@ export class DatabaseStorage implements IStorageProvider {
      */
     async saveObject(key: StorageKeyType, table: StoreNames<TezlandDB>, data: any): Promise<IDBValidKey> {
         assert(this._db);
-        return this._db.put(table, data, key);
+        const tx = this._db.transaction(table, "readwrite", { durability: "relaxed" })
+        return tx.store.put(data, key);
     }
 }

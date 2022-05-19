@@ -3,7 +3,7 @@ import '@babylonjs/loaders/glTF';
 import { FileLike } from '../utils/Utils';
 import assert from 'assert';
 
-/*const ipfs_client = ipfs.create({ url: Conf.ipfs_gateway });
+/*const ipfs_client = ipfs.create({ url: Conf.ipfs_gateways[0] });
 
 export async function get_file_size(cid: string): Promise<number> {
     try {

@@ -5,7 +5,7 @@ export default class Conf {
 
     public static allowed_tezos_nodes: string[] = process.env.REACT_APP_ALLOWED_TEZOS_NODES.split(' ');
     public static tezos_network: string = process.env.REACT_APP_TEZOS_NETWORK;
-    public static ipfs_gateway: string = process.env.REACT_APP_IPFS_GATEWAY;
+    public static ipfs_gateways: string[] = process.env.REACT_APP_IPFS_GATEWAYS.split(' ');
     public static hasura_url: string = process.env.REACT_APP_HASURA_URL;
     public static backend_url: string = process.env.REACT_APP_BACKEND;
     public static multiplayer_url: string = process.env.REACT_APP_MULTIPLAYER;
@@ -15,4 +15,8 @@ export default class Conf {
     public static world_contract: string = process.env.REACT_APP_WORLD_CONTRACT;
     public static minter_contract: string = process.env.REACT_APP_MINTER_CONTRACT;
     public static dutch_auction_contract: string = process.env.REACT_APP_DUTCH_AUCTION_CONTRACT;
+
+    public static randomIpfsGateway(): string {
+        return this.ipfs_gateways[Math.floor(Math.random() * this.ipfs_gateways.length)];
+    }
 }

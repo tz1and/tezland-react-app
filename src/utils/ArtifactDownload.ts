@@ -4,12 +4,23 @@ import Metadata from "../world/Metadata";
 //import { Logging } from "./Logging";
 import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
-import fetchRetryConstructor from "fetch-retry";
-var fetchRetry = fetchRetryConstructor(fetch);
+import pRetry, { AbortError } from "p-retry";
+import { Logging } from "./Logging";
 
 export type FileWithMetadata = {
     file: File;
     metadata: any;
+}
+
+async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    const response = await fetch(input, {
+      ...init,
+      signal: controller.signal  
+    });
+    clearTimeout(id);
+    return response;
 }
 
 export default class ArtifactDownload {
@@ -19,7 +30,7 @@ export default class ArtifactDownload {
         const polygonLimit = AppSettings.triangleLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
-        const hash = itemMetadata.artifactUri.slice(7) + '/';
+        const hash = itemMetadata.artifactUri.slice(7);
     
         const artifact_format = itemMetadata.formats.find((e: any) => e.uri === itemMetadata.artifactUri);
         if (!artifact_format) throw new Error('Artifact format not found');
@@ -45,14 +56,23 @@ export default class ArtifactDownload {
 
         let cachedBuf = await this.loadFromDBCache(itemMetadata.artifactUri)
         if(!cachedBuf) {
-            const res = await fetchRetry(Conf.ipfs_gateway + '/ipfs/' + hash, {
-                retries: 5,
-                retryDelay: function(attempt, error, response) {
-                return Math.pow(2, attempt) * 1000; // 1000, 2000, 4000
-                }
-            });
+            cachedBuf = await pRetry(async () => {
+                // Timeout after 10 seconds.
+                // Disable cache, we cache in the indexed db.
+                // TODO: check if indexed db is available for cache disable?
+                const response = await fetchWithTimeout(Conf.randomIpfsGateway() + '/ipfs/' + hash, 10000, { cache: "no-store" });
+      
+                // Abort retrying if the resource doesn't exist
+                if (response.status === 404)
+                    throw new AbortError(response.statusText);
 
-            cachedBuf = await res.arrayBuffer();
+                return response.arrayBuffer();
+            }, {
+                retries: 5,
+                onFailedAttempt: error => {
+                    Logging.InfoDev("Retrying:", hash);
+                }
+            })
 
             this.saveToDBCache(itemMetadata.artifactUri, cachedBuf);
         }
