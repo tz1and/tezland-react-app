@@ -30,7 +30,7 @@ export default class ArtifactDownload {
         const polygonLimit = AppSettings.triangleLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
-        const hash = itemMetadata.artifactUri.slice(7);
+        const hash = itemMetadata.artifactUri.slice(7) + '/';
     
         const artifact_format = itemMetadata.formats.find((e: any) => e.uri === itemMetadata.artifactUri);
         if (!artifact_format) throw new Error('Artifact format not found');
