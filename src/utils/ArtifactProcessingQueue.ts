@@ -8,7 +8,7 @@ class ArtifactProcessingQueue {
     //private pendingArtifactProcessings: Map<string, Promise<AssetContainer>>;
 
     constructor() {
-        this.processArtifactTasks = new PQueue({concurrency: 1, interval: 1/7, intervalCap: 1});
+        this.processArtifactTasks = new PQueue({concurrency: 1, interval: 1/60, intervalCap: 1});
         //this.pendingArtifactProcessings = new Map();
     }
 
