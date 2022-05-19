@@ -67,6 +67,7 @@ export class DatabaseStorage implements IStorageProvider {
             this._db = await openDB<TezlandDB>("tezland", databaseVersion, {
                 upgrade(db, oldVersion, newVersion, transaction) {
                     try {
+                        // Upgrade from before artifact cache and using idb package.
                         if (oldVersion < 9) {
                             const untypedDb = db as unknown as IDBPDatabase;
 
