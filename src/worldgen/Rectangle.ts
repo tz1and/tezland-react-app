@@ -75,6 +75,11 @@ export default class Rectangle {
             transform.transformCoordinates(p.x, p.y, p);
         }
 
+        for(const p of arr) {
+            p.x = Number(p.x.toFixed(4));
+            p.y = Number(p.y.toFixed(4));
+        }
+
         return arr;
     }
 
