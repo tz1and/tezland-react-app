@@ -3,7 +3,6 @@ import BigNumber from "bignumber.js";
 import ItemNode from "../world/ItemNode";
 import ArtifactDownloadQueue from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
-import { Logging } from "./Logging";
 //import { Logging } from "./Logging";
 
 class ArtifactMemCache {
