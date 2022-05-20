@@ -3,6 +3,7 @@ import BigNumber from "bignumber.js";
 import ItemNode from "../world/ItemNode";
 import ArtifactDownloadQueue from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
+import { Logging } from "./Logging";
 //import { Logging } from "./Logging";
 
 class ArtifactMemCache {
@@ -22,21 +23,31 @@ class ArtifactMemCache {
     }
 
     public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
+        const token_id_number = token_id.toNumber();
         // check if we have this item in the scene already.
         // Otherwise, download it.
-        let assetPromise = this.artifactCache.get(token_id.toNumber());
+        let assetPromise = this.artifactCache.get(token_id_number);
         if(!assetPromise) {
             assetPromise = ArtifactDownloadQueue.downloadArtifact(token_id).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
     
-            /*if (this.artifactCache.has(token_id.toNumber())) {
-                Logging.ErrorDev("Asset was already loaded!", token_id.toNumber());
+            /*if (this.artifactCache.has(token_id_number)) {
+                Logging.ErrorDev("Asset was already loaded!", token_id_number);
             }*/
     
-            this.artifactCache.set(token_id.toNumber(), assetPromise);
+            this.artifactCache.set(token_id_number, assetPromise);
         }
         //else Logging.InfoDev("mesh found in cache");
     
-        const asset = await assetPromise;
+        let asset;
+        try {
+            asset = await assetPromise;
+        } catch(e: any) {
+            // NOTE: temp workaround for bullshit nodes returning bullshit data.
+            Logging.Warn("Deleting failed download from artifcat cache.", token_id_number);
+            await ArtifactDownloadQueue.deleteFromDBCache(token_id);
+            this.artifactCache.delete(token_id_number);
+            throw e;
+        }
     
         if (parent.isDisposed()) return null;
     

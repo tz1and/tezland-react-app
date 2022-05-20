@@ -4,7 +4,7 @@ import Metadata from "../world/Metadata";
 //import { Logging } from "./Logging";
 import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
-import pRetry, { AbortError } from "p-retry";
+import pRetry from "p-retry";
 import { Logging } from "./Logging";
 
 export type FileWithMetadata = {
@@ -63,7 +63,7 @@ export default class ArtifactDownload {
                 const response = await fetchWithTimeout(Conf.randomIpfsGateway() + '/ipfs/' + hash, 10000, { cache: "no-store" });
       
                 // Abort retrying if the resource doesn't exist
-                // NOTE: some gateways will return a 404. Don't abort on ignore those.
+                // NOTE: some gateways will return a 404. Maybe don't abort on ignore those.
                 //if (response.status === 404)
                 //    throw new AbortError(response.statusText);
 
@@ -80,6 +80,25 @@ export default class ArtifactDownload {
         //else Logging.Info("got artifact from db cache", itemMetadata.artifactUri)
 
         return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
+    }
+
+    public static async deleteFromDBCache(token_id: BigNumber) {
+        if (Metadata.Storage instanceof DatabaseStorage) {
+            const db = Metadata.Storage.db;
+
+            const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
+
+            const tx = db.transaction(["artifactCache", "artifactMeta"], "readwrite", { durability: "relaxed" })
+
+            //Promise.all([
+            tx.objectStore("artifactCache").delete(itemMetadata.artifactUri);
+            tx.objectStore("artifactMeta").delete(itemMetadata.artifactUri);
+            //    tx.done
+            //]);
+
+            // TODO: figure out if we need to call commit.
+            tx.commit();
+        }
     }
 
     private static saveToDBCache(artifactUri: string, file: ArrayBuffer) {
