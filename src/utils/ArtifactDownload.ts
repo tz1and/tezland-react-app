@@ -4,7 +4,7 @@ import Metadata from "../world/Metadata";
 //import { Logging } from "./Logging";
 import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
-import pRetry from "p-retry";
+import pRetry, { AbortError } from "p-retry";
 import { Logging } from "./Logging";
 
 export type FileWithMetadata = {
@@ -17,10 +17,18 @@ async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: Requ
     const id = setTimeout(() => controller.abort(), timeout);
     const response = await fetch(input, {
       ...init,
-      signal: controller.signal  
+      signal: controller.signal
     });
     clearTimeout(id);
     return response;
+}
+
+function decodeSplitEncodeURI(uri: string) {
+    const split = decodeURI(uri).split('/');
+    const encodedParts = split.map((e) => { 
+        return encodeURIComponent(e);
+    });
+    return encodedParts.join('/');
 }
 
 export default class ArtifactDownload {
@@ -30,7 +38,7 @@ export default class ArtifactDownload {
         const polygonLimit = AppSettings.triangleLimit.value;
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
-        const hash = itemMetadata.artifactUri.slice(7) + '/';
+        const hash = decodeSplitEncodeURI(itemMetadata.artifactUri.slice(7)) + '/';
     
         const artifact_format = itemMetadata.formats.find((e: any) => e.uri === itemMetadata.artifactUri);
         if (!artifact_format) throw new Error('Artifact format not found');
@@ -60,16 +68,17 @@ export default class ArtifactDownload {
                 // Timeout after 10 seconds.
                 // Disable cache, we cache in the indexed db.
                 // TODO: check if indexed db is available for cache disable?
-                const response = await fetchWithTimeout(Conf.randomIpfsGateway() + '/ipfs/' + hash, 10000, { cache: "no-store" });
-      
-                // Abort retrying if the resource doesn't exist
-                // NOTE: some gateways will return a 404. Maybe don't abort on ignore those.
-                //if (response.status === 404)
-                //    throw new AbortError(response.statusText);
+                const response = await fetchWithTimeout(Conf.randomIpfsGateway() + '/ipfs/' + hash, 30000, { cache: "no-store" });
+
+                // Abort retrying if the resource doesn't exist.
+                if (response.status === 404) throw new AbortError(response.statusText);
+
+                if (!response.ok) throw new Error("Fetch failed: " + response.statusText);
 
                 return response.arrayBuffer();
             }, {
-                retries: 5,
+                retries: 6,
+                minTimeout: 2000,
                 onFailedAttempt: error => {
                     Logging.InfoDev("Retrying:", hash);
                 }

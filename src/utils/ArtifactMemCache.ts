@@ -37,15 +37,12 @@ class ArtifactMemCache {
             this.artifactCache.set(token_id_number, assetPromise);
         }
         //else Logging.InfoDev("mesh found in cache");
-    
+
         let asset;
         try {
             asset = await assetPromise;
         } catch(e: any) {
-            // NOTE: temp workaround for bullshit nodes returning bullshit data.
-            // This should probably be a catch and rethrow on queueProcessArtifact.
-            Logging.Warn("Deleting failed download from artifcat cache.", token_id_number);
-            await ArtifactDownloadQueue.deleteFromDBCache(token_id);
+            // If the asset fails to resolve, remove the promise from cache.
             this.artifactCache.delete(token_id_number);
             throw e;
         }
