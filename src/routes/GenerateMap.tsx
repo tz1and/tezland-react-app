@@ -162,7 +162,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const auction_id_list: number[] = [];
 
         for (const place_id of known_places) {
-            if (!exclude_places.has(place_id))
+            if (!this.publicPlaces.has(place_id) && !exclude_places.has(place_id))
                 auction_id_list.push(place_id);
         }
 
@@ -181,8 +181,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const start_time = (Math.floor((current_time + start_time_offset) / 60) + 1) * 60; // begins at the next full minute.
         const end_time = Math.floor(start_time + duration * 3600); // hours to seconds
 
-        const pricePerAreaFactor = 1 / 400;
-        const pricePerVolumeFactor = 1 / 10000;
+        const pricePerAreaFactor = 1 / 125;
+        const pricePerVolumeFactor = 1 / 2000;
 
         const adhoc_ops = [];
         const create_ops: WalletParamsWithKind[] = [];
@@ -256,6 +256,27 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         ]).send();
         await wl_op.confirmation();
     }
+
+    private publicPlaces: Set<number> = new Set([
+        // batch 1
+        0, 8, 23, 28, 34, 37, 36, 41, 43, 46, 47, 48, 52, 54, 58, 64, 65, 71, 69, 79, 87, 90, 94,
+
+        // batch 2
+        95, 106, 110, 112, 113, 117, 118, 122, 129, 138, 139, 142, 147, 156, 160, 164, 169, 172, 174,
+
+        // batch 3
+        181, 190, 202, 204, 208, 209, 213, 215, 217, 220, 224, 228, 231, 238, 241, 244, 250, 251, 255, 259, 263, 266, 267, 268, 270, 273, 280, 283, 290,
+
+        // batch 4
+        291, 301, 304, 307, 310, 320, 322, 325, 331, 333, 340, 342, 343, 349, 355, 357, 364, 370, 378,
+
+        383, 390, 393, 394, 395, 403, 412, 414, 421, 432, 434, 439, 444, 447, 454, 457, 459, 465, 468, 477,
+
+        // batch 5
+        494, 481, 482, 488, 497, 502, 505, 513, 516, 530, 539, 487, 501, 519, 526, 534,
+
+        560, 543, 545, 549, 557, 561, 565, 567, 575, 581, 584, 592, 555, 571, 579, 589, 597, 601, 602,
+    ])
 
     // The wing
     private generateDistrict1() {
@@ -587,6 +608,73 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return district_6;
     }
 
+    // The the lower right part of the ring
+    private generateDistrict7() {
+
+        const district_7 = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(290,80), // top left
+                new Vector2(290,10), // bay top left
+                new Vector2(250,10), // bay top left
+                new Vector2(250,-30), // bay top left
+                new Vector2(290,-30), // bay top left
+                new Vector2(290,-100), // bottom left
+                new Vector2(-80,-100), // bend bottom left
+                new Vector2(-20,80), // bay top
+                
+                //new Vector2(80,80)
+            ], 123456, true
+        );
+
+        district_7.spawn = new Vector2(50, -10);
+
+        // generate spawn
+        district_7.addCircle(district_7.spawn, 55, Angle.FromDegrees(0).radians(), 6);
+        district_7.noSplit.push(district_7.spawn);
+
+        // make some stuff on the left side
+        district_7.addCircle(new Vector2(270,-10), 50, Angle.FromDegrees(0).radians(), 4);
+
+        district_7.center = new Vector2(-200, -300);
+
+        return district_7;
+    }
+
+    // The the lower right part of the ring
+    private generateDistrict8() {
+
+        const district_8 = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(-100,-100), // bend bottom left
+                new Vector2(-140-20,-80-20), // bend bottom, right
+                new Vector2(-260-20,40-20), // bend top, bottom
+                //new Vector2(-280,80), // bend top, top
+                new Vector2(-280,320), // top right
+                new Vector2(-120,320),
+                new Vector2(-120,160),
+                new Vector2(-40,80), // bay top
+
+            ], 123456, true , { minSize: 35, maxSize: 45 }
+        );
+
+        district_8.spawn = new Vector2(-95-60, 105-60);
+
+        // generate central circle
+        district_8.addCircle(district_8.spawn, 50, Angle.FromDegrees(105).radians(), 6);
+        district_8.noSplit.push(district_8.spawn);
+
+        // generate a block between the two bays left
+        district_8.addCircle(new Vector2(-250, 290), 50, Angle.FromDegrees(0).radians(), 4);
+        district_8.noSplit.push(new Vector2(-250, 290));
+        district_8.addCircle(new Vector2(-250+100, 290), 50, Angle.FromDegrees(0).radians(), 4);
+        district_8.noSplit.push(new Vector2(-250+100, 290));
+        district_8.addCircle(new Vector2(-250+50, 290+50), 50, Angle.FromDegrees(0).radians(), 4);
+
+        district_8.center = new Vector2(-200, -300);
+
+        return district_8;
+    }
+
     // Similar to componentDidMount and componentDidUpdate:
     override async componentDidMount() {
         const dim = 1000;
@@ -617,6 +705,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const district_6 = this.generateDistrict6();
         worldgen.addDistrict(district_6);
 
+        // seventh district
+        const district_7 = this.generateDistrict7();
+        worldgen.addDistrict(district_7);
+
+        // eighth district
+        const district_8 = this.generateDistrict8();
+        worldgen.addDistrict(district_8);
 
         // Add birdges from district 1 to 2
         worldgen.addBridge(new Bridge(district_1, 3, 0.5, district_2, 2, 0.5));
@@ -654,6 +749,27 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // Add birdges from district 5 to 6
         worldgen.addBridge(new Bridge(district_5, 6, 0.5, district_6, 4, 0.5));
 
+        // Add birdges from district 7 to 3
+        worldgen.addBridge(new Bridge(district_7, 7, 0.408, district_3, 10, 0.35));
+        worldgen.addBridge(new Bridge(district_7, 7, 0.066, district_3, 10, 0.855));
+
+        // Add birdges from district 7 to 1
+        worldgen.addBridge(new Bridge(district_7, 7, 0.87, district_1, 13, 0.75));
+
+        // Add birdges from district 7 to 6
+        worldgen.addBridge(new Bridge(district_7, 0, 0.6, district_6, 0, 0.865));
+        worldgen.addBridge(new Bridge(district_7, 4, 0.5, district_6, 0, 0.22));
+
+        // Add birdges from district 7 to 8
+        worldgen.addBridge(new Bridge(district_7, 6, 0.75, district_8, 6, 0.215));
+        worldgen.addBridge(new Bridge(district_7, 6, 0.25, district_8, 6, 0.715));
+
+        // Add birdges from district 8 to 3
+        worldgen.addBridge(new Bridge(district_8, 5, 0.5, district_3, 0, 0.5));
+        worldgen.addBridge(new Bridge(district_8, 4, 0.5, district_3, 1, 0.27));
+
+        // Add birdges from district 8 to 4
+        worldgen.addBridge(new Bridge(district_8, 3, 0.5, district_4, 6, 0.5));
 
         worldgen.generateWorld();
 
@@ -693,6 +809,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             const districtFillColor = '#f6f6f6';
             const districtStrokeColor = '#888888';
             const bridgeColor = '#888888';
+            const publicFillColor = '#d6ffd8';
+            const publicStrokeColor = '#3dba41';
 
             // Draw the svg
             // TODO: figure out which way to flip the map...
@@ -706,8 +824,9 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
                     for (const lot of block.lots) {
                         if(lot.isValid()) {
-                            const fill = (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedFillColor : lotFillColor;
-                            const stroke = (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedStrokeColor : lotStrokeColor;
+                            const is_public = this.publicPlaces.has(lot_counter);
+                            const fill = is_public ? publicFillColor : (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedFillColor : lotFillColor;
+                            const stroke = is_public ? publicStrokeColor : (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedStrokeColor : lotStrokeColor;
 
                             draw.polygon(lot.verticesToArray(district.center)).fill(fill).stroke(stroke).attr({'stroke-width': 0.5});
                             const centroid = lot.centroid(district.center);
