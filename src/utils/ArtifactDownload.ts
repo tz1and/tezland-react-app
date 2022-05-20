@@ -63,8 +63,9 @@ export default class ArtifactDownload {
                 const response = await fetchWithTimeout(Conf.randomIpfsGateway() + '/ipfs/' + hash, 10000, { cache: "no-store" });
       
                 // Abort retrying if the resource doesn't exist
-                if (response.status === 404)
-                    throw new AbortError(response.statusText);
+                // NOTE: some gateways will return a 404. Don't abort on ignore those.
+                //if (response.status === 404)
+                //    throw new AbortError(response.statusText);
 
                 return response.arrayBuffer();
             }, {
