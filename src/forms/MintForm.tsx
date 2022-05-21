@@ -170,7 +170,14 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                 }
             ],
             baseScale: 1,
-            polygonCount: this.modelPreviewRef.current.state.polycount
+            polygonCount: this.modelPreviewRef.current.state.polycount,
+            royalties: {
+                decimals: 3,
+                shares: new Map([
+                    [this.context.walletPHK(), Math.floor(values.itemRoyalties * 10)],
+                    [Conf.fees_address, 25]
+                ])
+            }
         });
 
         // Post here and wait for result

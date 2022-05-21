@@ -94,7 +94,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                                 centerCoordinates: centercoords,
                                 borderCoordinates: pointsrel,
                                 buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
-                                placeType: "exterior"
+                                placeType: "exterior",
+                                royalties: {
+                                    decimals: 3,
+                                    shares: new Map([
+                                        [Conf.fees_address, 25]
+                                    ])
+                                }
                             }));
                         }
 

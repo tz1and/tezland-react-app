@@ -17,6 +17,11 @@ export async function get_file_size(cid: string): Promise<number> {
     }
 }*/
 
+type Royalties = {
+    decimals: number;
+    shares: Map<string, number>;
+}
+
 type ItemMetadata = {
     description: string;
     minter: string;
@@ -29,6 +34,7 @@ type ItemMetadata = {
     baseScale: number;
     polygonCount: number;
     date: Date;
+    royalties: Royalties;
 }
 
 export function createItemTokenMetadata(metadata: ItemMetadata): string {
@@ -55,7 +61,11 @@ export function createItemTokenMetadata(metadata: ItemMetadata): string {
         formats: metadata.formats,
         baseScale: metadata.baseScale,
         polygonCount: metadata.polygonCount,
-        date: metadata.date.toISOString()
+        date: metadata.date.toISOString(),
+        royalties: {
+            decimals: metadata.royalties.decimals,
+            shares: Object.fromEntries(metadata.royalties.shares)
+        }
     });
 }
 
@@ -67,6 +77,7 @@ type PlaceMetadata = {
     minter: string;
     name: string;
     placeType: "exterior" | "interior";
+    royalties: Royalties;
 }
 
 export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
@@ -80,7 +91,11 @@ export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
         symbol: 'tz1and Place',
         //artifactUri: cid,
         decimals: 0,
-        placeType: metadata.placeType
+        placeType: metadata.placeType,
+        royalties: {
+            decimals: metadata.royalties.decimals,
+            shares: Object.fromEntries(metadata.royalties.shares)
+        }
     }
 
     if (metadata.placeType === "exterior") {
