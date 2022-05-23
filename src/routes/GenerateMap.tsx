@@ -135,7 +135,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 console.log("batch limit reached, sending batch");
 
                 const batch_op = await minterWallet.methodsObject.mint_Place(batch).send();
-                await batch_op.confirmation();
+
+                await new Promise<void>((resolve, reject) => {
+                    Contracts.handleOperation(this.context, batch_op, (completed) => {
+                        if (completed) resolve();
+                        else reject();
+                    }, 10);
+                })
 
                 // TODO: figure out how long to wait between operations...
                 console.log("sleep a little");
@@ -148,7 +154,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         if(batch.length > 0) {
             const batch_op = await minterWallet.methodsObject.mint_Place(batch).send();
-            await batch_op.confirmation();
+
+            await new Promise<void>((resolve, reject) => {
+                Contracts.handleOperation(this.context, batch_op, (completed) => {
+                    if (completed) resolve();
+                    else reject();
+                }, 10);
+            })
         }
     }
 
@@ -187,8 +199,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const start_time = (Math.floor((current_time + start_time_offset) / 60) + 1) * 60; // begins at the next full minute.
         const end_time = Math.floor(start_time + duration * 3600); // hours to seconds
 
-        const pricePerAreaFactor = 1 / 125;
-        const pricePerVolumeFactor = 1 / 2000;
+        const pricePerAreaFactor = 1 / 40;
+        const pricePerVolumeFactor = 1 / 1000;
 
         const adhoc_ops = [];
         const create_ops: WalletParamsWithKind[] = [];
@@ -204,7 +216,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
             const placeArea = Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2));
             const placePrice = tezToMutez(parseFloat((
-                1
+                10
                 + placeArea * pricePerAreaFactor
                 + placeArea * place_metadata.buildHeight * pricePerVolumeFactor
             ).toFixed(1)));
@@ -244,7 +256,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }*/
         ]).send();
 
-        Contracts.handleOperation(this.context, batch_op, () => {});
+        Contracts.handleOperation(this.context, batch_op, undefined, 10);
     }
 
     private batchWhitelist = async () => {
@@ -260,7 +272,30 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 ]
             }
         ]).send();
-        await wl_op.confirmation();
+
+        Contracts.handleOperation(this.context, wl_op, undefined, 10);
+    }
+
+    private batchTransferPlaces = async () => {
+        const placesWallet = await this.context.tezosToolkit().wallet.at(Conf.place_contract);
+
+        const to = "tz1Ly2nrAF7p4dYGHYfuDNTX6M3Ly8tDZ7Pn";
+        const place_ids: string[] = [];
+        const txs = [];
+        for (const id of place_ids) {
+            txs.push({
+                to_: to,
+                amount: 1,
+                token_id: id
+            })
+        }
+
+        const transfer_places_op = await placesWallet.methodsObject.transfer([{
+            from_: this.context.walletPHK(),
+            txs: txs
+        }]).send();
+
+        Contracts.handleOperation(this.context, transfer_places_op, undefined, 10);
     }
 
     private publicPlaces: Set<number> = new Set([
@@ -882,6 +917,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 <button className="btn btn-warning me-2" onClick={() => this.batchWhitelist()}>Whitelist</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadSvgFile()}>Download SVG</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadDistrictsFile()}>Download Districts</button>
+                <button className="btn btn-warning me-2" onClick={() => this.batchTransferPlaces()}>Batch Trasfer Places</button>
                 <svg className="d-block" ref={this.svgRef}></svg>
             </main>
         );

@@ -418,7 +418,7 @@ export class Contracts {
         }
     }
 
-    public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: (completed: boolean) => void) {
+    public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: (completed: boolean) => void, confirmations?: number) {
         walletProvider.addWalletOperation(op.opHash);
         op.confirmation().then((result) => {
             walletProvider.walletOperationDone(op.opHash, result.completed);
