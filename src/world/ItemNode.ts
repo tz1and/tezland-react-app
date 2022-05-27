@@ -85,15 +85,25 @@ export default class ItemNode extends TransformNode {
     public updateLOD(camPos: DeepImmutable<Vector3>): boolean {
         const previousEnabled = this.isEnabled(false);
         let newEnabled = previousEnabled;
-        const distance = Vector3.Distance(camPos, this.absolutePosition);
-        if (distance < 20) {
-            newEnabled = true;
+
+        // If the item is marked for removal it needs to be disabled.
+        if (this.markForRemoval) {
+            newEnabled = false;
         }
+        // Otherwise, it depends on the distance.
         else {
-            const scale = this.scaling.x;
-            const alpha = Math.tanh(scale / distance);
-            newEnabled = alpha > 0.04;
+            const distance = Vector3.Distance(camPos, this.absolutePosition);
+            if (distance < 20) {
+                newEnabled = true;
+            }
+            else {
+                const scale = this.scaling.x;
+                const alpha = Math.tanh(scale / distance);
+                newEnabled = alpha > 0.04;
+            }
         }
+
+        // Update enabled if it needs to be.
         if (newEnabled !== previousEnabled) this.setEnabled(newEnabled);
 
         return newEnabled;
