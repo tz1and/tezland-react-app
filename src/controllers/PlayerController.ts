@@ -1,4 +1,4 @@
-import { ActionManager, Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
+import { Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
     Mesh, Nullable, PointerEventTypes, Quaternion, Ray, Scene,
     ShadowGenerator, Tools, Vector2, Vector3 } from "@babylonjs/core";
 import assert from "assert";
@@ -98,7 +98,7 @@ export default class PlayerController {
         this.playerTrigger.ellipsoidOffset.set(0, PlayerController.LEGS_HEIGHT + (PlayerController.BODY_HEIGHT * 0.5), 0);
         this.playerTrigger.isPickable = false;
         this.playerTrigger.isVisible = false;
-        this.playerTrigger.actionManager = new ActionManager(this.scene);
+        //this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
 
         // NOTE: the bounding info seems to get bugged for some reason.
@@ -470,8 +470,18 @@ export default class PlayerController {
     }
 
     public setCurrentPlace(place: PlaceNode) {
-        this.currentPlace = place;
-        this.appControlFunctions.updatePlaceInfo(place);
+        if (place !== this.currentPlace) {
+            this.currentPlace = place;
+
+            // Update permissions, place info, notifications.
+            this.currentPlace.updateOwnerAndPermissions().then(() => {
+                this.appControlFunctions.updatePlaceInfo(place);
+
+                Logging.InfoDev("entered place: " + place.placeId);
+
+                place.displayOutOfBoundsItemsNotification();
+            });
+        }
     }
 
     public getCurrentPlace() { return this.currentPlace; }

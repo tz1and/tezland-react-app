@@ -8,8 +8,8 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
-import { AbstractMesh, MeshBuilder,
-    Nullable, ReflectionProbe, RenderTargetTexture,
+import { AbstractMesh, DeepImmutable, MeshBuilder,
+    Nullable, Ray, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import PlaceNode, { PlaceId } from "./PlaceNode";
 import { AppControlFunctions } from "./AppControlFunctions";
@@ -592,6 +592,20 @@ export class World {
         }
     }
 
+    public updateCurrentPlace(pos: DeepImmutable<Vector3>) {
+        const pickResult = this.scene.pickWithRay(new Ray(pos, Vector3.Forward()), (mesh) => {
+            return mesh.parent instanceof PlaceNode;
+        });
+
+        if (pickResult && pickResult.hit && pickResult.pickedMesh) {
+            assert(pickResult.pickedMesh.parent instanceof PlaceNode);
+
+            // TODO: use normal to determine whether we are inside our out.
+            if (Vector3.Dot(pickResult.getNormal()!, pickResult.ray!.direction) > 0)
+                this.playerController.setCurrentPlace(pickResult.pickedMesh.parent);
+        }
+    }
+
     private lastShadowListTime: number = 0;
     private shadowRenderList: AbstractMesh[] = [];
 
@@ -617,6 +631,10 @@ export class World {
     // TODO: go over this again.
     public updateWorld() {
         const playerPos = this.playerController.getPosition();
+
+        // Update current place.
+        // TODO: only occasionally check. maybe based on distance or time.
+        this.updateCurrentPlace(playerPos);
 
         this.sunLight.update(playerPos);
         this.skybox.position.set(playerPos.x, 0, playerPos.z)

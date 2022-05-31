@@ -1,5 +1,5 @@
 import { BoundingBox, Mesh, MeshBuilder, Nullable, Node,
-    TransformNode, Vector3, ExecuteCodeAction, ActionManager, Color3, Material } from "@babylonjs/core";
+    TransformNode, Vector3, Color3, Material } from "@babylonjs/core";
 
 import earcut from 'earcut';
 
@@ -72,7 +72,7 @@ export default class PlaceNode extends TransformNode {
     private placeBounds: Nullable<Mesh> = null;
     private placeGround: Nullable<Mesh> = null;
 
-    private executionAction: Nullable<ExecuteCodeAction> = null;
+    //private executionAction: Nullable<ExecuteCodeAction> = null;
 
     private _origin: Vector3 = new Vector3();
     get origin(): Vector3 { return this._origin.clone(); }
@@ -135,9 +135,9 @@ export default class PlaceNode extends TransformNode {
         // TODO: surely it's enough to remove the place root.
 
         // unregister execution action
-        if (this.executionAction && this.world.playerController.playerTrigger.actionManager) {
-            this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
-        }
+        //if (this.executionAction && this.world.playerController.playerTrigger.actionManager) {
+        //    this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
+        //}
 
         super.dispose();
     }
@@ -212,7 +212,7 @@ export default class PlaceNode extends TransformNode {
         // NOTE: mesh to mesh intersection is only checking bounding boxes.
         // Rather use a pick trigger and work out if inside or outside.
         // Maybe do it manually.
-        this.executionAction = new ExecuteCodeAction(
+        /*this.executionAction = new ExecuteCodeAction(
             {
                 trigger: ActionManager.OnIntersectionEnterTrigger,
                 parameter: {
@@ -221,41 +221,50 @@ export default class PlaceNode extends TransformNode {
                 }
             },
             async () => {
-                // Update owner and permissions, if they weren't updated recently.
-                if(Date.now() - 60000 > this.last_owner_and_permission_update) {
-                    Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
-                    try {
-                        this.owner = await Contracts.getPlaceOwner(this.placeId);
-                        this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
-                        this.last_owner_and_permission_update = Date.now();
-                    }
-                    catch(reason: any) {
-                        Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
-                        Logging.InfoDev(reason);
-                    }
-                }
+                await this.updateOwnerAndPermissions();
 
                 // Then set current place. Updates the UI as well.
                 this.world.playerController.setCurrentPlace(this);
                 Logging.InfoDev("entered place: " + this.placeId);
 
-                // Display out of bounds notifications if there are any.
-                if (this.outOfBoundsItems.size > 0 && this.permissions.hasFull()) {
-                    const itemList = Array.from(this.outOfBoundsItems).join(', ');
-                    this.world.appControlFunctions.addNotification({
-                        id: "oobItems" + this.placeId,
-                        title: "Out of bounds items!",
-                        body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
-                        type: 'warning'
-                    })
-                    Logging.Warn("place doesn't fully contain objects: " + itemList);
-                }
+                this.displayOutOfBoundsItemsNotification();
             },
-        );
+        );*/
 
         // register player trigger when place owner info has loaded.
-        assert(this.world.playerController.playerTrigger.actionManager, "action manager doesn't exist");
-        this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
+        //assert(this.world.playerController.playerTrigger.actionManager, "action manager doesn't exist");
+        //this.world.playerController.playerTrigger.actionManager.registerAction(this.executionAction);
+    }
+
+    public displayOutOfBoundsItemsNotification() {
+        // TODO: add button to remove out of bounds items.
+        // Display out of bounds notifications if there are any.
+        if (this.outOfBoundsItems.size > 0 && this.permissions.hasFull()) {
+            const itemList = Array.from(this.outOfBoundsItems).join(', ');
+            this.world.appControlFunctions.addNotification({
+                id: "oobItems" + this.placeId,
+                title: "Out of bounds items!",
+                body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
+                type: 'warning'
+            })
+            Logging.Warn("place doesn't fully contain objects: " + itemList);
+        }
+    }
+
+    public async updateOwnerAndPermissions(force: boolean = false) {
+        // Update owner and permissions, if they weren't updated recently.
+        if(force || Date.now() - 60000 > this.last_owner_and_permission_update) {
+            Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
+            try {
+                this.owner = await Contracts.getPlaceOwner(this.placeId);
+                this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
+                this.last_owner_and_permission_update = Date.now();
+            }
+            catch(reason: any) {
+                Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
+                Logging.InfoDev(reason);
+            }
+        }
     }
 
     // TODO: make sure it doesn't throw exception is potentially not caught.
