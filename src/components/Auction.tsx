@@ -51,7 +51,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         super(props);
         this.state = {
             updateCount: 0,
-            mapLocation: [500, 500],
+            mapLocation: [1000, 1000],
             placePoly: [],
             placeCoords: [0, 0],
             placeArea: 0,
@@ -120,7 +120,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         // Note: To match leaflet coords, both x and y are flipped and mirrored.
         Metadata.getPlaceMetadata(place_id).then((res) => {
             const coords = res.centerCoordinates;
-            const center_pos: [number, number] = [500 + -coords[2], 500 + -coords[0]];
+            const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
 
             const polygon = res.borderCoordinates;
             const placePoly: [number, number][] = [];
@@ -203,8 +203,8 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
                     <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
-                <MapContainer className="auction-img" center={[500, 500]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                    <ImageOverlay bounds={[[0, 0], [1000, 1000]]} url={map} />
+                <MapContainer className="auction-img" center={[1000, 1000]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
+                    <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                     <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>

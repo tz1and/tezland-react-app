@@ -101,6 +101,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
             <div className="btn-group" role="group" aria-label="Basic example">
                 <button className="btn btn-dark mb-auto ms-3 px-2"><i className="bi bi-bullseye"></i></button>
                 <select className="form-select rounded-0" aria-label="Default select example" ref={this.selectRef} defaultValue={AppSettings.defaultSpawn.value} onChange={this.changeSelect}>
+                    {listElements}
                     <option key="d1" value="district1">District #1</option>
                     <option key="d2" value="district2">District #2</option>
                     <option key="d3" value="district3">District #3</option>
@@ -109,7 +110,8 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
                     <option key="d6" value="district6">District #6</option>
                     <option key="d7" value="district7">District #7</option>
                     <option key="d8" value="district8">District #8</option>
-                    {listElements}
+                    <option key="d9" value="district9">District #9</option>
+                    <option key="d10" value="district10">District #10</option>
                 </select>
                 <button className={`btn btn-${this.state.currentIsDefault ? "success" : "secondary"} mb-auto`} onClick={this.setDefaultSpawn} ref={this.popoverDefaultRef}><i className="bi bi-check2"></i></button>
                 <button className="btn btn-light mb-auto" onClick={this.teleportTo} ref={this.popoverTeleportRef}><i className="bi bi-arrow-right"></i></button>

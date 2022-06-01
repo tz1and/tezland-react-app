@@ -317,6 +317,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         494, 481, 482, 488, 497, 502, 505, 513, 516, 530, 539, 487, 501, 519, 526, 534,
 
         560, 543, 545, 549, 557, 561, 565, 567, 575, 581, 584, 592, 555, 571, 579, 589, 597, 601, 602,
+
+        // batch 6
+        606, 607, 610, 611, 614, 615, 620, 623, 624, 627, 632, 635, 636, 639, 642, 643, 646, 659, 661, 664, 668, 673, 674, 679, 680, 681, 682, 687, 688,
+
+        689, 692, 693, 696, 697, 698, 699, 701, 706, 708, 711, 712, 713, 714, 715, 719, 724, 726, 727, 729, 734, 736, 739, 741, 743, 747, 752, 754, 759, 767,
     ])
 
     // The wing
@@ -649,7 +654,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return district_6;
     }
 
-    // The the lower right part of the ring
+    // The upper left part of the ring
     private generateDistrict7() {
 
         const district_7 = new VoronoiDistrict(new Vector2(0,0),
@@ -681,7 +686,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return district_7;
     }
 
-    // The the lower right part of the ring
+    // The upper right part of the ring
     private generateDistrict8() {
 
         const district_8 = new VoronoiDistrict(new Vector2(0,0),
@@ -716,9 +721,65 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         return district_8;
     }
 
+    private generateDistrict9() {
+
+        const district = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(-90,-180),
+                new Vector2(-130,-130),
+                new Vector2(-130,130),
+                new Vector2(-90,180),
+                new Vector2(130,180),
+                new Vector2(130,-180),
+            ], 123456, true , { minSize: 35, maxSize: 45 }
+        );
+
+        district.spawn = new Vector2(0, 0);
+
+        // generate central circle
+        district.addCircle(district.spawn, 80, 0, 4);
+        district.noSplit.push(district.spawn);
+
+        district.addCircle(new Vector2(0, 150), 80, 0, 4);
+        district.addCircle(new Vector2(0, -150), 80, 0, 4);
+
+        district.center = new Vector2(580, 0);
+
+        return district;
+    }
+
+    private generateDistrict10() {
+
+        const district = new VoronoiDistrict(new Vector2(0,0),
+            [
+                new Vector2(-130,-180),
+                new Vector2(-130,180),
+                new Vector2(90,180),
+                new Vector2(130,130),
+                new Vector2(130,-130),
+                new Vector2(90,-180),
+            ], 123456, true , { minSize: 35, maxSize: 40 }
+        );
+
+        district.spawn = new Vector2(0, 75);
+
+        // generate central circle
+        district.addCircle(new Vector2(0, 75), 65, 0, 4);
+        district.noSplit.push(new Vector2(0, 75));
+        district.addCircle(new Vector2(0, -75), 65, 0, 4);
+        district.noSplit.push(new Vector2(0, -75));
+
+        //district.addCircle(new Vector2(0, 150), 80, 0, 4);
+        //district.addCircle(new Vector2(0, -150), 80, 0, 4);
+
+        district.center = new Vector2(580+260, 0);
+
+        return district;
+    }
+
     // Similar to componentDidMount and componentDidUpdate:
     override async componentDidMount() {
-        const dim = 1000;
+        const dim = 2000;
 
         const worldgen = new WorldGen();
 
@@ -753,6 +814,14 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // eighth district
         const district_8 = this.generateDistrict8();
         worldgen.addDistrict(district_8);
+
+        // ninth district
+        const district_9 = this.generateDistrict9();
+        worldgen.addDistrict(district_9);
+
+        // tenth district
+        const district_10 = this.generateDistrict10();
+        worldgen.addDistrict(district_10);
 
         // Add birdges from district 1 to 2
         worldgen.addBridge(new Bridge(district_1, 3, 0.5, district_2, 2, 0.5));
@@ -811,6 +880,14 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         // Add birdges from district 8 to 4
         worldgen.addBridge(new Bridge(district_8, 3, 0.5, district_4, 6, 0.5));
+
+        // Add birdges from district 9 to 5
+        worldgen.addBridge(new Bridge(district_9, 1, 0.855, district_5, 5, 0.5));
+        worldgen.addBridge(new Bridge(district_9, 2, 0.5, district_5, 4, 0.54));
+
+        // Add birdges from district 9 to 6
+        worldgen.addBridge(new Bridge(district_9, 1, 0.145, district_6, 5, 0.5));
+        worldgen.addBridge(new Bridge(district_9, 0, 0.5, district_6, 6, 0.46));
 
         worldgen.generateWorld();
 
