@@ -184,7 +184,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         return (
             <div className='Explore'>
-                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version}</small>
+                <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}
                 {controlInfo}

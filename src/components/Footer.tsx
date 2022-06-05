@@ -9,7 +9,7 @@ export default function Frontpage() {
                     {/*<img src="/logo192.png" width="64" height="64" /><br /><br />*/}
                     tz1and
                     <small className="d-block mb-4 text-muted">© 2022</small>
-                    <small className="d-block text-muted">v{Conf.app_version}</small>
+                    <small className="d-block text-muted">v{Conf.app_version} (beta)</small>
                 </div>
                 <div className="col-6 col-md">
                     <h5>Virtual World</h5>
