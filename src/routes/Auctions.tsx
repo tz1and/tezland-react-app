@@ -203,7 +203,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
                     { this.state.whitelist_enabled ? <p><b>For primary actions, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> : null }
                     { this.state.secondary_enabled || DutchAuction.isAdministrator(this.context, this.state.administrator) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
-                    <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be affordable and below 10tez. It may be worth waiting.</p>
+                    <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 60tez. It may be worth waiting.</p>
 
                     <div className="btn-group me-2" role="group" aria-label="Toggle active and finished auctions">
                         <input onChange={e => this.handleActiveFilter(e)} type="radio" className="btn-check" name="btnradio" id="btnactive" autoComplete="off" value={0} defaultChecked/>
