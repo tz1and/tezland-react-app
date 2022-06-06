@@ -248,7 +248,7 @@ class OtherPlayer {
         var aspect_ratio: number;
         if (name.startsWith('tz1')) {
             aspect_ratio = 1/7.2;
-            text = truncate(name, 12, '\u2026');
+            text = truncate(name, 12, '\u2026'); // TODO: use truncateAddress
         }
         else {
             aspect_ratio = 1 / 2.8;

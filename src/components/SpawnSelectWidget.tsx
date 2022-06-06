@@ -1,5 +1,5 @@
 import TezosWalletContext from "./TezosWalletContext";
-import { Popover } from 'bootstrap';
+import { OverlayTrigger, Popover } from "react-bootstrap";
 import React from "react";
 import { fetchPlaces } from "../ipfs/graphql";
 import AppSettings from "../storage/AppSettings";
@@ -18,12 +18,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
 
-    private popoverDefaultRef = React.createRef<HTMLButtonElement>();
-    private popoverTeleportRef = React.createRef<HTMLButtonElement>();
     private selectRef = React.createRef<HTMLSelectElement>();
-
-    private popoverDefault: Popover | null = null;
-    private popoverTeleport: Popover | null = null;
 
     constructor(props: SpawnSelectProps) {
         super(props);
@@ -47,26 +42,9 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
         this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
 
         this.walletChangeListener();
-
-        if(this.popoverDefaultRef.current && this.popoverTeleportRef.current) {
-            this.popoverDefault = new Popover(this.popoverDefaultRef.current, {
-                content: "Set default spawn.",
-                placement: 'bottom',
-                trigger: 'hover'
-            });
-
-            this.popoverTeleport = new Popover(this.popoverTeleportRef.current, {
-                content: "Teleport to this location.",
-                placement: 'bottom',
-                trigger: 'hover'
-            });
-        }
     }
     
     override componentWillUnmount() {
-        this.popoverDefault?.dispose();
-        this.popoverTeleport?.dispose();
-
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
@@ -113,8 +91,30 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
                     <option key="d9" value="district9">District #9</option>
                     <option key="d10" value="district10">District #10</option>
                 </select>
-                <button className={`btn btn-${this.state.currentIsDefault ? "success" : "secondary"} mb-auto`} onClick={this.setDefaultSpawn} ref={this.popoverDefaultRef}><i className="bi bi-check2"></i></button>
-                <button className="btn btn-light mb-auto" onClick={this.teleportTo} ref={this.popoverTeleportRef}><i className="bi bi-arrow-right"></i></button>
+                <OverlayTrigger
+                    placement={"bottom"}
+                    overlay={
+                        <Popover>
+                            <Popover.Body>
+                                Set default spawn.
+                            </Popover.Body>
+                        </Popover>
+                    }
+                >
+                    <button className={`btn btn-${this.state.currentIsDefault ? "success" : "secondary"} mb-auto`} onClick={this.setDefaultSpawn}><i className="bi bi-check2"></i></button>
+                </OverlayTrigger>
+                <OverlayTrigger
+                    placement={"bottom"}
+                    overlay={
+                        <Popover>
+                            <Popover.Body>
+                                Teleport to this location.
+                            </Popover.Body>
+                        </Popover>
+                    }
+                >
+                    <button className="btn btn-light mb-auto" onClick={this.teleportTo}><i className="bi bi-arrow-right"></i></button>
+                </OverlayTrigger>
             </div>
         );
     }

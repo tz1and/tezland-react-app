@@ -100,6 +100,14 @@ export const truncate = (str: string, n: number, ellip?: string) => {
   return (str.length > n) ? str.substring(0, n-1) + (ellip ? ellip :'&hellip;') : str;
 };
 
+export const truncateAddress = (address: string) => {
+  if(address.length > 10) {
+    return address.substring(0, 5) + '\u2026' + address.substring(address.length-5, address.length);
+  }
+
+  return address;
+}
+
 export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 };

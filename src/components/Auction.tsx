@@ -9,7 +9,7 @@ import React from 'react';
 import Metadata from '../world/Metadata';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
-import { Popover } from 'bootstrap';
+import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import map from '../img/map.svg';
 
 type AuctionProps = {
@@ -44,8 +44,6 @@ export const discordInviteLink = "https://discord.gg/AAwpbStzZf";
 export default class Auction extends React.Component<AuctionProps, AuctionState> {
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
-
-    private progressBarRef = React.createRef<HTMLDivElement>();
     
     constructor(props: AuctionProps) {
         super(props);
@@ -68,8 +66,6 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
     private refreshInterval: NodeJS.Timeout | null = null;
     private reloadTimeout: NodeJS.Timeout | null = null;
-
-    private popover: Popover | null = null;
 
     private updateTimeVars() {
         this.current_time = Math.floor(Date.now() / 1000);
@@ -142,7 +138,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private placeLink(): string {
-        return `/explore?coordx=${this.state.placeCoords[0].toFixed(2)}&coordz=${this.state.placeCoords[1].toFixed(2)}`
+        return `/explore?placeid=${this.props.tokenId}`
     }
 
     override componentDidMount() {
@@ -157,17 +153,6 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                 this.updateTimeVars();
                 this.setState({ updateCount: this.state.updateCount + 1 });
             }, 10000);
-
-            if (this.progressBarRef.current) {
-                this.popover = new Popover(this.progressBarRef.current, {
-                    content: () => {
-                        const time_left = (this.props.endTime - Math.floor(Date.now() / 1000)) / 3600;
-                        return `Time left: ${time_left > 0 ? time_left.toFixed(1) : "0"}h`;
-                    },
-                    placement: 'top',
-                    trigger: 'hover'
-                });
-            }
         }
     }
     
@@ -175,8 +160,6 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         // Clear the interval right before component unmount
         if(this.refreshInterval) clearInterval(this.refreshInterval);
         if(this.reloadTimeout) clearInterval(this.reloadTimeout);
-
-        this.popover?.dispose();
     }
 
     override render() {
@@ -189,13 +172,16 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
             price_str = (is_approximate_price ? "~" : "") + mutezToTez(current_price).toNumber().toFixed(2) + " \uA729";
         }
 
+        // TODO: fix this to update dynamically.
+        const time_left = (this.props.endTime - Math.floor(Date.now() / 1000)) / 3600;
+
         return (
             <div className="m-3 Auction position-relative">
                 {!this.props.finished && (this.context.isWalletConnected() && this.props.owner === this.context.walletPHK()) &&
-                        <button onClick={this.cancelAuction} className="position-absolute btn btn-outline-danger btn-sm mt-3 me-3 end-0">Cancel</button>}
+                    <Button onClick={this.cancelAuction} className="position-absolute mt-3 me-3 end-0" size="sm" variant="outline-danger">Cancel</Button>}
 
-                {this.props.isPrimary ? <button className="position-absolute btn btn-outline-success btn-sm mt-3 ms-3" disabled>Primary</button> :
-                    <button className="position-absolute btn btn-outline-secondary btn-sm mt-3 ms-3" disabled>Secondary</button>}
+                {this.props.isPrimary ? <Button className="position-absolute mt-3 ms-3" variant="outline-success" size="sm" disabled={true}>Primary</Button> :
+                    <Button className="position-absolute mt-3 ms-3" variant="outline-secondary" size="sm" disabled={true}>Secondary</Button>}
 
                 <div className='p-3 text-center'>
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
@@ -210,14 +196,25 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
                 </MapContainer>
                 <div className='p-3'>
-                    {this.props.finished ? 
-                        <div className="progress mb-3" ref={this.progressBarRef}>
-                            <div id="auctionProgress" className="progress-bar bg-success" role="progressbar" style={{ width: '100%' }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={100}></div>
-                        </div> :
-                        <div className="progress mb-3" ref={this.progressBarRef}>
-                            <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: `${this.progress}%` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={this.progress}></div>
-                        </div>
-                    }
+                    <OverlayTrigger
+                        placement={"top"}
+                        overlay={
+                            <Popover>
+                                <Popover.Body>
+                                    {`Time left: ${time_left > 0 ? time_left.toFixed(1) : "0"}h`}
+                                </Popover.Body>
+                            </Popover>
+                        }
+                    >
+                        {this.props.finished ? 
+                            <div className="progress mb-3">
+                                <div id="auctionProgress" className="progress-bar bg-success" role="progressbar" style={{ width: '100%' }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={100}></div>
+                            </div> :
+                            <div className="progress mb-3">
+                                <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: `${this.progress}%` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={this.progress}></div>
+                            </div>
+                        }
+                    </OverlayTrigger>
 
                     <p className='small mb-2'>
                         Place area: {this.state.placeArea.toFixed(2)} m<sup>2</sup><br/>
@@ -231,10 +228,10 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <h6 className='text-center'>{(this.props.finished ? "Final bid: " : "Current bid: ") + price_str}</h6>
 
                     {this.props.finished ? <a className="btn btn-success btn-md w-100" href={`https://tzkt.io/${this.props.bidOpHash}`} target='_blank' rel='noreferrer'>Finished</a> :
-                        !this.context.isWalletConnected() ? <button className="btn btn-secondary btn-md w-100" disabled={true}>No wallet connected</button> :
+                        !this.context.isWalletConnected() ? <Button className="mb-1 w-100" variant="secondary" disabled={true}>No wallet connected</Button> :
                             (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Apply for Primary</a> :
-                            <button onClick={this.bidOnAuction} className="btn btn-primary btn-md mb-1 w-100" disabled={!this.started}>
-                                {!this.started ? "Not started" : "Get for " + price_str}</button>}
+                            <Button onClick={this.bidOnAuction} className="mb-1 w-100" variant="primary" disabled={!this.started}>
+                                {!this.started ? "Not started" : "Get for " + price_str}</Button>}
                 </div>
             </div>
         );

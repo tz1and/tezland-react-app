@@ -2,7 +2,7 @@ import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/cor
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import assert from "assert";
 import Contracts from "../tz/Contracts";
-import { truncate } from "../utils/Utils";
+import { truncate, truncateAddress } from "../utils/Utils";
 import ItemNode from "../world/ItemNode";
 import Metadata from "../world/Metadata";
 import { World } from "../world/World";
@@ -99,7 +99,7 @@ class ItemInfoGui {
                 const itemMetadata = await Metadata.getItemMetadata(this.current_token_id);
 
                 this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 16, '\u2026');
-                this.label_minter.text = `By: ${truncate(itemMetadata.minter, 16, '\u2026')}`;
+                this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
             })();
         }
 

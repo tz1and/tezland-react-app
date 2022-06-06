@@ -1,5 +1,5 @@
-import { Popover } from 'bootstrap';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import SpawnSelectWidget from '../components/SpawnSelectWidget';
 import WalletWidget from '../components/WalletWidget';
@@ -15,23 +15,6 @@ type InstructionsProps = {
 export const Instructions: React.FC<InstructionsProps> = (props) => {
     const nav = useNavigate()
 
-    const popoverRef = useRef<HTMLButtonElement>(null)
-    useEffect(() => {
-        if(popoverRef.current) {
-            const popover = new Popover(popoverRef.current, {
-                content: "Copied current location to clipboard!",
-                placement: 'bottom',
-                trigger: 'focus'
-            });
-
-            return () => {
-                popover.dispose();
-            }
-        }
-
-        return;
-    })
-
     const copyLocationAddress = () => {
         const pos = props.getCurrentLocation();
         const loc = window.location;
@@ -44,7 +27,21 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
             <div className='position-fixed top-0 start-0 text-white mt-3 ms-3'>
                 <button className='btn btn-outline-light fs-4' onClick={() => { nav("/"); } }><i className="bi bi-arrow-left"></i></button>
                 <button className='btn btn-light ms-3 fs-4' onClick={() => { props.loadForm('settings') } }><i className="bi bi-gear-fill"></i></button>
-                <button className='btn btn-light ms-3 fs-4' ref={popoverRef} onClick={() => { copyLocationAddress(); } }><i className="bi bi-share-fill"></i></button>
+
+                <OverlayTrigger
+                    placement={"bottom"}
+                    trigger={"focus"}
+                    overlay={
+                        <Popover>
+                            <Popover.Body>
+                                Copied current location to clipboard!
+                            </Popover.Body>
+                        </Popover>
+                    }
+                >
+                    <button className='btn btn-light ms-3 fs-4' onClick={() => { copyLocationAddress(); } }><i className="bi bi-share-fill"></i></button>
+                </OverlayTrigger>
+
                 <WalletWidget/>
                 <SpawnSelectWidget teleportToLocation={props.teleportToLocation}/>
             </div>
