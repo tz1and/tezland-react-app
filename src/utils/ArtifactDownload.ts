@@ -32,7 +32,7 @@ function decodeSplitEncodeURI(uri: string) {
 }
 
 export default class ArtifactDownload {
-    public static async downloadArtifact(token_id: BigNumber): Promise<FileWithMetadata> {
+    public static async downloadArtifact(token_id: BigNumber, randomGateway: boolean = false): Promise<FileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
 
         const polygonLimit = AppSettings.triangleLimit.value;
@@ -68,7 +68,8 @@ export default class ArtifactDownload {
                 // Timeout after 10 seconds.
                 // Disable cache, we cache in the indexed db.
                 // TODO: check if indexed db is available for cache disable?
-                const response = await fetchWithTimeout(Conf.randomIpfsGateway() + '/ipfs/' + hash, 30000, { cache: "no-store" });
+                const gateway = randomGateway ? Conf.randomIpfsGateway() : Conf.ipfs_gateways[0];
+                const response = await fetchWithTimeout(gateway + '/ipfs/' + hash, 30000, { cache: "no-store" });
 
                 // Abort retrying if the resource doesn't exist.
                 if (response.status === 404) throw new AbortError(response.statusText);
