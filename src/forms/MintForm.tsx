@@ -353,7 +353,12 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                             {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
                                         </div>
                                         <div className='col'>
-                                            <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} modelLoaded={this.modelLoaded} />
+                                            <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} width={350} height={350} modelLoaded={this.modelLoaded} bgColorSelection={true} />
+                                            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
+                                                Use the mouse to control the view.<br/><br/>
+                                                Mouse wheel: zoom<br/>
+                                                Left mouse: rotate<br/>
+                                                Right mouse: pan</div>
                                             <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
                                         </div>
                                     </div>

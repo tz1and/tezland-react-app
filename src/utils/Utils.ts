@@ -183,3 +183,7 @@ export const downloadFile = (data_url: string, filename: string) => {
   // Clean up and remove the link
   document.body.removeChild(link);
 }
+
+export const scrollbarVisible = (element: HTMLElement) => {
+  return element.scrollHeight > element.clientHeight;
+}

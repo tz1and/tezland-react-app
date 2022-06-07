@@ -6,6 +6,9 @@ import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, 
 import { countPolygons, getFileType } from '../utils/Utils';
 import SunLight from '../world/SunLight';
 import assert from 'assert';
+import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
+import ArtifactDownloadQueue from '../utils/ArtifactDownload';
+import BigNumber from 'bignumber.js';
 
 
 class PreviewScene {
@@ -144,6 +147,52 @@ class PreviewScene {
         }
     }
 
+    async loadFromTokenId(modelLoaded: ModelLoadedCallback, tokenId: number): Promise<number> {
+        // Tell the mint form the model is unloaded/false.
+        modelLoaded('none', 0, 0);
+
+        if(this.previewObject) {
+             this.previewObject.dispose();
+             this.previewObject = null;
+        }
+
+        try {
+            const asset = await ArtifactDownloadQueue.downloadArtifact(new BigNumber(tokenId), false).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
+
+            // Instantiate.
+            // Getting first root node is probably enough.
+            // Note: imported glTFs are rotate because of the difference in coordinate systems.
+            // Don't flip em.
+            // NOTE: when an object is supposed to animate, instancing won't work.
+            const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+            this.previewObject = instance.rootNodes[0];
+
+            const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
+            const extent = max.subtract(min);
+
+            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+
+            // Scale and move object based on extent.
+            const new_scale = 6 / extent_max;
+            this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+
+            this.previewObject.position.y = -extent.y * new_scale / 2;
+
+            const polycount = countPolygons(asset.meshes);
+            //Logging.Log("polycount", polycount);
+
+            // Model loaded successfully.
+            modelLoaded('success', 0, polycount);
+
+            return polycount;
+        }
+        catch {
+            modelLoaded('failed', 0, 0);
+
+            return -1;
+        }
+    }
+
     public async getScreenshot(res: number): Promise<string> {
         // call render to make sure everything is ready.
         this.scene.render();
@@ -161,7 +210,11 @@ type ModelLoadedCallback = (loadingState: ModelLoadingState, modelFileSize: numb
 
 type ModelPreviewProps = {
     file?: File | undefined;
+    tokenId?: number | undefined;
     modelLoaded: ModelLoadedCallback;
+    width?: number;
+    height?: number;
+    bgColorSelection?: boolean;
 };
 
 type ModelPreviewState = {
@@ -172,6 +225,7 @@ type ModelPreviewState = {
 
 class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState> {
     private mount = React.createRef<HTMLCanvasElement>();
+    private loadingRef = React.createRef<HTMLHeadingElement>();
     private preview: PreviewScene | null;
 
     constructor(props: ModelPreviewProps) {
@@ -203,6 +257,15 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     override componentDidMount() {
         if(this.mount.current) {
             this.preview = new PreviewScene(this.mount.current);
+
+            if(this.props.tokenId) {
+                this.preview.loadFromTokenId(this.props.modelLoaded, this.props.tokenId).then((res) => {
+                    this.setState({ polycount: res });
+
+                    if(this.loadingRef.current) this.loadingRef.current.hidden = true;
+                });
+            }
+            else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
         }
     }
 
@@ -219,14 +282,10 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
 
     override render() {
         return (
-        <div>
-            <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={350} height={350} ref={this.mount} ></canvas>
-            <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#DDEEFF" onChange={(col) => this.preview?.setBgColor(col.target.value)}/></p>
-            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
-                Use the mouse to control the view.<br/><br/>
-                Mouse wheel: zoom<br/>
-                Left mouse: rotate<br/>
-                Right mouse: pan</div>
+        <div className='position-relative'>
+            <h4 className="position-absolute p-3 start-0 bottom-0" ref={this.loadingRef}>Loading...</h4>
+            <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={this.props.width} height={this.props.height} ref={this.mount} />
+            { this.props.bgColorSelection && <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#DDEEFF" onChange={(col) => this.preview?.setBgColor(col.target.value)}/></p> }
         </div>);
     }
 }

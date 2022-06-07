@@ -6,8 +6,8 @@ import missing_thumbnail from '../img/missing_thumbnail.png';
 
 type InventoryItemProps = {
     onSelect: (item_id: number) => void;
-    onBurn: (item_id: number) => void;
-    onTransfer: (item_id: number) => void;
+    onBurn?: ((item_id: number) => void) | undefined;
+    onTransfer?: ((item_id: number) => void) | undefined;
     item_metadata: any;
 }
 
@@ -39,9 +39,9 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
             }
         >
             <div className="card m-2 inventory-item" id={token_data.id}>
-                <div className='position-absolute' style={{zIndex: 1040, right: "0.5rem", top: "0.5rem" }}>
-                    <button className='btn btn-sm btn-outline-primary me-1' onClick={() => props.onTransfer(token_data.id)}><i className="bi bi-send-fill"></i></button>
-                    <button className='btn btn-sm btn-outline-danger' onClick={() => props.onBurn(token_data.id)}><i className="bi bi-trash-fill"></i></button>
+                <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
+                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.id)}><i className="bi bi-send-fill"></i></button> }
+                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.id)}><i className="bi bi-trash-fill"></i></button> }
                 </div>
 
                 <div onClick={() => props.onSelect(token_data.id)}>

@@ -16,6 +16,8 @@ import MintFormWrapper from './forms/MintFormWrapper';
 import PageNotFound from './routes/PageNotFound';
 import { TezosWalletProvider } from './components/TezosWalletContext'
 import { isDev } from './utils/Utils';
+import User from './routes/User';
+import Item from './routes/Item';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -39,6 +41,10 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="faq" element={<Faq />} />
                         <Route path="privacy" element={<Privacy />} />
                         <Route path="terms" element={<Terms />} />
+
+                        <Route path="u/:address" element={<User />} />
+                        <Route path="i/:id" element={<Item />} />
+
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                         <Route path="*" element={<PageNotFound />}/>
                     </Route>

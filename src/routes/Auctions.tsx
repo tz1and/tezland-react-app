@@ -6,6 +6,7 @@ import TezosWalletContext from '../components/TezosWalletContext';
 import { fetchGraphQL } from '../ipfs/graphql';
 import DutchAuction from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
+import { scrollbarVisible } from '../utils/Utils';
 
 type AuctionsProps = {}
 
@@ -114,6 +115,12 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
+    override componentDidUpdate() {
+        if(!scrollbarVisible(document.body)) {
+            this.fetchMoreData();
+        }
+    }
+
     private removeFromAuctions = (auction_id: number) => {
         this.state.auctions.delete(auction_id);
         this.setState({auctions: this.state.auctions});
@@ -125,6 +132,9 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // TODO: first fetch should probably be by offset 0,
         // but we can also just use a very large id.
         this.getAuctions(10000000).then((res) => {
+            // first things first: set firstFetchDone
+            this.firstFetchDone = true;
+
             const more_data = res.length === this.fetchAmount;
             let last_auction_id = 0;
             const new_auctions = new Map<number, any>();
@@ -138,12 +148,11 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 more_data: more_data,
                 last_auction_id: last_auction_id
             });
-            this.firstFetchDone = true;
         });
     }
 
     private fetchMoreData = () => {
-        if(this.firstFetchDone) {
+        if(this.firstFetchDone && this.state.more_data) {
             this.getAuctions(this.state.last_auction_id).then((res) => {
                 const more_data = res.length === this.fetchAmount;
                 let last_auction_id = 0;
@@ -226,7 +235,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         next={this.fetchMoreData}
                         hasMore={this.state.more_data}
                         loader={<h4>Loading...</h4>}
-                        scrollThreshold={1}
+                        scrollThreshold={0.9}
                     >
                         {rows}
                     </InfiniteScroll>

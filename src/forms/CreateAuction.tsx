@@ -274,6 +274,7 @@ Place type: {res.placeType}</small>;
 
 // inject useNavigate with a high order function component.
 //https://github.com/remix-run/react-router/issues/8146#issuecomment-947860640
+// TODO: move to a helpers module or something
 function withNavigation <P>(Component: React.ComponentType<P>): React.FC<P> {
     return props => <Component {...props} navigate={useNavigate()} />;
 };
