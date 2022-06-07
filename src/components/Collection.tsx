@@ -129,7 +129,7 @@ class Collection extends React.Component<CollectionProps, CollectionState> {
     override render() {
         const { error, more_data } = this.state;
 
-        const isOwned = this.context.isWalletConnected() && this.context.walletPHK() === this.props.address;
+        //const isOwned = this.context.isWalletConnected() && this.context.walletPHK() === this.props.address;
 
         const items: JSX.Element[] = []
         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick}
