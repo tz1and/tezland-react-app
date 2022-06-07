@@ -101,8 +101,8 @@ export const truncate = (str: string, n: number, ellip?: string) => {
 };
 
 export const truncateAddress = (address: string) => {
-  if(address.length > 10) {
-    return address.substring(0, 5) + '\u2026' + address.substring(address.length-5, address.length);
+  if(address.length > 13) {
+    return address.substring(0, 8) + '\u2026' + address.substring(address.length-5, address.length);
   }
 
   return address;
