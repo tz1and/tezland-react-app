@@ -511,37 +511,33 @@ export default class PlayerController {
             this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(this.currentItem), this.scene, null);
             await this.tempObject.loadItem();
 
-            if(this.tempObject) {
-                // the temp object.
-                this.tempObject.rotationQuaternion = this.tempObjectRot;
-                this.tempObject.position = this.tempObjectPos;
+            // the temp object.
+            this.tempObject.rotationQuaternion = this.tempObjectRot;
+            this.tempObject.position = this.tempObjectPos;
 
-                // set pickable false on the whole hierarchy.
-                this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
+            // set pickable false on the whole hierarchy.
+            this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
 
-                // Since assets are scaled to a normalised base scale now, just scale to 2 meters.
-                const new_scale = 2; // Scale to 2 meters.
-                this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+            // Since assets are scaled to a normalised base scale now, just scale to 2 meters.
+            const new_scale = 2; // Scale to 2 meters.
+            this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-                // positioning helper.
-                this.tempObjectHelper = new TempObjectHelper(this.scene, this.tempObjectRot);
-                this.tempObjectHelper.modelUpdate(this.tempObject);
+            // positioning helper.
+            this.tempObjectHelper = new TempObjectHelper(this.scene, this.tempObjectRot);
+            this.tempObjectHelper.modelUpdate(this.tempObject);
 
-                // make sure picking gui goes away.
-                await this.pickingGui.updatePickingGui(null, 0);
-            }
-            else {
-                this.currentItem = undefined;
-                this.appControlFunctions.addNotification({
-                    id: "itemLimits" + token_id,
-                    title: "Item failed to load",
-                    body: `The item you selected (token id: ${token_id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
-                    type: 'danger'
-                });
-            }
+            // make sure picking gui goes away.
+            await this.pickingGui.updatePickingGui(null, 0);
         }
         catch(e) {
             this.currentItem = undefined;
+
+            this.appControlFunctions.addNotification({
+                id: "itemLimits" + token_id,
+                title: "Item failed to load",
+                body: `The item you selected (token id: ${token_id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
+                type: 'danger'
+            });
 
             Logging.InfoDev("failed to load item: " + e);
         }

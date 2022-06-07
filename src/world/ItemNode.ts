@@ -51,7 +51,8 @@ export default class ItemNode extends TransformNode {
     public itemAmount: BigNumber; // The number of items
     public markForRemoval: boolean; // If the item should be removed
 
-    public loadState: ItemLoadState;
+    private _loadState: ItemLoadState;
+    public get loadState(): ItemLoadState { return this._loadState; }
     
     constructor(placeId: number, tokenId: BigNumber,
         name: string, scene?: Nullable<Scene>, isPure?: boolean) {
@@ -65,7 +66,7 @@ export default class ItemNode extends TransformNode {
         this.itemAmount = new BigNumber(0);
         this.markForRemoval = false;
 
-        this.loadState = ItemLoadState.NotLoaded;
+        this._loadState = ItemLoadState.NotLoaded;
     }
 
     // TODO: needs some custom stuff for displying in inspector.
@@ -111,24 +112,24 @@ export default class ItemNode extends TransformNode {
 
     public async loadItem() {
         // TODO: check if items been disposed?
-        if (this.loadState === ItemLoadState.Loaded) {
+        if (this._loadState === ItemLoadState.Loaded) {
             Logging.WarnDev("Attempted to reload token", this.tokenId.toNumber());
             return;
         }
 
         try {
             await ArtifactMemCache.loadArtifact(this.tokenId, this._scene, this);
-            this.loadState = ItemLoadState.Loaded;
+            this._loadState = ItemLoadState.Loaded;
         }
         catch(e: any) {
-            this.loadState = ItemLoadState.Failed;
+            this._loadState = ItemLoadState.Failed;
             throw e;
         }
 
     }
 
     public queueLoadItemTask(world: World, place: PlaceNode) {
-        this.loadState = ItemLoadState.Queued;
+        this._loadState = ItemLoadState.Queued;
 
         // TODO: priority, retry, etc
         // TODO: priority should depend on distance
