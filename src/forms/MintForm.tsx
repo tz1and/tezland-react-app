@@ -359,7 +359,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                 Mouse wheel: zoom<br/>
                                                 Left mouse: rotate<br/>
                                                 Right mouse: pan</div>
-                                            <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)</div>
+                                            <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)<br/><br/>A good rule of thumb:<br/>If you didn't make it, don't mint it.</div>
                                         </div>
                                     </div>
                                 </Form>
