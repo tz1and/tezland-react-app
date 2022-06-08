@@ -1,6 +1,7 @@
 import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import assert from "assert";
+import { fetchGraphQL } from "../ipfs/graphql";
 import Contracts from "../tz/Contracts";
 import { truncate, truncateAddress } from "../utils/Utils";
 import ItemNode from "../world/ItemNode";
@@ -13,16 +14,18 @@ class ItemInfoGui {
     private panel: StackPanel;
     private label_name: TextBlock;
     private label_minter: TextBlock;
-    private label_price: TextBlock
+    private label_price: TextBlock;
+    private supply_label: TextBlock;
     private label_instructions: TextBlock;
 
     private current_token_id: number = -1;
+    private current_token_supply: number = -1;
 
     constructor(advancedTexture: AdvancedDynamicTexture) {
         // top level control
         var rect = new Rectangle("ItemInfo");
-        rect.widthInPixels = 115;
-        rect.heightInPixels = 115 * 3/4;
+        rect.widthInPixels = 130;
+        rect.heightInPixels = 130 * 3/4;
         rect.cornerRadius = 5;
         rect.thickness = 0;
         rect.color = "black";
@@ -44,7 +47,7 @@ class ItemInfoGui {
         // name label
         let label_name = new TextBlock();
         label_name.fontSize = "10px";
-        label_name.height = "24px";
+        label_name.height = "12px";
         label_name.width = 1;
         label_name.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_CENTER;
         label_name.textVerticalAlignment = StackPanel.VERTICAL_ALIGNMENT_TOP;
@@ -55,7 +58,7 @@ class ItemInfoGui {
         // minter label
         let label_minter = new TextBlock();
         label_minter.fontSize = "8px";
-        label_minter.height = "16px";
+        label_minter.height = "32px";
         label_minter.width = 1;
         label_minter.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
         panel.addControl(label_minter);
@@ -71,6 +74,16 @@ class ItemInfoGui {
         panel.addControl(label_price);
         
         this.label_price = label_price;
+
+        // count/supply label
+        let supply_label = new TextBlock();
+        supply_label.fontSize = "8px";
+        supply_label.height = "10px";
+        supply_label.width = 1;
+        supply_label.textHorizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
+        panel.addControl(supply_label);
+        
+        this.supply_label = supply_label;
 
         // instructions label
         let label_instructions = new TextBlock();
@@ -98,14 +111,27 @@ class ItemInfoGui {
             (async () => {
                 const itemMetadata = await Metadata.getItemMetadata(this.current_token_id);
 
-                this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 16, '\u2026');
+                this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
                 this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
+
+                // Fetch the metadata for those tokens
+                const data = await fetchGraphQL(`
+                    query getTokenSupplyAndRoyalties($id: bigint!) {
+                        itemToken(where: {id: {_eq: $id}}) {
+                            royalties
+                            supply
+                        }
+                    }`, "getTokenSupplyAndRoyalties", { id: this.current_token_id });
+
+                this.current_token_supply = data.itemToken[0].supply;
+                this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply}`;
             })();
         }
 
         const forSale: boolean = isSaved && current_item.xtzPerItem !== 0;
 
-        this.label_price.text = !forSale && isSaved ? "" : `${current_item.itemAmount} Items - ${current_item.xtzPerItem === 0 ? "Not collectable." : current_item.xtzPerItem + " \uA729"}`;
+        this.label_price.text = !forSale && isSaved ? "" : `${current_item.xtzPerItem === 0 ? "Not collectable." : current_item.xtzPerItem + " \uA729"}`;
+        this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply > 0 ? this.current_token_supply : '?'}`;
         this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not collectable.";
 
         this.control.linkWithMesh(current_node);
