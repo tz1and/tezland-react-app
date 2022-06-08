@@ -14,3 +14,15 @@
 .description-popover {
     white-space: pre-wrap;
 }
+
+.bg-danger-light {
+    background-color: #f5c7cc;
+}
+
+.bg-warning-light {
+    background-color: #fae9b7;
+}
+
+.bg-success-light {
+    background-color: #91ccb0;
+}

@@ -35,6 +35,8 @@ type ExploreState = {
     groundColor: string;
     burnItemId: number;
     transferItemId: number;
+    maxQuantity: number;
+    // TODO: have per-form props. or something.
     //count: number; // like this
 };
 
@@ -52,7 +54,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             currentPlace: null,
             groundColor: '#FFFFFF',
             burnItemId: -1,
-            transferItemId: -1
+            transferItemId: -1,
+            maxQuantity: 0
             // optional second annotation for better type inference
             //count: 0,
         };
@@ -69,8 +72,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             this.setState({ dispaly_overlay: display });
     }
 
-    placeItem = (node: ItemNode) => {
-        this.setState({ show_form: 'placeitem', dispaly_overlay: true, placedItem: node });
+    placeItem = (node: ItemNode, maxQuantity: number) => {
+        this.setState({ show_form: 'placeitem', dispaly_overlay: true, placedItem: node, maxQuantity: maxQuantity });
     }
 
     closeForm = (cancelled: boolean) => {
@@ -87,12 +90,12 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         this.virtualSpaceRef.current?.lockControls();
     }
 
-    selectItemFromInventory = (id: number) => {
+    selectItemFromInventory = (id: number, quantity: number) => {
         this.setState({ show_form: 'instructions', dispaly_overlay: false });
 
         const curVS = this.virtualSpaceRef.current;
         if (curVS) {
-            curVS.setInventoryItem(id);
+            curVS.setInventoryItem(id, quantity);
             curVS.lockControls();
         }
     }
@@ -154,7 +157,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'terms') form = <TermsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'settings') form = <SettingsForm closeForm={this.closeForm} />;
         else if (this.state.show_form === 'mint') form = <MintFrom closeForm={this.closeForm} />;
-        else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem!} />;
+        else if (this.state.show_form === 'placeitem') form = <PlaceForm closeForm={this.closeForm} placedItem={this.state.placedItem!} maxQuantity={this.state.maxQuantity} />;
         else if (this.state.show_form === 'inventory') form = <Inventory closeForm={this.closeForm}
             selectItemFromInventory={this.selectItemFromInventory}
             burnItemFromInventory={this.burnItemFromInventory}

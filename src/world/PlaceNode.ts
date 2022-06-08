@@ -14,6 +14,7 @@ import assert from "assert";
 import Metadata, { StorageKey } from "./Metadata";
 import { bytes2Char } from "@taquito/utils";
 import ItemNode, { ItemLoadState } from "./ItemNode";
+import ItemTracker from "../controllers/ItemTracker";
 
 
 export type PlaceItemData = {
@@ -138,6 +139,8 @@ export default class PlaceNode extends TransformNode {
         //if (this.executionAction && this.world.playerController.playerTrigger.actionManager) {
         //    this.world.playerController.playerTrigger.actionManager.unregisterAction(this.executionAction);
         //}
+
+        ItemTracker.removeTrackedItemsForPlace(this.placeId);
 
         super.dispose();
     }
@@ -455,6 +458,7 @@ export default class PlaceNode extends TransformNode {
             // Only remove temp items if op completed.
             if(completed) {
                 this.clearTempItems();
+                ItemTracker.removeTrackedItemsForPlace(this.placeId);
             }
         });
 

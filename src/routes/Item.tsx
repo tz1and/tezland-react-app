@@ -34,7 +34,7 @@ class Item extends React.Component<UserProps, UserState> {
     private async fetchHolderInfo(): Promise<any> {
         const data = await fetchGraphQL(`
             query getHolderInfo($id: bigint!) {
-                itemTokenHolder(where: {tokenId: {_eq: $id}, quantity: {_gt: 0}}, order_by: {quantity: desc}) {
+                itemTokenHolder(where: {tokenId: {_eq: $id}}, order_by: {quantity: desc}) {
                     holderId
                     quantity
                 }

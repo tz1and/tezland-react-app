@@ -5,9 +5,10 @@ import { Logging } from '../utils/Logging';
 import { fetchGraphQL } from '../ipfs/graphql';
 import { InventoryItem } from '../components/InventoryItem';
 import { scrollbarVisible } from '../utils/Utils';
+import ItemTracker from '../controllers/ItemTracker';
 
 type InventoryProps = {
-    selectItemFromInventory(id: number): void;
+    selectItemFromInventory(id: number, quantity: number): void;
     burnItemFromInventory(id: number): void;
     transferItemFromInventory(id: number): void;
     closeForm(cancelled: boolean): void;
@@ -21,7 +22,7 @@ type InventoryState = {
     //mount: HTMLDivElement | null;
     item_offset: number,
     more_data: boolean;
-    hide_zero_balances: boolean;
+    counter: number;
 };
 
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
@@ -33,16 +34,21 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         this.state = {
             item_offset: 0,
             more_data: true,
-            hide_zero_balances: true
+            counter: 0
         };
     }
 
     private fetchAmount: number = 20;
     private firstFetchDone: boolean = false;
 
+    private trackedRemovals: any[] = []; // TODO: array should belong to state?
     private itemMap: Map<number, any> = new Map(); // TODO: map should belong to state?
 
     override componentDidMount() {
+        this.fetchAvailableTempRemovals().then((res) => {
+            this.trackedRemovals = res;
+            this.setState({counter: this.state.counter + 1});
+        });
         this.fetchData();
     }
 
@@ -55,10 +61,9 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private async fetchInventory() {
         try {   
-            const hide_zero_cond = this.state.hide_zero_balances ? ", quantity: {_gt: 0}" : "";
             const data = await fetchGraphQL(`
                 query getInventory($address: String!, $offset: Int!, $amount: Int!) {
-                    itemTokenHolder(where: {holderId: {_eq: $address}${hide_zero_cond}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
+                    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
                         quantity
                         token {
                             id
@@ -75,7 +80,59 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
             return data.itemTokenHolder;
         } catch(e: any) {
             Logging.InfoDev("failed to fetch inventory: " + e.message);
-            return []
+            return [];
+        }
+    }
+
+    private async fetchAvailableTempRemovals() {
+        // get tracked ids from ItemTokenTracker
+        const trackedIds = ItemTracker.getTrackedTempItems();
+
+        if (trackedIds.length === 0) return [];
+
+        try {
+            // Fetch tokens with a balance.
+            const tokensWithBalance = await fetchGraphQL(`
+                query getTokensWithBalances($address: String!, $ids: [bigint!]) {
+                    itemTokenHolder(where: {tokenId: {_in: $ids}, holderId: {_eq: $address}}) {
+                        tokenId
+                    }
+                }`, "getTokensWithBalances", { address: this.context.walletPHK(), ids: trackedIds });
+
+            // Find all tracked tokens that don't have a balance.
+            const tokensWithoutBalance: number[] = [];
+
+            for (const tracked of trackedIds) {
+                if (!tokensWithBalance.itemTokenHolder.find((e: any) => e.tokenId === tracked))
+                    tokensWithoutBalance.push(tracked);
+            }
+
+            if(tokensWithoutBalance.length === 0) return [];
+
+            // Fetch the metadata for those tokens
+            const data = await fetchGraphQL(`
+                query getTokensWithoutBalance($ids: [bigint!]) {
+                    itemToken(where: {id: {_in: $ids}}) {
+                        id
+                        item_metadata {
+                            metadata
+                        }
+                        royalties
+                        supply
+                        minterId
+                    }
+                  }`, "getTokensWithoutBalance", { ids: tokensWithoutBalance });
+
+            // trasnform it into the format we expect
+            const result: any[] = [];
+            for (const item of data.itemToken) {
+                result.push({ quantity: 0, token: item })
+            }
+            
+            return result;
+        } catch(e: any) {
+            Logging.InfoDev("failed to fetch tokens without balance: " + e.message);
+            return [];
         }
     }
 
@@ -99,8 +156,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    handleClick = (item_id: number) => {
-        this.props.selectItemFromInventory(item_id);
+    handleClick = (item_id: number, quantity: number) => {
+        this.props.selectItemFromInventory(item_id, quantity);
     }
 
     handleBurn = (item_id: number) => {
@@ -111,21 +168,14 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         this.props.transferItemFromInventory(item_id);
     }
 
-    handleShowZeroBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.itemMap.clear();
-        
-        this.setState({
-            hide_zero_balances: e.target.checked,
-            item_offset: 0,
-            more_data: true
-        }, this.fetchData);
-    }
-
     override render() {
         const { error, more_data } = this.state;
 
         const items: JSX.Element[] = []
-         if (!error) this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item}/>))
+        if (!error) {
+            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} isTempItem={true} />))
+            this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} />))
+        }
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 
@@ -134,12 +184,6 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                 <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)}/>
                 <h2>inventory</h2>
                 Click to select an Item.
-                <div className="form-check">
-                    <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={true} onChange={this.handleShowZeroBalanceChange}/>
-                    <label className="form-check-label" htmlFor="flexCheckDefault">
-                        Hide zero balances
-                    </label>
-                </div>
                 <div id="inventoryScrollTarget" style={{height: '75vh', overflow: 'auto'}}>
                     <InfiniteScroll
                         className="d-flex flex-row flex-wrap justify-content-start align-items-start overflow-auto"

@@ -56,7 +56,7 @@ class Creations extends React.Component<CreationsProps, CreationsState> {
         try {   
             const data = await fetchGraphQL(`
                 query getCreations($address: String!, $offset: Int!, $amount: Int!) {
-                    itemToken(where: {minterId: {_eq: $address}, supply: {_gt: 0}}, limit: $amount, offset: $offset, order_by: {id: desc}) {
+                    itemToken(where: {minterId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {id: desc}) {
                         id
                         item_metadata {
                             metadata
@@ -97,7 +97,7 @@ class Creations extends React.Component<CreationsProps, CreationsState> {
         }
     }
 
-    handleClick = (item_id: number) => {
+    handleClick = (item_id: number, quantity: number) => {
         assert(this.props.navigate);
         this.props.navigate(`/i/${item_id}`);
     }

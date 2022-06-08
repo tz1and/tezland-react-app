@@ -24,7 +24,6 @@ type CollectionState = {
     //mount: HTMLDivElement | null;
     item_offset: number,
     more_data: boolean;
-    hide_zero_balances: boolean;
 };
 
 class Collection extends React.Component<CollectionProps, CollectionState> {
@@ -35,8 +34,7 @@ class Collection extends React.Component<CollectionProps, CollectionState> {
         super(props);
         this.state = {
             item_offset: 0,
-            more_data: true,
-            hide_zero_balances: true
+            more_data: true
         };
     }
 
@@ -57,10 +55,9 @@ class Collection extends React.Component<CollectionProps, CollectionState> {
 
     private async fetchInventory() {
         try {   
-            const hide_zero_cond = this.state.hide_zero_balances ? ", quantity: {_gt: 0}" : "";
             const data = await fetchGraphQL(`
                 query getCollection($address: String!, $offset: Int!, $amount: Int!) {
-                    itemTokenHolder(where: {holderId: {_eq: $address}${hide_zero_cond}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
+                    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
                         quantity
                         token {
                             id
@@ -101,7 +98,7 @@ class Collection extends React.Component<CollectionProps, CollectionState> {
         }
     }
 
-    handleClick = (item_id: number) => {
+    handleClick = (item_id: number, quantity: number) => {
         assert(this.props.navigate);
         this.props.navigate(`/i/${item_id}`);
     }
@@ -114,16 +111,6 @@ class Collection extends React.Component<CollectionProps, CollectionState> {
     handleTransfer = (item_id: number) => {
         // TODO: modal version of burn dialog
         //this.props.transferItemFromInventory(item_id);
-    }
-
-    handleShowZeroBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.itemMap.clear();
-        
-        this.setState({
-            hide_zero_balances: e.target.checked,
-            item_offset: 0,
-            more_data: true
-        }, this.fetchData);
     }
 
     override render() {

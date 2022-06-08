@@ -9,6 +9,7 @@ import {
 import BigNumber from 'bignumber.js';
 import assert from 'assert';
 import ItemNode from '../world/ItemNode';
+import ItemTracker from '../controllers/ItemTracker';
 
 interface PlaceFormValues {
     tokenId: number;
@@ -19,6 +20,7 @@ interface PlaceFormValues {
 type PlaceFormProps = {
     closeForm(cancelled: boolean): void;
     placedItem: ItemNode;
+    maxQuantity: number;
 }
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
@@ -43,7 +45,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                         errors.itemPrice = 'Price invalid';
                     }
 
-                    if (values.itemAmount < 1 || values.itemAmount > 10000) {
+                    if (values.itemAmount < 1 || values.itemAmount > props.maxQuantity) {
                         errors.itemAmount = 'Amount invalid';
                     }
                   
@@ -55,6 +57,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     if (props.placedItem) {
                         props.placedItem.itemAmount = new BigNumber(values.itemAmount);
                         props.placedItem.xtzPerItem = values.itemPrice;
+
+                        ItemTracker.trackTempItem(props.placedItem.placeId, values.tokenId, values.itemAmount);
                     }
 
                     actions.setSubmitting(false);
@@ -76,15 +80,15 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
-                                <div id="amountHelp" className="form-text">The number of Items to place. Can't be more than the amount you own.</div>
+                                <Field id="itemAmount" name="itemAmount" type="number" min={1} max={props.maxQuantity} className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
+                                <div id="amountHelp" className="form-text">The number of Items to place. Can't be more than the amount you own.<br/>(Current balance: {props.maxQuantity})</div>
                                 <ErrorMessage name="itemAmount" children={errorDisplay}/>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemPrice" className="form-label">Price</label>
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">{'\uA729'}</span>
-                                    <Field id="itemPrice" name="itemPrice" type="number" className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
+                                    <Field id="itemPrice" name="itemPrice" type="number" min={0} className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
                                 </div>
                                 <div id="priceHelp" className="form-text">The price for each Item. Set 0&#42793; if you don't want to swap.<br/>
                                 For <i>freebies</i>, <button type="button" className="btn btn-sm btn-link p-0 m-0 align-baseline" onClick={() => setFieldValue('itemPrice', 0.000001)}>set 0.000001&#42793;</button>.</div>

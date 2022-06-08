@@ -187,3 +187,5 @@ export const downloadFile = (data_url: string, filename: string) => {
 export const scrollbarVisible = (element: HTMLElement) => {
   return element.scrollHeight > element.clientHeight;
 }
+
+export const numberWithSign = (n: number): string => { return (n > 0) ? "+" + n : n.toString(); };

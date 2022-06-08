@@ -27,9 +27,9 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         this.world = null;
     }
 
-    setInventoryItem(id: number) {
+    setInventoryItem(id: number, quantity: number) {
         assert(this.world);
-        this.world.playerController.setCurrentItem(id);
+        this.world.playerController.setCurrentItem(id, quantity);
     }
 
     getCurrentLocation(): [number, number, number] {

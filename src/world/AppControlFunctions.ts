@@ -18,7 +18,7 @@ export type FormNames = 'placeproperties'
 export type AppControlFunctions = {
     loadForm(form_type: FormNames): void;
     setOverlayDispaly(display: boolean): void;
-    placeItem(node: Node): void;
+    placeItem(node: Node, maxQuantity: number): void;
     addNotification(data: NotificationData): void;
     updatePlaceInfo(place: PlaceNode): void;
 };

@@ -16,6 +16,7 @@ import PickingGuiController from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
 import world_definition from "../models/districts.json";
+import ItemTracker from "./ItemTracker";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -63,6 +64,7 @@ export default class PlayerController {
     //private isPointerLocked: boolean = false; // TODO: still needed for something?
     private currentPlace: Nullable<PlaceNode>;
     private currentItem?: number | undefined;
+    private currentItemQuantity: number = 0;
 
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
@@ -142,26 +144,42 @@ export default class PlayerController {
         this.scene.onPointerObservable.add(async (info, eventState) => {
             switch(info.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    if(info.event.button === 0 && this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() &&
+                    if(info.event.button === 0 &&
+                        // check permissions
+                        this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() &&
+                        // check item
                         this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
-                        // TODO: move placing items into Place class.
-                        const parent = this.currentPlace.tempItemsNode;
-                        assert(parent);
+                        // check item balance
+                        const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem);
+                        if (currentItemBalance <= 0) {
+                            // TODO: notification on insufficient balance.
+                            this.appControlFunctions.addNotification({
+                                id: "insufficientBalance" + this.currentItem,
+                                title: "Insufficient Balance",
+                                body: `You don't have sufficient balance to place more of item ${this.currentItem}.`,
+                                type: 'info'
+                            });
+                        }
+                        else {
+                            // TODO: move placing items into Place class.
+                            const parent = this.currentPlace.tempItemsNode;
+                            assert(parent);
 
-                        const newObject = ItemNode.CreateItemNode(this.currentPlace.placeId, new BigNumber(this.currentItem), this.scene, parent);
-                        await newObject.loadItem();
+                            const newObject = ItemNode.CreateItemNode(this.currentPlace.placeId, new BigNumber(this.currentItem), this.scene, parent);
+                            await newObject.loadItem();
 
-                        if(newObject) {
-                            // Make sure item is place relative to place origin.
-                            newObject.position = this.tempObject.position.subtract(parent.absolutePosition);
-                            newObject.rotationQuaternion = this.tempObjectRot.clone();
-                            newObject.scaling = this.tempObject.scaling.clone();
+                            if(newObject) {
+                                // Make sure item is place relative to place origin.
+                                newObject.position = this.tempObject.position.subtract(parent.absolutePosition);
+                                newObject.rotationQuaternion = this.tempObjectRot.clone();
+                                newObject.scaling = this.tempObject.scaling.clone();
 
-                            eventState.skipNextObservers = true;
+                                eventState.skipNextObservers = true;
 
-                            document.exitPointerLock();
-                            this.appControlFunctions.placeItem(newObject);
+                                document.exitPointerLock();
+                                this.appControlFunctions.placeItem(newObject, currentItemBalance);
+                            }
                         }
                     }
                     break;
@@ -272,7 +290,7 @@ export default class PlayerController {
 
                     // Clear item selection
                     case 'KeyC':
-                        this.setCurrentItem();
+                        this.setCurrentItem(undefined, 0);
                         break;
 
                     // Toggle fly mode
@@ -309,11 +327,21 @@ export default class PlayerController {
                                 // If the item is unsaved, remove it directly.
                                 if(current_item.itemId.lt(0)) {
                                     current_item.dispose();
+
+                                    // track removed items.
+                                    // TODO: set issuer on temp items and avoid code duplication.
+                                    ItemTracker.trackTempItem(current_item.placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
                                 }
                                 // Otherwise mark it for removal.
                                 else {
                                     current_item.markForRemoval = true;
                                     current_item.setEnabled(false);
+
+                                    // track removed items.
+                                    // only track items that go to the players wallet.
+                                    if (current_item.issuer === world.walletProvider.walletPHK()) {
+                                        ItemTracker.trackTempItem(current_item.placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
+                                    }
                                 }
                             }
                         }
@@ -486,7 +514,7 @@ export default class PlayerController {
 
     public getCurrentPlace() { return this.currentPlace; }
 
-    public async setCurrentItem(token_id?: number) {
+    public async setCurrentItem(token_id: number | undefined, qauntity: number) {
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();
@@ -499,6 +527,7 @@ export default class PlayerController {
         }
 
         this.currentItem = token_id;
+        this.currentItemQuantity = qauntity;
         if (this.currentItem === undefined) return;
 
         // Resetting is important for the TempObjectHelper.
