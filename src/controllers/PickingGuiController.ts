@@ -106,6 +106,7 @@ class ItemInfoGui {
         // If the item id changed, we need to fetch new metadata to update the title and minter.
         if (this.current_token_id !== token_id) {
             this.current_token_id = token_id;
+            this.current_token_supply = -1;
 
             // Fetch updated metadata.
             (async () => {
