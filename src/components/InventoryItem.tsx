@@ -47,7 +47,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
             placement={"right"}
             overlay={
                 <Popover className='description-popover'>
-                    <Popover.Header as="h3">Description</Popover.Header>
+                    <Popover.Header as="h3">{name ? name : <span className='text-danger'>Metadata missing</span>}</Popover.Header>
                     <Popover.Body>
                         {description}
                     </Popover.Body>
