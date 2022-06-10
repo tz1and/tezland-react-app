@@ -88,7 +88,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                 <label htmlFor="itemPrice" className="form-label">Price</label>
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">{'\uA729'}</span>
-                                    <Field id="itemPrice" name="itemPrice" type="number" min={0} className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
+                                    <Field id="itemPrice" name="itemPrice" type="number" min={0} step="any" className="form-control" aria-describedby="priceHelp" disabled={isSubmitting} />
                                 </div>
                                 <div id="priceHelp" className="form-text">The price for each Item. Set 0&#42793; if you don't want to swap.<br/>
                                 For <i>freebies</i>, <button type="button" className="btn btn-sm btn-link p-0 m-0 align-baseline" onClick={() => setFieldValue('itemPrice', 0.000001)}>set 0.000001&#42793;</button>.</div>
