@@ -3,6 +3,9 @@ import Conf from "../Config";
 import { Logging } from "../utils/Logging";
 
 export async function fetchGraphQL(query: string, query_name: string, variables?: object) {
+    // NOTE:
+    // HTTP caching with graphql is kinda broken, sort of. The response doesn't have the right headers set
+    // for them to be cached. could maybe get around it by way of using GET requests in some cases.
     const result = await fetch(
         Conf.hasura_url,
         {
