@@ -420,9 +420,14 @@ export class Contracts {
 
     public handleOperation(walletProvider: ITezosWalletProvider, op: TransactionWalletOperation | BatchWalletOperation, callback?: (completed: boolean) => void, confirmations?: number) {
         walletProvider.addWalletOperation(op.opHash);
-        op.confirmation().then((result) => {
-            walletProvider.walletOperationDone(op.opHash, result.completed);
-            if (callback) callback(result.completed);
+        op.confirmation(confirmations).then((result) => {
+            op.status().then(status => {
+                if (status === "applied") {
+                    walletProvider.walletOperationDone(op.opHash, result.completed);
+                    if (callback) callback(result.completed);
+                }
+                else throw new Error("Operation status: " + status);
+            });
         }).catch((reason: any) => {
             walletProvider.walletOperationDone(op.opHash, false, reason.message);
             if (callback) callback(false);
