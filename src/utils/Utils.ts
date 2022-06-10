@@ -108,6 +108,14 @@ export const truncateAddress = (address: string) => {
   return address;
 }
 
+export const truncateOperationHash = (opHash: string) => {
+  if(opHash.length > 12) {
+    return opHash.substring(0, 7) + '\u2026' + opHash.substring(opHash.length-5, opHash.length);
+  }
+
+  return opHash;
+}
+
 export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 };

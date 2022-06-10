@@ -1,4 +1,5 @@
 import React from 'react';
+import { truncateOperationHash } from '../utils/Utils';
 
 export type OperationPendingData = {
     hash: string,
@@ -22,7 +23,7 @@ export const OperationPending: React.FC<OperationPendingProps> = (props: Operati
                 <div className="toast-body flex-grow-1">
                     <p className='mb-2 fw-bolder'>Operation {title}</p>
                     <hr className='my-2'/>
-                    {body}<br/>Hash: <a className='link-light' href={'https://tzkt.io/' + props.data.hash} target='_blank' rel="noreferrer">{props.data.hash.substring(0, 23)}...</a>
+                    {body}<br/>Hash: <a className='link-light' href={'https://tzkt.io/' + props.data.hash} target='_blank' rel="noreferrer">{truncateOperationHash(props.data.hash)}</a>
                 </div>
                 { props.data.done ?
                     <button type="button" className="btn-close btn-close-white me-2 mt-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> :
