@@ -18,7 +18,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
     const item_data = props.item_metadata;
     const token_data = item_data.token;
-    const item_metadata = token_data.item_metadata.metadata ? token_data.item_metadata.metadata : {};
+    const item_metadata = (token_data.item_metadata && token_data.item_metadata.metadata) ? token_data.item_metadata.metadata : {};
 
     const name = item_metadata ? item_metadata.name : null;
     const description = item_metadata && item_metadata.description ? item_metadata.description : "None.";
