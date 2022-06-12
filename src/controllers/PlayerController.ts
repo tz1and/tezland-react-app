@@ -12,7 +12,7 @@ import PlaceNode from "../world/PlaceNode";
 import ItemNode from "../world/ItemNode";
 import { World } from "../world/World";
 import { WorldDefinition } from "../worldgen/WorldGen";
-import PickingGuiController from "./PickingGuiController";
+import PickingGuiController, { CursorType } from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import TempObjectHelper from "./TempObjectHelper";
 import world_definition from "../models/districts.json";
@@ -21,7 +21,7 @@ Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
 const PlayerWalkSpeed = 2; // m/s
-const PlayerJogSpeed = 3.3; // m/s
+const PlayerJogSpeed = 4.0; // m/s
 const PlayerFlySpeedMult = isDev() ? 10.0 : 1.2;
 const LimitFlyDistance = !isDev();
 const UnglitchCooldown = 10000; // 10s
@@ -357,10 +357,18 @@ export default class PlayerController {
                         .then(res => downloadFile(res, "tz1and_screenshot.png"));
                         break;
 
-                    // Reload place
+                    // Reload place - Dev only
                     case "KeyL":
                         if(isDev() && this.currentPlace) {
                             this.currentPlace.update(true);
+                        }
+                        break;
+
+                    // Opens directory - Dev only
+                    case 'KeyN':
+                        if(isDev()) {
+                            document.exitPointerLock();
+                            this.appControlFunctions.loadForm('directory');
                         }
                         break;
                 }
@@ -384,7 +392,7 @@ export default class PlayerController {
             .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
     }
 
-    private teleportToWorldPos(pos: Vector3) {
+    public teleportToWorldPos(pos: Vector3) {
         this.playerTrigger.position.copyFrom(pos);
     }
 
@@ -745,5 +753,9 @@ export default class PlayerController {
         } else if (hit) {
             this.pickingGui.updatePickingGui(hit.pickedMesh, hit.distance);
         }
+    }
+
+    public setCursor(cursor: CursorType) {
+        this.pickingGui.setCursor(cursor);
     }
 }

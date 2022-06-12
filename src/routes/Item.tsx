@@ -6,6 +6,7 @@ import assert from 'assert';
 import Metadata from '../world/Metadata';
 import ModelPreview from '../forms/ModelPreview';
 import { fetchGraphQL } from '../ipfs/graphql';
+import { getiFrameControl } from '../forms/DirectoryForm';
 
 interface UserProps extends WithParamsInterface {
 }
@@ -54,6 +55,13 @@ class Item extends React.Component<UserProps, UserState> {
         return data.itemToken[0];
     }
 
+    private userLink(address: string): string {
+        if(getiFrameControl(window))
+            return `/directory/u/${address}`;
+        else
+            return `/u/${address}`;
+    }
+
     override componentDidMount() {
         Metadata.getItemMetadata(this.tokenId).then(res => {
             this.setState({metadata: res});
@@ -81,7 +89,7 @@ class Item extends React.Component<UserProps, UserState> {
             
             content = <div>
                 <h1>{metadata.name}</h1>
-                by <Link to={`/u/${metadata.minter}`}>{truncateAddress(metadata.minter)}</Link>
+                by <Link to={this.userLink(metadata.minter)}>{truncateAddress(metadata.minter)}</Link>
                 <ModelPreview tokenId={this.tokenId} width={640} height={480} modelLoaded={() => {}} />
                 {/*<img src={this.getThumbnailUrl(metadata.displayUri ? metadata.displayUri : metadata.thumbnailUri)}></img>*/}
                 <h5 className="mt-3">Description:</h5>
@@ -93,7 +101,7 @@ class Item extends React.Component<UserProps, UserState> {
 
         const holderInfo = this.state.holderInfo;
         const holderInfoItems: JSX.Element[] = []
-        if (holderInfo) holderInfo.forEach((item: any) => holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={`/u/${item.holderId}`}>{truncateAddress(item.holderId)}</Link></p>))
+        if (holderInfo) holderInfo.forEach((item: any) => holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={this.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>))
 
         return (
             <main>

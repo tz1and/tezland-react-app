@@ -1,4 +1,4 @@
-import { AssetContainer, Nullable, Scene, TransformNode } from "@babylonjs/core";
+import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
 import ItemNode from "../world/ItemNode";
 import ArtifactDownloadQueue from "./ArtifactDownload";
@@ -58,6 +58,35 @@ class ArtifactMemCache {
         instance.rootNodes[0].name = `item${token_id}_clone`;
         instance.rootNodes[0].parent = parent;
     
+        return parent;
+    }
+
+    public async loadOther(id: number, fileName: string, scene: Scene, parent: TransformNode) {
+        let assetPromise = this.artifactCache.get(id);
+        if(!assetPromise) {
+            assetPromise = SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
+    
+            /*if (this.artifactCache.has(token_id_number)) {
+                Logging.ErrorDev("Asset was already loaded!", token_id_number);
+            }*/
+    
+            this.artifactCache.set(id, assetPromise);
+        }
+        //else Logging.InfoDev("mesh found in cache");
+
+        let asset;
+        try {
+            asset = await assetPromise;
+        } catch(e: any) {
+            // If the asset fails to resolve, remove the promise from cache.
+            this.artifactCache.delete(id);
+            throw e;
+        }
+
+        const instance = asset.instantiateModelsToScene();
+        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
+        instance.rootNodes[0].parent = parent;
+
         return parent;
     }
 }

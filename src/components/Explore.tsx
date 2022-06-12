@@ -20,6 +20,7 @@ import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
+import { DirectoryForm } from '../forms/DirectoryForm';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -140,6 +141,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         if (curVS) curVS.teleportToLocation(location);
     };
 
+    teleportToWorldPos = (pos: [number, number]): void => {
+        const curVS = this.virtualSpaceRef.current;
+        if (curVS) curVS.teleportToWorldPos(pos);
+    };
+
     override componentDidMount() {
         // check if the virtual world failed to load for some reason.
         // TODO: the way the loading errors are handled is kinda nasty. Improve!
@@ -165,6 +171,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'burn') form = <BurnForm closeForm={this.closeForm} itemId={this.state.burnItemId} />;
         else if (this.state.show_form === 'transfer') form = <TransferForm closeForm={this.closeForm} itemId={this.state.transferItemId} />;
         else if (this.state.show_form === 'placeproperties') form = <EditPlace closeForm={this.closeForm} place={this.state.currentPlace!} />;
+        else if (this.state.show_form === 'directory') form = <DirectoryForm iFrameControl={{
+            teleportToWorldPos: this.teleportToWorldPos,
+            closeForm: this.closeForm
+        }} />;
 
         let overlay = !this.state.dispaly_overlay ? null :
             <div className="Explore-overlay">

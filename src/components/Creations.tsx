@@ -6,6 +6,7 @@ import { InventoryItem } from '../components/InventoryItem';
 import { scrollbarVisible } from '../utils/Utils';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import assert from 'assert';
+import { getiFrameControl } from '../forms/DirectoryForm';
 
 interface CreationsProps extends WithNavigateInterface {
     //selectItemFromInventory(id: number): void;
@@ -99,7 +100,10 @@ class Creations extends React.Component<CreationsProps, CreationsState> {
 
     handleClick = (item_id: number, quantity: number) => {
         assert(this.props.navigate);
-        this.props.navigate(`/i/${item_id}`);
+        if(getiFrameControl(window))
+            this.props.navigate(`/directory/i/${item_id}`);
+        else
+            this.props.navigate(`/i/${item_id}`);
     }
 
     handleBurn = (item_id: number) => {

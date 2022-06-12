@@ -13,6 +13,7 @@ export type FormNames = 'placeproperties'
     | 'burn'
     | 'transfer'
     | 'loadingerror'
+    | 'directory'
     | 'terms';
 
 export type AppControlFunctions = {
@@ -22,3 +23,8 @@ export type AppControlFunctions = {
     addNotification(data: NotificationData): void;
     updatePlaceInfo(place: PlaceNode): void;
 };
+
+export type iFrameControlFunctions = {
+    teleportToWorldPos(pos: [number, number]): void;
+    closeForm(cancelled: boolean): void;
+}

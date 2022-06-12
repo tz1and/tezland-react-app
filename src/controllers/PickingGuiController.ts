@@ -1,5 +1,5 @@
 import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
-import { AdvancedDynamicTexture, Control, Ellipse, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, Control, Ellipse, Image, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import assert from "assert";
 import { fetchGraphQL } from "../ipfs/graphql";
 import Contracts from "../tz/Contracts";
@@ -7,6 +7,7 @@ import { truncate, truncateAddress } from "../utils/Utils";
 import ItemNode from "../world/ItemNode";
 import Metadata from "../world/Metadata";
 import { World } from "../world/World";
+import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 
 class ItemInfoGui {
     private control: Control;
@@ -148,6 +149,11 @@ class ItemInfoGui {
     }
 }
 
+export enum CursorType {
+    Pointer = 0,
+    Hand
+}
+
 export default class PickingGuiController {
 
     private world: World;
@@ -155,6 +161,8 @@ export default class PickingGuiController {
     private current_node: Nullable<TransformNode>;
 
     private infoGui: ItemInfoGui;
+
+    private cursor: Nullable<Control>;
 
     constructor(world: World) {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -186,11 +194,9 @@ export default class PickingGuiController {
         }, PointerEventTypes.POINTERDOWN);
 
         // circle pointer
-        var circ = new Ellipse();
-        circ.widthInPixels = 4;
-        circ.heightInPixels = 4;
-        circ.color = "white";
-        this.advancedTexture.addControl(circ);
+        this.cursor = this.createCursor(0);
+        assert(this.cursor);
+        this.advancedTexture.addControl(this.cursor);
 
         this.infoGui = new ItemInfoGui(this.advancedTexture);
 
@@ -249,5 +255,35 @@ export default class PickingGuiController {
         }
 
         this.infoGui.updateInfo(current_item.tokenId.toNumber(), this.current_node, current_item);
+    }
+
+    private createCursor(cursor: CursorType): Nullable<Control> {
+        switch (cursor) {
+            case CursorType.Pointer:
+                var cursorPoint = new Ellipse();
+                cursorPoint.widthInPixels = 4;
+                cursorPoint.heightInPixels = 4;
+                cursorPoint.color = "white";
+                return cursorPoint;
+
+            case CursorType.Hand:
+                var cursorHand = new Image(undefined, handIcon);
+                cursorHand.widthInPixels = 16;
+                cursorHand.heightInPixels = 16;
+                cursorHand.color = "white";
+                return cursorHand;
+        }
+
+        return null;
+    }
+
+    // TODO: improve this to not constantly re-create the cursors.
+    public setCursor(cursor: CursorType) {
+        assert(this.cursor);
+        this.advancedTexture.removeControl(this.cursor);
+
+        this.cursor = this.createCursor(cursor);
+        assert(this.cursor);
+        this.advancedTexture.addControl(this.cursor);
     }
 }

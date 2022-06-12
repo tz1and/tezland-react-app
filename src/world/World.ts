@@ -24,15 +24,16 @@ import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
-import { WorldDefinition } from "../worldgen/WorldGen";
 import { isDev } from "../utils/Utils";
 import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
 import PQueue from 'p-queue/dist';
-import world_definition from "../models/districts.json";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
+import TeleporterBooth from "./TeleporterBooth";
+import { WorldDefinition } from "../worldgen/WorldGen";
+import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -399,6 +400,7 @@ export class World {
             walls.visibility = 0;*/
 
             //this.loadRoadDecorations(district.curbs, counter);
+            this.loadTeleportationBooths(district);
 
             counter++;
         }
@@ -492,6 +494,13 @@ export class World {
             bridgeNode.rotation = Quaternion.FromRotationMatrix(rot_m).toEulerAngles();
 
             counter++;
+        }
+    }
+
+    //private teleportation booths
+    private async loadTeleportationBooths(district: any) {
+        for (const p of district.teleportation_booths) {
+            new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.scene, this.playerController, this.appControlFunctions);
         }
     }
 

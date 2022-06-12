@@ -5,6 +5,7 @@ import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
+import { Vector3 } from '@babylonjs/core';
 
 type VirtualSpaceProps = {
     appControl: AppControlFunctions;
@@ -41,6 +42,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     teleportToLocation(location: string) {
         assert(this.world);
         this.world.playerController.teleportToLocation(location);
+    }
+
+    teleportToWorldPos(pos: [number, number]) {
+        assert(this.world);
+        this.world.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
     }
 
     lockControls() {
