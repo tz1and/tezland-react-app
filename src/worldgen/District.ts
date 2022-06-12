@@ -15,6 +15,7 @@ export type DistrictDefinition = {
     bridge_connections: BridgeConnection[];
     roads: Edge[];
     curbs: Edge[];
+    teleportation_booths: Vector2[];
 }
 
 export type BlockGenOptions = {
@@ -30,6 +31,7 @@ export default class District extends WorldPolygon {
     public seed: number;
     public build_height_provider: any | undefined;
     public spawn: Vector2;
+    public teleportation_booths: Vector2[];
     readonly allow_rotation: boolean;
     readonly block_gen_opts: BlockGenOptions;
 
@@ -41,6 +43,7 @@ export default class District extends WorldPolygon {
         this.bridge_connections = [];
         this.seed = seed;
         this.spawn = new Vector2();
+        this.teleportation_booths = [];
         this.allow_rotation = allow_rotation;
 
         if (block_gen_opts)
@@ -58,6 +61,6 @@ export default class District extends WorldPolygon {
     }
 
     public serialise(): DistrictDefinition {
-        return { center: this.center, spawn: this.spawn, vertices: this.vertices, bridge_connections: this.bridge_connections, roads: this.roads, curbs: this.curbs };
+        return { center: this.center, spawn: this.spawn, vertices: this.vertices, bridge_connections: this.bridge_connections, roads: this.roads, curbs: this.curbs, teleportation_booths: this.teleportation_booths };
     }
 }

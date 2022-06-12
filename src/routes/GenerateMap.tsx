@@ -140,8 +140,10 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                     Contracts.handleOperation(this.context, batch_op, (completed) => {
                         if (completed) resolve();
                         else reject();
-                    }, 10);
+                    }, 3);
                 })
+
+                // TODO: wait for finality!
 
                 // TODO: figure out how long to wait between operations...
                 console.log("sleep a little");
@@ -159,8 +161,10 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 Contracts.handleOperation(this.context, batch_op, (completed) => {
                     if (completed) resolve();
                     else reject();
-                }, 10);
+                }, 3);
             })
+
+            // TODO: wait for finality!
         }
     }
 
@@ -170,7 +174,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         // TODO: add batch support!
 
-        const last_batch_id = 380 + 1;
+        const last_batch_id = 673 + 1;
         const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
 
         const known_places: number[] = Array.from({length: last_minted_place_id - last_batch_id + 1}, (x, i) => last_batch_id + i);
@@ -256,7 +260,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }*/
         ]).send();
 
-        Contracts.handleOperation(this.context, batch_op, undefined, 10);
+        Contracts.handleOperation(this.context, batch_op, undefined, 3);
     }
 
     private batchWhitelist = async () => {
@@ -273,7 +277,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }
         ]).send();
 
-        Contracts.handleOperation(this.context, wl_op, undefined, 10);
+        Contracts.handleOperation(this.context, wl_op, undefined, 3);
     }
 
     private batchTransferPlaces = async () => {
@@ -295,7 +299,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             txs: txs
         }]).send();
 
-        Contracts.handleOperation(this.context, transfer_places_op, undefined, 10);
+        Contracts.handleOperation(this.context, transfer_places_op, undefined, 3);
     }
 
     private publicPlaces: Set<number> = new Set([
@@ -326,7 +330,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
     // The wing
     private generateDistrict1() {
-        const district_1 = new VoronoiDistrict(new Vector2(0,0), [
+        const district = new VoronoiDistrict(new Vector2(0,0), [
             // right edge
             new Vector2(-0,-200),
             new Vector2(-44,-90),
@@ -351,21 +355,21 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         ], 1234);
 
         // generate central circle
-        district_1.addCircle(new Vector2(0, 0), 40, 0, 8);
+        district.addCircle(new Vector2(0, 0), 40, 0, 8);
 
-        for(const s of district_1.sites) {
-            district_1.noSplit.push(new Vector2(s.x, s.y));
+        for(const s of district.sites) {
+            district.noSplit.push(new Vector2(s.x, s.y));
         }
 
-        district_1.addCircle(new Vector2(0, 0), 80, 0, 8);
+        district.addCircle(new Vector2(0, 0), 80, 0, 8);
 
         // Add some square blocks
         for (let i = 0; i < 1; ++i) {
-            district_1.addCircle(new Vector2(164 - 65 * i, -164), 65, Angle.FromDegrees(0).radians(), 4);
+            district.addCircle(new Vector2(164 - 65 * i, -164), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
         for (let i = 0; i < 1; ++i) {
-            district_1.addCircle(new Vector2(164 - 65 * i, 164), 65, Angle.FromDegrees(0).radians(), 4);
+            district.addCircle(new Vector2(164 - 65 * i, 164), 65, Angle.FromDegrees(0).radians(), 4);
         }
 
         //district_1.noSplit.push(new Vector2(395 - 65, -200));
@@ -432,9 +436,13 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         district_1.noSplit.push(new Vector2(275 + 65, 0));
         district_1.noSplit.push(new Vector2(-275 - 65, 0));*/
 
-        district_1.addRandomSites(20, 10);
+        district.addRandomSites(20, 10);
 
-        return district_1;
+        district.teleportation_booths.push(new Vector2(20, -11));
+        district.teleportation_booths.push(new Vector2(130, -195));
+        district.teleportation_booths.push(new Vector2(50, 195));
+
+        return district;
     }
 
     // It's the little island
@@ -450,7 +458,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         }
 
         //const r1 = 29, r2 = 40;
-        const district_2 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             points.reverse(),
             /*[
                 new Vector2(-r1,-r1),
@@ -466,21 +474,21 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         );
 
         // generate central circle
-        district_2.addCircle(new Vector2(0, 0), 100, 0, 8);
+        district.addCircle(new Vector2(0, 0), 100, 0, 8);
 
-        for(const s of district_2.sites) {
-            district_2.noSplit.push(new Vector2(s.x, s.y));
+        for(const s of district.sites) {
+            district.noSplit.push(new Vector2(s.x, s.y));
         }
 
-        district_2.center = new Vector2(-100, 0);
+        district.center = new Vector2(-100, 0);
 
-        return district_2
+        return district
     }
 
     // The reverse C
     private generateDistrict3() {
 
-        const district_3 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             [
                 // right edge
                 new Vector2(180,-200),
@@ -497,34 +505,38 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             ].reverse(), 255
         );
 
-        district_3.spawn = new Vector2(-7.8, 0);
+        district.spawn = new Vector2(-7.8, 0);
 
         // generate central circle
-        district_3.addCircle(new Vector2(45, -80), 50, 0, 6);
-        district_3.noSplit.push(new Vector2(45, -80));
+        district.addCircle(new Vector2(45, -80), 50, 0, 6);
+        district.noSplit.push(new Vector2(45, -80));
 
-        district_3.addCircle(new Vector2(45, 80), 50, 0, 6);
-        district_3.noSplit.push(new Vector2(45, 80));
+        district.addCircle(new Vector2(45, 80), 50, 0, 6);
+        district.noSplit.push(new Vector2(45, 80));
 
         // generate a block
-        district_3.addCircle(new Vector2(-62.2, 0), 70, Angle.FromDegrees(0).radians(), 4);
+        district.addCircle(new Vector2(-62.2, 0), 70, Angle.FromDegrees(0).radians(), 4);
 
         //district_3.addSite(new Vector2(7.8, 0), false, true, 25);
-        district_3.noSplit.push(new Vector2(7.8, 0));
-        district_3.noSplit.push(new Vector2(20, -36.69872981077806));
-        district_3.noSplit.push(new Vector2(20, 36.69872981077806));
+        district.noSplit.push(new Vector2(7.8, 0));
+        district.noSplit.push(new Vector2(20, -36.69872981077806));
+        district.noSplit.push(new Vector2(20, 36.69872981077806));
 
-        district_3.addRandomSites(5, 15589);
+        district.addRandomSites(5, 15589);
 
-        district_3.center = new Vector2(-200, 0);
+        district.center = new Vector2(-200, 0);
 
-        return district_3;
+        district.teleportation_booths.push(new Vector2(-30, 0));
+        district.teleportation_booths.push(new Vector2(45, 145));
+        district.teleportation_booths.push(new Vector2(85, -155));
+
+        return district;
     }
 
     // The the lower right part of the ring
     private generateDistrict4() {
 
-        const district_4 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             [
                 new Vector2(250,-80), // top left
                 new Vector2(260,100), // bottom left
@@ -547,31 +559,35 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             ].reverse(), 123456
         );
 
-        district_4.spawn = new Vector2(-95, -105);
+        district.spawn = new Vector2(-95, -105);
 
         // generate central circle
-        district_4.addCircle(new Vector2(-95, -105), 70, Angle.FromDegrees(45).radians(), 6);
-        district_4.noSplit.push(new Vector2(-95, -105));
+        district.addCircle(new Vector2(-95, -105), 70, Angle.FromDegrees(45).radians(), 6);
+        district.noSplit.push(new Vector2(-95, -105));
 
         // generate a block between the two bays left
-        district_4.addCircle(new Vector2(60, 10), 92, Angle.FromDegrees(0).radians(), 4);
+        district.addCircle(new Vector2(60, 10), 92, Angle.FromDegrees(0).radians(), 4);
 
         // make some stuff on the left side
-        district_4.addSite(new Vector2(260,-80), true, true, 80);
+        district.addSite(new Vector2(260,-80), true, true, 80);
         //district_4.addSite(new Vector2(260,10), true, true, 80);
         //district_4.addSite(new Vector2(160,10), true, true, 80);
-        district_4.addSite(new Vector2(260,100), true, true, 80);
+        district.addSite(new Vector2(260,100), true, true, 80);
         
-        district_4.addRandomSites(25, 78415);
+        district.addRandomSites(25, 78415);
 
-        district_4.center = new Vector2(-200, 300);
+        district.center = new Vector2(-200, 300);
 
-        return district_4;
+        district.teleportation_booths.push(new Vector2(-125, -75));
+        district.teleportation_booths.push(new Vector2(105, 10));
+        district.teleportation_booths.push(new Vector2(-220, -220));
+
+        return district;
     }
 
     private generateDistrict5() {
 
-        const district_5 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             [
                 new Vector2(-100, 100),
                 new Vector2(10, 180),
@@ -591,30 +607,33 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         // generate central circle
         const central = new Vector2(50,100);
-        district_5.addCircle(central, 60, Angle.FromDegrees(0).radians(), 4);
-        district_5.noSplit.push(central);
+        district.addCircle(central, 60, Angle.FromDegrees(0).radians(), 4);
+        district.noSplit.push(central);
 
         const central2 = new Vector2(50,-20);
-        district_5.addCircle(central2, 80, Angle.FromDegrees(0).radians(), 4);
-        district_5.noSplit.push(central2);
+        district.addCircle(central2, 80, Angle.FromDegrees(0).radians(), 4);
+        district.noSplit.push(central2);
 
         // top blocks
         const top = new Vector2(55,-205);
-        district_5.addCircle(top, 85, Angle.FromDegrees(0).radians(), 4);
+        district.addCircle(top, 85, Angle.FromDegrees(0).radians(), 4);
 
         // make some stuff on the right side
-        district_5.addSite(new Vector2(-180, 100), true, true, 100);
-        district_5.exclusion.push(new ExclusionZone(new Vector2(-180, -60), 50));
+        district.addSite(new Vector2(-180, 100), true, true, 100);
+        district.exclusion.push(new ExclusionZone(new Vector2(-180, -60), 50));
 
-        district_5.center = new Vector2(300, 300);
-        district_5.spawn = central2;
+        district.center = new Vector2(300, 300);
+        district.spawn = new Vector2(50,-25);
 
-        return district_5;
+        district.teleportation_booths.push(new Vector2(50, 10));
+        district.teleportation_booths.push(new Vector2(10, -160));
+
+        return district;
     }
 
     private generateDistrict6() {
 
-        const district_6 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             [
                 new Vector2(-100, -100),
                 new Vector2(10, -180),
@@ -634,30 +653,33 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         // generate central circle
         const central = new Vector2(-150,-65);
-        district_6.addCircle(central, 60, Angle.FromDegrees(0).radians(), 4);
-        district_6.exclusion.push(new ExclusionZone(central, 150));
-        district_6.noSplit.push(central);
+        district.addCircle(central, 60, Angle.FromDegrees(0).radians(), 4);
+        district.exclusion.push(new ExclusionZone(central, 150));
+        district.noSplit.push(central);
 
         const central2 = new Vector2(50,20);
-        district_6.addCircle(central2, 80, Angle.FromDegrees(0).radians(), 4);
-        district_6.noSplit.push(central2);
+        district.addCircle(central2, 80, Angle.FromDegrees(0).radians(), 4);
+        district.noSplit.push(central2);
 
         // top blocks
         const top = new Vector2(55,205);
-        district_6.addCircle(top, 85, Angle.FromDegrees(0).radians(), 4);
+        district.addCircle(top, 85, Angle.FromDegrees(0).radians(), 4);
         
-        district_6.addRandomSites(10, 98758);
+        district.addRandomSites(10, 98758);
 
-        district_6.center = new Vector2(300, -300);
-        district_6.spawn = central2;
+        district.center = new Vector2(300, -300);
+        district.spawn = central2;
 
-        return district_6;
+        district.teleportation_booths.push(new Vector2(50, 60));
+        district.teleportation_booths.push(new Vector2(-120, -90));
+
+        return district;
     }
 
     // The upper left part of the ring
     private generateDistrict7() {
 
-        const district_7 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             [
                 new Vector2(290,80), // top left
                 new Vector2(290,10), // bay top left
@@ -672,24 +694,27 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             ], 123456, true
         );
 
-        district_7.spawn = new Vector2(50, -10);
+        district.spawn = new Vector2(50, -10);
 
         // generate spawn
-        district_7.addCircle(district_7.spawn, 55, Angle.FromDegrees(0).radians(), 6);
-        district_7.noSplit.push(district_7.spawn);
+        district.addCircle(district.spawn, 55, Angle.FromDegrees(0).radians(), 6);
+        district.noSplit.push(district.spawn);
 
         // make some stuff on the left side
-        district_7.addCircle(new Vector2(270,-10), 50, Angle.FromDegrees(0).radians(), 4);
+        district.addCircle(new Vector2(270,-10), 50, Angle.FromDegrees(0).radians(), 4);
 
-        district_7.center = new Vector2(-200, -300);
+        district.center = new Vector2(-200, -300);
 
-        return district_7;
+        district.teleportation_booths.push(new Vector2(22.5, -10));
+        district.teleportation_booths.push(new Vector2(180, 75));
+
+        return district;
     }
 
     // The upper right part of the ring
     private generateDistrict8() {
 
-        const district_8 = new VoronoiDistrict(new Vector2(0,0),
+        const district = new VoronoiDistrict(new Vector2(0,0),
             [
                 new Vector2(-100,-100), // bend bottom left
                 new Vector2(-140-20,-80-20), // bend bottom, right
@@ -703,22 +728,25 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             ], 123456, true , { minSize: 35, maxSize: 45 }
         );
 
-        district_8.spawn = new Vector2(-95-60, 105-60);
+        district.spawn = new Vector2(-155, 45);
 
         // generate central circle
-        district_8.addCircle(district_8.spawn, 50, Angle.FromDegrees(105).radians(), 6);
-        district_8.noSplit.push(district_8.spawn);
+        district.addCircle(district.spawn, 50, Angle.FromDegrees(105).radians(), 6);
+        district.noSplit.push(district.spawn);
 
         // generate a block between the two bays left
-        district_8.addCircle(new Vector2(-250, 290), 50, Angle.FromDegrees(0).radians(), 4);
-        district_8.noSplit.push(new Vector2(-250, 290));
-        district_8.addCircle(new Vector2(-250+100, 290), 50, Angle.FromDegrees(0).radians(), 4);
-        district_8.noSplit.push(new Vector2(-250+100, 290));
-        district_8.addCircle(new Vector2(-250+50, 290+50), 50, Angle.FromDegrees(0).radians(), 4);
+        district.addCircle(new Vector2(-250, 290), 50, Angle.FromDegrees(0).radians(), 4);
+        district.noSplit.push(new Vector2(-250, 290));
+        district.addCircle(new Vector2(-250+100, 290), 50, Angle.FromDegrees(0).radians(), 4);
+        district.noSplit.push(new Vector2(-250+100, 290));
+        district.addCircle(new Vector2(-250+50, 290+50), 50, Angle.FromDegrees(0).radians(), 4);
 
-        district_8.center = new Vector2(-200, -300);
+        district.center = new Vector2(-200, -300);
 
-        return district_8;
+        district.teleportation_booths.push(new Vector2(-162.5, 17.5));
+        district.teleportation_booths.push(new Vector2(-200, 240));
+
+        return district;
     }
 
     private generateDistrict9() {
@@ -744,6 +772,10 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         district.addCircle(new Vector2(0, -150), 80, 0, 4);
 
         district.center = new Vector2(580, 0);
+
+        district.teleportation_booths.push(new Vector2(-40, 0));
+        district.teleportation_booths.push(new Vector2(40, -120));
+        district.teleportation_booths.push(new Vector2(125, 170));
 
         return district;
     }
@@ -772,7 +804,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         //district.addCircle(new Vector2(0, 150), 80, 0, 4);
         //district.addCircle(new Vector2(0, -150), 80, 0, 4);
 
-        district.center = new Vector2(580+260, 0);
+        district.center = new Vector2(840, 0);
+
+        district.teleportation_booths.push(new Vector2(32.5, 75));
+        district.teleportation_booths.push(new Vector2(-120, 0));
+        district.teleportation_booths.push(new Vector2(45, -120));
 
         return district;
     }
@@ -929,6 +965,10 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             const bridgeColor = '#888888';
             const publicFillColor = '#d6ffd8';
             const publicStrokeColor = '#3dba41';
+            const teleBoothFillColor = "lightcoral";
+            const teleBoothStrokeColor = "red";
+            const spawnFillColor = "skyblue";
+            const spawnStrokeColor = "royalblue";
 
             // Draw the svg
             // TODO: figure out which way to flip the map...
@@ -960,6 +1000,17 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                             ++lot_counter;
                         }
                     }
+                }
+
+                // Draw spawn and teleportation booths if preview
+                if (mark_minted) {
+                    for (const p of district.teleportation_booths) {
+                        const pt = district.center.add(p);
+                        draw.circle(5).fill(teleBoothFillColor).stroke(teleBoothStrokeColor).move(pt.x - 2.5, pt.y - 2.5);
+                    }
+
+                    const spawnt = district.center.add(district.spawn);
+                    draw.circle(5).fill(spawnFillColor).stroke(spawnStrokeColor).move(spawnt.x - 2.5, spawnt.y - 2.5);
                 }
 
                 // Draw roads
