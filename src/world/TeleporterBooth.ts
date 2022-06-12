@@ -9,6 +9,7 @@ export default class TeleporterBooth extends TransformNode {
         super("Teleporter Booth", scene, isPure);
         this.position = pos;
 
+        // TODO: Well, we should be using webpack for the booth models.
         ArtifactMemCache.loadOther(-80074, 'telebooth.glb', scene, this).then(res => {
             res.getChildMeshes().forEach(c => {
                 if (c.name === "Clone of ControlPanel") {
