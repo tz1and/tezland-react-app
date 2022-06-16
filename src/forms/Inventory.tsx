@@ -67,8 +67,17 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                         quantity
                         token {
                             id
-                            item_metadata {
-                                metadata
+                            metadata {
+                                name
+                                description
+                                artifactUri
+                                displayUri
+                                thumbnailUri
+                                baseScale
+                                fileSize
+                                mimeType
+                                polygonCount
+                                timestamp
                             }
                             royalties
                             supply
@@ -114,8 +123,17 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                 query getTokensWithoutBalance($ids: [bigint!]) {
                     itemToken(where: {id: {_in: $ids}}) {
                         id
-                        item_metadata {
-                            metadata
+                        metadata {
+                            name
+                            description
+                            artifactUri
+                            displayUri
+                            thumbnailUri
+                            baseScale
+                            fileSize
+                            mimeType
+                            polygonCount
+                            timestamp
                         }
                         royalties
                         supply

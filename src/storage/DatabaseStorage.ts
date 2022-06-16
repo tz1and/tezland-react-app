@@ -4,7 +4,7 @@ import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import { Nullable } from "@babylonjs/core";
 import assert from "assert";
 
-const databaseVersion = 11;
+const databaseVersion = 12;
 
 type ArtifactMetaType = {
     lastAccess: Date;
@@ -85,6 +85,14 @@ export class DatabaseStorage implements IStorageProvider {
                             const artifactCache = db.createObjectStore("artifactMeta");
                             artifactCache.createIndex("lastAccess", "lastAccess");
                             artifactCache.createIndex("size", "size");
+                        }
+                        else if (oldVersion < 12) {
+                            // Need to clear metadata tables
+                            db.deleteObjectStore("placeMetadata");
+                            db.deleteObjectStore("itemMetadata");
+
+                            db.createObjectStore("placeMetadata");
+                            db.createObjectStore("itemMetadata");
                         }
                     } catch (ex: any) {
                         Logging.Error("Error while creating object stores. Exception: " + ex.message);

@@ -39,16 +39,8 @@ export default class ArtifactDownload {
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
         const hash = decodeSplitEncodeURI(itemMetadata.artifactUri.slice(7)) + '/';
-    
-        const artifact_format = itemMetadata.formats.find((e: any) => e.uri === itemMetadata.artifactUri);
-        if (!artifact_format) throw new Error('Artifact format not found');
 
-        // early out if file size in artifact format is missing.
-        if(!artifact_format.fileSize) {
-            throw new Error("Item " + token_id + " metadata is missing fileSize. Ignoring.");
-        }
-
-        let fileSize = artifact_format.fileSize;
+        let fileSize = itemMetadata.fileSize;
         let polygonCount = itemMetadata.polygonCount;
         // early out if the file size from metadata is > sizeLimit.
         if(fileSize > AppSettings.fileSizeLimit.value) {
@@ -60,7 +52,7 @@ export default class ArtifactDownload {
             throw new Error("Item " + token_id + " has too many polygons. Ignoring.");
         }
 
-        const mime_type = artifact_format.mimeType;
+        const mime_type = itemMetadata.mimeType;
 
         let cachedBuf = await this.loadFromDBCache(itemMetadata.artifactUri)
         if(!cachedBuf) {

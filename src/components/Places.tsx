@@ -61,9 +61,6 @@ export class Places extends React.Component<PlacesProps, PlacesState> {
                     placeTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
                         token {
                             id
-                            place_metadata {
-                                metadata
-                            }
                         }
                     }
                   }`, "getPlaces", { address: this.props.address, amount: this.fetchAmount, offset: this.state.item_offset });
@@ -119,7 +116,7 @@ export class Places extends React.Component<PlacesProps, PlacesState> {
         const isOwned = this.context.isWalletConnected() && this.context.walletPHK() === this.props.address;
 
         const items: JSX.Element[] = []
-        if (!error) this.itemMap.forEach(item => items.push(<PlaceItem key={item.token.id} onSelect={this.handleClick} onTransfer={isOwned ? this.handleTransfer : undefined} item_metadata={item}/>))
+        if (!error) this.itemMap.forEach(item => items.push(<PlaceItem key={item.token.id} onSelect={this.handleClick} onTransfer={isOwned ? this.handleTransfer : undefined} token_id={item.token.id}/>))
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 

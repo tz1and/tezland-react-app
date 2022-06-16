@@ -62,8 +62,17 @@ class Collection extends React.Component<CollectionProps, CollectionState> {
                         quantity
                         token {
                             id
-                            item_metadata {
-                                metadata
+                            metadata {
+                                name
+                                description
+                                artifactUri
+                                displayUri
+                                thumbnailUri
+                                baseScale
+                                fileSize
+                                mimeType
+                                polygonCount
+                                timestamp
                             }
                             royalties
                             supply

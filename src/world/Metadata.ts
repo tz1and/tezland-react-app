@@ -71,21 +71,32 @@ export default class Metadata {
             const chunk = places_to_fetch.slice(i, i + chunk_size);
 
             const data = await fetchGraphQL(`
-                query getPlaceTokenMetadataBatch($ids: [numeric!]) {
-                    place_token_metadata(where: { token_id: { _in: $ids } }) {
-                        token_id
-                        metadata
+                query getPlaceTokenMetadataBatch($ids: [bigint!]) {
+                    placeTokenMetadata(where: { id: { _in: $ids } }) {
+                        id
+                        name
+                        description
+                        borderCoordinates
+                        centerCoordinates
+                        placeType
+                        buildHeight
+                        timestamp
+                        placeToken {
+                            minterId
+                        }
                     }
                 }`, "getPlaceTokenMetadataBatch", { ids: chunk });
 
-            for (const placeToken of data.place_token_metadata) {
-                const metadata = placeToken.metadata;
-                if (metadata) {
-                    metadata.id = placeToken.token_id;
-                    // Probably OK not to await this.
-                    Metadata.Storage.saveObject(placeToken.token_id, StorageKey.PlaceMetadata, metadata);
-                    place_metadatas.push(metadata);
-                }
+            for (const metadata of data.placeTokenMetadata) {
+                // fix up the coordinates
+                metadata.borderCoordinates = JSON.parse(metadata.borderCoordinates)
+                metadata.centerCoordinates = JSON.parse(metadata.centerCoordinates)
+                // set minter
+                metadata.minter = metadata.placeToken[0].minterId;
+                delete metadata.placeToken;
+
+                Metadata.Storage.saveObject(metadata.id, StorageKey.PlaceMetadata, metadata);
+                place_metadatas.push(metadata);
             }
         }
 
@@ -101,21 +112,35 @@ export default class Metadata {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
             const data = await fetchGraphQL(`
-                query getPlaceTokenMetadata($id: numeric!) {
-                    place_token_metadata(where: { token_id: { _eq: $id } }) {
-                        token_id
-                        metadata
+                query getPlaceTokenMetadata($id: bigint!) {
+                    placeTokenMetadata(where: { id: { _eq: $id } }) {
+                        id
+                        name
+                        description
+                        borderCoordinates
+                        centerCoordinates
+                        placeType
+                        buildHeight
+                        timestamp
+                        placeToken {
+                            minterId
+                        }
                     }
                 }`, "getPlaceTokenMetadata", { id: token_id });
 
             // fix up border and center coords
-            const placeToken = data.place_token_metadata[0];
-            const metadata = placeToken.metadata;
+            const metadata = data.placeTokenMetadata[0];
+
             // TODO: await store?
             if (metadata) {
-                metadata.id = placeToken.token_id;
-                // Probably OK not to await this.
-                Metadata.Storage.saveObject(token_id, StorageKey.PlaceMetadata, metadata);
+                // fix up the coordinates
+                metadata.borderCoordinates = JSON.parse(metadata.borderCoordinates)
+                metadata.centerCoordinates = JSON.parse(metadata.centerCoordinates)
+                // set minter
+                metadata.minter = metadata.placeToken[0].minterId;
+                delete metadata.placeToken;
+
+                Metadata.Storage.saveObject(metadata.id, StorageKey.PlaceMetadata, metadata);
             }
             tokenMetadata = metadata;
         }
@@ -132,20 +157,33 @@ export default class Metadata {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
             const data = await fetchGraphQL(`
-                query getItemTokenMetadata($id: numeric!) {
-                    item_token_metadata(where: { token_id: { _eq: $id } }) {
-                        token_id
-                        metadata
+                query getItemTokenMetadata($id: bigint!) {
+                    itemTokenMetadata(where: { id: { _eq: $id } }) {
+                        id
+                        name
+                        description
+                        artifactUri
+                        displayUri
+                        thumbnailUri
+                        baseScale
+                        fileSize
+                        mimeType
+                        polygonCount
+                        timestamp
+                        itemToken {
+                            minterId
+                        }
                     }
                 }`, "getItemTokenMetadata", { id: token_id });
 
-            const itemToken = data.item_token_metadata[0];
-            const metadata = itemToken.metadata;
-            // TODO: we're relying on minter from json to be correct, maybe get from item_token
-            // relationship instead and patch it up.
+            const metadata = data.itemTokenMetadata[0];
+
             // TODO: await store?
             if (metadata) {
-                metadata.id = itemToken.token_id;
+                // set minter
+                metadata.minter = metadata.itemToken[0].minterId;
+                delete metadata.itemToken;
+
                 Metadata.Storage.saveObject(token_id, StorageKey.ItemMetadata, metadata);
             }
             tokenMetadata = metadata;

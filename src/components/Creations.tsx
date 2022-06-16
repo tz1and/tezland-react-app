@@ -59,15 +59,21 @@ class Creations extends React.Component<CreationsProps, CreationsState> {
                 query getCreations($address: String!, $offset: Int!, $amount: Int!) {
                     itemToken(where: {minterId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {id: desc}) {
                         id
-                        item_metadata {
-                            metadata
+                        metadata {
+                            name
+                            description
+                            artifactUri
+                            displayUri
+                            thumbnailUri
+                            baseScale
+                            fileSize
+                            mimeType
+                            polygonCount
+                            timestamp
                         }
                         royalties
                         supply
                         minterId
-                        itemTokenHolders(where: {holderId: {_eq: $address}}) {
-                            quantity
-                        }
                     }
                   }`, "getCreations", { address: this.props.address, amount: this.fetchAmount, offset: this.state.item_offset });
             
