@@ -1,5 +1,6 @@
 import { Quaternion } from "@babylonjs/core";
-import { Contract, MichelsonMap, OpKind, PollingSubscribeProvider, TransactionWalletOperation } from "@taquito/taquito";
+import { Contract, MichelCodecPacker, MichelsonMap, OpKind, PollingSubscribeProvider, TransactionWalletOperation } from "@taquito/taquito";
+import { MichelsonV1Expression } from "@taquito/rpc";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { packTo } from 'byte-data';
@@ -11,6 +12,7 @@ import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
 import { Logging } from "../utils/Logging";
 import { fetchGraphQL } from "../ipfs/graphql";
+import { SHA3 } from 'sha3';
 import assert from "assert";
 import ItemNode from "../world/ItemNode";
 
@@ -275,7 +277,38 @@ export class Contracts {
         return this.marketplaces.contractViews.get_place_seqnum(place_id).executeView({ viewCaller: this.marketplaces.address });
     }
 
-    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, newSeqNum: string): Promise<any> {
+    private async reproduceSeqHash(interaction_counter: BigNumber, next_id: BigNumber): Promise<string> {
+        // reproduce sequence number from interaction_counter and next_id to prevent
+        // it getting out of sync catastrophically with onchain.
+
+        // NOTE: BigNumber converting string to exponential could bite us here...
+        const dataMichelson: MichelsonV1Expression = {
+            "prim": "Pair",
+            "args": [
+              {
+                "int": interaction_counter.toString()
+              },
+              {
+                "int": next_id.toString()
+              }
+            ]
+        };
+
+        const storageType: MichelsonV1Expression = {
+            prim: 'pair',
+            args: [
+                { prim: 'nat', annots: [ '%interaction_counter' ] },
+                { prim: 'nat', annots: [ '%next_id' ] }
+            ]
+        };
+
+        const packer = new MichelCodecPacker();
+        const packed = await packer.packData({ data: dataMichelson, type: storageType })
+
+        return new SHA3(256).update(packed.packed, 'hex').digest('hex');
+    }
+
+    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number): Promise<any> {
         // use get_place_data on-chain view.
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
@@ -283,6 +316,8 @@ export class Contracts {
         Logging.InfoDev("Reading place data from chain", place_id);
 
         const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
+
+        const seqHash = await this.reproduceSeqHash(result.interaction_counter, result.next_id);
 
         // We have to flatten the michelson map into something serialisable.
         const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
@@ -300,7 +335,7 @@ export class Contracts {
             place_props.set(key, value);
         }
 
-        const place_data = { stored_items: flattened_item_data, place_props: place_props, place_seq: newSeqNum } as PlaceData;
+        const place_data = { stored_items: flattened_item_data, place_props: place_props, place_seq: seqHash } as PlaceData;
 
         // TODO: await save?
         Metadata.Storage.saveObject(place_id, StorageKey.PlaceItems, place_data);

@@ -293,18 +293,23 @@ export default class PlaceNode extends TransformNode {
         }
 
         try {
-            // catch exceptions and queue another update.
-            const newSeqNum = await Contracts.getPlaceSeqNum(this.world.walletProvider, this.placeId);
-            if (this.isDisposed()) return;
-            const updateNeeded = force || !this.placeData || this.placeData.place_seq !== newSeqNum;
+            // If not forced and we have place data...
+            if (!force && this.placeData) {
+                const newSeqNum = await Contracts.getPlaceSeqNum(this.world.walletProvider, this.placeId);
+                if (this.isDisposed()) return;
 
-            // If the palce data doesn't need to be updated, return.
-            if(!updateNeeded) return;
+                // Check the sequence number.
+                if (this.placeData.place_seq === newSeqNum) {
+                    Logging.InfoDev("sequence number is identical, no update needed", this.placeId);
+                    return;
+                }
+            }
 
             // reload place data if it changed or we don't have any.
-            this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, newSeqNum);
+            this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId);
             if (this.isDisposed()) return;
         }
+        // catch exceptions and queue another update.
         catch(e: any) {
             // Handle failiures to fetch updates. Queue again.
             Logging.InfoDev("Updating place failed", this.placeId, e);
