@@ -68,7 +68,12 @@ export default class ArtifactDownload {
 
                 if (!response.ok) throw new Error("Fetch failed: " + response.statusText);
 
-                return response.arrayBuffer();
+                const buffer = await response.arrayBuffer();
+
+                // Indexer validates file size, so we can use it to verify the download integrity.
+                if (buffer.byteLength !== fileSize) throw new Error(`Download size mismatch: expected=${fileSize}, got=${buffer.byteLength}`);
+
+                return buffer;
             }, {
                 retries: 6,
                 minTimeout: 2000,

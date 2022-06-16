@@ -49,13 +49,13 @@ export default class WorldGrid {
                                 Logging.InfoDev("fetching cell", gridHash, cell ? cell.worldPlaceCount : "unknown cell");
                                 fetchGraphQL(`
                                     query getWorldGridCell($gridHash: String) {
-                                        placeTokenMetadata(where: { grid_hash: { _eq: $gridHash } }) {
+                                        placeTokenMetadata(where: { gridHash: { _eq: $gridHash } }) {
                                             id
                                         }
                                     }`, "getWorldGridCell", { gridHash: gridHash }).then((data) => {
                                         const places_in_cell: number[] = [];
                                         for (const placeToken of data.placeTokenMetadata)
-                                            places_in_cell.push(placeToken.token_id);
+                                            places_in_cell.push(placeToken.id);
 
                                         const cell = { places: places_in_cell, worldPlaceCount: worldPlaceCount };
 

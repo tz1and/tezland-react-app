@@ -300,7 +300,7 @@ export default class PlaceNode extends TransformNode {
 
                 // Check the sequence number.
                 if (this.placeData.place_seq === newSeqNum) {
-                    Logging.InfoDev("sequence number is identical, no update needed", this.placeId);
+                    //Logging.InfoDev("sequence number is identical, no update needed", this.placeId);
                     return;
                 }
             }
