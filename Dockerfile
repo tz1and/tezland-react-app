@@ -5,12 +5,14 @@ WORKDIR /app
 
 COPY package.json ./
 COPY yarn.lock ./
+
+RUN yarn install
+
 COPY tsconfig.json ./
 COPY .env.production.local ./
 COPY src ./src
 COPY public ./public
 
-RUN yarn install
 RUN yarn build
 
 # build prod
