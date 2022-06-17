@@ -242,7 +242,7 @@ export default class PlaceNode extends TransformNode {
     public displayOutOfBoundsItemsNotification() {
         // TODO: add button to remove out of bounds items.
         // Display out of bounds notifications if there are any.
-        if (this.outOfBoundsItems.size > 0 && this.permissions.hasFull()) {
+        if (this.outOfBoundsItems.size > 0 && this.permissions.hasPlaceItems()) {
             const itemList = Array.from(this.outOfBoundsItems).join(', ');
             this.world.appControlFunctions.addNotification({
                 id: "oobItems" + this.placeId,
