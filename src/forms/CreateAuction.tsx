@@ -208,7 +208,7 @@ Place type: {res.placeType}</small>;
                                             {!this.state.placeInventory ?
                                                 (<option value={-1}>Loading Place Inventory...</option>) :
                                                     this.state.placeInventory.length === 0 ?
-                                                        (<option value={-1}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not conncted."}</option>) :
+                                                        (<option value={-1}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not connected."}</option>) :
                                                             this.state.placeInventory.map((key) => (
                                                                 <option key={key.tokenId} value={key.tokenId}>Place #{key.tokenId}</option>
                                                             ))}
