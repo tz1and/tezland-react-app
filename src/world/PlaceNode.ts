@@ -1,4 +1,4 @@
-import { BoundingBox, Mesh, MeshBuilder, Nullable, Node,
+import { BoundingBox, Mesh, MeshBuilder, Nullable,
     TransformNode, Vector3, Color3, Material } from "@babylonjs/core";
 
 import earcut from 'earcut';
@@ -470,11 +470,12 @@ export default class PlaceNode extends TransformNode {
         return true;
     }
 
-    public isInBounds(object: Node) {
+    public isInBounds(object: ItemNode) {
         if(!this.placeBounds) return false;
+        if(!object.boundingVectors) return false;
 
-        const {min, max} = object.getHierarchyBoundingVectors(true);
-        const bbox = new BoundingBox(min, max);
+        const {min, max} = object.boundingVectors;
+        const bbox = new BoundingBox(min, max, object.getWorldMatrix());
 
         // TODO: get points from OBB
         // for some reason passing world matrix to BoundingBox constructor doesn't have the desired effect....

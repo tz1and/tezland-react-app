@@ -1,4 +1,5 @@
-import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3 } from "@babylonjs/core";
+import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3, MeshBuilder, BoundingBox, Matrix } from "@babylonjs/core";
+import { SimpleMaterial } from "@babylonjs/materials";
 import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import ItemData from "../utils/ItemData";
@@ -53,7 +54,12 @@ export default class ItemNode extends TransformNode {
 
     private _loadState: ItemLoadState;
     public get loadState(): ItemLoadState { return this._loadState; }
-    
+
+    public boundingVectors: Nullable<{
+        min: Vector3;
+        max: Vector3;
+    }>;
+
     constructor(placeId: number, tokenId: BigNumber,
         name: string, scene?: Nullable<Scene>, isPure?: boolean) {
         super(name, scene, isPure);
@@ -67,6 +73,8 @@ export default class ItemNode extends TransformNode {
         this.markForRemoval = false;
 
         this._loadState = ItemLoadState.NotLoaded;
+
+        this.boundingVectors = null;
     }
 
     // TODO: needs some custom stuff for displying in inspector.
@@ -110,6 +118,34 @@ export default class ItemNode extends TransformNode {
         return newEnabled;
     }
 
+    /**
+     * TODO: get material from scene, add a way to make it red, etc.
+     * store both a ref to the holder and the actual item node as vars.
+     * set a flag if helper should be drawn, etc.
+     * show red box for out of bounds items if you have remove permission or own them.
+     */
+    private createBoundingBoxHelper() {
+        const material = new SimpleMaterial("transp", this.getScene());
+        material.alpha = 0.1;
+        material.backFaceCulling = false;
+        material.diffuseColor.set(0.2, 0.2, 0.8);
+
+        const {min, max} = this.boundingVectors!;
+        const extent = max.subtract(min);
+        const bbox = new BoundingBox(min, max);
+
+        const c_m = new Matrix();
+        Matrix.FromXYZAxesToRef(bbox.directions[0], bbox.directions[1], bbox.directions[2], c_m);
+        c_m.setTranslation(bbox.center)
+
+        // positioning helper.
+        const cube = MeshBuilder.CreateBox("bbox", {width: extent.x, height: extent.y, depth: extent.z, updatable: false }, this.getScene());
+        cube.isPickable = false;
+        cube.material = material;
+        cube.parent = this;
+        c_m.decompose(cube.scaling, undefined, cube.position)
+    }
+
     public async loadItem() {
         // TODO: check if items been disposed?
         if (this._loadState === ItemLoadState.Loaded) {
@@ -120,12 +156,14 @@ export default class ItemNode extends TransformNode {
         try {
             await ArtifactMemCache.loadArtifact(this.tokenId, this._scene, this);
             this._loadState = ItemLoadState.Loaded;
+
+            // TODO: see createBoundingBoxHelper
+            //this.createBoundingBoxHelper();
         }
         catch(e: any) {
             this._loadState = ItemLoadState.Failed;
             throw e;
         }
-
     }
 
     public queueLoadItemTask(world: World, place: PlaceNode) {

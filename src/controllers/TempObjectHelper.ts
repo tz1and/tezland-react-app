@@ -2,6 +2,8 @@ import { Color3, Mesh, Quaternion, Scene, TransformNode, Vector3 } from "@babylo
 import { SimpleMaterial } from "@babylonjs/materials";
 import ItemNode from "../world/ItemNode";
 
+
+// TODO: remove this and use ItemNode.createBoundingBoxHelper instead.
 export default class TempObjectHelper {
 
     public readonly node: TransformNode;

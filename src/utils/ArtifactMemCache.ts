@@ -47,6 +47,9 @@ class ArtifactMemCache {
         }
     
         if (parent.isDisposed()) return null;
+
+        // get the original, untransformed bounding vectors from the asset.
+        parent.boundingVectors = asset.meshes[0].getHierarchyBoundingVectors();
     
         // Instantiate.
         // Getting first root node is probably enough.
