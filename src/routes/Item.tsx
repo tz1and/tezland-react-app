@@ -7,13 +7,15 @@ import Metadata from '../world/Metadata';
 import ModelPreview from '../forms/ModelPreview';
 import { fetchGraphQL } from '../ipfs/graphql';
 import { getiFrameControl } from '../forms/DirectoryForm';
+import { Tab, Tabs } from 'react-bootstrap';
+import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
+import { CollectionHistory } from '../components/item/CollectionHistory';
 
 interface UserProps extends WithParamsInterface {
 }
 
 type UserState = {
     metadata?: any;
-    holderInfo?: any;
     royalties?: any;
 }
 
@@ -30,18 +32,6 @@ class Item extends React.Component<UserProps, UserState> {
         assert(this.props.params);
         assert(this.props.params.id);
         this.tokenId = parseInt(this.props.params.id)
-    }
-
-    private async fetchHolderInfo(): Promise<any> {
-        const data = await fetchGraphQL(`
-            query getHolderInfo($id: bigint!) {
-                itemTokenHolder(where: {tokenId: {_eq: $id}}, order_by: {quantity: desc}) {
-                    holderId
-                    quantity
-                }
-            }`, "getHolderInfo", { id: this.tokenId });
-        
-        return data.itemTokenHolder;
     }
 
     private async fetchRoyalties(): Promise<any> {
@@ -66,13 +56,9 @@ class Item extends React.Component<UserProps, UserState> {
         Metadata.getItemMetadata(this.tokenId).then(res => {
             this.setState({metadata: res});
 
-            this.fetchHolderInfo().then(res => {
-                this.setState({holderInfo: res});
-            })
-
             this.fetchRoyalties().then(res => {
                 this.setState({royalties: res.royalties});
-            })
+            });
         })
     }
 
@@ -98,17 +84,23 @@ class Item extends React.Component<UserProps, UserState> {
             </div>;
         }
         
-
-        const holderInfo = this.state.holderInfo;
-        const holderInfoItems: JSX.Element[] = []
-        if (holderInfo) holderInfo.forEach((item: any) => holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={this.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>))
+        const activeKey = window.location.hash.replace('#', '') || undefined;
 
         return (
             <main>
                 <div className="position-relative container text-start mt-4">
                     {content}
-                    <h5>Holder Info:</h5>
-                    {holderInfoItems}
+
+                    <Tabs defaultActiveKey="holders" activeKey={activeKey!}
+                        mountOnEnter={true} unmountOnExit={true}
+                        onSelect={(eventKey) => window.location.hash = eventKey || ""}>
+                        <Tab eventKey="holders" title="World/Holders">
+                            <WorldHolderInfo tokenId={this.tokenId} />
+                        </Tab>
+                        <Tab eventKey="history" title="History">
+                            <CollectionHistory tokenId={this.tokenId} />
+                        </Tab>
+                    </Tabs>
                 </div>
             </main>
         );
