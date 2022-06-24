@@ -21,6 +21,7 @@ import User from './routes/User';
 import Item from './routes/Item';
 import DirectoryMap from './routes/DirectoryMap';
 import { getiFrameControl } from './forms/DirectoryForm';
+import Event from './routes/Event';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -55,6 +56,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                     <Route path="/directory" element={<DirectoryLayout />}>
                         <Route path="" element={<ComingSoon />} />
                         <Route path="map" element={<DirectoryMap />} />
+                        <Route path="event/:eventName" element={<Event />} />
 
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />

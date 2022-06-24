@@ -1,3 +1,4 @@
+import { Nav, NavDropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import './Navigation.css';
 //import WalletWidget from "./WalletWidget";
@@ -11,10 +12,13 @@ export default function DirectoryNavigation() {
                         <img src="/logo_header.png" alt="tz1and" height="40" /> <h5 className="mb-0">Directory Services</h5>
                     </Link>
 
-                    <ul className="nav me-auto mb-2 justify-content-center mb-md-0">
-                        <li><Link to="/directory/map" className="nav-link px-2">Map</Link></li>
-                        <li><Link to="/directory" className="nav-link px-2">Directory</Link></li>
-                    </ul>
+                    <Nav className="me-auto mb-2 justify-content-center mb-md-0">
+                        <Nav.Link as={Link} to="/directory/map" className="nav-link">Map</Nav.Link>
+                        <Nav.Link as={Link} to="/directory" className="nav-link">Directory</Nav.Link>
+                        <NavDropdown title="Events" id="basic-nav-dropdown">
+                            <NavDropdown.Item as={Link} to="/directory/event/1of1July">1of1 July</NavDropdown.Item>
+                        </NavDropdown>
+                    </Nav>
 
                     {/*<WalletWidget/>*/}
                 </div>
