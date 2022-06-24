@@ -116,7 +116,7 @@ export class Places extends React.Component<PlacesProps, PlacesState> {
         const isOwned = this.context.isWalletConnected() && this.context.walletPHK() === this.props.address;
 
         const items: JSX.Element[] = []
-        if (!error) this.itemMap.forEach(item => items.push(<PlaceItem key={item.token.id} onSelect={this.handleClick} onTransfer={isOwned ? this.handleTransfer : undefined} token_id={item.token.id}/>))
+        if (!error) this.itemMap.forEach(item => items.push(<PlaceItem key={item.token.id} onSelect={this.handleClick} onTransfer={isOwned ? this.handleTransfer : undefined} item_metadata={item}/>))
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;
 

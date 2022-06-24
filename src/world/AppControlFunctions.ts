@@ -26,5 +26,6 @@ export type AppControlFunctions = {
 
 export type iFrameControlFunctions = {
     teleportToWorldPos(pos: [number, number]): void;
+    teleportToLocation(location: string): void;
     closeForm(cancelled: boolean): void;
 }

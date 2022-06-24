@@ -7,11 +7,12 @@ import './PlaceItem.css'
 import { useEffect, useState } from 'react';
 import Metadata from '../world/Metadata';
 import { MapSetCenter } from '../forms/CreateAuction';
+import { Button } from 'react-bootstrap';
 
 type PlaceItemProps = {
-    onSelect: (item_id: number) => void;
+    onSelect: (item_id: number) => void; // TODO: quantity, see GraphQLInfiniteScrollProps
     onTransfer?: ((item_id: number) => void) | undefined;
-    token_id: number;
+    item_metadata: any;
 }
 
 export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
@@ -19,7 +20,7 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
     const [metadata, setMetadata] = useState<any>();
 
     useEffect(() => {
-        Metadata.getPlaceMetadata(props.token_id).then((res) => {
+        Metadata.getPlaceMetadata(props.item_metadata.token.id).then((res) => {
             setMetadata(res)
         })
     })
@@ -44,12 +45,12 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
     }
 
     return (
-        <div className="card m-2 inventory-item" id={props.token_id.toString()}>
+        <div className="card m-2 inventory-item" id={props.item_metadata.token.id.toString()}>
             <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
-                { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(props.token_id)}><i className="bi bi-send-fill"></i></button> }
+                { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(props.item_metadata.token.id)}><i className="bi bi-send-fill"></i></button> }
             </div>
 
-            <div onClick={() => props.onSelect(props.token_id)}>
+            <div onClick={() => props.onSelect(props.item_metadata.token.id)}>
                 <MapContainer className="card-img-top place-item-map" center={center_pos} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
                     <MapSetCenter center={center_pos} animate={false}/>
                     <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />
@@ -59,6 +60,7 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
                 <div className="card-body">
                     <h5 className="card-title">{name ? truncate(name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
                     <p className="card-text">{description}</p>
+                    {props.item_metadata.canVisit && <Button>Click to visit Place</Button>}
                 </div>
             </div>
         </div>

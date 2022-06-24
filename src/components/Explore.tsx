@@ -173,6 +173,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         else if (this.state.show_form === 'placeproperties') form = <EditPlace closeForm={this.closeForm} place={this.state.currentPlace!} />;
         else if (this.state.show_form === 'directory') form = <DirectoryForm iFrameControl={{
             teleportToWorldPos: this.teleportToWorldPos,
+            teleportToLocation: this.teleportToLocation,
             closeForm: this.closeForm
         }} />;
 
