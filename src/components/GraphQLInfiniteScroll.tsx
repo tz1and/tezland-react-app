@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { scrollbarVisible } from '../utils/Utils';
 
 type GraphQLInfiniteScrollProps = {
     fetchDataFunc(dataOffset: number, fetchAmount: number): Promise<any>;
@@ -61,6 +62,9 @@ export const GraphQLInfiniteScroll: React.FC<GraphQLInfiniteScrollProps> = (prop
         if(!firstFetchDone) {
             fetchData();
             setFirstFetchDone(true);
+        }
+        else if(!scrollbarVisible(document.body)) {
+            fetchData();
         }
     }, [firstFetchDone, fetchData]);
 

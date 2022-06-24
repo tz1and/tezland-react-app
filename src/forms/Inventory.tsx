@@ -25,6 +25,7 @@ type InventoryState = {
     counter: number;
 };
 
+// TODO: could we use GraphQLInfiniteScroll here?
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;

@@ -35,8 +35,6 @@ const Event: React.FC<UserProps> = (props) => {
             formatted.push({token: {id: res.id}, canVisit: true});
         }
 
-        Logging.Info(formatted)
-
         return formatted;
     }
 
