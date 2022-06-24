@@ -16,7 +16,7 @@ export default function DirectoryNavigation() {
                         <Nav.Link as={Link} to="/directory/map" className="nav-link">Map</Nav.Link>
                         <Nav.Link as={Link} to="/directory" className="nav-link">Directory</Nav.Link>
                         <NavDropdown title="Events" id="basic-nav-dropdown">
-                            <NavDropdown.Item as={Link} to="/directory/event/1of1July">1of1 July</NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/directory/event/1of1July/1of1%20July">1of1 July</NavDropdown.Item>
                         </NavDropdown>
                     </Nav>
 

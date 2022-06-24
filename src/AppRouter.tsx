@@ -56,7 +56,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                     <Route path="/directory" element={<DirectoryLayout />}>
                         <Route path="" element={<ComingSoon />} />
                         <Route path="map" element={<DirectoryMap />} />
-                        <Route path="event/:eventName" element={<Event />} />
+                        <Route path="event/:eventName/:eventLabel" element={<Event />} />
 
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />

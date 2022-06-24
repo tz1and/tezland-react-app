@@ -13,12 +13,14 @@ const Event: React.FC<UserProps> = (props) => {
     const params = useParams();
 
     assert(params.eventName);
+    assert(params.eventLabel);
     const eventName = params.eventName;
+    const eventLabel = params.eventLabel;
 
     return (
         <main>
             <div className="position-relative container text-start mt-4">
-                <h1>{eventName}</h1>
+                <h1>{eventLabel}</h1>
                 <h5>All Places participating in this event</h5>
 
             </div>
