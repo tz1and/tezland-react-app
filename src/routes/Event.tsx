@@ -4,7 +4,6 @@ import assert from 'assert';
 import { GraphQLInfiniteScroll } from '../components/GraphQLInfiniteScroll';
 import { fetchGraphQL } from '../ipfs/graphql';
 import { PlaceItem } from '../components/PlaceItem';
-import { Logging } from '../utils/Logging';
 import { getiFrameControl } from '../forms/DirectoryForm';
 
 type UserProps = {}
