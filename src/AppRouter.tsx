@@ -22,14 +22,18 @@ import Item from './routes/directory/Item';
 import DirectoryMap from './routes/DirectoryMap';
 import { getiFrameControl } from './forms/DirectoryForm';
 import Event from './routes/Event';
+import { Tag } from './routes/directory/Tag';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
+    const iframeControl = getiFrameControl(window);
+
     return (
         <TezosWalletProvider>
             <BrowserRouter>
                 {props.children}
                 <Routes>
+                    {!iframeControl &&
                     <Route path="/" element={<SiteLayout />}>
                         <Route path="" element={<Frontpage />} />
 
@@ -48,11 +52,12 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />
+                        <Route path="t/:tag" element={<Tag />} />
 
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                         <Route path="*" element={<PageNotFound />}/>
-                    </Route>
-                    {getiFrameControl(window) &&
+                    </Route> }
+                    {iframeControl &&
                     <Route path="/directory" element={<DirectoryLayout />}>
                         <Route path="" element={<ComingSoon />} />
                         <Route path="map" element={<DirectoryMap />} />
@@ -60,6 +65,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />
+                        <Route path="t/:tag" element={<Tag />} />
 
                         <Route path="*" element={<PageNotFound />}/>
                     </Route> }

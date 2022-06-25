@@ -1,0 +1,18 @@
+fragment ItemTokenSelect on item_token {
+    id
+    metadata {
+        name
+        description
+        artifactUri
+        displayUri
+        thumbnailUri
+        baseScale
+        fileSize
+        mimeType
+        polygonCount
+        timestamp
+    }
+    royalties
+    supply
+    minterId
+}

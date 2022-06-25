@@ -25,3 +25,9 @@ query getItemHolderInfo($id: bigint!) {
         quantity
     }
 }
+
+query getItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
+    itemToken(where: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}, limit: $amount, offset: $offset, order_by: {id: desc}) {
+        ...ItemTokenSelect
+    }
+}

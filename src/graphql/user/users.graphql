@@ -2,44 +2,14 @@ query getUserCollection($address: String!, $offset: Int!, $amount: Int!) {
     itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
         quantity
         token {
-            id
-            metadata {
-                name
-                description
-                artifactUri
-                displayUri
-                thumbnailUri
-                baseScale
-                fileSize
-                mimeType
-                polygonCount
-                timestamp
-            }
-            royalties
-            supply
-            minterId
+            ...ItemTokenSelect
         }
     }
 }
 
 query getUserCreations($address: String!, $offset: Int!, $amount: Int!) {
     itemToken(where: {minterId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {id: desc}) {
-        id
-        metadata {
-            name
-            description
-            artifactUri
-            displayUri
-            thumbnailUri
-            baseScale
-            fileSize
-            mimeType
-            polygonCount
-            timestamp
-        }
-        royalties
-        supply
-        minterId
+        ...ItemTokenSelect
     }
 }
 
