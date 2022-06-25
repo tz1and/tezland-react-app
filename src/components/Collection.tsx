@@ -1,10 +1,10 @@
 import React from 'react';
 //import { useTezosWalletContext } from './TezosWalletContext';
-import { fetchGraphQL } from '../ipfs/graphql';
 import { InventoryItem } from '../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
 import { getiFrameControl } from '../forms/DirectoryForm';
 import { GraphQLInfiniteScroll } from './GraphQLInfiniteScroll';
+import { grapphQLUser } from '../graphql/user';
 
 type CollectionProps = {
     //selectItemFromInventory(id: number): void;
@@ -21,32 +21,9 @@ export const Collection: React.FC<CollectionProps> = (props) => {
     const navigate = useNavigate();
 
     const fetchInventory = async (dataOffset: number, fetchAmount: number) => {
-        const data = await fetchGraphQL(`
-            query getCollection($address: String!, $offset: Int!, $amount: Int!) {
-                itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
-                    quantity
-                    token {
-                        id
-                        metadata {
-                            name
-                            description
-                            artifactUri
-                            displayUri
-                            thumbnailUri
-                            baseScale
-                            fileSize
-                            mimeType
-                            polygonCount
-                            timestamp
-                        }
-                        royalties
-                        supply
-                        minterId
-                    }
-                }
-                }`, "getCollection", { address: props.address, amount: fetchAmount, offset: dataOffset });
+        const res = await grapphQLUser.getUserCollection({ address: props.address, amount: fetchAmount, offset: dataOffset });
         
-        return data.itemTokenHolder;
+        return res.itemTokenHolder;
     }
 
     const handleClick = (item_id: number, quantity: number) => {

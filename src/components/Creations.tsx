@@ -1,10 +1,10 @@
 import React from 'react';
 //import { useTezosWalletContext } from './TezosWalletContext';
-import { fetchGraphQL } from '../ipfs/graphql';
 import { InventoryItem } from '../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
 import { getiFrameControl } from '../forms/DirectoryForm';
 import { GraphQLInfiniteScroll } from './GraphQLInfiniteScroll';
+import { grapphQLUser } from '../graphql/user';
 
 type CreationsProps = {
     //selectItemFromInventory(id: number): void;
@@ -21,30 +21,10 @@ export const Creations: React.FC<CreationsProps> = (props) => {
     const navigate = useNavigate();
 
     const fetchInventory = async (dataOffset: number, fetchAmount: number) => {
-        const data = await fetchGraphQL(`
-            query getCreations($address: String!, $offset: Int!, $amount: Int!) {
-                itemToken(where: {minterId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {id: desc}) {
-                    id
-                    metadata {
-                        name
-                        description
-                        artifactUri
-                        displayUri
-                        thumbnailUri
-                        baseScale
-                        fileSize
-                        mimeType
-                        polygonCount
-                        timestamp
-                    }
-                    royalties
-                    supply
-                    minterId
-                }
-            }`, "getCreations", { address: props.address, amount: fetchAmount, offset: dataOffset });
-
+        const data = await grapphQLUser.getUserCreations({ address: props.address, amount: fetchAmount, offset: dataOffset });
         const results = data.itemToken;
 
+        // format the data to fit the data format the item components expect.
         const formatted: any[] = []
         for (const res of results) {
             formatted.push({token: res});
