@@ -24,21 +24,17 @@ const Event: React.FC<UserProps> = (props) => {
         // format so it fits the result the format the token components expect.
         const formatted: any[] = []
         for (const res of results) {
-            formatted.push({token: {id: res.id}, canVisit: true});
+            formatted.push({token: {id: res.id}});
         }
 
         return formatted;
     }
 
     const handleClick = (item_id: number, quantity: number) => {
-        const iframeControl = getiFrameControl(window);
-
-        if(iframeControl) {
-            iframeControl.teleportToLocation("place" + item_id);
-            iframeControl.closeForm(false);
-        }
+        if(getiFrameControl(window))
+            navigate(`/directory/p/${item_id}`);
         else
-            navigate(`/explore?place_id=${item_id}`);
+            navigate(`/p/${item_id}`);
     }
 
     return (

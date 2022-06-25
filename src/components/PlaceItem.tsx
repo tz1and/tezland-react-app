@@ -7,7 +7,6 @@ import './PlaceItem.css'
 import { useEffect, useState } from 'react';
 import Metadata from '../world/Metadata';
 import { MapSetCenter } from '../forms/CreateAuction';
-import { Button } from 'react-bootstrap';
 
 type PlaceItemProps = {
     onSelect: (item_id: number) => void; // TODO: quantity, see GraphQLInfiniteScrollProps
@@ -20,10 +19,11 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
     const [metadata, setMetadata] = useState<any>();
 
     useEffect(() => {
-        Metadata.getPlaceMetadata(props.item_metadata.token.id).then((res) => {
-            setMetadata(res)
-        })
-    })
+        if(!metadata)
+            Metadata.getPlaceMetadata(props.item_metadata.token.id).then((res) => {
+                setMetadata(res)
+            });
+    }, [metadata, props.item_metadata.token.id]);
 
     let name = null;
     let description = "None.";
@@ -60,7 +60,6 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
                 <div className="card-body">
                     <h5 className="card-title">{name ? truncate(name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
                     <p className="card-text">{description}</p>
-                    {props.item_metadata.canVisit && <Button>Click to visit Place</Button>}
                 </div>
             </div>
         </div>

@@ -23,6 +23,7 @@ import DirectoryMap from './routes/DirectoryMap';
 import { getiFrameControl } from './forms/DirectoryForm';
 import Event from './routes/Event';
 import { Tag } from './routes/directory/Tag';
+import { PlacePage } from './routes/directory/PlacePage';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -52,6 +53,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />
+                        <Route path="p/:id" element={<PlacePage />} />
                         <Route path="t/:tag" element={<Tag />} />
 
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
@@ -65,6 +67,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />
+                        <Route path="p/:id" element={<PlacePage />} />
                         <Route path="t/:tag" element={<Tag />} />
 
                         <Route path="*" element={<PageNotFound />}/>
