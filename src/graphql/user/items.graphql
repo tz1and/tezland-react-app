@@ -1,0 +1,27 @@
+query getItemHistory($id: bigint!) {
+    itemCollectionHistory(where: {itemTokenId: {_eq: $id}}, order_by: {level: desc}) {
+        id
+        placeId
+        issuerId
+        collectorId
+        mutezPerToken
+    }
+}
+
+query getItemWorldInfo($id: bigint!) {
+    worldItemPlacement(where: {itemTokenId: {_eq: $id}}, order_by: {mutezPerToken: desc}) {
+        id
+        placeId
+        itemId
+        issuerId
+        tokenAmount
+        mutezPerToken
+    }
+}
+
+query getItemHolderInfo($id: bigint!) {
+    itemTokenHolder(where: {tokenId: {_eq: $id}}, order_by: {quantity: desc}) {
+        holderId
+        quantity
+    }
+}

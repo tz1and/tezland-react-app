@@ -1,0 +1,59 @@
+{
+  overwrite: true,
+  generates: {
+    "./src/graphql/generated/user.ts": {
+      schema: [
+        {
+          "http://localhost:42000/v1/graphql": {
+            headers: {
+              "x-hasura-role": "user",
+              "x-hasura-admin-secret": "changeme",
+            },
+          },
+        },
+      ],
+      documents: ["./src/graphql/user/**/*.graphql"],
+      plugins: [
+        "typescript",
+        "typescript-operations",
+        "typescript-graphql-request",
+        #"typescript-react-apollo", # TODO: figure this out.
+      ],
+      config: {
+        preResolveTypes: true,
+        skipTypename: false,
+        enumsAsTypes: true,
+        constEnums: true,
+        # apollo config from here
+        #withHooks: true,
+        #withHOC: false,
+        #withComponent: false,
+        #reactApolloVersion: 3,
+      },
+    },
+    "./src/graphql/generated/admin.ts": {
+      schema: [
+        {
+          "http://localhost:42000/v1/graphql": {
+            headers: {
+              "x-hasura-role": "admin",
+              "x-hasura-admin-secret": "changeme",
+            },
+          },
+        },
+      ],
+      #documents: ["./src/graphql/admin/**/*.graphql"],
+      plugins: [
+        "typescript",
+        "typescript-operations",
+        "typescript-graphql-request",
+      ],
+      config: {
+        preResolveTypes: true,
+        skipTypename: false,
+        enumsAsTypes: true,
+        constEnums: true,
+      },
+    },
+  },
+}

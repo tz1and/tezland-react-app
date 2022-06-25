@@ -23,6 +23,7 @@
     "earcut": "^2.2.3",
     "fast-png": "^6.1.0",
     "formik": "^2.2.9",
+    "graphql-request": "^4.0.0",
     "history": "^5.2.0",
     "idb": "^7.0.1",
     "jquery": "^3.6.0",
@@ -45,6 +46,10 @@
   },
   "devDependencies": {
     "@babylonjs/inspector": "^5.1.0",
+    "@graphql-codegen/cli": "^2.6.2",
+    "@graphql-codegen/typescript": "^2.5.1",
+    "@graphql-codegen/typescript-graphql-request": "^4.4.10",
+    "@graphql-codegen/typescript-operations": "^2.4.2",
     "@types/bootstrap": "^5.1.9",
     "@types/earcut": "^2.1.1",
     "@types/jest": "^26.0.0",
@@ -54,6 +59,7 @@
     "@types/react": "^18.0.6",
     "@types/react-dom": "^18.0.2",
     "env-cmd": "^10.1.0",
+    "graphql": "^16.5.0",
     "license-checker": "^25.0.1",
     "source-map-explorer": "^2.5.2"
   },
@@ -68,7 +74,8 @@
     "test": "react-scripts test --transformIgnorePatterns \"/node_modules/(?!@babylonjs)(.*)\"",
     "eject": "react-scripts eject",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "check-licenses": "license-checker --production --excludePrivatePackages --summary"
+    "check-licenses": "license-checker --production --excludePrivatePackages --summary",
+    "generate-gql-schema": "graphql-codegen"
   },
   "eslintConfig": {
     "extends": [
