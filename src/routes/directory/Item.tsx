@@ -1,15 +1,15 @@
 import React from 'react';
-import { Link, Params, useParams } from 'react-router-dom';
-import TezosWalletContext from '../components/TezosWalletContext';
-import { truncateAddress } from '../utils/Utils';
-import assert from 'assert';
-import Metadata from '../world/Metadata';
-import ModelPreview from '../forms/ModelPreview';
-import { fetchGraphQL } from '../ipfs/graphql';
-import { getiFrameControl } from '../forms/DirectoryForm';
 import { Tab, Tabs } from 'react-bootstrap';
-import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
-import { CollectionHistory } from '../components/item/CollectionHistory';
+import { Link, Params, useParams } from 'react-router-dom';
+import assert from 'assert';
+import TezosWalletContext from '../../components/TezosWalletContext';
+import { truncateAddress } from '../../utils/Utils';
+import Metadata from '../../world/Metadata';
+import ModelPreview from '../../forms/ModelPreview';
+import { fetchGraphQL } from '../../ipfs/graphql';
+import { getiFrameControl } from '../../forms/DirectoryForm';
+import { WorldHolderInfo } from '../../components/item/WorldHolderInfo';
+import { CollectionHistory } from '../../components/item/CollectionHistory';
 
 interface UserProps extends WithParamsInterface {
 }

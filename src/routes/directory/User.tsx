@@ -1,11 +1,11 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Collection } from '../components/Collection';
-import { Creations } from '../components/Creations';
-import { Places } from '../components/Places';
-import { truncateAddress } from '../utils/Utils';
 import { Tab, Tabs } from 'react-bootstrap';
 import assert from 'assert';
+import { Collection } from '../../components/Collection';
+import { Creations } from '../../components/Creations';
+import { Places } from '../../components/Places';
+import { truncateAddress } from '../../utils/Utils';
 
 type UserProps = {}
 

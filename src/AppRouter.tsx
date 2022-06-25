@@ -17,8 +17,8 @@ import MintFormWrapper from './forms/MintFormWrapper';
 import PageNotFound from './routes/PageNotFound';
 import { TezosWalletProvider } from './components/TezosWalletContext'
 import { isDev } from './utils/Utils';
-import User from './routes/User';
-import Item from './routes/Item';
+import User from './routes/directory/User';
+import Item from './routes/directory/Item';
 import DirectoryMap from './routes/DirectoryMap';
 import { getiFrameControl } from './forms/DirectoryForm';
 import Event from './routes/Event';
