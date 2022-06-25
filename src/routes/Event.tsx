@@ -2,9 +2,9 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
 import { GraphQLInfiniteScroll } from '../components/GraphQLInfiniteScroll';
-import { fetchGraphQL } from '../ipfs/graphql';
 import { PlaceItem } from '../components/PlaceItem';
 import { getiFrameControl } from '../forms/DirectoryForm';
+import { grapphQLUser } from '../graphql/user';
 
 type UserProps = {}
 
@@ -18,17 +18,10 @@ const Event: React.FC<UserProps> = (props) => {
     const eventLabel = params.eventLabel;
 
     const fetchPlaceData = async (dataOffset: number, fetchAmount: number): Promise<any> => {
-        const eventView = `placesEvent${eventName}`
+        const dataPlaceIds = await grapphQLUser.getPlacesWithItemsByTag({tag: eventName, amount: fetchAmount, offset: dataOffset})
+        const results = dataPlaceIds.placeToken;
 
-        const dataPlaceIds = await fetchGraphQL(`
-            query getEventPlaces($offset: Int!, $amount: Int!) {
-                ${eventView}(limit: $amount, offset: $offset, order_by: {id: asc}) {
-                    id
-                }
-            }`, "getEventPlaces", { amount: fetchAmount, offset: dataOffset });
-        
-        const results = dataPlaceIds[eventView];
-
+        // format so it fits the result the format the token components expect.
         const formatted: any[] = []
         for (const res of results) {
             formatted.push({token: {id: res.id}, canVisit: true});

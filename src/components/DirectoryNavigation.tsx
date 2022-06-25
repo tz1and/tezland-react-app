@@ -1,5 +1,5 @@
 import { Nav, NavDropdown } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import './Navigation.css';
 //import WalletWidget from "./WalletWidget";
 
@@ -13,10 +13,20 @@ export default function DirectoryNavigation() {
                     </Link>
 
                     <Nav className="me-auto mb-2 justify-content-center mb-md-0">
-                        <Nav.Link as={Link} to="/directory/map" className="nav-link">Map</Nav.Link>
-                        <Nav.Link as={Link} to="/directory" className="nav-link">Directory</Nav.Link>
+                        <Nav.Link as={NavLink} to="/directory/map" className="nav-link">Map</Nav.Link>
+                        <Nav.Link as={NavLink} to="/directory" className="nav-link">Directory</Nav.Link>
                         <NavDropdown title="Events" id="basic-nav-dropdown">
-                            <NavDropdown.Item as={Link} to="/directory/event/1of1July/1of1%20July">1of1 July</NavDropdown.Item>
+                            {/*<NavDropdown.Item as={NavLink} to="/directory/event/1of1July/1of1%20July">1of1 July</NavDropdown.Item>*/}
+
+                            <NavDropdown className="dropdown-submenu" title="1of1 July" id="basic-nav-dropdown">
+                                <NavDropdown.Item as={NavLink} to="/directory/event/1of1July/1of1%20July">Places</NavDropdown.Item>
+                                <NavDropdown.Item as={NavLink} to="/directory/t/%231of1">Items</NavDropdown.Item>
+                            </NavDropdown>
+
+                            {/*<NavDropdown className="dropdown-submenu" title="Tree" id="basic-nav-dropdown">
+                                <NavDropdown.Item as={NavLink} to="/directory/event/tree/tree">Places</NavDropdown.Item>
+                                <NavDropdown.Item as={NavLink} to="/directory/t/tree">Items</NavDropdown.Item>
+                            </NavDropdown>*/}
                         </NavDropdown>
                     </Nav>
 
