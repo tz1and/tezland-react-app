@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tab, Tabs } from 'react-bootstrap';
+import { Col, Container, Row, Tab, Tabs } from 'react-bootstrap';
 import { Link, Params, useParams } from 'react-router-dom';
 import assert from 'assert';
 import TezosWalletContext from '../../components/TezosWalletContext';
@@ -10,6 +10,7 @@ import { fetchGraphQL } from '../../ipfs/graphql';
 import { getiFrameControl } from '../../forms/DirectoryForm';
 import { WorldHolderInfo } from '../../components/item/WorldHolderInfo';
 import { CollectionHistory } from '../../components/item/CollectionHistory';
+import { ItemTags } from '../../components/item/ItemTags';
 
 interface UserProps extends WithParamsInterface {
 }
@@ -75,12 +76,23 @@ class Item extends React.Component<UserProps, UserState> {
             
             content = <div>
                 <h1>{metadata.name}</h1>
-                by <Link to={this.userLink(metadata.minter)}>{truncateAddress(metadata.minter)}</Link>
-                <ModelPreview tokenId={this.tokenId} width={640} height={480} modelLoaded={() => {}} />
-                {/*<img src={this.getThumbnailUrl(metadata.displayUri ? metadata.displayUri : metadata.thumbnailUri)}></img>*/}
-                <h5 className="mt-3">Description:</h5>
-                <p>{metadata.description ? metadata.description : "None."}</p>
-                {royalties}
+                <Container>
+                    <Row>
+                        <Col>
+                            by <Link to={this.userLink(metadata.minter)}>{truncateAddress(metadata.minter)}</Link>
+                            <ModelPreview tokenId={this.tokenId} width={640} height={480} modelLoaded={() => {}} />
+                            {/*<img src={this.getThumbnailUrl(metadata.displayUri ? metadata.displayUri : metadata.thumbnailUri)}></img>*/}
+                            <h5 className="mt-3">Description:</h5>
+                            <p>{metadata.description ? metadata.description : "None."}</p>
+                            {royalties}
+                        </Col>
+                        <Col xs="4" lg="3">
+                            <h4>Tags</h4>
+                            <ItemTags tokenId={this.tokenId} />
+                        </Col>
+                    </Row>
+                </Container>
+                
             </div>;
         }
         

@@ -31,3 +31,9 @@ query getItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
         ...ItemTokenSelect
     }
 }
+
+query getItemTags($id: bigint!) {
+    tag(where: {tagMap: {itemMetadataId: {_eq: $id}}}) {
+        name
+    }
+}
