@@ -23,6 +23,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# graphql codegen
+src/graphql/generated/
+
 # notes and stuff
 assets/
 TODO.txt
