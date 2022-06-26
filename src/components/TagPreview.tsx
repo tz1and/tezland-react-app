@@ -13,7 +13,7 @@ export const TagPreview: React.FC<TagPreviewProps> = (props) => {
         const trimmed = tag.trim();
         if(trimmed.length > 0) 
             tags.push(
-                <Badge key={index} pill bg="primary" className="mx-1">
+                <Badge key={index} pill bg="primary" className="me-1">
                     {tag}
                 </Badge>
             );

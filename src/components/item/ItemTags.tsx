@@ -35,7 +35,7 @@ export class ItemTags extends React.Component<ItemTagsProps, ItemTagsState> {
         if (itemTags) itemTags.tag.forEach((tag) => {
             tags.push(
                 <Link key={tag.name} to={DirectoryUtils.tagLink(tag.name)}>
-                    <Badge pill bg="primary" className="mx-1">
+                    <Badge pill bg="primary" className="me-1">
                         {tag.name}
                     </Badge>
                 </Link>
