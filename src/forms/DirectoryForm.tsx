@@ -36,7 +36,12 @@ export class DirectoryForm extends React.Component<DirectoryFormProps, Directory
 
     override componentDidMount() {
         if (this.iframeRef.current) {
-            setiFrameControl(this.iframeRef.current, this.props.iFrameControl);
+            //setiFrameControl(this.iframeRef.current, this.props.iFrameControl);
+
+            this.iframeRef.current.onload = () => {
+                assert(this.iframeRef.current);
+                setiFrameControl(this.iframeRef.current, this.props.iFrameControl);
+            }
         }
     }
 
