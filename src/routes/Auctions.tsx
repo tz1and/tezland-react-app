@@ -1,5 +1,5 @@
 import React from 'react';
-import { ButtonGroup, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction, { discordInviteLink } from '../components/Auction'
