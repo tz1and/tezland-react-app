@@ -1,6 +1,6 @@
 import './InventoryItem.css';
 import Conf from "../Config";
-import { numberWithSign, truncate, truncateAddress } from '../utils/Utils';
+import { mutezToTez, numberWithSign, truncate, truncateAddress } from '../utils/Utils';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
 import missing_thumbnail from '../img/missing_thumbnail.png';
 import ItemTracker from '../controllers/ItemTracker';
@@ -22,6 +22,10 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
     const name = item_metadata ? item_metadata.name : null;
     const description = item_metadata && item_metadata.description ? item_metadata.description : "None.";
+
+    let quantity: number | undefined = undefined;
+    if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
+    else quantity = item_data.quantity;
 
     const getThumbnailUrl = (url: string | null): string => {
         if(url) return `${Conf.ipfs_gateways[0]}/ipfs/${url.slice(7)}`;
@@ -64,7 +68,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                     <img src={getThumbnailUrl(item_metadata.thumbnailUri)} className="card-img-top" alt="..."/>
                     <div className="card-body">
                         <h5 className="card-title">{name ? truncate(name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
-                        <p className="card-text">x{item_data.quantity}{itemTrackedBalance}<small>/{token_data.supply}</small></p>
+                        <p className="card-text">x{quantity}{itemTrackedBalance}<small>/{token_data.supply}</small>{item_data.swapInfo && ` for ${mutezToTez(item_data.swapInfo.price).toNumber().toFixed(2)} \uA729`}</p>
                         <small className="card-text"></small>
                         <p className="card-text small m-0">
                             Royalties: {token_data.royalties === 0 ? 0 : (token_data.royalties / 10).toFixed(2)}{"\u0025"}<br/>

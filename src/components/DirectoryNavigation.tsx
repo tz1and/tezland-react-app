@@ -14,7 +14,13 @@ export default function DirectoryNavigation() {
 
                     <Nav className="me-auto mb-2 justify-content-center mb-md-0">
                         <Nav.Link as={NavLink} to="/directory/map" className="nav-link">Map</Nav.Link>
-                        <Nav.Link as={NavLink} to="/directory" className="nav-link">Directory</Nav.Link>
+
+                        <NavDropdown title="Directory" id="basic-nav-dropdown">
+                            <NavDropdown.Item as={NavLink} to="/directory/search">Search</NavDropdown.Item>
+                            <NavDropdown.Item as={NavLink} to="/directory/new/mints">New Mints</NavDropdown.Item>
+                            <NavDropdown.Item as={NavLink} to="/directory/new/swaps">New Swaps</NavDropdown.Item>
+                        </NavDropdown>
+
                         <NavDropdown title="Events" id="basic-nav-dropdown">
                             {/*<NavDropdown.Item as={NavLink} to="/directory/event/1of1July/1of1%20July">1of1 July</NavDropdown.Item>*/}
 

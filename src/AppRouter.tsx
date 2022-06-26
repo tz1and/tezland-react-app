@@ -25,6 +25,8 @@ import Event from './routes/Event';
 import { Tag } from './routes/directory/Tag';
 import { PlacePage } from './routes/directory/PlacePage';
 import { Search } from './routes/directory/Search';
+import { NewMints } from './routes/directory/NewMints';
+import { NewSwaps } from './routes/directory/NewSwaps';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -58,12 +60,15 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="p/:id" element={<PlacePage />} />
                         <Route path="t/:tag" element={<Tag />} />
 
+                        <Route path="new/mints" element={<NewMints />} />
+                        <Route path="new/swaps" element={<NewSwaps />} />
+
                         {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                         <Route path="*" element={<PageNotFound />}/>
                     </Route> }
                     {iframeControl &&
                     <Route path="/directory" element={<DirectoryLayout />}>
-                        <Route path="" element={<Search />} />
+                        <Route path="search" element={<Search />} />
                         <Route path="map" element={<DirectoryMap />} />
                         <Route path="event/:eventName/:eventLabel" element={<Event />} />
 
@@ -71,6 +76,9 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="i/:id" element={<Item />} />
                         <Route path="p/:id" element={<PlacePage />} />
                         <Route path="t/:tag" element={<Tag />} />
+
+                        <Route path="new/mints" element={<NewMints />} />
+                        <Route path="new/swaps" element={<NewSwaps />} />
 
                         <Route path="*" element={<PageNotFound />}/>
                     </Route> }
