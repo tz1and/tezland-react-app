@@ -1,7 +1,7 @@
 import assert from 'assert';
 import React, { useRef, useState } from 'react';
 import { Button, InputGroup, Form, Row, Col, Badge } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { GraphQLInfiniteScroll } from '../../components/GraphQLInfiniteScroll';
 import { InventoryItem } from '../../components/InventoryItem';
 import { SearchByStringsQuery } from '../../graphql/generated/user';
@@ -15,10 +15,14 @@ type SearchState = {
 };
 
 export const Search: React.FC<SearchProps> = (props) => {
-
+    const navigate = useNavigate();
     const inputFieldRef = useRef<HTMLInputElement>(null);
 
     const [state, setState] = useState<SearchState>({});
+
+    const handleClick = (item_id: number, quantity: number) => {
+        navigate(DirectoryUtils.itemLink(item_id));
+    }
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
@@ -121,10 +125,10 @@ export const Search: React.FC<SearchProps> = (props) => {
                 {accountResults.length > 0 && <div className='mb-3'><h4>Users</h4>{accountResults}</div>}
 
                 {state.result && state.result.itemToken.length > 0 &&
-                    <div className='mb-3'><h4>Items by User</h4><GraphQLInfiniteScroll fetchDataFunc={(dataOffset: number, fetchAmount: number) => processItemsByUserResult(dataOffset, fetchAmount)} handleClick={() => {}} fetchAmount={20} component={InventoryItem}/></div>}
+                    <div className='mb-3'><h4>Items by User</h4><GraphQLInfiniteScroll fetchDataFunc={(dataOffset: number, fetchAmount: number) => processItemsByUserResult(dataOffset, fetchAmount)} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/></div>}
 
                 {state.result && state.result.itemTokenMetadata.length > 0 &&
-                    <div className='mb-3'><h4>Items</h4><GraphQLInfiniteScroll fetchDataFunc={(dataOffset: number, fetchAmount: number) => processItemsResult(dataOffset, fetchAmount)} handleClick={() => {}} fetchAmount={20} component={InventoryItem}/></div>}
+                    <div className='mb-3'><h4>Items</h4><GraphQLInfiniteScroll fetchDataFunc={(dataOffset: number, fetchAmount: number) => processItemsResult(dataOffset, fetchAmount)} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/></div>}
             </div>
         </main>
     );
