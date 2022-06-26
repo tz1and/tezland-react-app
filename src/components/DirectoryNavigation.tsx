@@ -1,9 +1,11 @@
-import { Nav, NavDropdown } from "react-bootstrap";
+import { Badge, Nav, NavDropdown } from "react-bootstrap";
 import { Link, NavLink } from "react-router-dom";
 import './Navigation.css';
 //import WalletWidget from "./WalletWidget";
 
 export default function DirectoryNavigation() {
+    const newBadge = <Badge>New!</Badge>;
+    
     return (
         <header className="sticky-top py-3 bg-white text-dark">
             <div className="px-0">
@@ -15,13 +17,13 @@ export default function DirectoryNavigation() {
                     <Nav className="me-auto mb-2 justify-content-center mb-md-0">
                         <Nav.Link as={NavLink} to="/directory/map" className="nav-link">Map</Nav.Link>
 
-                        <NavDropdown title="Directory" id="basic-nav-dropdown">
+                        <NavDropdown title={<span>Directory {newBadge}</span>} id="basic-nav-dropdown">
                             <NavDropdown.Item as={NavLink} to="/directory/search">Search</NavDropdown.Item>
                             <NavDropdown.Item as={NavLink} to="/directory/new/mints">New Mints</NavDropdown.Item>
                             <NavDropdown.Item as={NavLink} to="/directory/new/swaps">New Swaps</NavDropdown.Item>
                         </NavDropdown>
 
-                        <NavDropdown title="Events" id="basic-nav-dropdown">
+                        <NavDropdown title={<span>Events {newBadge}</span>} id="basic-nav-dropdown">
                             {/*<NavDropdown.Item as={NavLink} to="/directory/event/1of1July/1of1%20July">1of1 July</NavDropdown.Item>*/}
 
                             <NavDropdown className="dropdown-submenu" title="1of1 July" id="basic-nav-dropdown">
