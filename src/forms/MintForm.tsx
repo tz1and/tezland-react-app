@@ -18,6 +18,7 @@ import AppSettings from '../storage/AppSettings';
 import { Trilean, triHelper } from './FormUtils';
 import { decode, DecodedPng } from 'fast-png';
 import assert from 'assert';
+import { TagPreview } from '../components/TagPreview';
 
 interface MintFormValues {
     itemTitle: string;
@@ -329,8 +330,9 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                             </div>
                                             <div className="mb-3">
                                                 <label htmlFor="itemTags" className="form-label">Tags</label>
+                                                <TagPreview tags={values.itemTags}/>
                                                 <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
-                                                <div id="tagsHelp" className="form-text">List of tags, separated by <i>;</i>.</div>
+                                                <div id="tagsHelp" className="form-text">List of tags, separated by <b>;</b>.</div>
                                             </div>
                                             <div className="mb-3">
                                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
