@@ -24,8 +24,8 @@ export namespace DirectoryUtils {
 
     export const tagLink = (tag: string): string => {
         if(getiFrameControl(window))
-            return `/directory/t/${tag}`;
+            return `/directory/t/${encodeURIComponent(tag)}`;
         else
-            return `/t/${tag}`;
+            return `/t/${encodeURIComponent(tag)}`;
     }
 }
