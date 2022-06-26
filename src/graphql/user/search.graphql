@@ -1,0 +1,19 @@
+query searchByStrings($regex_terms: String!) {
+    tag(where: {name: {_iregex: $regex_terms}}) {
+        name
+    }
+
+    itemTokenMetadata(where: {name: {_iregex: $regex_terms}, _or: {description: {_iregex: $regex_terms}}}) {
+        itemToken {
+            ...ItemTokenSelect
+        }
+    }
+
+    itemToken(where: {minterId: {_iregex: $regex_terms}}) {
+        ...ItemTokenSelect
+    }
+
+    holder(where: {address: {_iregex: $regex_terms}}) {
+        address
+    }
+}

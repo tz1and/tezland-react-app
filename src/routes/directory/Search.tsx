@@ -1,0 +1,131 @@
+import assert from 'assert';
+import React, { useRef, useState } from 'react';
+import { Button, InputGroup, Form, Row, Col, Badge } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import { GraphQLInfiniteScroll } from '../../components/GraphQLInfiniteScroll';
+import { InventoryItem } from '../../components/InventoryItem';
+import { SearchByStringsQuery } from '../../graphql/generated/user';
+import { grapphQLUser } from '../../graphql/user';
+import { DirectoryUtils } from '../../utils/DirectoryUtils';
+
+type SearchProps = { };
+
+type SearchState = {
+    result?: SearchByStringsQuery | undefined;
+};
+
+export const Search: React.FC<SearchProps> = (props) => {
+
+    const inputFieldRef = useRef<HTMLInputElement>(null);
+
+    const [state, setState] = useState<SearchState>({});
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            search();
+        }
+    }
+
+    const search = async () => {
+        setState({result: undefined});
+
+        assert(inputFieldRef.current);
+        const input = inputFieldRef.current.value.split(' ');
+        const inputArr = [];
+
+        for (const i of input) {
+            const trimmed = i.trim();
+            if (trimmed.length > 0)
+                inputArr.push(trimmed);
+        }
+
+        if (inputArr.length > 0) {
+            const regex_terms = `(${inputArr.join('|')})`;
+
+            const res = await grapphQLUser.searchByStrings({regex_terms: regex_terms});
+
+            setState({result: res});
+        }
+    }
+
+    const processItemsByUserResult = async (dataOffset: number, fetchAmount: number): Promise<any> => {
+        if (!state.result) return [];
+
+        const results = state.result.itemToken;
+
+        // format so it fits the result the format the token components expect.
+        const formatted: any[] = []
+        for (const res of results.slice(dataOffset, dataOffset + fetchAmount)) {
+            formatted.push({token: res});
+        }
+
+        return formatted;
+    }
+
+    const processItemsResult = async (dataOffset: number, fetchAmount: number): Promise<any> => {
+        if (!state.result) return [];
+
+        const results = state.result.itemTokenMetadata;
+
+        // format so it fits the result the format the token components expect.
+        const formatted: any[] = []
+        for (const res of results.slice(dataOffset, dataOffset + fetchAmount)) {
+            formatted.push({token: res.itemToken[0]});
+        }
+
+        return formatted;
+    }
+
+    // format results...
+
+    let tagResults: JSX.Element[] = [];
+    let accountResults: JSX.Element[] = [];
+
+    if (state.result) {
+        for (const tag of state.result.tag) {
+            tagResults.push(
+                <Link key={tag.name} to={DirectoryUtils.tagLink(tag.name)}>
+                    <Badge pill bg="primary" className="me-1">
+                        {tag.name}
+                    </Badge>
+                </Link>
+            );
+        }
+
+        for (const holder of state.result.holder) {
+            accountResults.push(
+                <Link key={holder.address} className="me-1 d-block" to={DirectoryUtils.userLink(holder.address)}>
+                    {holder.address}
+                </Link>
+            );
+        }
+    }
+
+    return (
+        <main>
+            <div className="position-relative container text-start mt-4">
+                <h1>Search</h1>
+                <Row>
+                    <Col xs={12} sm={8} md={6} lg={4}>
+                        <InputGroup className="mb-3">
+                            <Form.Control type="text" placeholder="Enter search terms" ref={inputFieldRef} onKeyDown={handleKeyDown} />
+                            <Button variant="primary" onClick={search}>
+                                Search
+                            </Button>
+                        </InputGroup>
+                    </Col>
+                </Row>
+
+                {tagResults.length > 0 && <div className='mb-3'><h4>Tags</h4>{tagResults}</div>}
+
+                {accountResults.length > 0 && <div className='mb-3'><h4>Users</h4>{accountResults}</div>}
+
+                {state.result && state.result.itemToken.length > 0 &&
+                    <div className='mb-3'><h4>Items by User</h4><GraphQLInfiniteScroll fetchDataFunc={(dataOffset: number, fetchAmount: number) => processItemsByUserResult(dataOffset, fetchAmount)} handleClick={() => {}} fetchAmount={20} component={InventoryItem}/></div>}
+
+                {state.result && state.result.itemTokenMetadata.length > 0 &&
+                    <div className='mb-3'><h4>Items</h4><GraphQLInfiniteScroll fetchDataFunc={(dataOffset: number, fetchAmount: number) => processItemsResult(dataOffset, fetchAmount)} handleClick={() => {}} fetchAmount={20} component={InventoryItem}/></div>}
+            </div>
+        </main>
+    );
+}

@@ -24,6 +24,7 @@ import { getiFrameControl } from './forms/DirectoryForm';
 import Event from './routes/Event';
 import { Tag } from './routes/directory/Tag';
 import { PlacePage } from './routes/directory/PlacePage';
+import { Search } from './routes/directory/Search';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -51,6 +52,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="privacy" element={<Privacy />} />
                         <Route path="terms" element={<Terms />} />
 
+                        <Route path="search" element={<Search />} />
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />
                         <Route path="p/:id" element={<PlacePage />} />
@@ -65,6 +67,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="map" element={<DirectoryMap />} />
                         <Route path="event/:eventName/:eventLabel" element={<Event />} />
 
+                        <Route path="search" element={<Search />} />
                         <Route path="u/:address" element={<User />} />
                         <Route path="i/:id" element={<Item />} />
                         <Route path="p/:id" element={<PlacePage />} />
