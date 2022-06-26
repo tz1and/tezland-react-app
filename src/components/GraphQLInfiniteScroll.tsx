@@ -63,10 +63,10 @@ export const GraphQLInfiniteScroll: React.FC<GraphQLInfiniteScrollProps> = (prop
             fetchData();
             setFirstFetchDone(true);
         }
-        else if(!scrollbarVisible(document.body)) {
+        else if(state.moreData && !scrollbarVisible(document.body)) {
             fetchData();
         }
-    }, [firstFetchDone, fetchData]);
+    }, [firstFetchDone, fetchData, state.moreData]);
 
     const items: JSX.Element[] = []
     if (!error) state.itemMap.forEach(item => items.push(<props.component key={item.token.id} onSelect={props.handleClick}

@@ -35,7 +35,7 @@ export class CollectionHistory extends React.Component<CollectionHistoryProps, C
         if (itemHistory) itemHistory.itemCollectionHistory.forEach((item) => {
             itemHistoryItems.push(
                 <p key={item.id}>
-                    From <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> to <Link to={DirectoryUtils.userLink(item.collectorId)}>{truncateAddress(item.collectorId)}</Link> through Place #{item.placeId} for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}
+                    From <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> to <Link to={DirectoryUtils.userLink(item.collectorId)}>{truncateAddress(item.collectorId)}</Link> through <Link to={DirectoryUtils.placeLink(item.placeId)}>Place #{item.placeId}</Link> for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}
                 </p>);
         });
 

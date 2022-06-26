@@ -48,7 +48,7 @@ export class WorldHolderInfo extends React.Component<WorldHolderInfoProps, World
         if (worldInfo) worldInfo.worldItemPlacement.forEach((item: any) => {
             worldInfoItems.push(
                 <p key={item.id}>
-                    {item.tokenAmount}x <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in Place #{item.placeId} {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
+                    {item.tokenAmount}x <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in <Link to={DirectoryUtils.placeLink(item.placeId)}>Place #{item.placeId}</Link> {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
                 </p>);
         });
 
