@@ -3,9 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { InventoryItem } from '../../components/InventoryItem';
-import { getiFrameControl } from '../../forms/DirectoryForm';
 import { GraphQLInfiniteScroll } from '../../components/GraphQLInfiniteScroll';
 import { grapphQLUser } from '../../graphql/user';
+import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
 type TagProps = { };
 
@@ -31,10 +31,7 @@ export const Tag: React.FC<TagProps> = (props) => {
     }
 
     const handleClick = (item_id: number, quantity: number) => {
-        if(getiFrameControl(window))
-            navigate(`/directory/i/${item_id}`);
-        else
-            navigate(`/i/${item_id}`);
+        navigate(DirectoryUtils.itemLink(item_id));
     }
 
     /*const handleBurn = (item_id: number) => {

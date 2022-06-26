@@ -2,10 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import TezosWalletContext from '../../components/TezosWalletContext';
 import { mutezToTez, truncateAddress } from '../../utils/Utils';
-import { getiFrameControl } from '../../forms/DirectoryForm';
 import Conf from '../../Config';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemHolderInfoQuery, GetItemWorldInfoQuery } from '../../graphql/generated/user';
+import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
 type WorldHolderInfoProps = {
     tokenId: number;
@@ -25,13 +25,6 @@ export class WorldHolderInfo extends React.Component<WorldHolderInfoProps, World
         this.state = {};
     }
 
-    private userLink(address: string): string {
-        if(getiFrameControl(window))
-            return `/directory/u/${address}`;
-        else
-            return `/u/${address}`;
-    }
-
     override componentDidMount() {
         grapphQLUser.getItemHolderInfo({id: this.props.tokenId}).then(res => {
             this.setState({holderInfo: res});
@@ -47,7 +40,7 @@ export class WorldHolderInfo extends React.Component<WorldHolderInfoProps, World
         const holderInfoItems: JSX.Element[] = []
         if (holderInfo) holderInfo.itemTokenHolder.forEach((item: any) => {
             if (item.holderId !== Conf.world_contract)
-                holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={this.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>);
+                holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={DirectoryUtils.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>);
         });
 
         const worldInfo = this.state.worldInfo;
@@ -55,7 +48,7 @@ export class WorldHolderInfo extends React.Component<WorldHolderInfoProps, World
         if (worldInfo) worldInfo.worldItemPlacement.forEach((item: any) => {
             worldInfoItems.push(
                 <p key={item.id}>
-                    {item.tokenAmount}x <Link to={this.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in Place #{item.placeId} {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
+                    {item.tokenAmount}x <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in Place #{item.placeId} {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
                 </p>);
         });
 

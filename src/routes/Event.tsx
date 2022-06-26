@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
 import { GraphQLInfiniteScroll } from '../components/GraphQLInfiniteScroll';
 import { PlaceItem } from '../components/PlaceItem';
-import { getiFrameControl } from '../forms/DirectoryForm';
 import { grapphQLUser } from '../graphql/user';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
 
 type UserProps = {}
 
@@ -31,10 +31,7 @@ const Event: React.FC<UserProps> = (props) => {
     }
 
     const handleClick = (item_id: number, quantity: number) => {
-        if(getiFrameControl(window))
-            navigate(`/directory/p/${item_id}`);
-        else
-            navigate(`/p/${item_id}`);
+        navigate(DirectoryUtils.placeLink(item_id));
     }
 
     return (

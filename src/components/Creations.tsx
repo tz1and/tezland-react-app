@@ -2,9 +2,9 @@ import React from 'react';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { InventoryItem } from '../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
-import { getiFrameControl } from '../forms/DirectoryForm';
 import { GraphQLInfiniteScroll } from './GraphQLInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
 
 type CreationsProps = {
     //selectItemFromInventory(id: number): void;
@@ -34,10 +34,7 @@ export const Creations: React.FC<CreationsProps> = (props) => {
     }
 
     const handleClick = (item_id: number, quantity: number) => {
-        if(getiFrameControl(window))
-            navigate(`/directory/i/${item_id}`);
-        else
-            navigate(`/i/${item_id}`);
+        navigate(DirectoryUtils.itemLink(item_id));
     }
 
     /*const handleBurn = (item_id: number) => {

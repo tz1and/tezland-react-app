@@ -7,10 +7,10 @@ import { truncateAddress } from '../../utils/Utils';
 import Metadata from '../../world/Metadata';
 import ModelPreview from '../../forms/ModelPreview';
 import { fetchGraphQL } from '../../ipfs/graphql';
-import { getiFrameControl } from '../../forms/DirectoryForm';
 import { WorldHolderInfo } from '../../components/item/WorldHolderInfo';
 import { CollectionHistory } from '../../components/item/CollectionHistory';
 import { ItemTags } from '../../components/item/ItemTags';
+import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
 interface UserProps extends WithParamsInterface {
 }
@@ -46,13 +46,6 @@ class Item extends React.Component<UserProps, UserState> {
         return data.itemToken[0];
     }
 
-    private userLink(address: string): string {
-        if(getiFrameControl(window))
-            return `/directory/u/${address}`;
-        else
-            return `/u/${address}`;
-    }
-
     override componentDidMount() {
         Metadata.getItemMetadata(this.tokenId).then(res => {
             this.setState({metadata: res});
@@ -79,7 +72,7 @@ class Item extends React.Component<UserProps, UserState> {
                 <Container>
                     <Row>
                         <Col>
-                            by <Link to={this.userLink(metadata.minter)}>{truncateAddress(metadata.minter)}</Link>
+                            by <Link to={DirectoryUtils.userLink(metadata.minter)}>{truncateAddress(metadata.minter)}</Link>
                             <ModelPreview tokenId={this.tokenId} width={640} height={480} modelLoaded={() => {}} />
                             {/*<img src={this.getThumbnailUrl(metadata.displayUri ? metadata.displayUri : metadata.thumbnailUri)}></img>*/}
                             <h5 className="mt-3">Description:</h5>

@@ -4,7 +4,7 @@ import { PlaceItem } from './PlaceItem';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { GraphQLInfiniteScroll } from './GraphQLInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
-import { getiFrameControl } from '../forms/DirectoryForm';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
 
 type PlacesProps = {
     //selectItemFromInventory(id: number): void;
@@ -27,10 +27,7 @@ export const Places: React.FC<PlacesProps> = (props) => {
     }
 
     const handleClick = (item_id: number, quantity: number) => {
-        if(getiFrameControl(window))
-            navigate(`/directory/p/${item_id}`);
-        else
-            navigate(`/p/${item_id}`);
+        navigate(DirectoryUtils.placeLink(item_id));
     }
 
     /*const handleTransfer = (item_id: number) => {

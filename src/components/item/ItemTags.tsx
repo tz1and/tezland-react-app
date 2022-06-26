@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import TezosWalletContext from '../../components/TezosWalletContext';
-import { getiFrameControl } from '../../forms/DirectoryForm';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemTagsQuery } from '../../graphql/generated/user';
 import { Badge } from 'react-bootstrap';
+import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
 type ItemTagsProps = {
     tokenId: number;
@@ -23,13 +23,6 @@ export class ItemTags extends React.Component<ItemTagsProps, ItemTagsState> {
         this.state = {};
     }
 
-    private tagLink(tag: string): string {
-        if(getiFrameControl(window))
-            return `/directory/t/${tag}`;
-        else
-            return `/t/${tag}`;
-    }
-
     override componentDidMount() {
         grapphQLUser.getItemTags({id: this.props.tokenId}).then(res => {
             this.setState({itemTags: res});
@@ -41,7 +34,7 @@ export class ItemTags extends React.Component<ItemTagsProps, ItemTagsState> {
         const tags: JSX.Element[] = []
         if (itemTags) itemTags.tag.forEach((tag) => {
             tags.push(
-                <Link key={tag.name} to={this.tagLink(tag.name)}>
+                <Link key={tag.name} to={DirectoryUtils.tagLink(tag.name)}>
                     <Badge pill bg="primary" className="mx-1">
                         {tag.name}
                     </Badge>
