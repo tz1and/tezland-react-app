@@ -1,4 +1,5 @@
 import React from 'react';
+import { ButtonGroup, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction, { discordInviteLink } from '../components/Auction'
@@ -8,21 +9,23 @@ import DutchAuction from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
 import { scrollbarVisible } from '../utils/Utils';
 
+type AuctionTypeFilter = 'all' | 'primary' | 'secondary';
+
 type AuctionsProps = {}
 
 type AuctionsState = {
-    auctions: Map<number, any>,
-    more_data: boolean,
-    last_auction_id: number,
-    user_is_whitelisted: boolean,
+    auctions: Map<number, any>;
+    more_data: boolean;
+    last_auction_id: number;
+    user_is_whitelisted: boolean;
 
     // global contract settings
-    secondary_enabled: boolean,
-    whitelist_enabled: boolean,
-    administrator: string,
+    secondary_enabled: boolean;
+    whitelist_enabled: boolean;
+    administrator: string;
 
-    show_finished: boolean,
-    hide_secondary: boolean,
+    show_finished: boolean;
+    type_filter: AuctionTypeFilter;
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
@@ -42,7 +45,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             whitelist_enabled: true,
             administrator: "",
             show_finished: false,
-            hide_secondary: false
+            type_filter: 'all'
         };
     }
 
@@ -56,7 +59,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // load auctions twice because of new added and offset.
         // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
         try {
-            const secondary_filter = this.state.hide_secondary ? ", isPrimary: {_eq: true}" : "";
+            let secondary_filter = '';
+            if (this.state.type_filter === 'primary') secondary_filter = ", isPrimary: {_eq: true}";
+            else if (this.state.type_filter === 'secondary') secondary_filter = ", isPrimary: {_eq: false}";
+
             const data = await fetchGraphQL(`
                 query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean) {
                     dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}${secondary_filter}}, order_by: {id: desc}) {
@@ -174,20 +180,28 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         return Math.floor(Date.parse(t) / 1000);
     }
 
-    private handleActiveFilter(e: React.ChangeEvent<HTMLInputElement>) {
-        console.log("handleActiveFilter");
-        const val = e.currentTarget.value;
-        console.log(val);
+    private handleActiveFilter(value: any, event: any) {
+        Logging.InfoDev("handleActiveFilter");
+        Logging.InfoDev(value, event);
 
-        this.setState({ show_finished: (val !== "0") }, () => { this.reloadAuctions() });
+        const event_checked = event.currentTarget.checked;
+        const event_value: string = event.currentTarget.value;
+
+        Logging.InfoDev(event_checked, event_value);
+
+        this.setState({ show_finished: event_value !== 'active' }, () => { this.reloadAuctions() });
     }
 
-    private handleSecondaryFilter(e: React.ChangeEvent<HTMLInputElement>) {
-        console.log("handleSecondaryFilter");
-        const val = e.currentTarget.checked;
-        console.log(val);
+    private handleSecondaryFilter(value: any, event: any) {
+        Logging.InfoDev("handleSecondaryFilter");
+        Logging.InfoDev(value, event);
 
-        this.setState({ hide_secondary: val }, () => { this.reloadAuctions() });
+        const event_checked = event.currentTarget.checked;
+        const event_value = event.currentTarget.value as AuctionTypeFilter;
+
+        Logging.InfoDev(event_checked, event_value);
+
+        this.setState({ type_filter: event_value }, () => { this.reloadAuctions() });
     }
 
     override render() {
@@ -215,18 +229,16 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 60tez. It may be worth waiting.</p>
                     <p className='bg-warning rounded p-2'>Item ownership <i>does not</i> transfer with the place.</p>
 
-                    <div className="btn-group me-2" role="group" aria-label="Toggle active and finished auctions">
-                        <input onChange={e => this.handleActiveFilter(e)} type="radio" className="btn-check" name="btnradio" id="btnactive" autoComplete="off" value={0} defaultChecked/>
-                        <label className="btn btn-outline-primary" htmlFor="btnactive">Active</label>
+                    <ToggleButtonGroup className='me-2' type='radio' name='auctionStateFilter' defaultValue='active' onChange={(v, e) => this.handleActiveFilter(v, e)}>
+                        <ToggleButton id='radioStateActive' type="radio" variant='outline-primary' value='active'>Active</ToggleButton>
+                        <ToggleButton id='radioStateFinished' type="radio" variant='outline-primary' value='finished'>Finished</ToggleButton>
+                    </ToggleButtonGroup>
 
-                        <input onChange={e => this.handleActiveFilter(e)} type="radio" className="btn-check" name="btnradio" id="btnfinished" autoComplete="off" value={1}/>
-                        <label className="btn btn-outline-primary" htmlFor="btnfinished">Finished</label>
-                    </div>
-
-                    <div className="btn-group" role="group" aria-label="Toggle secondary auctions">
-                        <input onChange={e => this.handleSecondaryFilter(e)} type="checkbox" className="btn-check" id="btnSecondary" autoComplete="off"/>
-                        <label className="btn btn-outline-primary" htmlFor="btnSecondary">Hide secondary</label>
-                    </div>
+                    <ToggleButtonGroup type='radio' name='auctionTypeFilter' defaultValue='all' onChange={(v, e) => this.handleSecondaryFilter(v, e)}>
+                        <ToggleButton id='radioFilterAll' type="radio" variant='outline-primary' value='all'>All</ToggleButton>
+                        <ToggleButton id='radioFilterPrimary' type="radio" variant='outline-primary' value='primary'>Primary</ToggleButton>
+                        <ToggleButton id='radioFilterSecondary' type="radio" variant='outline-primary' value='secondary'>Secondary</ToggleButton>
+                    </ToggleButtonGroup>
 
                     <hr/>
                     <InfiniteScroll
