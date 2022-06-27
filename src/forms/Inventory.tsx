@@ -7,7 +7,7 @@ import { InventoryItem } from '../components/InventoryItem';
 import { scrollbarVisible } from '../utils/Utils';
 import ItemTracker from '../controllers/ItemTracker';
 import { ItemClickedFunc } from '../components/TokenInfiniteScroll';
-import assert from 'assert';
+
 
 type InventoryProps = {
     selectItemFromInventory(id: number, quantity: number): void;
@@ -178,8 +178,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     }
 
     handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        assert(quantity);
-        this.props.selectItemFromInventory(item_id, quantity);
+        this.props.selectItemFromInventory(item_id, quantity || 0);
     }
 
     handleBurn = (item_id: number) => {

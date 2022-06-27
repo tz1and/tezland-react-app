@@ -5,7 +5,7 @@ import { OverlayTrigger, Popover } from 'react-bootstrap';
 import missing_thumbnail from '../img/missing_thumbnail.png';
 import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
-import assert from 'assert';
+
 
 type InventoryItemProps = {
     onSelect: ItemClickedFunc;
@@ -25,9 +25,9 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     const name = item_metadata ? item_metadata.name : null;
     const description = item_metadata && item_metadata.description ? item_metadata.description : "None.";
 
-    let quantity: number | undefined = undefined;
+    let quantity: number;
     if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
-    else quantity = item_data.quantity;
+    else quantity = item_data.quantity || 0;
 
     const getThumbnailUrl = (url?: string | null): string => {
         if(url) return `${Conf.ipfs_gateways[0]}/ipfs/${url.slice(7)}`;
@@ -38,14 +38,12 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     let itemTrackedBalance = "";
     let balanceColor = "";
     if (props.trackItems) {
-        assert(item_data.quantity);
-        
         const trackedItemBalance = -ItemTracker.getTempItemTrack(token_data.id);
         if (trackedItemBalance !== 0) itemTrackedBalance = `(${numberWithSign(trackedItemBalance)})`;
 
         if (props.isTempItem) balanceColor = "bg-success-light";
 
-        const totalItemBalance = trackedItemBalance + item_data.quantity;
+        const totalItemBalance = trackedItemBalance + quantity;
         if (totalItemBalance < 0) balanceColor = "bg-danger-light";
         else if (totalItemBalance === 0) balanceColor = "bg-warning-light";
     }
