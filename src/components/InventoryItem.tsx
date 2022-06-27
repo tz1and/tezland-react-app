@@ -18,6 +18,7 @@ type InventoryItemProps = {
 
 export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
+    // TODO: fix this mess!
     const item_data = props.item_metadata;
     const token_data = item_data.token;
     const item_metadata = token_data.metadata;
