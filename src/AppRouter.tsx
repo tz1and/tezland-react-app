@@ -7,6 +7,7 @@ import Map from './routes/Map';
 //import ComingSoon from './routes/ComingSoon';
 import SiteLayout from './routes/SiteLayout';
 import DirectoryLayout from './layouts/DirectoryLayout';
+import { DirectoryFooterPadding } from './components/DirectoryFooterPadding';
 import Frontpage from './routes/Frontpage';
 import Faq from './routes/Faq';
 import Docs from './routes/Docs';
@@ -68,19 +69,22 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                     </Route> }
                     {iframeControl &&
                     <Route path="/directory" element={<DirectoryLayout />}>
-                        <Route path="search" element={<Search />} />
                         <Route path="map" element={<DirectoryMap />} />
-                        <Route path="event/:eventName/:eventLabel" element={<Event />} />
 
-                        <Route path="u/:address" element={<User />} />
-                        <Route path="i/:id" element={<Item />} />
-                        <Route path="p/:id" element={<PlacePage />} />
-                        <Route path="t/:tag" element={<Tag />} />
+                        <Route element={<DirectoryFooterPadding />}>
+                            <Route path="search" element={<Search />} />
+                            <Route path="event/:eventName/:eventLabel" element={<Event />} />
 
-                        <Route path="new/mints" element={<NewMints />} />
-                        <Route path="new/swaps" element={<NewSwaps />} />
+                            <Route path="u/:address" element={<User />} />
+                            <Route path="i/:id" element={<Item />} />
+                            <Route path="p/:id" element={<PlacePage />} />
+                            <Route path="t/:tag" element={<Tag />} />
 
-                        <Route path="*" element={<PageNotFound />}/>
+                            <Route path="new/mints" element={<NewMints />} />
+                            <Route path="new/swaps" element={<NewSwaps />} />
+
+                            <Route path="*" element={<PageNotFound />}/>
+                        </Route>
                     </Route> }
                     <Route path="/explore" element={<Explore />} />
                 </Routes>

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Conf from "../Config";
 
-export default function Frontpage() {
+export default function Footer() {
     return (
         <footer className="container py-5">
             <div className="row">
