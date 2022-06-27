@@ -37,18 +37,22 @@ type ItemMetadata = {
     royalties: Royalties;
 }
 
-export function createItemTokenMetadata(metadata: ItemMetadata): string {
+export function processTags(tags: string): string[] {
     // Process tags, trim, remove empty, etc.
-    const tags_processed = new Array<string>();
-    metadata.tags.split(';').forEach(tag => {
+    const tags_processed: string[] = [];
+    tags.split(';').forEach(tag => {
         const trimmed = tag.trim();
         if(trimmed.length > 0) tags_processed.push(trimmed);
     });
-    
+
+    return tags_processed;
+}
+
+export function createItemTokenMetadata(metadata: ItemMetadata): string {
     return JSON.stringify({
         name: metadata.name,
         description: metadata.description,
-        tags: tags_processed,
+        tags: processTags(metadata.tags),
         minter: metadata.minter,
         isTransferable: true,
         isBooleanAmount: false,

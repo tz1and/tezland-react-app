@@ -1,22 +1,21 @@
 import React from 'react';
 import { Badge } from 'react-bootstrap';
+import { processTags } from '../ipfs/ipfs';
 
 type TagPreviewProps = {
     tags: string;
 };
 
 export const TagPreview: React.FC<TagPreviewProps> = (props) => {
-    const itemTags = props.tags.split(';');
+    const processedTags = processTags(props.tags);
 
     const tags: JSX.Element[] = []
-    if (itemTags) itemTags.forEach((tag, index) => {
-        const trimmed = tag.trim();
-        if(trimmed.length > 0) 
-            tags.push(
-                <Badge key={index} pill bg="primary" className="me-1">
-                    {tag}
-                </Badge>
-            );
+    processedTags.forEach((tag, index) => {
+        tags.push(
+            <Badge key={index} pill bg="primary" className="me-1">
+                {tag}
+            </Badge>
+        );
     });
 
     if (tags.length === 0)
