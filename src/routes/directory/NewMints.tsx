@@ -3,7 +3,7 @@ import React from 'react';
 import { InventoryItem } from '../../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
-import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from '../../components/TokenInfiniteScroll';
 import { grapphQLUser } from '../../graphql/user';
 
 type NewMintsProps = { };
@@ -44,7 +44,7 @@ export const NewMints: React.FC<NewMintsProps> = (props) => {
         <main>
             <div className="position-relative container text-start mt-4">
                 <h1>New Mints</h1>
-                <GraphQLInfiniteScroll fetchDataFunc={fetchNewMints} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
+                <TokenInfiniteScroll fetchDataFunc={fetchNewMints} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
             </div>
         </main>
     );

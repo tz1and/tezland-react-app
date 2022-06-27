@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlaceItem } from './PlaceItem';
 //import { useTezosWalletContext } from './TezosWalletContext';
-import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from './GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from './TokenInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 
@@ -37,6 +37,6 @@ export const Places: React.FC<PlacesProps> = (props) => {
     //const isOwned = walletContext.isWalletConnected() && walletContext.walletPHK() === props.address;
 
     return (
-        <GraphQLInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={PlaceItem}/>
+        <TokenInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={PlaceItem}/>
     );
 }

@@ -6,6 +6,8 @@ import { fetchGraphQL } from '../ipfs/graphql';
 import { InventoryItem } from '../components/InventoryItem';
 import { scrollbarVisible } from '../utils/Utils';
 import ItemTracker from '../controllers/ItemTracker';
+import { ItemClickedFunc } from '../components/TokenInfiniteScroll';
+import assert from 'assert';
 
 type InventoryProps = {
     selectItemFromInventory(id: number, quantity: number): void;
@@ -25,7 +27,7 @@ type InventoryState = {
     counter: number;
 };
 
-// TODO: could we use GraphQLInfiniteScroll here?
+// TODO: could we use TokenInfiniteScroll here?
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
@@ -175,7 +177,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    handleClick = (item_id: number, quantity: number) => {
+    handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
+        assert(quantity);
         this.props.selectItemFromInventory(item_id, quantity);
     }
 

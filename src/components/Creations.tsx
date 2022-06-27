@@ -2,7 +2,7 @@ import React from 'react';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { InventoryItem } from '../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
-import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from './GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from './TokenInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 
@@ -48,6 +48,6 @@ export const Creations: React.FC<CreationsProps> = (props) => {
     }*/
 
     return (
-        <GraphQLInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
+        <TokenInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
     );
 }

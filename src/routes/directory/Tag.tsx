@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { InventoryItem } from '../../components/InventoryItem';
-import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from '../../components/TokenInfiniteScroll';
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
@@ -48,7 +48,7 @@ export const Tag: React.FC<TagProps> = (props) => {
         <main>
             <div className="position-relative container text-start mt-4">
                 <h1>Items by tag '{tag}'</h1>
-                <GraphQLInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
+                <TokenInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
             </div>
         </main>
     );

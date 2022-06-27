@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
-import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from '../components/TokenInfiniteScroll';
 import { PlaceItem } from '../components/PlaceItem';
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
@@ -40,7 +40,7 @@ const Event: React.FC<UserProps> = (props) => {
                 <h1>{eventLabel}</h1>
                 <h5>All Places participating in this event</h5>
 
-                <GraphQLInfiniteScroll fetchDataFunc={fetchPlaceData} handleClick={handleClick} fetchAmount={20} component={PlaceItem}/>
+                <TokenInfiniteScroll fetchDataFunc={fetchPlaceData} handleClick={handleClick} fetchAmount={20} component={PlaceItem}/>
             </div>
         </main>
     );

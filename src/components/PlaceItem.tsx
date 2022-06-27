@@ -7,7 +7,7 @@ import './PlaceItem.css'
 import { useEffect, useState } from 'react';
 import Metadata from '../world/Metadata';
 import { MapSetCenter } from '../forms/CreateAuction';
-import { FetchDataPlaceToken, FetchDataResult, ItemClickedFunc } from './GraphQLInfiniteScroll';
+import { FetchDataPlaceToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
 
 type PlaceItemProps = {
     onSelect: ItemClickedFunc;

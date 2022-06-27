@@ -4,7 +4,7 @@ import { mutezToTez, numberWithSign, truncate, truncateAddress } from '../utils/
 import { OverlayTrigger, Popover } from 'react-bootstrap';
 import missing_thumbnail from '../img/missing_thumbnail.png';
 import ItemTracker from '../controllers/ItemTracker';
-import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './GraphQLInfiniteScroll';
+import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
 import assert from 'assert';
 
 type InventoryItemProps = {

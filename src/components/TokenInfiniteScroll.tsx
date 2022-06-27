@@ -44,23 +44,23 @@ export type FetchDataResultArray = FetchDataResult<FetchDataItemToken | FetchDat
 export type FetchDataFunc = (dataOffset: number, fetchAmount: number) => Promise<FetchDataResultArray>;
 export type ItemClickedFunc = (item_id: number, quantity?: number) => void;
 
-type GraphQLInfiniteScrollProps = {
+type TokenInfiniteScrollProps = {
     fetchDataFunc: FetchDataFunc;
     handleClick?: ItemClickedFunc;
     fetchAmount: number;
     component: React.ElementType;
 };
 
-type GraphQLInfiniteScrollState = {
+type TokenInfiniteScrollState = {
     itemMap: Map<number, FetchDataResult<FetchDataItemToken | FetchDataPlaceToken> >;
     moreData: boolean;
     itemOffset: number;
 }
 
 
-export const GraphQLInfiniteScroll: React.FC<GraphQLInfiniteScrollProps> = (props) => {
+export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) => {
 
-    const [state, setState] = useState<GraphQLInfiniteScrollState>({
+    const [state, setState] = useState<TokenInfiniteScrollState>({
         itemMap: new Map(),
         moreData: false,
         itemOffset: 0
