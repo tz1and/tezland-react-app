@@ -26,9 +26,9 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     const name = item_metadata ? item_metadata.name : null;
     const description = item_metadata && item_metadata.description ? item_metadata.description : "None.";
 
-    let quantity: number;
+    let quantity: number | undefined;
     if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
-    else quantity = item_data.quantity || 0;
+    else quantity = item_data.quantity;
 
     const getThumbnailUrl = (url?: string | null): string => {
         if(url) return `${Conf.ipfs_gateways[0]}/ipfs/${url.slice(7)}`;
@@ -44,7 +44,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
         if (props.isTempItem) balanceColor = "bg-success-light";
 
-        const totalItemBalance = trackedItemBalance + quantity;
+        const totalItemBalance = trackedItemBalance + (item_data.quantity || 0);
         if (totalItemBalance < 0) balanceColor = "bg-danger-light";
         else if (totalItemBalance === 0) balanceColor = "bg-warning-light";
     }
