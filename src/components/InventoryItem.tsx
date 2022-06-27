@@ -4,12 +4,14 @@ import { mutezToTez, numberWithSign, truncate, truncateAddress } from '../utils/
 import { OverlayTrigger, Popover } from 'react-bootstrap';
 import missing_thumbnail from '../img/missing_thumbnail.png';
 import ItemTracker from '../controllers/ItemTracker';
+import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './GraphQLInfiniteScroll';
+import assert from 'assert';
 
 type InventoryItemProps = {
-    onSelect: (item_id: number, quantity: number) => void;
+    onSelect: ItemClickedFunc;
     onBurn?: ((item_id: number) => void) | undefined;
     onTransfer?: ((item_id: number) => void) | undefined;
-    item_metadata: any;
+    item_metadata: FetchDataResult<FetchDataItemToken>;
     trackItems?: boolean;
     isTempItem?: boolean;
 }
@@ -18,7 +20,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
     const item_data = props.item_metadata;
     const token_data = item_data.token;
-    const item_metadata = token_data.metadata ? token_data.metadata : {};
+    const item_metadata = token_data.metadata;
 
     const name = item_metadata ? item_metadata.name : null;
     const description = item_metadata && item_metadata.description ? item_metadata.description : "None.";
@@ -27,7 +29,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
     else quantity = item_data.quantity;
 
-    const getThumbnailUrl = (url: string | null): string => {
+    const getThumbnailUrl = (url?: string | null): string => {
         if(url) return `${Conf.ipfs_gateways[0]}/ipfs/${url.slice(7)}`;
 
         return missing_thumbnail;
@@ -36,6 +38,8 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     let itemTrackedBalance = "";
     let balanceColor = "";
     if (props.trackItems) {
+        assert(item_data.quantity);
+        
         const trackedItemBalance = -ItemTracker.getTempItemTrack(token_data.id);
         if (trackedItemBalance !== 0) itemTrackedBalance = `(${numberWithSign(trackedItemBalance)})`;
 
@@ -58,14 +62,14 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                 </Popover>
             }
         >
-            <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.id}>
+            <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.id.toString()}>
                 <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
                     { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.id)}><i className="bi bi-send-fill"></i></button> }
                     { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.id)}><i className="bi bi-trash-fill"></i></button> }
                 </div>
 
                 <div onClick={() => props.onSelect(token_data.id, item_data.quantity)}>
-                    <img src={getThumbnailUrl(item_metadata.thumbnailUri)} className="card-img-top" alt="..."/>
+                    <img src={getThumbnailUrl(item_metadata?.thumbnailUri)} className="card-img-top" alt="..."/>
                     <div className="card-body">
                         <h5 className="card-title">{name ? truncate(name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
                         <p className="card-text">x{quantity}{itemTrackedBalance}<small>/{token_data.supply}</small>{item_data.swapInfo && ` for ${mutezToTez(item_data.swapInfo.price).toNumber().toFixed(2)} \uA729`}</p>

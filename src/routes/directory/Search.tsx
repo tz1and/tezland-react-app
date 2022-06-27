@@ -2,7 +2,7 @@ import assert from 'assert';
 import React, { useRef, useState } from 'react';
 import { Button, InputGroup, Form, Row, Col, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { GraphQLInfiniteScroll } from '../../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../../components/GraphQLInfiniteScroll';
 import { InventoryItem } from '../../components/InventoryItem';
 import { SearchByStringsQuery } from '../../graphql/generated/user';
 import { grapphQLUser } from '../../graphql/user';
@@ -20,7 +20,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 
     const [state, setState] = useState<SearchState>({});
 
-    const handleClick = (item_id: number, quantity: number) => {
+    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
         navigate(DirectoryUtils.itemLink(item_id));
     }
 
@@ -52,13 +52,13 @@ export const Search: React.FC<SearchProps> = (props) => {
         }
     }
 
-    const processItemsByUserResult = async (dataOffset: number, fetchAmount: number): Promise<any> => {
+    const processItemsByUserResult: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
         if (!state.result) return [];
 
         const results = state.result.itemToken;
 
         // format so it fits the result the format the token components expect.
-        const formatted: any[] = []
+        const formatted: FetchDataResultArray = []
         for (const res of results.slice(dataOffset, dataOffset + fetchAmount)) {
             formatted.push({token: res});
         }
@@ -66,13 +66,13 @@ export const Search: React.FC<SearchProps> = (props) => {
         return formatted;
     }
 
-    const processItemsResult = async (dataOffset: number, fetchAmount: number): Promise<any> => {
+    const processItemsResult: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
         if (!state.result) return [];
 
         const results = state.result.itemTokenMetadata;
 
         // format so it fits the result the format the token components expect.
-        const formatted: any[] = []
+        const formatted: FetchDataResultArray = []
         for (const res of results.slice(dataOffset, dataOffset + fetchAmount)) {
             formatted.push({token: res.itemToken[0]});
         }

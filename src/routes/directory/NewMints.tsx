@@ -3,7 +3,7 @@ import React from 'react';
 import { InventoryItem } from '../../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
-import { GraphQLInfiniteScroll } from '../../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../../components/GraphQLInfiniteScroll';
 import { grapphQLUser } from '../../graphql/user';
 
 type NewMintsProps = { };
@@ -12,13 +12,13 @@ export const NewMints: React.FC<NewMintsProps> = (props) => {
     //const walletContext = useTezosWalletContext();
     const navigate = useNavigate();
 
-    const fetchNewMints = async (dataOffset: number, fetchAmount: number) => {
+    const fetchNewMints: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
         const res = await grapphQLUser.getNewMints({ amount: fetchAmount, offset: dataOffset });
 
         const results = res.itemToken;
         
         // format the data to fit the data format the item components expect.
-        const formatted: any[] = []
+        const formatted: FetchDataResultArray = []
         for (const res of results) {
             formatted.push({token: res});
         }
@@ -26,7 +26,7 @@ export const NewMints: React.FC<NewMintsProps> = (props) => {
         return formatted;
     }
 
-    const handleClick = (item_id: number, quantity: number) => {
+    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
         navigate(DirectoryUtils.itemLink(item_id));
     }
 

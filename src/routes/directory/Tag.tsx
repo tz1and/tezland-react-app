@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { InventoryItem } from '../../components/InventoryItem';
-import { GraphQLInfiniteScroll } from '../../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../../components/GraphQLInfiniteScroll';
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
@@ -17,12 +17,12 @@ export const Tag: React.FC<TagProps> = (props) => {
     assert(params.tag);
     const tag = params.tag;
 
-    const fetchInventory = async (dataOffset: number, fetchAmount: number) => {
+    const fetchInventory: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
         const data = await grapphQLUser.getItemsByTag({ tag: tag, offset: dataOffset, amount: fetchAmount });
         const results = data.itemToken;
 
         // format the data to fit the data format the item components expect.
-        const formatted: any[] = []
+        const formatted: FetchDataResultArray = []
         for (const res of results) {
             formatted.push({token: res});
         }
@@ -30,7 +30,7 @@ export const Tag: React.FC<TagProps> = (props) => {
         return formatted;
     }
 
-    const handleClick = (item_id: number, quantity: number) => {
+    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
         navigate(DirectoryUtils.itemLink(item_id));
     }
 

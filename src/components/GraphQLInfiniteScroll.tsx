@@ -2,15 +2,57 @@ import React, { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { scrollbarVisible } from '../utils/Utils';
 
+type FetchDataItemMetadata = {
+    name: string;
+    description: string;
+    artifactUri: string;
+    displayUri?: string | null;
+    thumbnailUri?: string | null;
+    baseScale: number;
+    fileSize: number;
+    mimeType: string;
+    polygonCount: number;
+    timestamp: string;
+};
+
+export type FetchDataItemToken = {
+    id: number;
+    metadata?: FetchDataItemMetadata | null;
+    royalties: number;
+    supply: number;
+    minterId: string;
+}
+
+type FetchDataSwapInfo = {
+    amount: number;
+    price: number;
+}
+
+export type FetchDataPlaceToken = {
+    id: number;
+}
+
+export type FetchDataResult<T> = {
+    //key?: string | number;
+    token: T;
+    quantity?: number;
+    swapInfo?: FetchDataSwapInfo;
+}
+
+export type FetchDataResultArray = FetchDataResult<FetchDataItemToken | FetchDataPlaceToken>[];
+
+export type FetchDataFunc = (dataOffset: number, fetchAmount: number) => Promise<FetchDataResultArray>;
+export type ItemClickedFunc = (item_id: number, quantity?: number) => void;
+
 type GraphQLInfiniteScrollProps = {
-    fetchDataFunc(dataOffset: number, fetchAmount: number): Promise<any>;
-    handleClick?(item_id: number, quantity: number): void;
+    fetchDataFunc: FetchDataFunc;
+    handleClick?: ItemClickedFunc;
     fetchAmount: number;
     component: React.ElementType;
 };
 
 type GraphQLInfiniteScrollState = {
-    itemMap: Map<number, any>;
+    itemMap: Map<number, FetchDataResult<FetchDataItemToken | FetchDataPlaceToken> >;
     moreData: boolean;
     itemOffset: number;
 }

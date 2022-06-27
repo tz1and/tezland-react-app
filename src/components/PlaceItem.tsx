@@ -7,11 +7,12 @@ import './PlaceItem.css'
 import { useEffect, useState } from 'react';
 import Metadata from '../world/Metadata';
 import { MapSetCenter } from '../forms/CreateAuction';
+import { FetchDataPlaceToken, FetchDataResult, ItemClickedFunc } from './GraphQLInfiniteScroll';
 
 type PlaceItemProps = {
-    onSelect: (item_id: number) => void; // TODO: quantity, see GraphQLInfiniteScrollProps
+    onSelect: ItemClickedFunc;
     onTransfer?: ((item_id: number) => void) | undefined;
-    item_metadata: any;
+    item_metadata: FetchDataResult<FetchDataPlaceToken>;
 }
 
 export const PlaceItem: React.FC<PlaceItemProps> = (props) => {

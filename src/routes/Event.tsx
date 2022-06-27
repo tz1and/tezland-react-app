@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
-import { GraphQLInfiniteScroll } from '../components/GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from '../components/GraphQLInfiniteScroll';
 import { PlaceItem } from '../components/PlaceItem';
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
@@ -17,12 +17,12 @@ const Event: React.FC<UserProps> = (props) => {
     const eventName = params.eventName;
     const eventLabel = params.eventLabel;
 
-    const fetchPlaceData = async (dataOffset: number, fetchAmount: number): Promise<any> => {
+    const fetchPlaceData: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
         const dataPlaceIds = await grapphQLUser.getPlacesWithItemsByTag({tag: eventName, amount: fetchAmount, offset: dataOffset})
         const results = dataPlaceIds.placeToken;
 
         // format so it fits the result the format the token components expect.
-        const formatted: any[] = []
+        const formatted: FetchDataResultArray = []
         for (const res of results) {
             formatted.push({token: {id: res.id}});
         }
@@ -30,7 +30,7 @@ const Event: React.FC<UserProps> = (props) => {
         return formatted;
     }
 
-    const handleClick = (item_id: number, quantity: number) => {
+    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
         navigate(DirectoryUtils.placeLink(item_id));
     }
 

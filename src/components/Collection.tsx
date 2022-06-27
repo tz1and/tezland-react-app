@@ -3,7 +3,7 @@ import React from 'react';
 import { InventoryItem } from '../components/InventoryItem';
 import { useNavigate } from 'react-router-dom';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
-import { GraphQLInfiniteScroll } from './GraphQLInfiniteScroll';
+import { FetchDataFunc, FetchDataResultArray, GraphQLInfiniteScroll, ItemClickedFunc } from './GraphQLInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
 
 type CollectionProps = {
@@ -20,13 +20,13 @@ export const Collection: React.FC<CollectionProps> = (props) => {
     //const walletContext = useTezosWalletContext();
     const navigate = useNavigate();
 
-    const fetchInventory = async (dataOffset: number, fetchAmount: number) => {
+    const fetchInventory: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
         const res = await grapphQLUser.getUserCollection({ address: props.address, amount: fetchAmount, offset: dataOffset });
         
         return res.itemTokenHolder;
     }
 
-    const handleClick = (item_id: number, quantity: number) => {
+    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
         navigate(DirectoryUtils.itemLink(item_id));
     }
 
