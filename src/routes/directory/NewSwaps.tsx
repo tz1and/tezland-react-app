@@ -20,7 +20,7 @@ export const NewSwaps: React.FC<NewSwapsProps> = (props) => {
         // format the data to fit the data format the item components expect.
         const formatted: FetchDataResultArray = []
         for (const res of results) {
-            formatted.push({token: res.itemToken, swapInfo: { amount: res.tokenAmount, price: res.mutezPerToken }});
+            formatted.push({key: res.id, token: res.itemToken, swapInfo: { amount: res.tokenAmount, price: res.mutezPerToken }});
         }
 
         return formatted;

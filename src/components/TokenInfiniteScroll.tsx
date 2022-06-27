@@ -33,7 +33,7 @@ export type FetchDataPlaceToken = {
 }
 
 export type FetchDataResult<T> = {
-    //key?: string | number;
+    key?: string | number;
     token: T;
     quantity?: number;
     swapInfo?: FetchDataSwapInfo;
@@ -52,7 +52,7 @@ type TokenInfiniteScrollProps = {
 };
 
 type TokenInfiniteScrollState = {
-    itemMap: Map<number, FetchDataResult<FetchDataItemToken | FetchDataPlaceToken> >;
+    itemMap: Map<string | number, FetchDataResult<FetchDataItemToken | FetchDataPlaceToken> >;
     moreData: boolean;
     itemOffset: number;
 }
@@ -71,7 +71,10 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
 
     const fetchData = useCallback(() => {
         props.fetchDataFunc(state.itemOffset, props.fetchAmount).then((res) => {
-            for (const r of res) state.itemMap.set(r.token.id, r);
+            for (const r of res) {
+                const key = r.key !== undefined ? r.key : r.token.id;
+                state.itemMap.set(key, r);
+            }
             const more_data = res.length === props.fetchAmount;
 
             setState({
@@ -111,7 +114,7 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
     }, [firstFetchDone, fetchData, state.moreData]);
 
     const items: JSX.Element[] = []
-    if (!error) state.itemMap.forEach(item => items.push(<props.component key={item.token.id} onSelect={props.handleClick}
+    if (!error) state.itemMap.forEach((item, key) => items.push(<props.component key={key} onSelect={props.handleClick}
         /*onBurn={isOwned ? this.handleBurn : undefined}
         onTransfer={isOwned ? this.handleTransfer : undefined}*/
         item_metadata={item}/>))
