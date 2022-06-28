@@ -75,7 +75,7 @@ export const EventMap: React.FC<UserProps> = (props) => {
         <main>
             <div className="position-relative container text-start mt-4">
                 <h1>{eventLabel}</h1>
-                <h5>All Places participating in this event</h5>
+                <h5>All Places participating in this event.</h5>
             </div>
 
             <MapContainer center={[1000, 1000]} minZoom={-1} zoom={2} scrollWheelZoom={true} crs={L.CRS.Simple} style={{ height: "70vh", backgroundColor: 'white' }}>
