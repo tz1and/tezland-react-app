@@ -68,7 +68,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                 </div>
 
                 <div onClick={() => props.onSelect(token_data.id, item_data.quantity)}>
-                    <img src={getThumbnailUrl(item_metadata?.thumbnailUri)} className="card-img-top" alt="..."/>
+                    <img src={getThumbnailUrl(item_metadata?.thumbnailUri)} width={350} height={350} className="card-img-top inventory-item-image" alt="..."/>
                     <div className="card-body">
                         <h5 className="card-title">{name ? truncate(name, 15, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h5>
                         <p className="card-text">x{quantity}{itemTrackedBalance}<small>/{token_data.supply}</small>{item_data.swapInfo && ` for ${mutezToTez(item_data.swapInfo.price).toNumber().toFixed(2)} \uA729`}</p>
