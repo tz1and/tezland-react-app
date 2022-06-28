@@ -2,7 +2,6 @@ import React from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { Logging } from '../utils/Logging';
-import { fetchGraphQL } from '../ipfs/graphql';
 import { InventoryItem } from '../components/InventoryItem';
 import { scrollbarVisible } from '../utils/Utils';
 import ItemTracker from '../controllers/ItemTracker';
