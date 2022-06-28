@@ -20,3 +20,15 @@ query getUserPlaces($address: String!, $offset: Int!, $amount: Int!) {
         }
     }
 }
+
+query getInventoryTokensWithBalances($address: String!, $ids: [bigint!]) {
+    itemTokenHolder(where: {tokenId: {_in: $ids}, holderId: {_eq: $address}}) {
+        tokenId
+    }
+}
+
+query getInventoryTokensWithoutBalance($ids: [bigint!]) {
+    itemToken(where: {id: {_in: $ids}}) {
+        ...ItemTokenSelect
+    }
+}

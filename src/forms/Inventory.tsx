@@ -6,7 +6,8 @@ import { fetchGraphQL } from '../ipfs/graphql';
 import { InventoryItem } from '../components/InventoryItem';
 import { scrollbarVisible } from '../utils/Utils';
 import ItemTracker from '../controllers/ItemTracker';
-import { ItemClickedFunc } from '../components/TokenInfiniteScroll';
+import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from '../components/TokenInfiniteScroll';
+import { grapphQLUser } from '../graphql/user';
 
 
 type InventoryProps = {
@@ -44,8 +45,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     private fetchAmount: number = 20;
     private firstFetchDone: boolean = false;
 
-    private trackedRemovals: any[] = []; // TODO: array should belong to state?
-    private itemMap: Map<number, any> = new Map(); // TODO: map should belong to state?
+    private trackedRemovals: FetchDataResult<FetchDataItemToken>[] = []; // TODO: array should belong to state?
+    private itemMap: Map<number, FetchDataResult<FetchDataItemToken>> = new Map(); // TODO: map should belong to state?
 
     override componentDidMount() {
         this.fetchAvailableTempRemovals().then((res) => {
@@ -62,32 +63,9 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    private async fetchInventory() {
-        try {   
-            const data = await fetchGraphQL(`
-                query getInventory($address: String!, $offset: Int!, $amount: Int!) {
-                    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
-                        quantity
-                        token {
-                            id
-                            metadata {
-                                name
-                                description
-                                artifactUri
-                                displayUri
-                                thumbnailUri
-                                baseScale
-                                fileSize
-                                mimeType
-                                polygonCount
-                                timestamp
-                            }
-                            royalties
-                            supply
-                            minterId
-                        }
-                    }
-                  }`, "getInventory", { address: this.context.walletPHK(), amount: this.fetchAmount, offset: this.state.item_offset });
+    private async fetchInventory(): Promise<FetchDataResult<FetchDataItemToken>[]> {
+        try {
+            const data = await grapphQLUser.getUserCollection({ address: this.context.walletPHK(), amount: this.fetchAmount, offset: this.state.item_offset });
             
             return data.itemTokenHolder;
         } catch(e: any) {
@@ -96,7 +74,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    private async fetchAvailableTempRemovals() {
+    private async fetchAvailableTempRemovals(): Promise<FetchDataResult<FetchDataItemToken>[]> {
         // get tracked ids from ItemTokenTracker
         const trackedIds = ItemTracker.getTrackedTempItems();
 
@@ -104,48 +82,23 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
         try {
             // Fetch tokens with a balance.
-            const tokensWithBalance = await fetchGraphQL(`
-                query getTokensWithBalances($address: String!, $ids: [bigint!]) {
-                    itemTokenHolder(where: {tokenId: {_in: $ids}, holderId: {_eq: $address}}) {
-                        tokenId
-                    }
-                }`, "getTokensWithBalances", { address: this.context.walletPHK(), ids: trackedIds });
+            const tokensWithBalance = await grapphQLUser.getInventoryTokensWithBalances({ address: this.context.walletPHK(), ids: trackedIds });
 
             // Find all tracked tokens that don't have a balance.
             const tokensWithoutBalance: number[] = [];
 
             for (const tracked of trackedIds) {
-                if (!tokensWithBalance.itemTokenHolder.find((e: any) => e.tokenId === tracked))
+                if (!tokensWithBalance.itemTokenHolder.find((e) => e.tokenId === tracked))
                     tokensWithoutBalance.push(tracked);
             }
 
             if(tokensWithoutBalance.length === 0) return [];
 
             // Fetch the metadata for those tokens
-            const data = await fetchGraphQL(`
-                query getTokensWithoutBalance($ids: [bigint!]) {
-                    itemToken(where: {id: {_in: $ids}}) {
-                        id
-                        metadata {
-                            name
-                            description
-                            artifactUri
-                            displayUri
-                            thumbnailUri
-                            baseScale
-                            fileSize
-                            mimeType
-                            polygonCount
-                            timestamp
-                        }
-                        royalties
-                        supply
-                        minterId
-                    }
-                  }`, "getTokensWithoutBalance", { ids: tokensWithoutBalance });
+            const data = await grapphQLUser.getInventoryTokensWithoutBalance({ ids: tokensWithoutBalance });
 
             // trasnform it into the format we expect
-            const result: any[] = [];
+            const result: FetchDataResult<FetchDataItemToken>[] = [];
             for (const item of data.itemToken) {
                 result.push({ quantity: 0, token: item })
             }
