@@ -7,10 +7,13 @@ import assert from 'assert';
 import { Logging } from '../utils/Logging';
 import { Vector3 } from '@babylonjs/core';
 
+
 type VirtualSpaceProps = {
     appControl: AppControlFunctions;
 };
+
 type VirtualSpaceState = {
+    world: World | null;
 };
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
@@ -18,35 +21,33 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     override context!: React.ContextType<typeof TezosWalletContext>;
 
     private mount = React.createRef<HTMLCanvasElement>();
-    private world: World | null;
 
     public failedToLoad: boolean = false;
 
     constructor(props: VirtualSpaceProps) {
         super(props);
-        this.state = {};
-        this.world = null;
+        this.state = { world: null };
     }
 
     setInventoryItem(id: number, quantity: number) {
-        assert(this.world);
-        this.world.playerController.setCurrentItem(id, quantity);
+        assert(this.state.world);
+        this.state.world.playerController.setCurrentItem(id, quantity);
     }
 
     getCurrentLocation(): [number, number, number] {
-        assert(this.world);
-        const pos = this.world.playerController.getPosition();
+        assert(this.state.world);
+        const pos = this.state.world.playerController.getPosition();
         return [pos.x, pos.y, pos.z];
     }
 
     teleportToLocation(location: string) {
-        assert(this.world);
-        this.world.playerController.teleportToLocation(location);
+        assert(this.state.world);
+        this.state.world.playerController.teleportToLocation(location);
     }
 
     teleportToWorldPos(pos: [number, number]) {
-        assert(this.world);
-        this.world.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
+        assert(this.state.world);
+        this.state.world.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
     }
 
     lockControls() {
@@ -74,19 +75,20 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         }
 
         try {
-            this.world = new World(this.mount.current, this.props.appControl, this.context);
+            const world = new World(this.mount.current, this.props.appControl, this.context);
+
+            this.setState({world: world}, () => {
+                world.loadWorld();
+            })
         }
         catch(err: any) {
             this.failedToLoad = true;
             return;
         }
-
-        this.world.loadWorld();
     }
 
     override componentWillUnmount() {
-        this.world?.dispose();
-        this.world = null;
+        this.state.world?.dispose();
     }
 
     override render() {
