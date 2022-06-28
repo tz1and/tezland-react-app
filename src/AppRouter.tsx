@@ -38,43 +38,24 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
             <BrowserRouter>
                 {props.children}
                 <Routes>
-                    {!iframeControl &&
-                    <Route path="/" element={<SiteLayout />}>
-                        <Route path="" element={<Frontpage />} />
+                    {!iframeControl ?
+                        <Route path="/" element={<SiteLayout />}>
+                            <Route path="" element={<Frontpage />} />
 
-                        <Route path="mint" element={<MintFormWrapper />}/>
+                            <Route path="mint" element={<MintFormWrapper />}/>
 
-                        <Route path="auctions">
-                            <Route path="" element={<Auctions />} />
-                            <Route path="create" element={<CreateAuctionFormW />} />
-                        </Route>
-                        <Route path="map" element={<Map />} />
+                            <Route path="auctions">
+                                <Route path="" element={<Auctions />} />
+                                <Route path="create" element={<CreateAuctionFormW />} />
+                            </Route>
+                            <Route path="map" element={<Map />} />
 
-                        <Route path="docs" element={<Docs />} />
-                        <Route path="faq" element={<Faq />} />
-                        <Route path="privacy" element={<Privacy />} />
-                        <Route path="terms" element={<Terms />} />
+                            <Route path="docs" element={<Docs />} />
+                            <Route path="faq" element={<Faq />} />
+                            <Route path="privacy" element={<Privacy />} />
+                            <Route path="terms" element={<Terms />} />
 
-                        <Route path="search" element={<Search />} />
-                        <Route path="u/:address" element={<User />} />
-                        <Route path="i/:id" element={<Item />} />
-                        <Route path="p/:id" element={<PlacePage />} />
-                        <Route path="t/:tag" element={<Tag />} />
-
-                        <Route path="new/mints" element={<NewMints />} />
-                        <Route path="new/swaps" element={<NewSwaps />} />
-
-                        {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
-                        <Route path="*" element={<PageNotFound />}/>
-                    </Route> }
-                    {iframeControl &&
-                    <Route path="/directory" element={<DirectoryLayout />}>
-                        <Route path="map" element={<DirectoryMap />} />
-
-                        <Route element={<DirectoryFooterPadding />}>
                             <Route path="search" element={<Search />} />
-                            <Route path="event/:eventName/:eventLabel" element={<Event />} />
-
                             <Route path="u/:address" element={<User />} />
                             <Route path="i/:id" element={<Item />} />
                             <Route path="p/:id" element={<PlacePage />} />
@@ -83,9 +64,27 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="new/mints" element={<NewMints />} />
                             <Route path="new/swaps" element={<NewSwaps />} />
 
+                            {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                             <Route path="*" element={<PageNotFound />}/>
-                        </Route>
-                    </Route> }
+                        </Route> :
+                        <Route path="/directory" element={<DirectoryLayout />}>
+                            <Route path="map" element={<DirectoryMap />} />
+
+                            <Route element={<DirectoryFooterPadding />}>
+                                <Route path="search" element={<Search />} />
+                                <Route path="event/:eventName/:eventLabel" element={<Event />} />
+
+                                <Route path="u/:address" element={<User />} />
+                                <Route path="i/:id" element={<Item />} />
+                                <Route path="p/:id" element={<PlacePage />} />
+                                <Route path="t/:tag" element={<Tag />} />
+
+                                <Route path="new/mints" element={<NewMints />} />
+                                <Route path="new/swaps" element={<NewSwaps />} />
+
+                                <Route path="*" element={<PageNotFound />}/>
+                            </Route>
+                        </Route> }
                     <Route path="/explore" element={<Explore />} />
                 </Routes>
             </BrowserRouter>
