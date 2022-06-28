@@ -1,13 +1,15 @@
 import React, { createRef } from 'react';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { iFrameControlFunctions } from '../world/AppControlFunctions';
+import { Logging } from '../utils/Logging';
 import assert from 'assert';
 
-function setiFrameControl(iframe: HTMLIFrameElement, dwa: iFrameControlFunctions) {
-    assert(iframe.contentWindow);
 
-    // @ts-expect-error
-    iframe.contentWindow.directoryWorldAccess = dwa;
+function setiFrameControl(iframe: HTMLIFrameElement, dwa: iFrameControlFunctions) {
+    if (iframe.contentWindow)
+        // @ts-expect-error
+        iframe.contentWindow.directoryWorldAccess = dwa;
+    else Logging.Error("Failed to set 'directoryWorldAccess': contentWindow is null");
 }
 
 export function getiFrameControl(theWindow: Window): iFrameControlFunctions | undefined {
