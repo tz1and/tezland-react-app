@@ -1,5 +1,8 @@
 query getPlacesWithItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
     placeToken(where: {worldItemPlacements: {itemToken: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}}}, limit: $amount, offset: $offset, order_by: {id: asc}) {
         id
+        metadata {
+            centerCoordinates
+        }
     }
 }

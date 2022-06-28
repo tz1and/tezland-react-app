@@ -31,7 +31,7 @@ const altIcon = L.icon({
     className: "map-spawn-marker"
 });
 
-export default function DirectoryMap() {
+export const DirectoryMap: React.FC<{}> = (props) => {
 
     const teleportToMapLocation = (pos: [number, number]) => {
         const iFrameControl = getiFrameControl(window);
@@ -67,13 +67,10 @@ export default function DirectoryMap() {
 
     return (
         <main>
-            <div className="text-start">
-                <MapContainer center={[1000, 1000]} minZoom={-1} zoom={2} scrollWheelZoom={true} crs={L.CRS.Simple} style={{ height: "90vh", backgroundColor: 'white' }}>
-                    <ImageOverlay bounds={[[0,0], [2000, 2000]]} url={map} />
-                    {markers}
-                </MapContainer>
-            </div>
-
+            <MapContainer center={[1000, 1000]} minZoom={-1} zoom={2} scrollWheelZoom={true} crs={L.CRS.Simple} style={{ height: "90vh", backgroundColor: 'white' }}>
+                <ImageOverlay bounds={[[0,0], [2000, 2000]]} url={map} />
+                {markers}
+            </MapContainer>
         </main>
     );
 }

@@ -20,9 +20,9 @@ import { TezosWalletProvider } from './components/TezosWalletContext'
 import { isDev } from './utils/Utils';
 import User from './routes/directory/User';
 import Item from './routes/directory/Item';
-import DirectoryMap from './routes/DirectoryMap';
+import { DirectoryMap } from './routes/DirectoryMap';
 import { getiFrameControl } from './forms/DirectoryForm';
-import Event from './routes/Event';
+import { EventMap } from './routes/EventMap';
 import { Tag } from './routes/directory/Tag';
 import { PlacePage } from './routes/directory/PlacePage';
 import { Search } from './routes/directory/Search';
@@ -72,7 +72,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                             <Route element={<DirectoryFooterPadding />}>
                                 <Route path="search" element={<Search />} />
-                                <Route path="event/:eventName/:eventLabel" element={<Event />} />
+                                <Route path="event/:eventName/:eventLabel" element={<EventMap />} />
 
                                 <Route path="u/:address" element={<User />} />
                                 <Route path="i/:id" element={<Item />} />
