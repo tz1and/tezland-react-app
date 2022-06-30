@@ -9,6 +9,7 @@ import { downloadFile, mutezToTez, signedArea, sleep, tezToMutez } from "../util
 import TezosWalletContext from "../components/TezosWalletContext";
 import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict, { ExclusionZone } from "../worldgen/VoronoiDistrict";
+import { PublicPlaces } from "../worldgen/PublicPlaces";
 import assert from "assert";
 import Config from "../Config";
 import Contracts from "../tz/Contracts";
@@ -184,7 +185,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const auction_id_list: number[] = [];
 
         for (const place_id of known_places) {
-            if (!this.publicPlaces.has(place_id) && !exclude_places.has(place_id))
+            if (!PublicPlaces.has(place_id) && !exclude_places.has(place_id))
                 auction_id_list.push(place_id);
         }
 
@@ -280,6 +281,52 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         Contracts.handleOperation(this.context, wl_op, undefined, 3);
     }
 
+    private batchPermissions = async () => {
+        const walletphk = this.context.walletPHK();
+        assert(walletphk === prodAdminAddress, "Not admin!");
+
+        const worldWallet = await this.context.tezosToolkit().wallet.at(Conf.world_contract);
+
+        type PermissionEntry = { permittee: string; token_id: number };
+        const give_permissions: PermissionEntry[] = [
+            //{permittee: "address", token_id: 10}
+        ];
+
+        const remove_permissions: PermissionEntry[] = [
+            //{permittee: "address", token_id: 10}
+        ];
+
+        const ops = []
+        for (const perm of give_permissions) {
+            ops.push(
+                {
+                    add_permission: {
+                        owner: walletphk,
+                        permittee: perm.permittee,
+                        token_id: perm.token_id,
+                        perm: 1 // permPlaceItems
+                    }
+                }
+            );
+        }
+
+        for (const perm of remove_permissions) {
+            ops.push(
+                {
+                    remove_permission: {
+                        owner: walletphk,
+                        permittee: perm.permittee,
+                        token_id: perm.token_id
+                    }
+                }
+            );
+        }
+
+        const set_permissions_op = await worldWallet.methodsObject.set_permissions(ops).send();
+
+        Contracts.handleOperation(this.context, set_permissions_op, undefined, 3);
+    }
+
     private batchTransferPlaces = async () => {
         const placesWallet = await this.context.tezosToolkit().wallet.at(Conf.place_contract);
 
@@ -301,32 +348,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         Contracts.handleOperation(this.context, transfer_places_op, undefined, 3);
     }
-
-    private publicPlaces: Set<number> = new Set([
-        // batch 1
-        0, 8, 23, 28, 34, 37, 36, 41, 43, 46, 47, 48, 52, 54, 58, 64, 65, 71, 69, 79, 87, 90, 94,
-
-        // batch 2
-        95, 106, 110, 112, 113, 117, 118, 122, 129, 138, 139, 142, 147, 156, 160, 164, 169, 172, 174,
-
-        // batch 3
-        181, 190, 202, 204, 208, 209, 213, 215, 217, 220, 224, 228, 231, 238, 241, 244, 250, 251, 255, 259, 263, 266, 267, 268, 270, 273, 280, 283, 290,
-
-        // batch 4
-        291, 301, 304, 307, 310, 320, 322, 325, 331, 333, 340, 342, 343, 349, 355, 357, 364, 370, 378,
-
-        383, 390, 393, 394, 395, 403, 412, 414, 421, 432, 434, 439, 444, 447, 454, 457, 459, 465, 468, 477,
-
-        // batch 5
-        494, 481, 482, 488, 497, 502, 505, 513, 516, 530, 539, 487, 501, 519, 526, 534,
-
-        560, 543, 545, 549, 557, 561, 565, 567, 575, 581, 584, 592, 555, 571, 579, 589, 597, 601, 602,
-
-        // batch 6
-        606, 607, 610, 611, 614, 615, 620, 623, 624, 627, 632, 635, 636, 639, 642, 643, 646, 659, 661, 664, 668, 673, 674, 679, 680, 681, 682, 687, 688,
-
-        689, 692, 693, 696, 697, 698, 699, 701, 706, 708, 711, 712, 713, 714, 715, 719, 724, 726, 727, 729, 734, 736, 739, 741, 743, 747, 752, 754, 759, 767,
-    ])
 
     // The wing
     private generateDistrict1() {
@@ -982,7 +1003,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
                     for (const lot of block.lots) {
                         if(lot.isValid()) {
-                            const is_public = this.publicPlaces.has(lot_counter);
+                            const is_public = PublicPlaces.has(lot_counter);
                             const fill = is_public ? publicFillColor : (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedFillColor : lotFillColor;
                             const stroke = is_public ? publicStrokeColor : (mark_minted && lot_counter <= last_minted_place_id) ? lotMintedStrokeColor : lotStrokeColor;
 
@@ -1043,6 +1064,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 <button className="btn btn-warning me-2" onClick={() => this.mintPlaces()}>Mint</button>
                 <button className="btn btn-warning me-2" onClick={() => this.createAuctions()}>Create Auctions</button>
                 <button className="btn btn-warning me-2" onClick={() => this.batchWhitelist()}>Whitelist</button>
+                <button className="btn btn-warning me-2" onClick={() => this.batchPermissions()}>Permissions</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadSvgFile()}>Download SVG</button>
                 <button className="btn btn-primary me-2" onClick={() => this.downloadDistrictsFile()}>Download Districts</button>
                 <button className="btn btn-warning me-2" onClick={() => this.batchTransferPlaces()}>Batch Trasfer Places</button>
