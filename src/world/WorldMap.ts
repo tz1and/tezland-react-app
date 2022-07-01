@@ -21,6 +21,7 @@ import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
 import { AdvancedDynamicTexture, Image, Vector2WithInfo } from "@babylonjs/gui";
 import { WorldInterface } from "./WorldInterface";
+import Contracts from "../tz/Contracts";
 import assert from "assert";
 
 import markerIconBlue from '../img/map/mapmarker-blue.png'
@@ -262,7 +263,6 @@ export class WorldMap implements WorldInterface {
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
         // Only render if map or camera have been update.
-        // TODO: mapUpdated is always false.
         // Need to figure out a way to listen for changes in the scene
         this.engine.stopRenderLoop();
         this.engine.runRenderLoop(() => {
@@ -315,7 +315,7 @@ export class WorldMap implements WorldInterface {
 
         // fetch the most recent world place count
         // TODO: get place count from indexer, getting it from the contract is too slow.
-        this.worldPlaceCount = 771 //(await Contracts.countPlacesView(this.walletProvider)).toNumber();
+        this.worldPlaceCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
         const playerPos = new Vector3();
@@ -654,7 +654,7 @@ export class WorldMap implements WorldInterface {
         this.sunLight.update(cameraPos);
 
         // Update world when camera has moved a certain distance.
-        // TODO: update when zoom level changed (increased!).
+        // TODO: do worldUpdatePending in World as well!
         if(!this.worldUpdatePending && Vector3.Distance(this.lastUpdatePosition, cameraPos) > worldMapUpdateDistance)
         {
             this.worldUpdatePending = true;
