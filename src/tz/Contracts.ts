@@ -6,7 +6,9 @@ import { tezToMutez, toHexString } from "../utils/Utils";
 import { packTo } from 'byte-data';
 import { char2Bytes } from '@taquito/utils'
 import Metadata, { StorageKey } from "../world/Metadata";
-import { PlaceData, PlaceItemData, PlacePermissions } from "../world/PlaceNode";
+import { PlacePermissions } from "../world/nodes/BasePlaceNode";
+import { PlaceData, PlaceItemData } from "../world/PlaceNode";
+import ItemNode from "../world/ItemNode";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
@@ -14,7 +16,6 @@ import { Logging } from "../utils/Logging";
 import { fetchGraphQL } from "../ipfs/graphql";
 import { SHA3 } from 'sha3';
 import assert from "assert";
-import ItemNode from "../world/ItemNode";
 
 
 export class Contracts {

@@ -1,93 +1,116 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Vector2, Matrix, Vector4, Quaternion } from "@babylonjs/core/Maths/math";
+import { Vector3, Color3, Matrix, Vector4, Quaternion, } from "@babylonjs/core/Maths/math";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
-import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
-import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
-import PlayerController from "../controllers/PlayerController";
-import { AbstractMesh, DeepImmutable, MeshBuilder,
-    Nullable, Ray, ReflectionProbe, RenderTargetTexture,
-    SceneLoader, Texture, TransformNode } from "@babylonjs/core";
-import { PlaceId } from "./nodes/BasePlaceNode";
-import PlaceNode from "./PlaceNode";
-import { AppControlFunctions } from "./AppControlFunctions";
+import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
+import { EventState, FreeCamera, MeshBuilder,
+    SceneLoader, TransformNode } from "@babylonjs/core";
+import { MapControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata from "./Metadata";
 import AppSettings from "../storage/AppSettings";
-import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
-import { OperationContent, Subscription } from "@taquito/taquito";
-import { OperationContentsAndResultTransaction } from '@taquito/rpc'
-import { ParameterSchema } from '@taquito/michelson-encoder'
-import MultiplayerClient from "./MultiplayerClient";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import { isDev } from "../utils/Utils";
-import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
-import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
-import PQueue from 'p-queue/dist';
-import ArtifactMemCache from "../utils/ArtifactMemCache";
-import TeleporterBooth from "./TeleporterBooth";
-import { WorldDefinition } from "../worldgen/WorldGen";
+import { PlaceId } from "./nodes/BasePlaceNode";
+import MapPlaceNode from "./nodes/MapPlaceNode";
+import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
+import { AdvancedDynamicTexture, Image, Vector2WithInfo } from "@babylonjs/gui";
 import { WorldInterface } from "./WorldInterface";
+import assert from "assert";
+
+import markerIconBlue from '../img/map/mapmarker-blue.png'
+import markerIconCyan from '../img/map/mapmarker-cyan.png'
+import markerIconOrange from '../img/map/mapmarker-orange.png'
+import markerIconPink from '../img/map/mapmarker-pink.png'
+import markerIconPurple from '../img/map/mapmarker-purple.png'
+import markerIconRed from '../img/map/mapmarker-red.png'
+
+import { WorldDefinition } from "../worldgen/WorldGen";
 import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
-const worldUpdateDistance = 10; // in m
-const shadowListUpdateInterval = 2000; // in ms
+const worldMapUpdateDistance = 10; // in m
 
+export enum MarkerMode {
+    SpawnsAndTeleporters = 0,
+    Places = 1 // Can also be used to not mark anything
+}
 
-export class World implements WorldInterface {
+type MarkerColor = "blue" | "cyan" | "orange" | "pink" | "purple" | "red";
+type MarkerType = "place" | "district" | "teleporter";
+
+const markerIconsByColor: Map<MarkerColor, string> = new Map([
+    ["blue", markerIconBlue],
+    ["cyan", markerIconCyan],
+    ["orange", markerIconOrange],
+    ["pink", markerIconPink],
+    ["purple", markerIconPurple],
+    ["red", markerIconRed]
+]);
+
+type MapMarkerInfo = {
+    description: string;
+    mapPosition: [number, number];
+    location: string; // either district#, place# or teleporter#
+    id: number;
+}
+
+export type MapPopoverInfo = {
+    screenPos: [number, number];
+    metadata: MapMarkerInfo
+}
+
+export class WorldMap implements WorldInterface {
     // From WorldInterface
     readonly scene: Scene;
     readonly walletProvider: ITezosWalletProvider;
 
-    readonly appControlFunctions: AppControlFunctions;
+    readonly mapControlFunctions: MapControlFunctions;
     
     private engine: Engine;
     private defaultMaterial: SimpleMaterial;
-    private waterMaterial: WaterMaterial;
-    readonly transparentGridMat: GridMaterial;
-    
+    //private waterMaterial: WaterMaterial;
+    readonly transparentGridMat: SimpleMaterial;
+    readonly transparentGridMatPublic: SimpleMaterial;
     private sunLight: SunLight;
-    private skybox: Mesh;
-    
-    readonly playerController: PlayerController;
-    readonly shadowGenerator: Nullable<ShadowGenerator>;
 
-    readonly places: Map<number, PlaceNode>; // The currently loaded places.
+    readonly places: Map<number, MapPlaceNode>; // The currently loaded places.
 
     private implicitWorldGrid: WorldGrid;
     private worldPlaceCount: number = 0;
 
-    readonly onchainQueue; // For onchain views.
-    readonly loadingQueue; // For loading items.
+    private orthoCam: FreeCamera;
 
     private lastUpdatePosition: Vector3;
+    private worldUpdatePending: boolean = false;
 
-    private multiClient?: MultiplayerClient | undefined;
+    private needsRedraw: boolean = false;
+    private viewUpdated: boolean = false;
 
-    private subscription?: Subscription<OperationContent> | undefined;
+    private markedPlaces: Set<number> = new Set();
 
-    constructor(mount: HTMLCanvasElement, appControlFunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
-        this.appControlFunctions = appControlFunctions;
+    private markerMode: MarkerMode;
+
+    private markerOverlayTexture: AdvancedDynamicTexture;
+
+    constructor(mount: HTMLCanvasElement, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number) {
+        this.mapControlFunctions = mapControlFunctions;
         // Get the canvas element from the DOM.
         const canvas = mount;
         const divFps = document.getElementById("fps");
 
         this.walletProvider = walletProvider;
 
-        this.places = new Map<number, PlaceNode>();
-        this.implicitWorldGrid = new WorldGrid();
+        this.markerMode = markerMode;
 
-        this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
-        this.loadingQueue = new PQueue({concurrency: 10}); //, interval: 1/60, intervalCap: 1});
+        this.places = new Map<number, MapPlaceNode>();
+        this.implicitWorldGrid = new WorldGrid();
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
@@ -107,31 +130,81 @@ export class World implements WorldInterface {
             useMaterialMeshMap: true,
             useClonedMeshMap: true
         });
-        this.scene.collisionsEnabled = true;
+        //this.scene.collisionsEnabled = true;
 
-        // Enable inspector in dev
-        if(isDev()) {
-            import("@babylonjs/inspector").then( () => {
-                const inspector_root = document.getElementById("inspector-host");
-                assert(inspector_root);
-                this.scene.debugLayer.show({ showExplorer: true, embedMode: true, globalRoot: inspector_root });
+        const initCamera = (): FreeCamera => {
+            // This creates and positions a free camera (non-mesh)
+            var camera = new FreeCamera("orthoCamera", threeD ? new Vector3(0, 1000, 400) : new Vector3(0, 1000, 0), this.scene);
+
+            camera.setTarget(Vector3.Zero());
+    
+            // Camera props
+            //camera.rotation.set(Angle.FromDegrees(70).radians(), Angle.FromDegrees(200).radians(), 0);
+            camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
+            camera.minZ = 0.1;
+            camera.maxZ = 2000;
+
+            camera.orthoLeft = -(zoom * 0.5);
+            camera.orthoRight = (zoom * 0.5);
+
+            const ratio = canvas.height / canvas.width;
+            camera.orthoTop = camera.orthoRight * ratio;
+            camera.orthoBottom = camera.orthoLeft * ratio;
+    
+            // Collision stuff
+            //camera.checkCollisions = true;
+            //camera.applyGravity = true;
+            //camera.ellipsoid = new Vector3(0.5, PlayerController.BODY_HEIGHT * 0.5, 0.5);
+    
+            // Sensibility
+            //camera.angularSensibility *= 10 / AppSettings.mouseSensitivity.value;
+            // TODO: inertia also affects default camera movement...
+            //camera.inertia *= AppSettings.mouseInertia.value;
+
+            const orthoInput = new OrthoCameraMouseInput()
+            orthoInput.onPointerMovedObservable.add(() => {
+                this.needsRedraw = true;
+                mapControlFunctions.showPopover(undefined);
             });
+
+            camera.inputs.clear();
+            camera.inputs.add(orthoInput);
+            camera.attachControl(canvas, true);
+    
+            // Set movement keys
+            //camera.inputs.clear();
+            //camera.inputs.addMouse();
+            ////camera.keysUpward = [32 /*space*/]; // that's not actually jumping.
+            ////this.camera.ellipsoidOffset = new Vector3(0, 0, 0);
+            ////camera.inertia = 0.5;
+            ////camera.angularSensibility = 2;
+    
+            return camera;
         }
 
-        // create camera first
-        this.playerController = new PlayerController(this, canvas, appControlFunctions);
-        this.lastUpdatePosition = this.playerController.getPosition().clone();
+        this.orthoCam = initCamera();
+        this.lastUpdatePosition = this.orthoCam.getTarget().clone();
+
+        // Create a dynamic texture for overlay markers
+        this.markerOverlayTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
         // Create a default material
         this.defaultMaterial = new SimpleMaterial("defaulDistrictMat", this.scene);
-        this.defaultMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9);
+        this.defaultMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
 
         // transparent grid material for place bounds
-        this.transparentGridMat = new GridMaterial("transp_grid", this.scene);
-        this.transparentGridMat.opacity = 0.3;
-        this.transparentGridMat.mainColor.set(0.2, 0.2, 0.8);
-        this.transparentGridMat.lineColor.set(0.2, 0.8, 0.8);
+        this.transparentGridMat = new SimpleMaterial("transp_grid", this.scene);
+        this.transparentGridMat.alpha = 0.8;
+        this.transparentGridMat.diffuseColor.set(0.5, 0.5, 0.8);
+        //this.transparentGridMat.lineColor.set(0.2, 0.3, 0.8);
         this.transparentGridMat.backFaceCulling = false;
+
+        // transparent grid material for place bounds
+        this.transparentGridMatPublic = new SimpleMaterial("transp_grid_public", this.scene);
+        this.transparentGridMatPublic.alpha = 0.8;
+        this.transparentGridMatPublic.diffuseColor.set(0.4, 0.9, 0.4);
+        //this.transparentGridMat.lineColor.set(0.2, 0.3, 0.8);
+        this.transparentGridMatPublic.backFaceCulling = false;
         
         // Create sun and skybox
         const sun_direction = new Vector3(-50, -100, 50).normalize();
@@ -152,18 +225,10 @@ export class World implements WorldInterface {
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
 
-        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
-        this.skybox.material = skyMaterial;
-
-        // reflection probe
-        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.scene);
-        assert(reflectionProbe.renderList);
-        reflectionProbe.renderList.push(this.skybox);
-        reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-        this.scene.environmentTexture = reflectionProbe.cubeTexture;
+        this.scene.clearColor.set(0.071, 0.082, 0.133, 1);
 
         // The worlds water.
-        const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
+        /*const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
         waterMaterial.backFaceCulling = true;
         const bumpTexture = new Texture(waterbump, this.scene);
         bumpTexture.uScale = 4;
@@ -173,9 +238,8 @@ export class World implements WorldInterface {
         waterMaterial.waveHeight = 0; //0.05;
         waterMaterial.bumpHeight = 0.15;
         waterMaterial.windDirection = new Vector2(1, 1);
-        waterMaterial.waterColor = new Color3(0.02, 0.06, 0.24);
+        waterMaterial.waterColor = new Color3(0.01, 0.03, 0.07);
         waterMaterial.colorBlendFactor = 0.7;
-        waterMaterial.addToRenderList(this.skybox);
         this.waterMaterial = waterMaterial
 
         const water = Mesh.CreateGround("water", 2000, 2000, 4, this.scene);
@@ -183,55 +247,7 @@ export class World implements WorldInterface {
         water.isPickable = false;
         water.checkCollisions = true;
         water.receiveShadows = true;
-        water.position.y = -3;
-
-        // After, camera, lights, etc, the shadow generator
-        if (AppSettings.shadowOptions.value === "standard") {
-            const shadowGenerator = new ShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
-            shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.filter = ShadowGenerator.FILTER_PCSS;
-            // Self-shadow bias
-            shadowGenerator.bias = 0.001;
-            shadowGenerator.normalBias = 0.02;
-            //shadowGenerator.useCloseExponentialShadowMap = true;
-            //shadowGenerator.useExponentialShadowMap = true;
-            //shadowGenerator.useBlurExponentialShadowMap = true;
-            //shadowGenerator.usePoissonSampling = true;
-            this.shadowGenerator = shadowGenerator;
-        }
-        else if (AppSettings.shadowOptions.value === "cascaded") {
-            const shadowGenerator = new CascadedShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
-            //shadowGenerator.debug = true;
-            //shadowGenerator.autoCalcDepthBounds = true;
-            shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.freezeShadowCastersBoundingInfo = true;
-            shadowGenerator.stabilizeCascades = true;
-            shadowGenerator.shadowMaxZ = 250;
-            shadowGenerator.numCascades = 4;
-            shadowGenerator.lambda = 0.6;
-            // Self-shadow bias
-            shadowGenerator.bias = 0.001;
-            shadowGenerator.normalBias = 0.02;
-            //shadowGenerator.splitFrustum();
-            this.shadowGenerator = shadowGenerator;
-        }
-        else this.shadowGenerator = null;
-
-        if(this.shadowGenerator) {
-            let rtt = this.shadowGenerator.getShadowMap();
-
-            if(rtt) {
-                Logging.InfoDev("Setting up custom render list for shadow generator")
-                rtt.getCustomRenderList = (layer, renderList, renderListLength) => {
-                    if (!renderList) return renderList;
-
-                    return this.shadowRenderList;
-                };
-            }
-        }
-
-        // set shadow generator on player controller.
-        this.playerController.shadowGenerator = this.shadowGenerator;
+        water.position.y = -3;*/
 
         // Render every frame
         this.engine.runRenderLoop(() => {
@@ -243,55 +259,24 @@ export class World implements WorldInterface {
 
         window.addEventListener('resize', this.onResize);
 
-        this.scene.registerBeforeRender(this.updateShadowRenderList.bind(this));
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
-        this.registerPlacesSubscription();
+        // Only render if map or camera have been update.
+        // TODO: mapUpdated is always false.
+        // Need to figure out a way to listen for changes in the scene
+        this.engine.stopRenderLoop();
+        this.engine.runRenderLoop(() => {
+            if(this.needsRedraw) {
+                this.scene.render();
+                this.needsRedraw = false;
+            }
+        });
 
-        // TODO: on walletChanged event, disconnect and reconnect!
-        this.multiClient = new MultiplayerClient(this);
-
-        // TODO: wait for wallet to be initialised?
-
-        //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
+        this.needsRedraw = true;
     }
 
     private onResize = () => {
         this.engine.resize();
-    }
-
-    // TODO: move the subscription stuff into it's own class?
-    private async registerPlacesSubscription() {
-        this.subscription = await Contracts.subscribeToPlaceChanges(this.walletProvider);
-        this.subscription?.on('data', this.placeSubscriptionCallback);
-    }
-
-    private unregisterPlacesSubscription() {
-        this.subscription?.off("data", this.placeSubscriptionCallback);
-        this.subscription = undefined;
-    }
-
-    private placeSubscriptionCallback = (d: OperationContent) => {
-        Logging.InfoDev(d);
-        const tContent = d as OperationContentsAndResultTransaction;
-
-        // NOTE: might break with internal contract calls!
-        if (tContent.parameters) {
-            const ep = tContent.parameters.entrypoint;
-            if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items" || ep === "set_item_data") {
-                try {
-                    const schema = new ParameterSchema(Contracts.marketplaces!.entrypoints.entrypoints[ep])
-                    const params = schema.Execute(tContent.parameters.value);
-
-                    // Reload place
-                    this.reloadPlace(params.lot_id.toNumber());
-                }
-                catch (e) {
-                    Logging.InfoDev("Failed to parse parameters.");
-                    Logging.InfoDev(e);
-                }
-            }
-        }
     }
 
     public dispose() {
@@ -299,23 +284,28 @@ export class World implements WorldInterface {
         if(isDev()) this.scene.debugLayer.hide();
 
         window.removeEventListener('resize', this.onResize);
-        
-        this.unregisterPlacesSubscription();
-        this.multiClient?.disconnectAndDispose();
 
         this.places.clear();
 
-        this.playerController.dispose();
-
-        // Clear queues.
-        this.onchainQueue.clear();
-        this.loadingQueue.clear();
-
-        // Dispose assets and processing queues.
-        ArtifactMemCache.dispose();
-
         // Destorying the engine should prbably be enough.
         this.engine.dispose();
+    }
+
+    public addMarkedPlaces(places: number[]) {
+        assert(this.markerMode === MarkerMode.Places)
+        places.forEach(id => this.markedPlaces.add(id));
+
+        // TODO: Find all places already loaded and mark them
+        places.forEach(id => {
+            const place = this.places.get(id);
+            if (place) {
+                this.createMarker(`Place #${id}`,
+                    new Vector3(place.metadata.centerCoordinates[0], place.metadata.centerCoordinates[1], place.metadata.centerCoordinates[2]),
+                    "purple", "place", id);
+            }
+        });
+
+        this.needsRedraw = true;
     }
 
     // TODO: add a list of pending places to load.
@@ -324,18 +314,14 @@ export class World implements WorldInterface {
         this.loadDistricts();
 
         // fetch the most recent world place count
-        this.worldPlaceCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
+        // TODO: get place count from indexer, getting it from the contract is too slow.
+        this.worldPlaceCount = 771 //(await Contracts.countPlacesView(this.walletProvider)).toNumber();
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
-        // Teleport player to his starting position
-        await this.playerController.teleportToSpawn();
-
-        const playerPos = this.playerController.getPosition();
-        // Make sure updateWorld() doesn't immediately run again
-        this.lastUpdatePosition = playerPos.clone();
+        const playerPos = new Vector3();
 
         // Get grid cells close to player position.
-        const gridCells = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount, AppSettings.drawDistance.value);
+        const gridCells = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount, this.getMaxDrawDistance()); // AppSettings.drawDistance.value);
 
         // Get list of place ids from cells.
         // TODO: maybe do this in getPlacesForPosition.
@@ -365,12 +351,61 @@ export class World implements WorldInterface {
         place_metadatas.forEach((metadata) => {
             this.loadPlace(metadata.id);
         })
-
-        // TEMP: workaround as long as loading owner and owned is delayed.
-        const currentPlace = this.playerController.getCurrentPlace()
-        if(currentPlace)
-            this.appControlFunctions.updatePlaceInfo(currentPlace);
     };
+
+    private markerClickObserver = (eventData: Vector2WithInfo, eventState: EventState) => {
+        //console.log("marker clicked", eventData, eventState, eventState.currentTarget.metadata);
+        const target = eventState.currentTarget;
+        assert(target);
+        this.mapControlFunctions.showPopover({ screenPos: [target.centerX, target.centerY], metadata: target.metadata } as MapPopoverInfo);
+    }
+
+    private createMarker(description: string, pos: Vector3, color: MarkerColor, type: MarkerType, id: number): TransformNode {
+        const node = new TransformNode("marker", this.scene);
+        node.position = pos;
+        /*node.billboardMode = Mesh.BILLBOARDMODE_X | Mesh.BILLBOARDMODE_USE_POSITION;
+
+        const plane1 = MeshBuilder.CreatePlane("plane1", { width: 10, height: 15, sideOrientation: Mesh.BACKSIDE });
+        plane1.billboardMode = Mesh.BILLBOARDMODE_X | Mesh.BILLBOARDMODE_USE_POSITION;
+        plane1.material = this.markerMaterial;
+        plane1.parent = node;
+        plane1.position.z = -5;
+        plane1.renderingGroupId = 2;*/
+
+
+        /*const box = MeshBuilder.CreateBox("dot", {size: 2.5});
+        box.material = this.markerMaterial;
+        box.parent = node;
+
+        const box2 = MeshBuilder.CreateBox("line", {width: 2.5, height: 10, depth: 2.5});
+        box2.material = this.markerMaterial;
+        box2.parent = node;
+        box2.position.y = 10;*/
+
+        var markerImage = new Image(undefined, markerIconsByColor.get(color));
+        markerImage.widthInPixels = 24;
+        markerImage.heightInPixels = 39;
+        markerImage.linkOffsetY = -19.5;
+        markerImage.zIndex = pos.z;
+
+        markerImage.metadata = {
+            description: description,
+            mapPosition: [pos.x, pos.z],
+            location: type + id,
+            id: id
+        } as MapMarkerInfo;
+
+        // Mouse interaction stuff.
+        markerImage.isPointerBlocker = true;
+        markerImage.onPointerClickObservable.add(this.markerClickObserver);
+
+        // Add control and link it to node.
+        this.markerOverlayTexture.addControl(markerImage);
+        markerImage.linkWithMesh(node);
+
+
+        return node;
+    }
 
     private loadDistricts() {
         const world_def = world_definition;
@@ -386,13 +421,17 @@ export class World implements WorldInterface {
             vertices = vertices.reverse()
 
             // Create "island".
-            const mesh = MeshUtils.extrudeMeshFromShape(vertices, 50, center, this.defaultMaterial,
+            const mesh = MeshUtils.extrudeMeshFromShape(vertices, 10, center, this.defaultMaterial,
                 `district${counter}`, this.scene, Mesh.DEFAULTSIDE, true);
             mesh.checkCollisions = true;
             mesh.receiveShadows = true;
             mesh.position.y = -0.01;
 
-            this.waterMaterial.addToRenderList(mesh);
+            mesh.enableEdgesRendering();
+            mesh.edgesWidth = 6.0;
+            mesh.edgesColor.set(0.6, 0.6, 0.6, 0.8);
+
+            //this.waterMaterial.addToRenderList(mesh);
 
             // TODO: gaps for bridges.
             // Create invisible wall.
@@ -402,8 +441,13 @@ export class World implements WorldInterface {
             walls.receiveShadows = false;
             walls.visibility = 0;*/
 
-            //this.loadRoadDecorations(district.curbs, counter);
-            this.loadTeleportationBooths(district);
+            if (this.markerMode === MarkerMode.SpawnsAndTeleporters) {
+                this.createMarker(`Spawn District #${counter + 1}`,
+                     new Vector3(district.spawn.x + district.center.x, 0, district.spawn.y + district.center.y),
+                     "orange", "district", counter + 1);
+
+                this.loadTeleportationBooths(district);
+            }
 
             counter++;
         }
@@ -438,7 +482,6 @@ export class World implements WorldInterface {
             walkway0.isPickable = true;
             walkway0.receiveShadows = true;
             walkway0.parent = bridgeNode;
-            this.shadowGenerator?.addShadowCaster(walkway0);
             
             /*const walkway0 = MeshBuilder.CreateBox("walkway0", {
                 width: bridge_width,
@@ -478,7 +521,6 @@ export class World implements WorldInterface {
             left.isPickable = true;
             left.parent = bridgeNode;
             left.position.set(-bridge_width/2 - 0.5, 0.5, 0);
-            this.shadowGenerator?.addShadowCaster(left);
 
             const right = MeshBuilder.CreateBox("wall1", {
                 width: 1,
@@ -489,21 +531,34 @@ export class World implements WorldInterface {
             right.isPickable = true;
             right.parent = bridgeNode;
             right.position.set(bridge_width/2 + 0.5, 0.5, 0);
-            this.shadowGenerator?.addShadowCaster(right);
 
             bridgeNode.position = bridge_pos;
             bridgeNode.position.y = -0.525;
 
             bridgeNode.rotation = Quaternion.FromRotationMatrix(rot_m).toEulerAngles();
 
+            bridgeNode.getChildMeshes().forEach((m) => {
+                m.enableEdgesRendering();
+                m.edgesWidth = 6.0;
+                m.edgesColor.set(0.2, 0.2, 0.2, 0.8);
+                //m.material!.alpha = 0;
+            })
+
             counter++;
         }
+
+        this.needsRedraw = true;
     }
 
     //private teleportation booths
     private async loadTeleportationBooths(district: any) {
+        let counter = 0;
         for (const p of district.teleportation_booths) {
-            new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.scene, this.playerController, this.appControlFunctions);
+            this.createMarker(`A teleportation booth.`,
+                new Vector3(p.x + district.center.x, 0, p.y + district.center.y),
+                "red", "teleporter", counter);
+
+            counter++;
         }
     }
 
@@ -530,16 +585,9 @@ export class World implements WorldInterface {
                     const instance = result.instantiateModelsToScene().rootNodes[0];
                     instance.position = to.add(line.scale(d / line_len));
                     instance.parent = roadDecorations;
-                    this.shadowGenerator?.addShadowCaster(instance as Mesh);
                 }
             }
         }
-    }
-
-    private async reloadPlace(placeId: PlaceId) {
-        // Queue a place update.
-        const place = this.places.get(placeId);
-        if (place) this.onchainQueue.add(() => place.update(true));
     }
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
@@ -556,11 +604,11 @@ export class World implements WorldInterface {
                 return;
             }
 
-            const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
-
+            
             // Figure out by distance to player if the place should load.
-            const player_pos = this.playerController.getPosition();
-            if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
+            //const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
+            //const player_pos = new Vector3();
+            //if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
                 // Just to be sure, make sure place doesn't exist
                 // after awaiting metadata.
                 if(this.places.has(placeId)) {
@@ -569,12 +617,18 @@ export class World implements WorldInterface {
                 }
 
                 // Create place.
-                const new_place = new PlaceNode(placeId, placeMetadata, this);
+                const new_place = new MapPlaceNode(placeId, placeMetadata, this);
                 this.places.set(placeId, new_place);
 
-                // Load items.
-                await new_place.load();
-            }
+                // If this place should be marked, mark it
+                if (this.markedPlaces.has(placeId)) {
+                    this.createMarker(`Place #${placeId}`,
+                        new Vector3(placeMetadata.centerCoordinates[0], placeMetadata.centerCoordinates[1], placeMetadata.centerCoordinates[2]),
+                        "purple", "place", placeId);
+                }
+
+                this.needsRedraw = true;
+            //}
         }
         catch(e) {
             Logging.InfoDev("Error fetching place: " + placeId);
@@ -583,110 +637,64 @@ export class World implements WorldInterface {
         }
     }
 
-    private lastMultiplayerUpdate: number = 0;
+    private getMaxDrawDistance(): number {
+        const w = (this.orthoCam.orthoRight! - this.orthoCam.orthoLeft!) * 0.5;
+        const h = (this.orthoCam.orthoTop! - this.orthoCam.orthoBottom!) * 0.5;
 
-    private updateMultiplayer() {
-        if(this.multiClient && this.multiClient.connected) {
-            // Occasionally send player postition.
-            const now = performance.now();
-            const elapsed = now - this.lastMultiplayerUpdate;
-            if(!this.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
-                this.lastMultiplayerUpdate = now;
-
-                this.multiClient.updatePlayerPosition(
-                    this.playerController.getPosition(),
-                    this.playerController.getRotation()
-                );
-            }
-
-            // interpolate other players
-            this.multiClient.interpolateOtherPlayers();
-        }
-    }
-
-    public updateCurrentPlace(pos: DeepImmutable<Vector3>) {
-        const pickResult = this.scene.pickWithRay(new Ray(pos, Vector3.Forward()), (mesh) => {
-            return mesh.parent instanceof PlaceNode;
-        });
-
-        if (pickResult && pickResult.hit && pickResult.pickedMesh) {
-            assert(pickResult.pickedMesh.parent instanceof PlaceNode);
-
-            // TODO: use normal to determine whether we are inside our out.
-            if (Vector3.Dot(pickResult.getNormal()!, pickResult.ray!.direction) > 0)
-                this.playerController.setCurrentPlace(pickResult.pickedMesh.parent);
-        }
-    }
-
-    private lastShadowListTime: number = 0;
-    private shadowRenderList: AbstractMesh[] = [];
-
-    public updateShadowRenderList() {
-        // Update shadow list if enough time has passed.
-        if(performance.now() - this.lastShadowListTime > shadowListUpdateInterval)
-        {
-            const playerPos = this.playerController.getPosition();
-            // clear list
-            this.shadowRenderList = [];
-            // add items in places nearby.
-            this.places.forEach(place => {
-                if (Vector3.Distance(place.origin, playerPos) < 75) // TODO: don't hardcode this value.
-                    place.itemsNode?.getChildMeshes().forEach(m => {
-                        this.shadowRenderList.push(m);
-                    })
-            });
-
-            this.lastShadowListTime = performance.now();
-        }
+        return Math.max(w,h);
     }
 
     // TODO: go over this again.
     public updateWorld() {
-        const playerPos = this.playerController.getPosition();
+        const cameraPos = this.orthoCam.getTarget();
 
         // Update current place.
         // TODO: only occasionally check. maybe based on distance or time.
-        this.updateCurrentPlace(playerPos);
 
-        this.sunLight.update(playerPos);
-        this.skybox.position.set(playerPos.x, 0, playerPos.z)
+        this.sunLight.update(cameraPos);
 
-        // update multiplayer
-        this.updateMultiplayer();
-
-        // Update world when player has moved a certain distance.
-        if(Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)
+        // Update world when camera has moved a certain distance.
+        // TODO: update when zoom level changed (increased!).
+        if(!this.worldUpdatePending && Vector3.Distance(this.lastUpdatePosition, cameraPos) > worldMapUpdateDistance)
         {
-            this.lastUpdatePosition = playerPos.clone();
-            
+            this.worldUpdatePending = true;
+            this.lastUpdatePosition = cameraPos.clone();
+
             // TEMP: do this asynchronously, getting lots of metadata
             // from storage is kinda slow.
             // TODO: Maybe have a position cache?
             (async () => {
                 //const start_time = performance.now();
 
-                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount, AppSettings.drawDistance.value);
+                // Increase max distance to reduce pop-in.
+                const distance = this.getMaxDrawDistance() * 1.1;
+                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(cameraPos.x, 0, cameraPos.z, this.worldPlaceCount, distance);
 
+                // TODO: currently we don't delete places at all. Maybe we should.
                 // Check all loaded places for distance and remove or update LOD
-                this.places.forEach((v, k) => {
+                /*this.places.forEach((v, k) => {
                     // Multiply draw distance with small factor here to avoid imprecision and all that
-                    if(Vector3.Distance(playerPos, v.origin) > AppSettings.drawDistance.value * 1.02) {
+                    if(Vector3.Distance(playerPos, v.origin) > distance * 1.2) {
                         this.places.delete(k);
                         v.dispose();
                     }
-                    else v.updateLOD();
-                });
+                });*/
+
+                const placePromises: Promise<any>[] = [];
 
                 gridCell.forEach((c) => {
                     c.places.forEach((id) => {
-                        this.loadPlace(id);
+                        placePromises.push(this.loadPlace(id));
                     });
                 });
+
+                await Promise.allSettled(placePromises);
 
                 //const elapsed_total = performance.now() - start_time;
                 //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
                 //Logging.InfoDev("checked cells: " + cells_checked);
                 //Logging.InfoDev("checked places: " + places_checked);
+                this.worldUpdatePending = false;
             })();
         }
     }

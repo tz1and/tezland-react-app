@@ -4,7 +4,7 @@ import { BoundingBox, Mesh, MeshBuilder, Nullable,
 import earcut from 'earcut';
 
 import Contracts from "../tz/Contracts";
-import { mutezToTez, pointIsInside, yesNo } from "../utils/Utils";
+import { mutezToTez, pointIsInside } from "../utils/Utils";
 import { World } from "./World";
 import { SimpleMaterial } from "@babylonjs/materials";
 import { Logging } from "../utils/Logging";
@@ -15,6 +15,7 @@ import Metadata, { StorageKey } from "./Metadata";
 import { bytes2Char } from "@taquito/utils";
 import ItemNode, { ItemLoadState } from "./ItemNode";
 import ItemTracker from "../controllers/ItemTracker";
+import BasePlaceNode from "./nodes/BasePlaceNode";
 
 
 export type PlaceItemData = {
@@ -29,57 +30,14 @@ export type PlaceData = {
     place_seq: string;
 }
 
-export type PlaceId = number;
 
-
-export class PlacePermissions {
-    private _permissions: number;
-
-    // should mirror the permissions from TL_World contract.
-    public static permissionNone: number       = 0;
-    public static permissionPlaceItems: number = 1;
-    public static permissionModifyAll: number  = 2;
-    public static permissionProps: number      = 4;
-    //public static permissionCanSell: number    = 8;
-    public static permissionFull: number       = 7; // 15 with CanSell
-
-    constructor(permissions: number) {
-        this._permissions = permissions;
-    }
-
-    public get permissions(): number { return this._permissions; }
-
-    public hasAny() { return this._permissions !== PlacePermissions.permissionNone; }
-    public hasPlaceItems() { return (this._permissions & PlacePermissions.permissionPlaceItems) === PlacePermissions.permissionPlaceItems; }
-    public hasModifyAll() { return (this._permissions & PlacePermissions.permissionModifyAll) === PlacePermissions.permissionModifyAll; }
-    public hasProps() { return (this._permissions & PlacePermissions.permissionProps) === PlacePermissions.permissionProps; }
-    public hasFull() { return (this._permissions & PlacePermissions.permissionFull) === PlacePermissions.permissionFull; }
-
-    public toString(): string {
-        if (!this.hasAny()) return "None";
-        if (this.hasFull()) return "Full";
-
-        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasModifyAll())}, Props:${yesNo(this.hasProps())}`;
-    }
-};
-
-
-export default class PlaceNode extends TransformNode {
-    readonly placeId: number;
-    readonly placeMetadata: any;
+export default class PlaceNode extends BasePlaceNode {
     public placeData: Nullable<PlaceData> = null;
-    private world: World;
 
     private placeBounds: Nullable<Mesh> = null;
     private placeGround: Nullable<Mesh> = null;
 
     //private executionAction: Nullable<ExecuteCodeAction> = null;
-
-    private _origin: Vector3 = new Vector3();
-    get origin(): Vector3 { return this._origin.clone(); }
-
-    private _buildHeight: number = 0;
-    get buildHeight(): number { return this._buildHeight; }
 
     // All saved items are stored in this.
     private _itemsNode: Nullable<TransformNode> = null;
@@ -92,12 +50,6 @@ export default class PlaceNode extends TransformNode {
     get tempItemsNode() { return this._tempItemsNode; }
     private set tempItemsNode(val: Nullable<TransformNode>) { this._tempItemsNode = val; }
 
-    get getPermissions(): PlacePermissions { return this.permissions; }
-    get currentOwner(): string { return this.owner; }
-    private owner: string = "";
-    private permissions: PlacePermissions = new PlacePermissions(PlacePermissions.permissionNone);
-    private last_owner_and_permission_update = 0;
-
     private savePending: boolean = false;
 
     // The items loaded in this place.
@@ -107,11 +59,7 @@ export default class PlaceNode extends TransformNode {
     public outOfBoundsItems: Set<number> = new Set();
 
     constructor(placeId: number, placeMetadata: any, world: World) {
-        super(`placeRoot${placeId}`, world.scene);
-
-        this.placeId = placeId;
-        this.placeMetadata = placeMetadata;
-        this.world = world;
+        super(placeId, placeMetadata, world);
 
         this.initialisePlace();
     }
@@ -172,10 +120,6 @@ export default class PlaceNode extends TransformNode {
     }
 
     private initialisePlace() {
-        // Using ExtrudePolygon
-        this._origin = Vector3.FromArray(this.placeMetadata.centerCoordinates);
-        this._buildHeight = this.placeMetadata.buildHeight;
-
         var shape = new Array<Vector3>();
         this.placeMetadata.borderCoordinates.forEach((v: Array<number>) => {
             shape.push(Vector3.FromArray(v));
@@ -184,12 +128,12 @@ export default class PlaceNode extends TransformNode {
         // TODO: make sure the place coordinates are going right around!
         shape = shape.reverse();
 
-        this.position.copyFrom(this._origin);
+        this.position.copyFrom(this._origin); // TODO: move to base constructor?
 
         // create bounds
         // TODO: use MeshUtils.extrudeMeshFromShape
         this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(0, this._buildHeight, 0),
-            this.world.transparentGridMat);
+            (this.world as World).transparentGridMat);
 
         this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
         this.placeBounds.parent = this;
@@ -244,29 +188,13 @@ export default class PlaceNode extends TransformNode {
         // Display out of bounds notifications if there are any.
         if (this.outOfBoundsItems.size > 0 && this.permissions.hasPlaceItems()) {
             const itemList = Array.from(this.outOfBoundsItems).join(', ');
-            this.world.appControlFunctions.addNotification({
+            (this.world as World).appControlFunctions.addNotification({
                 id: "oobItems" + this.placeId,
                 title: "Out of bounds items!",
                 body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
                 type: 'warning'
             })
             Logging.Warn("place doesn't fully contain objects: " + itemList);
-        }
-    }
-
-    public async updateOwnerAndPermissions(force: boolean = false) {
-        // Update owner and permissions, if they weren't updated recently.
-        if(force || Date.now() - 60000 > this.last_owner_and_permission_update) {
-            Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
-            try {
-                this.owner = await Contracts.getPlaceOwner(this.placeId);
-                this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
-                this.last_owner_and_permission_update = Date.now();
-            }
-            catch(reason: any) {
-                Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
-                Logging.InfoDev(reason);
-            }
         }
     }
 
@@ -283,7 +211,7 @@ export default class PlaceNode extends TransformNode {
         if (this.placeData) this.loadItems();
 
         // Queue and update - checking the seq number and possbily fetching updated items
-        this.world.onchainQueue.add(() => this.update());
+        (this.world as World).onchainQueue.add(() => this.update());
     }
 
     public async update(force: boolean = false, attempt: number = 1) {
@@ -313,7 +241,7 @@ export default class PlaceNode extends TransformNode {
         catch(e: any) {
             // Handle failiures to fetch updates. Queue again.
             Logging.InfoDev("Updating place failed", this.placeId, e);
-            setTimeout(() => this.world.onchainQueue.add(() => this.update(force, attempt + 1)), 1000);
+            setTimeout(() => (this.world as World).onchainQueue.add(() => this.update(force, attempt + 1)), 1000);
             return;
         }
 
@@ -413,7 +341,7 @@ export default class PlaceNode extends TransformNode {
 
             // If item is enabled and not loaded, queue item load.
             if (newEnabled && item.loadState === ItemLoadState.NotLoaded) {
-                item.queueLoadItemTask(this.world, this);
+                item.queueLoadItemTask(this.world as World, this);
             }
         })
     }

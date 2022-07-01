@@ -3,6 +3,7 @@
 import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
 import PlaceNode from "./PlaceNode";
+import { MapPopoverInfo } from "./WorldMap";
 
 export type FormNames = 'placeproperties'
     | 'instructions'
@@ -22,6 +23,10 @@ export type AppControlFunctions = {
     placeItem(node: Node, maxQuantity: number): void;
     addNotification(data: NotificationData): void;
     updatePlaceInfo(place: PlaceNode): void;
+};
+
+export type MapControlFunctions = {
+    showPopover(data?: MapPopoverInfo): void;
 };
 
 export type iFrameControlFunctions = {

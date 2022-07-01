@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Explore from './components/Explore';
 import Auctions from './routes/Auctions';
 import { CreateAuctionFormW } from './forms/CreateAuction';
-import Map from './routes/Map';
+import { Map } from './routes/Map';
 //import ComingSoon from './routes/ComingSoon';
 import SiteLayout from './routes/SiteLayout';
 import DirectoryLayout from './layouts/DirectoryLayout';

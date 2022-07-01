@@ -1,7 +1,6 @@
 import { Vector3 } from '@babylonjs/core';
 import { createHash } from 'crypto';
 import { fetchGraphQL } from '../ipfs/graphql';
-import AppSettings from '../storage/AppSettings';
 import Metadata from '../world/Metadata';
 import { Logging } from './Logging';
 
@@ -17,9 +16,8 @@ export default class WorldGrid {
     private static gridSize = 100.0;
     private static cellCache: Map<string, WorldGridCell> = new Map();
 
-    public async getPlacesForPosition(x: number, y: number, z: number, worldPlaceCount: number) {
+    public async getPlacesForPosition(x: number, y: number, z: number, worldPlaceCount: number, range: number) {
         //const range = Math.ceil(AppSettings.drawDistance.value / WorldGrid.gridSize) * WorldGrid.gridSize;
-        const range = AppSettings.drawDistance.value;
         
         const grid_min = WorldGrid.getGridCell(x - range, y, z - range, WorldGrid.gridSize);
         const grid_max = WorldGrid.getGridCell(x + range, y, z + range, WorldGrid.gridSize);
