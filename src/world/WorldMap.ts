@@ -19,7 +19,7 @@ import WorldGrid from "../utils/WorldGrid";
 import { PlaceId } from "./nodes/BasePlaceNode";
 import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
-import { AdvancedDynamicTexture, Image, Vector2WithInfo } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, Control, Image, Vector2WithInfo } from "@babylonjs/gui";
 import { WorldInterface } from "./WorldInterface";
 import Contracts from "../tz/Contracts";
 import assert from "assert";
@@ -360,6 +360,14 @@ export class WorldMap implements WorldInterface {
         this.mapControlFunctions.showPopover({ screenPos: [target.centerX, target.centerY], metadata: target.metadata } as MapPopoverInfo);
     }
 
+    private markerEnterObserver = (control: Control, eventState: EventState) => {
+        document.body.style.cursor = "pointer";
+    }
+
+    private markerOutObserver = (control: Control, eventState: EventState) => {
+        document.body.style.cursor = "default";
+    }
+
     private createMarker(description: string, pos: Vector3, color: MarkerColor, type: MarkerType, id: number): TransformNode {
         const node = new TransformNode("marker", this.scene);
         node.position = pos;
@@ -398,11 +406,12 @@ export class WorldMap implements WorldInterface {
         // Mouse interaction stuff.
         markerImage.isPointerBlocker = true;
         markerImage.onPointerClickObservable.add(this.markerClickObserver);
+        markerImage.onPointerEnterObservable.add(this.markerEnterObserver);
+        markerImage.onPointerOutObservable.add(this.markerOutObserver);
 
         // Add control and link it to node.
         this.markerOverlayTexture.addControl(markerImage);
         markerImage.linkWithMesh(node);
-
 
         return node;
     }
