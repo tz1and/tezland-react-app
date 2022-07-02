@@ -8,6 +8,7 @@ import ItemNode from "../world/ItemNode";
 import Metadata from "../world/Metadata";
 import { World } from "../world/World";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
+import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
 
 class ItemInfoGui {
     private control: Control;
@@ -151,7 +152,8 @@ class ItemInfoGui {
 
 export enum CursorType {
     Pointer = 0,
-    Hand
+    Hand,
+    Loading
 }
 
 export default class PickingGuiController {
@@ -257,8 +259,9 @@ export default class PickingGuiController {
         this.infoGui.updateInfo(current_item.tokenId.toNumber(), this.current_node, current_item);
     }
 
-    private createCursor(cursor: CursorType): Nullable<Control> {
+    private createCursor(cursor: CursorType): Control {
         switch (cursor) {
+            default:
             case CursorType.Pointer:
                 var cursorPoint = new Ellipse();
                 cursorPoint.widthInPixels = 4;
@@ -272,18 +275,21 @@ export default class PickingGuiController {
                 cursorHand.heightInPixels = 16;
                 cursorHand.color = "white";
                 return cursorHand;
-        }
 
-        return null;
+            case CursorType.Loading:
+                var cursorDownload = new Image(undefined, downloadIcon);
+                cursorDownload.widthInPixels = 16;
+                cursorDownload.heightInPixels = 16;
+                cursorDownload.color = "white";
+                return cursorDownload;
+        }
     }
 
     // TODO: improve this to not constantly re-create the cursors.
     public setCursor(cursor: CursorType) {
-        assert(this.cursor);
-        this.advancedTexture.removeControl(this.cursor);
+        if (this.cursor) this.advancedTexture.removeControl(this.cursor);
 
         this.cursor = this.createCursor(cursor);
-        assert(this.cursor);
         this.advancedTexture.addControl(this.cursor);
     }
 }
