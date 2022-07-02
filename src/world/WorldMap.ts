@@ -664,37 +664,42 @@ export class WorldMap implements WorldInterface {
             // from storage is kinda slow.
             // TODO: Maybe have a position cache?
             (async () => {
-                //const start_time = performance.now();
+                try {
+                    //const start_time = performance.now();
 
-                // Increase max distance to reduce pop-in.
-                const distance = this.getMaxDrawDistance() * 1.1;
-                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(cameraPos.x, 0, cameraPos.z, this.worldPlaceCount, distance);
+                    // Increase max distance to reduce pop-in.
+                    const distance = this.getMaxDrawDistance() * 1.1;
+                    const gridCell = await this.implicitWorldGrid.getPlacesForPosition(cameraPos.x, 0, cameraPos.z, this.worldPlaceCount, distance);
 
-                // TODO: currently we don't delete places at all. Maybe we should.
-                // Check all loaded places for distance and remove or update LOD
-                /*this.places.forEach((v, k) => {
-                    // Multiply draw distance with small factor here to avoid imprecision and all that
-                    if(Vector3.Distance(playerPos, v.origin) > distance * 1.2) {
-                        this.places.delete(k);
-                        v.dispose();
-                    }
-                });*/
+                    // TODO: currently we don't delete places at all. Maybe we should.
+                    // Check all loaded places for distance and remove or update LOD
+                    /*this.places.forEach((v, k) => {
+                        // Multiply draw distance with small factor here to avoid imprecision and all that
+                        if(Vector3.Distance(playerPos, v.origin) > distance * 1.2) {
+                            this.places.delete(k);
+                            v.dispose();
+                        }
+                    });*/
 
-                const placePromises: Promise<any>[] = [];
+                    const placePromises: Promise<any>[] = [];
 
-                gridCell.forEach((c) => {
-                    c.places.forEach((id) => {
-                        placePromises.push(this.loadPlace(id));
+                    gridCell.forEach((c) => {
+                        c.places.forEach((id) => {
+                            placePromises.push(this.loadPlace(id));
+                        });
                     });
-                });
 
-                await Promise.allSettled(placePromises);
+                    await Promise.allSettled(placePromises);
 
-                //const elapsed_total = performance.now() - start_time;
-                //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
-                //Logging.InfoDev("checked cells: " + cells_checked);
-                //Logging.InfoDev("checked places: " + places_checked);
-                this.worldUpdatePending = false;
+                    //const elapsed_total = performance.now() - start_time;
+                    //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
+                    //Logging.InfoDev("checked cells: " + cells_checked);
+                    //Logging.InfoDev("checked places: " + places_checked);
+                }
+                // TODO: handle error
+                finally {
+                    this.worldUpdatePending = false;
+                }
             })();
         }
     }

@@ -70,6 +70,7 @@ export class World implements WorldInterface {
     readonly loadingQueue; // For loading items.
 
     private lastUpdatePosition: Vector3;
+    private worldUpdatePending: boolean = false;
 
     private multiClient?: MultiplayerClient | undefined;
 
@@ -655,38 +656,49 @@ export class World implements WorldInterface {
         this.updateMultiplayer();
 
         // Update world when player has moved a certain distance.
-        if(Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)
+        if(!this.worldUpdatePending && Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)
         {
+            this.worldUpdatePending = true;
             this.lastUpdatePosition = playerPos.clone();
             
             // TEMP: do this asynchronously, getting lots of metadata
             // from storage is kinda slow.
             // TODO: Maybe have a position cache?
             (async () => {
-                //const start_time = performance.now();
+                try {
+                    //const start_time = performance.now();
 
-                const gridCell = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount, AppSettings.drawDistance.value);
+                    const gridCell = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount, AppSettings.drawDistance.value);
 
-                // Check all loaded places for distance and remove or update LOD
-                this.places.forEach((v, k) => {
-                    // Multiply draw distance with small factor here to avoid imprecision and all that
-                    if(Vector3.Distance(playerPos, v.origin) > AppSettings.drawDistance.value * 1.02) {
-                        this.places.delete(k);
-                        v.dispose();
-                    }
-                    else v.updateLOD();
-                });
-
-                gridCell.forEach((c) => {
-                    c.places.forEach((id) => {
-                        this.loadPlace(id);
+                    // Check all loaded places for distance and remove or update LOD
+                    this.places.forEach((v, k) => {
+                        // Multiply draw distance with small factor here to avoid imprecision and all that
+                        if(Vector3.Distance(playerPos, v.origin) > AppSettings.drawDistance.value * 1.02) {
+                            this.places.delete(k);
+                            v.dispose();
+                        }
+                        else v.updateLOD();
                     });
-                });
 
-                //const elapsed_total = performance.now() - start_time;
-                //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
-                //Logging.InfoDev("checked cells: " + cells_checked);
-                //Logging.InfoDev("checked places: " + places_checked);
+                    const placePromises: Promise<any>[] = [];
+
+                    gridCell.forEach((c) => {
+                        c.places.forEach((id) => {
+                            placePromises.push(this.loadPlace(id));
+                        });
+                    });
+
+                    await Promise.allSettled(placePromises);
+
+                    //const elapsed_total = performance.now() - start_time;
+                    //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
+                    //Logging.InfoDev("checked cells: " + cells_checked);
+                    //Logging.InfoDev("checked places: " + places_checked);
+                }
+                // TODO: handle error
+                finally {
+                    this.worldUpdatePending = false;
+                }
             })();
         }
     }
