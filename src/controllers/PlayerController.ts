@@ -534,19 +534,26 @@ export default class PlayerController {
             this.tempObjectHelper = null;
         }
 
-        this.currentItem = token_id;
-        this.currentItemQuantity = qauntity;
-        if (this.currentItem === undefined) return;
-
-        // Resetting is important for the TempObjectHelper.
-        // as it doesn't seem to be possible to get a hierarchical OOBB.
-        this.tempObjectOffsetY = 0;
-        this.tempObjectPos.setAll(0);
-        this.tempObjectRot.copyFrom(Quaternion.Identity());
+        if (token_id === undefined) {
+            this.currentItem = undefined;
+            this.currentItemQuantity = 0;
+            return;
+        }
 
         try {
-            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(this.currentItem), this.scene, null);
+            this.pickingGui.setCursor(CursorType.Loading);
+
+            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(token_id), this.scene, null);
             await this.tempObject.loadItem();
+
+            this.currentItem = token_id;
+            this.currentItemQuantity = qauntity;
+
+            // Resetting is important for the TempObjectHelper.
+            // as it doesn't seem to be possible to get a hierarchical OOBB.
+            this.tempObjectOffsetY = 0;
+            this.tempObjectPos.setAll(0);
+            this.tempObjectRot.copyFrom(Quaternion.Identity());
 
             // the temp object.
             this.tempObject.rotationQuaternion = this.tempObjectRot;
@@ -564,10 +571,13 @@ export default class PlayerController {
             this.tempObjectHelper.modelUpdate(this.tempObject);
 
             // make sure picking gui goes away.
-            await this.pickingGui.updatePickingGui(null, 0);
+            this.pickingGui.updatePickingGui(null, 0);
+            this.pickingGui.setCursor(CursorType.Pointer);
         }
         catch(e) {
             this.currentItem = undefined;
+            this.currentItemQuantity = 0;
+            this.pickingGui.setCursor(CursorType.Pointer);
 
             this.appControlFunctions.addNotification({
                 id: "itemLimits" + token_id,
