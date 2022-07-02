@@ -188,7 +188,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         let placeInfoOverlay = !this.state.dispaly_overlay && this.state.currentPlace ?
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
-                <h5>{this.state.currentPlace.getName()}</h5>
+                <h5 className='mb-0'>{this.state.currentPlace.getName()}</h5>
+                <small className='text-muted'>#{this.state.currentPlace.placeId}</small>
                 <hr/>
                 Owner: {this.state.currentPlace.currentOwner}<br/>
                 Permissions: {this.state.currentPlace.getPermissions.toString()}
