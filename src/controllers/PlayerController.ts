@@ -393,6 +393,7 @@ export default class PlayerController {
     }
 
     public teleportToWorldPos(pos: Vector3) {
+        if (this._flyMode) this.toggleFlyMode();
         this.playerTrigger.position.copyFrom(pos);
     }
 
