@@ -5,7 +5,7 @@ import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
 import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/WorldMap';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
-import { getiFrameControl } from '../forms/DirectoryForm';
+import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/DirectoryForm';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -19,14 +19,19 @@ const InteractiveMapPopup: React.FC<InteractiveMapPopupProps> = (props) => {
     const navigate = useNavigate();
 
     const teleportToMapLocation = () => {
-        const iFrameControl = getiFrameControl(window);
-
-        if (iFrameControl) {
+        if (getDirectoryEnabledGlobal()) {
             const isLocation = markerMetadata.location.includes("place") || markerMetadata.location.includes("district");
 
-            if (isLocation) iFrameControl.teleportToLocation(markerMetadata.location)
-            else iFrameControl.teleportToWorldPos(markerMetadata.mapPosition);
-            iFrameControl.closeForm(false);
+            if (isLocation)
+                window.parent.postMessage({
+                    tz1andEvent: true,
+                    teleportToLocation: markerMetadata.location
+                } as iFrameControlEvent, "*");
+            else
+                window.parent.postMessage({
+                    tz1andEvent: true,
+                    teleportToWorldPos: markerMetadata.mapPosition
+                } as iFrameControlEvent, "*");
         }
         else {
             const isPlace = markerMetadata.location.includes("place");

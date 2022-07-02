@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const ComingSoon: React.FC<{}> = () => {
+const ComingSoon: React.FC<{}> = () => {
     return (
         <main>
             <div className="px-4 py-5 my-5 text-center">

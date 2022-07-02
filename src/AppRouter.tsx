@@ -1,4 +1,4 @@
-import React from 'react'; // we need this to make JSX compile
+import React, { useEffect, useState } from 'react'; // we need this to make JSX compile
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Explore from './components/Explore';
 import Auctions from './routes/Auctions';
@@ -21,24 +21,30 @@ import { isDev } from './utils/Utils';
 import User from './routes/directory/User';
 import Item from './routes/directory/Item';
 import { DirectoryMap } from './routes/DirectoryMap';
-import { getiFrameControl } from './forms/DirectoryForm';
 import { EventMap } from './routes/EventMap';
 import { Tag } from './routes/directory/Tag';
 import { PlacePage } from './routes/directory/PlacePage';
 import { Search } from './routes/directory/Search';
 import { NewMints } from './routes/directory/NewMints';
 import { NewSwaps } from './routes/directory/NewSwaps';
+import EnterDirectory from './routes/EnterDirectory';
+import { setDirectoryEnabledGlobal } from './forms/DirectoryForm';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
-    const iframeControl = getiFrameControl(window);
+    const [directoryEnabled, setDirectoryEnabled] = useState(false);
+
+    useEffect(() => {
+        if (directoryEnabled)
+            setDirectoryEnabledGlobal();
+    }, [directoryEnabled])
 
     return (
         <TezosWalletProvider>
             <BrowserRouter>
                 {props.children}
                 <Routes>
-                    {!iframeControl ?
+                    {!directoryEnabled ?
                         <Route path="/" element={<SiteLayout />}>
                             <Route path="" element={<Frontpage />} />
 
@@ -65,7 +71,9 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="new/swaps" element={<NewSwaps />} />
 
                             {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
-                            <Route path="*" element={<PageNotFound />}/>
+                            <Route path="*" element={<PageNotFound />} />
+
+                            <Route path="directory/*" element={<EnterDirectory setDirectoryEnabled={setDirectoryEnabled} />} />
                         </Route> :
                         <Route path="/directory" element={<DirectoryLayout />}>
                             <Route path="map" element={<DirectoryMap />} />
@@ -82,7 +90,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                                 <Route path="new/mints" element={<NewMints />} />
                                 <Route path="new/swaps" element={<NewSwaps />} />
 
-                                <Route path="*" element={<PageNotFound />}/>
+                                <Route path="*" element={<PageNotFound />} />
                             </Route>
                         </Route> }
                     <Route path="/explore" element={<Explore />} />

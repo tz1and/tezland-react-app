@@ -7,7 +7,7 @@ import { MapSetCenter } from '../../forms/CreateAuction';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
-import { getiFrameControl } from '../../forms/DirectoryForm';
+import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
 
 type PlacePageProps = { };
 
@@ -28,11 +28,11 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
     }, [metadata, tokenId]);
 
     const teleportToPlace = () => {
-        const iframeControl = getiFrameControl(window);
-
-        if(iframeControl) {
-            iframeControl.teleportToLocation("place" + tokenId);
-            iframeControl.closeForm(false);
+        if(getDirectoryEnabledGlobal()) {
+            window.parent.postMessage({
+                tz1andEvent: true,
+                teleportToLocation: "place" + tokenId
+            } as iFrameControlEvent, "*");
         }
         else
             navigate(`/explore?placeid=${tokenId}`);
