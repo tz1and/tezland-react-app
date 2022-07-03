@@ -80,7 +80,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                             <Route element={<DirectoryFooterPadding />}>
                                 <Route path="search" element={<Search />} />
-                                <Route path="event/:eventName/:eventLabel" element={<EventMap />} />
+                                <Route path="event/:eventTag/:eventLabel" element={<EventMap />} />
 
                                 <Route path="u/:address" element={<User />} />
                                 <Route path="i/:id" element={<Item />} />

@@ -27,7 +27,7 @@ export default function DirectoryNavigation() {
                             {/*<NavDropdown.Item as={NavLink} to="/directory/event/1of1July/1of1%20July">1of1 July</NavDropdown.Item>*/}
 
                             <NavDropdown className="dropdown-submenu" title="1of1 July" id="basic-nav-dropdown">
-                                <NavDropdown.Item as={NavLink} to="/directory/event/1of1July/1of1%20July">Places</NavDropdown.Item>
+                                <NavDropdown.Item as={NavLink} to="/directory/event/%231of1/1of1%20July">Places</NavDropdown.Item>
                                 <NavDropdown.Item as={NavLink} to="/directory/t/%231of1">Items</NavDropdown.Item>
                             </NavDropdown>
 
