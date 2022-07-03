@@ -4,13 +4,17 @@ import { iFrameControlFunctions } from '../world/AppControlFunctions';
 
 
 // TODO: this should probably be react state. A context maybe.
-var directoryEnabledGlobal: boolean = false;
+export type DirectoryEnabledGlobalState = {
+    coords: [number, number];
+};
 
-export function setDirectoryEnabledGlobal() {
-    directoryEnabledGlobal = true;
+var directoryEnabledGlobal: DirectoryEnabledGlobalState | undefined;
+
+export function setDirectoryEnabledGlobal(state?: DirectoryEnabledGlobalState) {
+    directoryEnabledGlobal = state;
 }
 
-export function getDirectoryEnabledGlobal() {
+export function getDirectoryEnabledGlobal(): DirectoryEnabledGlobalState | undefined {
     return directoryEnabledGlobal;
 }
 

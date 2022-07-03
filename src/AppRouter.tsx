@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'; // we need this to make JSX compile
+import React, { useState } from 'react'; // we need this to make JSX compile
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Explore from './components/Explore';
 import Auctions from './routes/Auctions';
@@ -28,16 +28,10 @@ import { Search } from './routes/directory/Search';
 import { NewMints } from './routes/directory/NewMints';
 import { NewSwaps } from './routes/directory/NewSwaps';
 import EnterDirectory from './routes/EnterDirectory';
-import { setDirectoryEnabledGlobal } from './forms/DirectoryForm';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
     const [directoryEnabled, setDirectoryEnabled] = useState(false);
-
-    useEffect(() => {
-        if (directoryEnabled)
-            setDirectoryEnabledGlobal();
-    }, [directoryEnabled])
 
     return (
         <TezosWalletProvider>

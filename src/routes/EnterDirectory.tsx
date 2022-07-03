@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { setDirectoryEnabledGlobal } from '../forms/DirectoryForm';
 
 
 type EnterDirectoryPorps = {
@@ -8,8 +9,13 @@ type EnterDirectoryPorps = {
 
 const EnterDirectory: React.FC<EnterDirectoryPorps> = (props) => {
     const navigate = useNavigate();
+    const searchParams = useSearchParams()[0];
+
+    const xCoord = searchParams ? parseInt(searchParams.get('x') || '0') : 0;
+    const yCoord = searchParams ? parseInt(searchParams.get('y') || '0') : 0;
 
     useEffect(() => {
+        setDirectoryEnabledGlobal({ coords: [xCoord, yCoord] });
         props.setDirectoryEnabled(true);
         navigate("/directory/map", { replace: true });
     });

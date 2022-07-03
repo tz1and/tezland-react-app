@@ -73,6 +73,7 @@ type InteractiveMapProps = {
     zoom: number;
     threeD: boolean;
     markerMode: MarkerMode;
+    location?: [number, number];
     markedPlaces?: number[] | undefined;
     placeId?: number;
     className?: string;
@@ -110,7 +111,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps, InteractiveMap
         assert(this.mount.current);
 
         try {
-            const worldMap = new WorldMap(this.mount.current, this.props.zoom, this.props.threeD, this.props.markerMode, this.state.mapControl, this.context, this.props.placeId);
+            const worldMap = new WorldMap(this.mount.current, this.props.zoom, this.props.threeD, this.props.markerMode, this.state.mapControl, this.context, this.props.placeId, this.props.location);
 
             this.setState({world: worldMap}, () => {
                 worldMap.loadWorld();

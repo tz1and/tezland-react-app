@@ -98,7 +98,7 @@ export class WorldMap implements WorldInterface {
 
     private markerOverlayTexture: AdvancedDynamicTexture;
 
-    constructor(mount: HTMLCanvasElement, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number) {
+    constructor(mount: HTMLCanvasElement, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number, location?: [number, number]) {
         this.mapControlFunctions = mapControlFunctions;
         // Get the canvas element from the DOM.
         const canvas = mount;
@@ -132,10 +132,12 @@ export class WorldMap implements WorldInterface {
         //this.scene.collisionsEnabled = true;
 
         const initCamera = (): FreeCamera => {
-            // This creates and positions a free camera (non-mesh)
-            var camera = new FreeCamera("orthoCamera", threeD ? new Vector3(0, 1000, 400) : new Vector3(0, 1000, 0), this.scene);
+            const mapLoaction = location ? new Vector3(location[0], 0, location[1]) : Vector3.Zero();
 
-            camera.setTarget(Vector3.Zero());
+            // This creates and positions a free camera (non-mesh)
+            var camera = new FreeCamera("orthoCamera", mapLoaction.add(threeD ? new Vector3(0, 1000, 400) : new Vector3(0, 1000, 0)), this.scene);
+
+            camera.setTarget(mapLoaction);
     
             // Camera props
             //camera.rotation.set(Angle.FromDegrees(70).radians(), Angle.FromDegrees(200).radians(), 0);
@@ -318,7 +320,7 @@ export class WorldMap implements WorldInterface {
         this.worldPlaceCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
-        const playerPos = new Vector3();
+        const playerPos = this.orthoCam.getTarget();
 
         // Get grid cells close to player position.
         const gridCells = await this.implicitWorldGrid.getPlacesForPosition(playerPos.x, 0, playerPos.z, this.worldPlaceCount, this.getMaxDrawDistance()); // AppSettings.drawDistance.value);
