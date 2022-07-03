@@ -1,7 +1,6 @@
 import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Control, Ellipse, Image, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import assert from "assert";
-import { fetchGraphQL } from "../ipfs/graphql";
 import Contracts from "../tz/Contracts";
 import { truncate, truncateAddress } from "../utils/Utils";
 import ItemNode from "../world/ItemNode";
@@ -9,6 +8,7 @@ import Metadata from "../world/Metadata";
 import { World } from "../world/World";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
+import { grapphQLUser } from "../graphql/user";
 
 class ItemInfoGui {
     private control: Control;
@@ -110,25 +110,17 @@ class ItemInfoGui {
             this.current_token_id = token_id;
             this.current_token_supply = -1;
 
-            // Fetch updated metadata.
-            (async () => {
-                const itemMetadata = await Metadata.getItemMetadata(this.current_token_id);
-
+            Metadata.getItemMetadata(this.current_token_id).then(itemMetadata => {
                 this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
                 this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
+            }).catch(() => {
+                this.label_name.text = "Failed to load";
+            });
 
-                // Fetch the metadata for those tokens
-                const data = await fetchGraphQL(`
-                    query getTokenSupplyAndRoyalties($id: bigint!) {
-                        itemToken(where: {id: {_eq: $id}}) {
-                            royalties
-                            supply
-                        }
-                    }`, "getTokenSupplyAndRoyalties", { id: this.current_token_id });
-
+            grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_id }).then(data => {
                 this.current_token_supply = data.itemToken[0].supply;
                 this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply}`;
-            })();
+            }).catch(() => {});
         }
 
         const forSale: boolean = isSaved && current_item.xtzPerItem !== 0;
