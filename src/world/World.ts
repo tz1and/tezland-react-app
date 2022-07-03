@@ -364,7 +364,7 @@ export class World implements WorldInterface {
 
         // Finally, load places.
         place_metadatas.forEach((metadata) => {
-            this.loadPlace(metadata.id);
+            this.loadPlace(metadata);
         })
 
         // TEMP: workaround as long as loading owner and owned is delayed.
@@ -545,42 +545,33 @@ export class World implements WorldInterface {
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
     // Should probably be batched before loading places.
-    private async loadPlace(placeId: PlaceId) {
+    private async loadPlace(metadata: any) {
         // early out if it's already loaded.
-        if(this.places.has(placeId)) return;
+        // NOTE: done't need to early out. Souldn't happen.
+        // Check anyway and log. For now.
+        if(this.places.has(metadata.id)) {
+            Logging.InfoDev("Place already existed", metadata.id);
+            return;
+        }
 
         try {
-            // If the place isn't in the grid yet, add it.
-            var placeMetadata = await Metadata.getPlaceMetadata(placeId);
-            if (!placeMetadata) {
-                Logging.InfoDev("No metadata for place: " + placeId);
-                return;
-            }
-
-            const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
+            const origin = Vector3.FromArray(metadata.centerCoordinates);
 
             // Figure out by distance to player if the place should load.
             const player_pos = this.playerController.getPosition();
             if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
-                // Just to be sure, make sure place doesn't exist
-                // after awaiting metadata.
-                if(this.places.has(placeId)) {
-                    Logging.WarnDev("Place already existed.");
-                    return;
-                }
-
                 // Create place.
-                const new_place = new PlaceNode(placeId, placeMetadata, this);
-                this.places.set(placeId, new_place);
+                const new_place = new PlaceNode(metadata.id, metadata, this);
+                this.places.set(metadata.id, new_place);
 
                 // Load items.
                 await new_place.load();
             }
         }
         catch(e) {
-            Logging.InfoDev("Error fetching place: " + placeId);
+            Logging.InfoDev("Error loading place: " + metadata.id);
             Logging.InfoDev(e);
-            Logging.InfoDev(placeMetadata);
+            Logging.InfoDev(metadata);
         }
     }
 
@@ -680,11 +671,12 @@ export class World implements WorldInterface {
                         else v.updateLOD();
                     });
 
-                    const placePromises: Promise<any>[] = [];
+                    const placePromises: Promise<void>[] = [];
 
                     gridCell.forEach((c) => {
                         c.places.forEach((id) => {
-                            placePromises.push(this.loadPlace(id));
+                            if (!this.places.has(id))
+                                placePromises.push(Metadata.getPlaceMetadata(id).then(res => this.loadPlace(res)));
                         });
                     });
 
@@ -692,8 +684,6 @@ export class World implements WorldInterface {
 
                     //const elapsed_total = performance.now() - start_time;
                     //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
-                    //Logging.InfoDev("checked cells: " + cells_checked);
-                    //Logging.InfoDev("checked places: " + places_checked);
                 }
                 // TODO: handle error
                 finally {

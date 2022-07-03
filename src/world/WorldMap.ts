@@ -16,7 +16,6 @@ import { MeshUtils } from "../utils/MeshUtils";
 import { isDev } from "../utils/Utils";
 import { Edge } from "../worldgen/WorldPolygon";
 import WorldGrid from "../utils/WorldGrid";
-import { PlaceId } from "./nodes/BasePlaceNode";
 import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
 import { AdvancedDynamicTexture, Control, Image, Vector2WithInfo } from "@babylonjs/gui";
@@ -35,8 +34,6 @@ import { WorldDefinition } from "../worldgen/WorldGen";
 import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
-
-const worldMapUpdateDistance = 10; // in m
 
 export enum MarkerMode {
     SpawnsAndTeleporters = 0,
@@ -88,11 +85,12 @@ export class WorldMap implements WorldInterface {
 
     private orthoCam: FreeCamera;
 
-    private lastUpdatePosition: Vector3;
+    private lastWorldUpdateTime: number;
     private worldUpdatePending: boolean = false;
 
     private needsRedraw: boolean = false;
     private viewUpdated: boolean = false;
+    private lastRenderTime: number = 0;
 
     private markedPlaces: Set<number> = new Set();
 
@@ -165,6 +163,7 @@ export class WorldMap implements WorldInterface {
             const orthoInput = new OrthoCameraMouseInput()
             orthoInput.onPointerMovedObservable.add(() => {
                 this.needsRedraw = true;
+                this.viewUpdated = true;
                 mapControlFunctions.showPopover(undefined);
             });
 
@@ -184,7 +183,7 @@ export class WorldMap implements WorldInterface {
         }
 
         this.orthoCam = initCamera();
-        this.lastUpdatePosition = this.orthoCam.getTarget().clone();
+        this.lastWorldUpdateTime = performance.now();
 
         // Create a dynamic texture for overlay markers
         this.markerOverlayTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -266,9 +265,10 @@ export class WorldMap implements WorldInterface {
         // Need to figure out a way to listen for changes in the scene
         this.engine.stopRenderLoop();
         this.engine.runRenderLoop(() => {
-            if(this.needsRedraw) {
+            if(this.needsRedraw || performance.now() - this.lastRenderTime > 500) {
                 this.scene.render();
                 this.needsRedraw = false;
+                this.lastRenderTime = performance.now();
             }
         });
 
@@ -349,7 +349,7 @@ export class WorldMap implements WorldInterface {
 
         // Finally, load places.
         place_metadatas.forEach((metadata) => {
-            this.loadPlace(metadata.id);
+            this.loadPlace(metadata);
         })
     };
 
@@ -601,48 +601,38 @@ export class WorldMap implements WorldInterface {
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
     // Should probably be batched before loading places.
-    private async loadPlace(placeId: PlaceId) {
+    private loadPlace(metadata: any) {
         // early out if it's already loaded.
-        if(this.places.has(placeId)) return;
+        // NOTE: done't need to early out. Souldn't happen.
+        // Check anyway and log. For now.
+        if(this.places.has(metadata.id)) {
+            Logging.InfoDev("Place already existed", metadata.id);
+            return;
+        }
 
         try {
-            // If the place isn't in the grid yet, add it.
-            var placeMetadata = await Metadata.getPlaceMetadata(placeId);
-            if (!placeMetadata) {
-                Logging.InfoDev("No metadata for place: " + placeId);
-                return;
-            }
-
-            
             // Figure out by distance to player if the place should load.
             //const origin = Vector3.FromArray(placeMetadata.centerCoordinates);
             //const player_pos = new Vector3();
             //if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
-                // Just to be sure, make sure place doesn't exist
-                // after awaiting metadata.
-                if(this.places.has(placeId)) {
-                    Logging.WarnDev("Place already existed.");
-                    return;
-                }
-
                 // Create place.
-                const new_place = new MapPlaceNode(placeId, placeMetadata, this);
-                this.places.set(placeId, new_place);
+                const new_place = new MapPlaceNode(metadata.id, metadata, this);
+                this.places.set(metadata.id, new_place);
 
                 // If this place should be marked, mark it
-                if (this.markedPlaces.has(placeId)) {
-                    this.createMarker(`Place #${placeId}`,
-                        new Vector3(placeMetadata.centerCoordinates[0], placeMetadata.centerCoordinates[1], placeMetadata.centerCoordinates[2]),
-                        "purple", "place", placeId);
+                if (this.markedPlaces.has(metadata.id)) {
+                    this.createMarker(`Place #${metadata.id}`,
+                        new Vector3(metadata.centerCoordinates[0], metadata.centerCoordinates[1], metadata.centerCoordinates[2]),
+                        "purple", "place", metadata.id);
                 }
 
                 this.needsRedraw = true;
             //}
         }
         catch(e) {
-            Logging.InfoDev("Error fetching place: " + placeId);
+            Logging.InfoDev("Error loading place: " + metadata.id);
             Logging.InfoDev(e);
-            Logging.InfoDev(placeMetadata);
+            Logging.InfoDev(metadata);
         }
     }
 
@@ -663,11 +653,11 @@ export class WorldMap implements WorldInterface {
         this.sunLight.update(cameraPos);
 
         // Update world when camera has moved a certain distance.
-        // TODO: do worldUpdatePending in World as well!
-        if(!this.worldUpdatePending && Vector3.Distance(this.lastUpdatePosition, cameraPos) > worldMapUpdateDistance)
+        if(!this.worldUpdatePending && this.viewUpdated && performance.now() - this.lastWorldUpdateTime > 500)
         {
             this.worldUpdatePending = true;
-            this.lastUpdatePosition = cameraPos.clone();
+            this.viewUpdated = false;
+            this.lastWorldUpdateTime = performance.now();
 
             // TEMP: do this asynchronously, getting lots of metadata
             // from storage is kinda slow.
@@ -690,11 +680,12 @@ export class WorldMap implements WorldInterface {
                         }
                     });*/
 
-                    const placePromises: Promise<any>[] = [];
+                    const placePromises: Promise<void>[] = [];
 
                     gridCell.forEach((c) => {
                         c.places.forEach((id) => {
-                            placePromises.push(this.loadPlace(id));
+                            if (!this.places.has(id))
+                                placePromises.push(Metadata.getPlaceMetadata(id).then(res => this.loadPlace(res)));
                         });
                     });
 
@@ -702,8 +693,6 @@ export class WorldMap implements WorldInterface {
 
                     //const elapsed_total = performance.now() - start_time;
                     //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
-                    //Logging.InfoDev("checked cells: " + cells_checked);
-                    //Logging.InfoDev("checked places: " + places_checked);
                 }
                 // TODO: handle error
                 finally {
