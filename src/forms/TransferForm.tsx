@@ -24,6 +24,7 @@ interface TransferFormValues {
 type TransferFormProps = {
     closeForm(): void;
     itemId: number;
+    maxQuantity: number;
 }
 
 type TransferFormState = {
@@ -38,7 +39,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
     
     const initialValues: TransferFormValues = {
         itemId: props.itemId,
-        itemAmount: 0,
+        itemAmount: 1,
         transferTo: ""
     };
 
@@ -53,7 +54,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
                 validate = {(values) => {
                     const errors: FormikErrors<TransferFormValues> = {};
 
-                    if (values.itemAmount < 1 || values.itemAmount > 10000) {
+                    if (values.itemAmount < 1 || values.itemAmount > props.maxQuantity) {
                         errors.itemAmount = 'Amount invalid';
                     }
 
@@ -91,8 +92,8 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
-                                <div id="amountHelp" className="form-text">The number of Items to transfer. Can't be more than the amount you own.</div>
+                                <Field id="itemAmount" name="itemAmount" type="number" min={1} max={props.maxQuantity} className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
+                                <div id="amountHelp" className="form-text">The number of Items to transfer. Can't be more than the amount you own.<br/>(Current balance: {props.maxQuantity})</div>
                                 <ErrorMessage name="itemAmount" children={errorDisplay}/>
                             </div>
                             <div className="mb-3">

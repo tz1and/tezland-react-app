@@ -9,8 +9,8 @@ import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInf
 
 type InventoryItemProps = {
     onSelect: ItemClickedFunc;
-    onBurn?: ((item_id: number) => void) | undefined;
-    onTransfer?: ((item_id: number) => void) | undefined;
+    onBurn?: ItemClickedFunc | undefined;
+    onTransfer?: ItemClickedFunc | undefined;
     item_metadata: FetchDataResult<FetchDataItemToken>;
     trackItems?: boolean;
     isTempItem?: boolean;
@@ -63,8 +63,8 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
         >
             <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.id.toString()}>
                 <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
-                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.id)}><i className="bi bi-send-fill"></i></button> }
-                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.id)}><i className="bi bi-trash-fill"></i></button> }
+                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.id, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
+                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.id, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }
                 </div>
 
                 <div onClick={() => props.onSelect(token_data.id, item_data.quantity)}>

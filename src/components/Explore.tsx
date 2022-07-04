@@ -84,12 +84,12 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }
     }
 
-    burnItemFromInventory = (id: number) => {
-        this.loadForm(OverlayForm.BurnItem, { tokenId: id, maxQuantity: 1} as TransferItemFromProps);
+    burnItemFromInventory = (id: number, quantity: number) => {
+        this.loadForm(OverlayForm.BurnItem, { tokenId: id, maxQuantity: quantity} as TransferItemFromProps);
     }
 
-    transferItemFromInventory = (id: number) => {
-        this.loadForm(OverlayForm.TransferItem, { tokenId: id, maxQuantity: 1} as TransferItemFromProps);
+    transferItemFromInventory = (id: number, quantity: number) => {
+        this.loadForm(OverlayForm.TransferItem, { tokenId: id, maxQuantity: quantity} as TransferItemFromProps);
     }
 
     addNotification = (data: NotificationData) => {
@@ -165,12 +165,12 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             case OverlayForm.BurnItem:
                 assert(this.state.form_props);
                 const burnItemProps = this.state.form_props as TransferItemFromProps;
-                return <BurnForm closeForm={this.closeForm} itemId={burnItemProps.tokenId} />;
+                return <BurnForm closeForm={this.closeForm} itemId={burnItemProps.tokenId} maxQuantity={burnItemProps.maxQuantity} />;
 
             case OverlayForm.TransferItem:
                 assert(this.state.form_props);
                 const transferItemProps = this.state.form_props as TransferItemFromProps;
-                return <TransferForm closeForm={this.closeForm} itemId={transferItemProps.tokenId} />;
+                return <TransferForm closeForm={this.closeForm} itemId={transferItemProps.tokenId} maxQuantity={transferItemProps.maxQuantity} />;
 
             case OverlayForm.PlaceProperties:
                 return <EditPlace closeForm={this.closeForm} place={this.state.currentPlace!} />;

@@ -22,6 +22,7 @@ interface BurnFormValues {
 type BurnFormProps = {
     closeForm(): void;
     itemId: number;
+    maxQuantity: number;
 }
 
 type BurnFormState = {
@@ -36,7 +37,7 @@ export const BurnForm: React.FC<BurnFormProps> = (props) => {
     
     const initialValues: BurnFormValues = {
         itemId: props.itemId,
-        itemAmount: 0
+        itemAmount: 1
     };
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -50,7 +51,7 @@ export const BurnForm: React.FC<BurnFormProps> = (props) => {
                 validate = {(values) => {
                     const errors: FormikErrors<BurnFormValues> = {};
 
-                    if (values.itemAmount < 1 || values.itemAmount > 10000) {
+                    if (values.itemAmount < 1 || values.itemAmount > props.maxQuantity) {
                         errors.itemAmount = 'Amount invalid';
                     }
                   
@@ -84,8 +85,8 @@ export const BurnForm: React.FC<BurnFormProps> = (props) => {
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
-                                <div id="amountHelp" className="form-text">The number of Items to burn. Can't be more than the amount you own.</div>
+                                <Field id="itemAmount" name="itemAmount" type="number" min={1} max={props.maxQuantity} className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} autoFocus={true} />
+                                <div id="amountHelp" className="form-text">The number of Items to burn. Can't be more than the amount you own.<br/>(Current balance: {props.maxQuantity})</div>
                                 <ErrorMessage name="itemAmount" children={errorDisplay}/>
                             </div>
                             <button type="submit" className={`btn btn-${triHelper(state.successState, "danger", "warning", "success")} mb-3`} disabled={isSubmitting || !isValid}>

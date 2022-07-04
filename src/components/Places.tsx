@@ -7,9 +7,9 @@ import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 
 type PlacesProps = {
-    //selectItemFromInventory(id: number): void;
-    //burnItemFromInventory(id: number): void;
-    //transferItemFromInventory(id: number): void;
+    //selectItemFromInventory(id: number, quantity: number): void;
+    //burnItemFromInventory(id: number, quantity: number): void;
+    //transferItemFromInventory(id: number, quantity: number): void;
     address: string;
     // using `interface` is also ok
     //message: string;
@@ -29,8 +29,8 @@ export const Places: React.FC<PlacesProps> = (props) => {
         navigate(DirectoryUtils.placeLink(item_id));
     }
 
-    /*const handleTransfer = (item_id: number) => {
-        //this.props.transferItemFromInventory(item_id);
+    /*const handleTransfer = (item_id: number, quantity: number) => {
+        //this.props.transferItemFromInventory(item_id, quantity);
     }*/
 
     //const isOwned = walletContext.isWalletConnected() && walletContext.walletPHK() === props.address;

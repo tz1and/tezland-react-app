@@ -11,8 +11,8 @@ import { grapphQLUser } from '../graphql/user';
 
 type InventoryProps = {
     selectItemFromInventory(id: number, quantity: number): void;
-    burnItemFromInventory(id: number): void;
-    transferItemFromInventory(id: number): void;
+    burnItemFromInventory(id: number, quantity: number): void;
+    transferItemFromInventory(id: number, quantity: number): void;
     closeForm(): void;
     // using `interface` is also ok
     //message: string;
@@ -133,12 +133,12 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         this.props.selectItemFromInventory(item_id, quantity || 0);
     }
 
-    handleBurn = (item_id: number) => {
-        this.props.burnItemFromInventory(item_id);
+    handleBurn: ItemClickedFunc = (item_id: number, quantity?: number) => {
+        this.props.burnItemFromInventory(item_id, quantity || 0);
     }
 
-    handleTransfer = (item_id: number) => {
-        this.props.transferItemFromInventory(item_id);
+    handleTransfer: ItemClickedFunc = (item_id: number, quantity?: number) => {
+        this.props.transferItemFromInventory(item_id, quantity || 0);
     }
 
     override render() {
@@ -146,7 +146,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
         const items: JSX.Element[] = []
         if (!error) {
-            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} isTempItem={true} />))
+            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} item_metadata={item} trackItems={true} isTempItem={true} />))
             this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} />))
         }
 

@@ -47,6 +47,8 @@ export type ItemClickedFunc = (item_id: number, quantity?: number) => void;
 type TokenInfiniteScrollProps = {
     fetchDataFunc: FetchDataFunc;
     handleClick?: ItemClickedFunc;
+    handleBurn?: ItemClickedFunc;
+    handleTransfer?: ItemClickedFunc;
     fetchAmount: number;
     component: React.ElementType;
 };
@@ -93,16 +95,6 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
         }
     }
 
-    /*const handleBurn = (item_id: number) => {
-        // TODO: modal version of transfer dialog
-        //this.props.burnItemFromInventory(item_id);
-    }
-
-    const handleTransfer = (item_id: number) => {
-        // TODO: modal version of burn dialog
-        //this.props.transferItemFromInventory(item_id);
-    }*/
-
     useEffect(() => {
         if(!firstFetchDone) {
             fetchData();
@@ -115,8 +107,8 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
 
     const items: JSX.Element[] = []
     if (!error) state.itemMap.forEach((item, key) => items.push(<props.component key={key} onSelect={props.handleClick}
-        /*onBurn={isOwned ? this.handleBurn : undefined}
-        onTransfer={isOwned ? this.handleTransfer : undefined}*/
+        onBurn={props.handleBurn}
+        onTransfer={props.handleTransfer}
         item_metadata={item}/>))
 
     let content = error ? <h5 className='mt-3'>{error}</h5> : items;

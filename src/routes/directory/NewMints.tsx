@@ -30,14 +30,14 @@ export const NewMints: React.FC<NewMintsProps> = (props) => {
         navigate(DirectoryUtils.itemLink(item_id));
     }
 
-    /*const handleBurn = (item_id: number) => {
+    /*const handleBurn: ItemClickedFunc = (item_id: number, quantity?: number) => {
         // TODO: modal version of transfer dialog
-        //this.props.burnItemFromInventory(item_id);
+        //this.props.burnItemFromInventory(item_id, quantity);
     }
 
-    const handleTransfer = (item_id: number) => {
+    const handleTransfer: ItemClickedFunc = (item_id: number, quantity?: number) => {
         // TODO: modal version of burn dialog
-        //this.props.transferItemFromInventory(item_id);
+        //this.props.transferItemFromInventory(item_id, quantity);
     }*/
 
     return (
