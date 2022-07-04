@@ -10,7 +10,6 @@ type PlacesProps = {
     //selectItemFromInventory(id: number): void;
     //burnItemFromInventory(id: number): void;
     //transferItemFromInventory(id: number): void;
-    //closeForm(cancelled: boolean): void;
     address: string;
     // using `interface` is also ok
     //message: string;
