@@ -1,14 +1,23 @@
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+const webpack = require("webpack");
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin')
 
 
 module.exports = {
     webpack: {
         configure: {
+            resolve: {
+                fallback: {
+                    buffer: require.resolve("buffer/"),
+                    crypto: require.resolve("crypto-browserify"),
+                    stream: require.resolve("stream-browserify"),
+                    path: require.resolve("path-browserify"),
+                },
+            },
             plugins: [
-                new NodePolyfillPlugin({
-                    includeAliases: ['crypto', 'buffer', 'path', 'stream']
-                })
+                new webpack.ProvidePlugin({
+                    Buffer: ["buffer", "Buffer"],
+                    process: "process/browser",
+                }),
             ],
         },
     },
