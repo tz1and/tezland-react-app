@@ -1,5 +1,5 @@
 import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, Vector3 } from "@babylonjs/core";
-import PQueue from "p-queue/dist";
+import PQueue from "p-queue";
 import { FileWithMetadata } from "./ArtifactDownload";
 import { Logging } from "./Logging";
 

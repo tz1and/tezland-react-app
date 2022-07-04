@@ -1,6 +1,7 @@
 import './InventoryItem.css';
 import { truncate } from '../utils/Utils';
-import map from '../img/map.svg';
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
 import L from 'leaflet';
 import { Circle, ImageOverlay, MapContainer, Polygon } from 'react-leaflet';
 import './PlaceItem.css'
@@ -8,6 +9,7 @@ import { useEffect, useState } from 'react';
 import Metadata from '../world/Metadata';
 import { MapSetCenter } from '../forms/CreateAuction';
 import { FetchDataPlaceToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
+
 
 type PlaceItemProps = {
     onSelect: ItemClickedFunc;

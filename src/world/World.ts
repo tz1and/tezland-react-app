@@ -30,7 +30,7 @@ import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
-import PQueue from 'p-queue/dist';
+import PQueue from 'p-queue';
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./TeleporterBooth";
 import { WorldDefinition } from "../worldgen/WorldGen";

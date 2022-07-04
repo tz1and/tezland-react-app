@@ -1,4 +1,5 @@
-import map from '../../img/map.svg';
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import map from "!file-loader!../../img/map.svg"; // Temp workaround for CRA5
 import L from 'leaflet';
 import { Circle, ImageOverlay, MapContainer, Polygon } from 'react-leaflet';
 import { useEffect, useState } from 'react';
@@ -8,6 +9,7 @@ import { Button, Col, Container, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import assert from 'assert';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
+
 
 type PlacePageProps = { };
 

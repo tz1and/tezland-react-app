@@ -10,7 +10,9 @@ import Metadata from '../world/Metadata';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
-import map from '../img/map.svg';
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+
 
 type AuctionProps = {
     auctionId: number;

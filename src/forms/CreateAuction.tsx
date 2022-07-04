@@ -17,7 +17,9 @@ import { fetchPlaces } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
 import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
-import map from '../img/map.svg';
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+
 
 type MapSetCenterProps = {
     center: [number, number],
