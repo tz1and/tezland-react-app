@@ -1,5 +1,7 @@
 import { Logging } from "../utils/Logging";
 
+const localStorageAvailable = typeof localStorage !== 'undefined';
+
 interface IAppSetting<T> {
     readonly defaultValue: T;
 
@@ -27,11 +29,13 @@ class AppSetting<T extends Object> implements IAppSetting<T> {
     }
 
     loadSetting(): T {
+        if (!localStorageAvailable) return this.defaultValue;
         const res = localStorage.getItem("tezland:settings:" + this.settingName);
         return res ? this.parseFunc(res) : this.defaultValue;
     }
 
     settingExists(): boolean {
+        if (!localStorageAvailable) return false;
         const res = localStorage.getItem("tezland:settings:" + this.settingName);
         return res !== null;
     }
@@ -42,7 +46,7 @@ class AppSetting<T extends Object> implements IAppSetting<T> {
 
     set value(newVal: T) {
         this._value = newVal;
-        localStorage.setItem("tezland:settings:" + this.settingName, this._value.toString());
+        if (localStorageAvailable) localStorage.setItem("tezland:settings:" + this.settingName, this._value.toString());
     }
 }
 
