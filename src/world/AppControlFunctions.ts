@@ -1,28 +1,45 @@
 // type for app control functions
 
-import { Node } from "@babylonjs/core";
 import { NotificationData } from "../components/Notification";
+import ItemNode from "./ItemNode";
 import PlaceNode from "./PlaceNode";
 import { MapPopoverInfo } from "./WorldMap";
 
-export type FormNames = 'placeproperties'
-    | 'instructions'
-    | 'placeitem'
-    | 'settings'
-    | 'mint'
-    | 'inventory'
-    | 'burn'
-    | 'transfer'
-    | 'loadingerror'
-    | 'directory'
-    | 'terms';
+export interface OverlayFormProps {}
+
+export interface PlaceItemFromProps extends OverlayFormProps {
+    node: ItemNode;
+    maxQuantity: number;
+}
+
+export interface TransferItemFromProps extends OverlayFormProps {
+    tokenId: number;
+    maxQuantity: number;
+}
+
+export interface DirectoryFormProps extends OverlayFormProps {
+    mapCoords: [number, number];
+}
+
+export enum OverlayForm {
+    None = 0,
+    PlaceProperties,
+    Instructions,
+    PlaceItem,
+    Settings,
+    Mint,
+    Inventory,
+    BurnItem,
+    TransferItem,
+    Directory,
+    Terms
+}
 
 export type AppControlFunctions = {
-    loadForm(form_type: FormNames): void;
-    setOverlayDispaly(display: boolean): void;
-    placeItem(node: Node, maxQuantity: number): void;
+    loadForm(form_type: OverlayForm, props?: OverlayFormProps): void;
     addNotification(data: NotificationData): void;
     updatePlaceInfo(place: PlaceNode): void;
+    unlockControls(): void;
 };
 
 export type MapControlFunctions = {
@@ -32,5 +49,5 @@ export type MapControlFunctions = {
 export type iFrameControlFunctions = {
     teleportToWorldPos(pos: [number, number]): void;
     teleportToLocation(location: string): void;
-    closeForm(cancelled: boolean): void;
+    closeForm(): void;
 }

@@ -6,7 +6,7 @@ import { PrivacyStatement, TermsAndConditions } from '../TermsAndPrivacy';
 import './Terms.css'
 
 type TermsFormProps = {
-    closeForm(cancelled: boolean): void;
+    closeForm(): void;
 }
 
 type TermsFormState = {
@@ -46,7 +46,7 @@ export const TermsForm: React.FC<TermsFormProps> = (props) => {
                 }}
                 onSubmit={(values) => {
                     AppTerms.termsAccepted.value = values.termsAccepted;
-                    props.closeForm(false);
+                    props.closeForm();
                 }}
             >
                 {({

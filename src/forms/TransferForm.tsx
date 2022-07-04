@@ -22,7 +22,7 @@ interface TransferFormValues {
 }
 
 type TransferFormProps = {
-    closeForm(cancelled: boolean): void;
+    closeForm(): void;
     itemId: number;
 }
 
@@ -46,7 +46,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
-            <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm(true)} />
+            <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm()} />
             <h2>transfer Item</h2>
             <Formik
                 initialValues={initialValues}
@@ -69,7 +69,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
     
                         if (completed) {
                             //setState({error: "", successState: 1});
-                            props.closeForm(false);
+                            props.closeForm();
                         } else
                             setState({error: "Transaction failed", successState: -1});
                     }).catch((reason: any) => {

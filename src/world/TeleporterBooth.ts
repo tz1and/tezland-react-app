@@ -1,7 +1,7 @@
 import { ActionManager, ExecuteCodeAction, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import PlayerController from "../controllers/PlayerController";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
-import { AppControlFunctions } from "./AppControlFunctions";
+import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "./AppControlFunctions";
 
 
 export default class TeleporterBooth extends TransformNode {
@@ -46,7 +46,9 @@ export default class TeleporterBooth extends TransformNode {
                             },
                             function () {
                                 document.exitPointerLock();
-                                appControlFunctions.loadForm("directory");
+                                appControlFunctions.loadForm(OverlayForm.Directory, {
+                                    mapCoords: [pos.x, pos.z]
+                                } as DirectoryFormProps);
                             }
                         ))
                 }

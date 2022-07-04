@@ -31,7 +31,7 @@ interface MintFormValues {
 
 type MintFormProps = {
     closable?: boolean;
-    closeForm(cancelled: boolean): void;
+    closeForm(): void;
 }
 
 type MintFormState = {
@@ -217,12 +217,12 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                     <div className='d-flex align-items-center justify-content-center'>
                         <div className='btn-group' role='group'>
                             <button type='button' className='btn btn btn-success' onClick={() => this.resetState()}>Mint another</button>
-                            {this.isClosable && <button type='button' className='btn btn btn-primary' onClick={() => this.props.closeForm(true)}>Close</button>}
+                            {this.isClosable && <button type='button' className='btn btn btn-primary' onClick={() => this.props.closeForm()}>Close</button>}
                         </div>
                     </div>
                 </div> :
                 <div>
-                    {this.isClosable && <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm(true)} />}
+                    {this.isClosable && <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.closeForm()} />}
                     <h2>mint Item</h2>
                     <Formik
                         innerRef={this.formikRef}
@@ -276,7 +276,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                     this.setState({error: "", successState: 1}, /*() => {
                                         // If closable close form after a short time.
                                         if(this.isClosable) this.closeTimeout = setTimeout(() => {
-                                            this.props.closeForm(false);
+                                            this.props.closeForm();
                                         }, 1000);
                                     }*/);
                                 }

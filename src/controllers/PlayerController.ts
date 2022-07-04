@@ -6,7 +6,7 @@ import BigNumber from "bignumber.js";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
-import { AppControlFunctions } from "../world/AppControlFunctions";
+import { AppControlFunctions, DirectoryFormProps, OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
 import PlaceNode from "../world/PlaceNode";
 import ItemNode from "../world/ItemNode";
@@ -120,7 +120,7 @@ export default class PlayerController {
                 this.camera.detachControl();
                 this.input.detachControl();
                 //this.isPointerLocked = false;
-                this.appControlFunctions.setOverlayDispaly(true);
+                this.appControlFunctions.unlockControls();
             } else {
                 // focus on canvas for keyboard input to work.
                 canvas.focus();
@@ -133,7 +133,7 @@ export default class PlayerController {
         // Catch pointerlock errors to not get stuck
         this.onPointerlockError = () => {
             Logging.Error("Pointerlock request failed.");
-            this.appControlFunctions.loadForm('instructions');
+            this.appControlFunctions.loadForm(OverlayForm.Instructions);
         };
 
         // add pointerlock event listeners
@@ -178,7 +178,7 @@ export default class PlayerController {
                                 eventState.skipNextObservers = true;
 
                                 document.exitPointerLock();
-                                this.appControlFunctions.placeItem(newObject, currentItemBalance);
+                                this.appControlFunctions.loadForm(OverlayForm.PlaceItem, { node: newObject, maxQuantity: currentItemBalance} as PlaceItemFromProps);
                             }
                         }
                     }
@@ -261,7 +261,7 @@ export default class PlayerController {
                     // Opens the mint form
                     case 'KeyM':
                         document.exitPointerLock();
-                        this.appControlFunctions.loadForm('mint');
+                        this.appControlFunctions.loadForm(OverlayForm.Mint);
                         break;
 
                     // Opens the place properties form
@@ -270,7 +270,7 @@ export default class PlayerController {
                             if (this.currentPlace.getPermissions.hasProps()) {
                                 document.exitPointerLock();
                                 // NOTE: we just assume, placeInfo in Explore is up to date.
-                                this.appControlFunctions.loadForm("placeproperties");
+                                this.appControlFunctions.loadForm(OverlayForm.PlaceProperties);
                             } else {
                                 this.appControlFunctions.addNotification({
                                     id: "permissionsProps" + this.currentPlace.placeId,
@@ -285,7 +285,7 @@ export default class PlayerController {
                     // Opens the inventory
                     case 'KeyI':
                         document.exitPointerLock();
-                        this.appControlFunctions.loadForm('inventory');
+                        this.appControlFunctions.loadForm(OverlayForm.Inventory);
                         break;
 
                     // Clear item selection
@@ -368,7 +368,9 @@ export default class PlayerController {
                     case 'KeyN':
                         if(isDev()) {
                             document.exitPointerLock();
-                            this.appControlFunctions.loadForm('directory');
+                            this.appControlFunctions.loadForm(OverlayForm.Directory, {
+                                mapCoords: [this.playerTrigger.position.x, this.playerTrigger.position.z]
+                            } as DirectoryFormProps);
                         }
                         break;
                 }

@@ -10,6 +10,7 @@ import { Vector3 } from '@babylonjs/core';
 
 type VirtualSpaceProps = {
     appControl: AppControlFunctions;
+    errorCallback: (e: any) => void;
 };
 
 type VirtualSpaceState = {
@@ -21,8 +22,6 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     override context!: React.ContextType<typeof TezosWalletContext>;
 
     private mount = React.createRef<HTMLCanvasElement>();
-
-    public failedToLoad: boolean = false;
 
     constructor(props: VirtualSpaceProps) {
         super(props);
@@ -70,7 +69,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         };
 
         if (mobileCheck() === true) {
-            this.failedToLoad = true;
+            this.props.errorCallback(new Error("tz1and is currently not available on mobile devices."));
             return;
         }
 
@@ -78,12 +77,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
             const world = new World(this.mount.current, this.props.appControl, this.context);
 
             this.setState({world: world}, () => {
-                world.loadWorld();
-            })
+                world.loadWorld().catch(e => {});
+            });
         }
         catch(err: any) {
-            this.failedToLoad = true;
-            return;
+            this.props.errorCallback(err);
         }
     }
 

@@ -18,7 +18,7 @@ interface PlaceFormValues {
 }
 
 type PlaceFormProps = {
-    closeForm(cancelled: boolean): void;
+    closeForm(): void;
     placedItem: ItemNode;
     maxQuantity: number;
 }
@@ -32,9 +32,14 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
+    const cancelForm = () => {
+        props.placedItem.dispose();
+        props.closeForm();
+    }
+
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
-            <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm(true)} />
+            <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={cancelForm} />
             <h2>place Item</h2>
             <Formik
                 initialValues={initialValues}
@@ -63,7 +68,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
 
                     actions.setSubmitting(false);
 
-                    props.closeForm(false);
+                    props.closeForm();
                 }}
             >
                 {({

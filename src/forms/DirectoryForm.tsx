@@ -26,6 +26,7 @@ export type iFrameControlEvent = {
 
 type DirectoryFormProps = {
     iFrameControl: iFrameControlFunctions;
+    mapCoords: [number, number];
 };
 
 type DirectoryFormState = {
@@ -51,7 +52,7 @@ export class DirectoryForm extends React.Component<DirectoryFormProps, Directory
             else if (tz1andEvent.teleportToWorldPos)
                 this.props.iFrameControl.teleportToWorldPos(tz1andEvent.teleportToWorldPos);
 
-            this.props.iFrameControl.closeForm(false);
+            this.props.iFrameControl.closeForm();
         }
     }
 
@@ -66,8 +67,8 @@ export class DirectoryForm extends React.Component<DirectoryFormProps, Directory
     override render() {
         return (
             <div className='p-1 m-4 mx-auto bg-white bg-gradient border-0 rounded-3 text-dark position-relative' style={{width: "75vw", height: '75vh'}}>
-                <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.iFrameControl.closeForm(true)}/>
-                <iframe className='w-100 h-100' src="/directory" title="tz1and Directory Services"></iframe>
+                <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => this.props.iFrameControl.closeForm()}/>
+                <iframe className='w-100 h-100' src={`/directory?x=${this.props.mapCoords[0]}&y=${this.props.mapCoords[1]}`} title="tz1and Directory Services"></iframe>
             </div>
         );
     }
