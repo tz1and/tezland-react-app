@@ -321,6 +321,8 @@ export class World implements WorldInterface {
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
+        this.worldUpdatePending = true;
+
         // Load districts, ie: ground meshes, bridges, etc.
         this.loadDistricts();
 
@@ -362,15 +364,21 @@ export class World implements WorldInterface {
             return Vector3.Distance(playerPos, origin_a) - Vector3.Distance(playerPos, origin_b);
         });
 
+        const placeLoadPromises: Promise<void>[] = [];
+
         // Finally, load places.
         place_metadatas.forEach((metadata) => {
-            this.loadPlace(metadata);
+            placeLoadPromises.push(this.loadPlace(metadata));
         })
 
+        await Promise.allSettled(placeLoadPromises);
+
         // TEMP: workaround as long as loading owner and owned is delayed.
-        const currentPlace = this.playerController.getCurrentPlace()
+        const currentPlace = this.playerController.getCurrentPlace();
         if(currentPlace)
             this.appControlFunctions.updatePlaceInfo(currentPlace);
+
+        this.worldUpdatePending = false;
     };
 
     private loadDistricts() {
@@ -671,16 +679,16 @@ export class World implements WorldInterface {
                         else v.updateLOD();
                     });
 
-                    const placePromises: Promise<void>[] = [];
+                    const placeLoadPromises: Promise<void>[] = [];
 
                     gridCell.forEach((c) => {
                         c.places.forEach((id) => {
                             if (!this.places.has(id))
-                                placePromises.push(Metadata.getPlaceMetadata(id).then(res => this.loadPlace(res)));
+                                placeLoadPromises.push(Metadata.getPlaceMetadata(id).then(res => this.loadPlace(res)));
                         });
                     });
 
-                    await Promise.allSettled(placePromises);
+                    await Promise.allSettled(placeLoadPromises);
 
                     //const elapsed_total = performance.now() - start_time;
                     //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");

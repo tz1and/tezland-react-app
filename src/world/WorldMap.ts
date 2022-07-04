@@ -312,6 +312,8 @@ export class WorldMap implements WorldInterface {
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
+        this.worldUpdatePending = true;
+
         // Load districts, ie: ground meshes, bridges, etc.
         this.loadDistricts();
 
@@ -352,7 +354,9 @@ export class WorldMap implements WorldInterface {
         // Finally, load places.
         place_metadatas.forEach((metadata) => {
             this.loadPlace(metadata);
-        })
+        });
+
+        this.worldUpdatePending = false;
     };
 
     private markerClickObserver = (eventData: Vector2WithInfo, eventState: EventState) => {
