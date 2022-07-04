@@ -102,7 +102,6 @@ export class WorldMap implements WorldInterface {
         this.mapControlFunctions = mapControlFunctions;
         // Get the canvas element from the DOM.
         const canvas = mount;
-        const divFps = document.getElementById("fps");
 
         this.walletProvider = walletProvider;
 
@@ -250,14 +249,6 @@ export class WorldMap implements WorldInterface {
         water.checkCollisions = true;
         water.receiveShadows = true;
         water.position.y = -3;*/
-
-        // Render every frame
-        this.engine.runRenderLoop(() => {
-            this.scene.render();
-            const frameId = this.engine.frameId;
-            if (divFps && frameId > 0 && frameId % 5 === 0)
-                divFps.innerHTML = this.engine.getFps().toFixed() + " fps";
-        });
 
         window.addEventListener('resize', this.onResize);
 
