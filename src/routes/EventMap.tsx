@@ -18,8 +18,7 @@ export const EventMap: React.FC<{}> = () => {
 
     useEffect(() => {
         if (!markedPlaces) {
-            // TODO: remove metadata from getPlacesWithItemsByTag
-            grapphQLUser.getPlacesWithItemsByTag({tag: eventTag, amount: 100, offset: 0}).then(res => {
+            grapphQLUser.getPlacesWithSwapsByTag({tag: eventTag, amount: 100, offset: 0}).then(res => {
                 const placeIds: number[] = [];
                 for (const p of res.placeToken) {
                     placeIds.push(p.id);
