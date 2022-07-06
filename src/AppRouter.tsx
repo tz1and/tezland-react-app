@@ -33,6 +33,19 @@ import EnterDirectory from './routes/EnterDirectory';
 function AppRouter(props: React.PropsWithChildren<{}>) {
     const [directoryEnabled, setDirectoryEnabled] = useState(false);
 
+    const directoryRoutes = <>
+        <Route path="search" element={<Search />} />
+        <Route path="event/:eventTag/:eventLabel" element={<EventMap />} />
+
+        <Route path="u/:address" element={<User />} />
+        <Route path="i/:id" element={<Item />} />
+        <Route path="p/:id" element={<PlacePage />} />
+        <Route path="t/:tag" element={<Tag />} />
+
+        <Route path="new/mints" element={<NewMints />} />
+        <Route path="new/swaps" element={<NewSwaps />} />
+    </>;
+
     return (
         <TezosWalletProvider>
             <BrowserRouter>
@@ -55,14 +68,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="privacy" element={<Privacy />} />
                             <Route path="terms" element={<Terms />} />
 
-                            <Route path="search" element={<Search />} />
-                            <Route path="u/:address" element={<User />} />
-                            <Route path="i/:id" element={<Item />} />
-                            <Route path="p/:id" element={<PlacePage />} />
-                            <Route path="t/:tag" element={<Tag />} />
-
-                            <Route path="new/mints" element={<NewMints />} />
-                            <Route path="new/swaps" element={<NewSwaps />} />
+                            {directoryRoutes}
 
                             {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                             <Route path="*" element={<PageNotFound />} />
@@ -73,16 +79,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="map" element={<DirectoryMap />} />
 
                             <Route element={<DirectoryFooterPadding />}>
-                                <Route path="search" element={<Search />} />
-                                <Route path="event/:eventTag/:eventLabel" element={<EventMap />} />
-
-                                <Route path="u/:address" element={<User />} />
-                                <Route path="i/:id" element={<Item />} />
-                                <Route path="p/:id" element={<PlacePage />} />
-                                <Route path="t/:tag" element={<Tag />} />
-
-                                <Route path="new/mints" element={<NewMints />} />
-                                <Route path="new/swaps" element={<NewSwaps />} />
+                                {directoryRoutes}
 
                                 <Route path="*" element={<PageNotFound />} />
                             </Route>

@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
+import { Badge, Nav, NavDropdown } from "react-bootstrap";
+import { Link, NavLink } from "react-router-dom";
 import './Navigation.css';
 import WalletWidget from "./WalletWidget";
 
 export default function Frontpage() {
+    const newBadge = <Badge>New!</Badge>;
+
     return (
         <header className="sticky-top py-3 bg-white text-dark">
             <div className="container px-0">
@@ -11,15 +14,20 @@ export default function Frontpage() {
                         <img src="/logo_header.png" alt="tz1and" height="40" />
                     </Link>
 
-                    <ul className="nav me-auto mb-2 justify-content-center mb-md-0">
-                        <li><Link to="/" className="nav-link px-2">Home</Link></li>
-                        <li><Link to="/auctions" className="nav-link px-2">Place Auctions</Link></li>
-                        <li><Link to="/faq" className="nav-link px-2">FAQ</Link></li>
-                        {/*<li><Link to="/docs" className="nav-link px-2">Docs</Link></li>*/}
-                        <li><Link to="/map" className="nav-link px-2">Map</Link></li>
-                        <li><Link to="/mint" className="nav-link px-2">Mint</Link></li>
-                        <li><Link to="/explore" className="nav-link px-2">Explore</Link></li>
-                    </ul>
+                    <Nav className="me-auto mb-2 justify-content-center mb-md-0">
+                        <Nav.Link as={NavLink} to="/auctions" className="nav-link">Place Auctions</Nav.Link>
+                        <Nav.Link as={NavLink} to="/faq" className="nav-link">FAQ</Nav.Link>
+                        <Nav.Link as={NavLink} to="/map" className="nav-link">Map</Nav.Link>
+                        <Nav.Link as={NavLink} to="/mint" className="nav-link">Mint</Nav.Link>
+                        <Nav.Link as={NavLink} to="/explore" className="nav-link">Explore</Nav.Link>
+
+                        <NavDropdown title={<span>Events {newBadge}</span>} id="basic-nav-dropdown">
+                            <NavDropdown className="dropdown-submenu" title="1of1 July" id="basic-nav-dropdown">
+                                <NavDropdown.Item as={NavLink} to="/event/%231of1/1of1%20July">Places</NavDropdown.Item>
+                                <NavDropdown.Item as={NavLink} to="/t/%231of1">Items</NavDropdown.Item>
+                            </NavDropdown>
+                        </NavDropdown>
+                    </Nav>
 
                     <WalletWidget/>
                 </div>
