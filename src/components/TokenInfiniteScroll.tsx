@@ -120,7 +120,7 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
             next={fetchMoreData}
             hasMore={state.moreData}
             loader={<h5 className='mt-3'>Loading...</h5>}
-            scrollThreshold={0.9}
+            scrollThreshold={1.0}
         >
             {content}
         </InfiniteScroll>
