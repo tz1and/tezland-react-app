@@ -10,6 +10,7 @@ RUN yarn install
 
 COPY tsconfig.json ./
 COPY .env.production.local ./
+COPY craco.config.js ./
 COPY src ./src
 COPY public ./public
 
