@@ -72,9 +72,6 @@
     "source-map-explorer": "^2.5.2",
     "stream-browserify": "^3.0.0"
   },
-  "resolutions": {
-    "undici": "5.5.1"
-  },
   "scripts": {
     "start": "BROWSER=none PORT=3006 craco start",
     "start:staging": "env-cmd -f .env.staging.local npm run start",
