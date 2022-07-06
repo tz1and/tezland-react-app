@@ -1,6 +1,6 @@
 {
   "name": "tezland-react-app",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "private": true,
   "license": "Apache-2.0",
   "dependencies": {
