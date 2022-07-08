@@ -1,9 +1,21 @@
 import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
 import ItemNode from "../world/ItemNode";
-import ArtifactDownloadQueue from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
+import { downloadArtifact, initialiseWorkerStorage } from "./ArtifactDownload.worker";
+import * as Comlink from 'comlink';
+import AppSettings from "../storage/AppSettings";
 //import { Logging } from "./Logging";
+
+type workerApiType = {
+    downloadArtifact: typeof downloadArtifact,
+    initialiseWorkerStorage: typeof initialiseWorkerStorage,
+}
+
+const worker = new Worker(new URL("./ArtifactDownload.worker.ts", import.meta.url));
+const workerApi = Comlink.wrap<workerApiType>(worker);
+
+const workerStorageInitialised = workerApi.initialiseWorkerStorage();
 
 class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
@@ -22,12 +34,19 @@ class ArtifactMemCache {
     }
 
     public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
+        // TODO: can this be done in the worker?
+        await workerStorageInitialised;
+
         const token_id_number = token_id.toNumber();
         // check if we have this item in the scene already.
         // Otherwise, download it.
+        // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
         let assetPromise = this.artifactCache.get(token_id_number);
         if(!assetPromise) {
-            assetPromise = ArtifactDownloadQueue.downloadArtifact(token_id).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
+            const sizeLimit = AppSettings.fileSizeLimit.value;
+            const polygonLimit = AppSettings.triangleLimit.value;
+
+            assetPromise = workerApi.downloadArtifact(token_id, sizeLimit, polygonLimit).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);

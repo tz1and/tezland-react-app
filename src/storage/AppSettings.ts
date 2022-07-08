@@ -1,6 +1,7 @@
 import { Logging } from "../utils/Logging";
 
 const localStorageAvailable = typeof localStorage !== 'undefined';
+if (!localStorageAvailable) Logging.WarnDev("local storage not available");
 
 interface IAppSetting<T> {
     readonly defaultValue: T;
