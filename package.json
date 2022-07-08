@@ -8,6 +8,9 @@
     "@babylonjs/gui": "5.12.1",
     "@babylonjs/loaders": "5.12.1",
     "@babylonjs/materials": "5.12.1",
+    "@gltf-transform/core": "^2.1.7",
+    "@gltf-transform/extensions": "^2.1.7",
+    "@gltf-transform/functions": "^2.1.7",
     "@popperjs/core": "^2.10.2",
     "@svgdotjs/svg.js": "^3.1.1",
     "@taquito/beacon-wallet": "^13.0.0",
@@ -29,6 +32,7 @@
     "idb": "^7.0.1",
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
+    "meshoptimizer": "^0.17.0",
     "p-queue": "^7.2.0",
     "p-retry": "^5.1.1",
     "polygon-clipping": "^0.15.3",
@@ -72,6 +76,9 @@
     "process": "^0.11.10",
     "source-map-explorer": "^2.5.2",
     "stream-browserify": "^3.0.0"
+  },
+  "resolutions": {
+    "ktx-parse": "0.2.2"
   },
   "scripts": {
     "start": "BROWSER=none PORT=3006 craco start",

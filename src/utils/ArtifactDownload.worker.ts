@@ -6,7 +6,9 @@ import { DatabaseStorage } from "../storage/DatabaseStorage";
 import pRetry, { AbortError } from "p-retry";
 import { Logging } from "./Logging";
 import { detectInsideWebworker, FileWithMetadata } from "./Utils";
+import { preprocessMesh } from "./MeshPreprocessing";
 import * as Comlink from 'comlink';
+
 
 async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {
     const controller = new AbortController();
@@ -86,9 +88,10 @@ export async function downloadArtifact(token_id: BigNumber, sizeLimit: number, p
     }
     //else Logging.Info("got artifact from db cache", itemMetadata.artifactUri)
 
-    // TODO: preprocess!
+    const processed = await preprocessMesh(cachedBuf, mime_type);
+    return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };
 
-    return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
+    //return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
 }
 
 /*async function deleteFromDBCache(token_id: BigNumber) {
