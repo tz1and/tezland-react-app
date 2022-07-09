@@ -33,7 +33,9 @@ function decodeSplitEncodeURI(uri: string) {
 type PreprocessWorkerPoolType = Pool<ModuleThread<typeof MeshPreprocessingWorkerApi>>;
 
 export default class ArtifactDownload {
-    public static async downloadArtifact(token_id: BigNumber, sizeLimit: number, polygonLimit: number, randomGateway: boolean = false, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
+    public static async downloadArtifact(
+        token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes: number,
+        randomGateway: boolean = false, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
@@ -90,11 +92,11 @@ export default class ArtifactDownload {
         let processed: Uint8Array;
         if (pool) {
             processed = await pool.queue(moduleThread => {
-                return moduleThread.preprocessMesh(cachedBuf!, mime_type);
+                return moduleThread.preprocessMesh(cachedBuf!, mime_type, maxTexRes);
             })
         }
         else {
-            processed = await preprocessMesh(cachedBuf, mime_type);
+            processed = await preprocessMesh(cachedBuf, mime_type, maxTexRes);
         }
 
         return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };

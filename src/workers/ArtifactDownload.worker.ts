@@ -9,9 +9,9 @@ import { Logging } from '../utils/Logging';
 
 const pool = Pool(() => spawn<typeof MeshPreprocessingWorkerApi>(new Worker(new URL("./MeshPreprocessing.worker.ts", import.meta.url))), 4)
 
-const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (token_id: BigNumber, sizeLimit: number, polygonLimit: number, randomGateway?: boolean) => {
+const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes: number, randomGateway?: boolean) => {
     Object.setPrototypeOf(token_id, BigNumber.prototype);
-    return ArtifactDownload.downloadArtifact(token_id, sizeLimit, polygonLimit, randomGateway, pool);
+    return ArtifactDownload.downloadArtifact(token_id, sizeLimit, polygonLimit, maxTexRes, randomGateway, pool);
 }
 
 const initialise = async () => {

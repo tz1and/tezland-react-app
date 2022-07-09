@@ -51,8 +51,9 @@ class ArtifactMemCache {
         if(!assetPromise) {
             const sizeLimit = AppSettings.fileSizeLimit.value;
             const polygonLimit = AppSettings.triangleLimit.value;
+            const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this.workerThread.downloadArtifact(token_id, sizeLimit, polygonLimit).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
+            assetPromise = this.workerThread.downloadArtifact(token_id, sizeLimit, polygonLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
