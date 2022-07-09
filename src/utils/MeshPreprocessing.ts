@@ -2,8 +2,9 @@ import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
 import { prune, dedup, quantize, weld, reorder } from '@gltf-transform/functions';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
-import { detectInsideWebworker } from './Utils';
+import { detectInsideWebworker, isDev } from './Utils';
 import { Logging } from './Logging';
+import assert from 'assert';
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
 
 
@@ -36,15 +37,39 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string): Pr
         transforms.push(reorder({encoder: MeshoptEncoder, target: "performance"}));
     }
 
-    document.setLogger(new Logger(Logger.Verbosity.ERROR));
+    //if (!isDev())
+        document.setLogger(new Logger(Logger.Verbosity.ERROR));
     await document.transform(
         ...transforms
     );
 
-    // Delete all textures
-    /*for (const t of document.getRoot().listTextures()) {
-        t.dispose();
-    }*/
+    const width = 512;
+    const height = 512;
+
+    for (const t of document.getRoot().listTextures()) {
+        const texMimeType = t.getMimeType();
+        const image = t.getImage();
+        
+        if (image && (texMimeType === "image/jpeg" || texMimeType === "image/png")) {
+            try {
+                // TODD: use high or pixelated resize quality, depending on sampler.
+                const res = await createImageBitmap(new Blob([image]), {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"});
+
+                const canvas: any = new OffscreenCanvas(width, height);
+                const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+                assert(context);
+                context.drawImage(res, 0, 0);
+
+                const blob: Blob = await canvas.convertToBlob({type: t.getMimeType()});
+                const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
+
+                t.setImage(newImageBuffer);
+            }
+            catch(e: any) {
+                Logging.Warn("Failed to resize texture: " + t.getName());
+            }
+        }
+    }
 
     return io.writeBinary(document);
 }
