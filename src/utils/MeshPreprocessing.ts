@@ -2,7 +2,7 @@ import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
 import { prune, dedup, quantize, weld, reorder } from '@gltf-transform/functions';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
-import { detectInsideWebworker, isDev } from './Utils';
+import { detectInsideWebworker } from './Utils';
 import { Logging } from './Logging';
 import assert from 'assert';
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
