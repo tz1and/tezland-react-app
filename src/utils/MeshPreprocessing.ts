@@ -1,5 +1,5 @@
-import { Document, WebIO } from '@gltf-transform/core';
-import { prune, textureResize, dedup, quantize, weld, reorder } from '@gltf-transform/functions';
+import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
+import { prune, dedup, quantize, weld, reorder } from '@gltf-transform/functions';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
@@ -17,15 +17,24 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string): Pr
         document = await io.readJSON({json: json, resources: {}});
     }
 
-    await MeshoptEncoder.ready;
-
-    await document.transform(
+    // Build our list of transforms transforms.
+    const transforms: Transform[] = [
         prune(),
         dedup(),
         quantize(),
-        weld(),
-        //textureResize({size: [512, 512]}),
-        reorder({encoder: MeshoptEncoder, target: "performance"})
+        weld()
+    ];
+
+    // If meshoptimizer is supported.
+    if (MeshoptEncoder.supported) {
+        // Make sure it's ready.
+        await MeshoptEncoder.ready;
+        transforms.push(reorder({encoder: MeshoptEncoder, target: "performance"}));
+    }
+
+    document.setLogger(new Logger(Logger.Verbosity.ERROR));
+    await document.transform(
+        ...transforms
     );
 
     // Delete all textures
