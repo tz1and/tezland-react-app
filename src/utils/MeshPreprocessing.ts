@@ -1,5 +1,7 @@
 import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
 import { prune, dedup, quantize, weld, reorder } from '@gltf-transform/functions';
+//import { TextureBasisu } from '@gltf-transform/extensions';
+//import { encodeWrapper } from '../external/basis_encoder/basis_loader';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
 import { detectInsideWebworker } from './Utils';
@@ -44,9 +46,11 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
     );
 
     for (const t of document.getRoot().listTextures()) {
+        // Try to resize image.
+        //{
         const texMimeType = t.getMimeType();
         const image = t.getImage();
-        
+    
         if (image && (texMimeType === "image/jpeg" || texMimeType === "image/png")) {
             try {
                 // TODD: use high or pixelated resize quality, depending on sampler.
@@ -84,6 +88,30 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
                 Logging.Warn("Failed to resize texture: " + t.getName());
             }
         }
+        //}
+
+        // Then try to basisu it.
+        // NOTE: disabled for now
+        /*{
+            const texMimeType = t.getMimeType();
+            const image = t.getImage();
+
+            // TODO: convert jpeg to png: texMimeType === "image/jpeg" || 
+            if (image && (texMimeType === "image/png")) {
+                try {
+                    const encoded = await encodeWrapper(image);
+
+                    // Create an Extension attached to the Document.
+                    const basisuExtension = document.createExtension(TextureBasisu)
+                        .setRequired(true);
+
+                    t.setMimeType('image/ktx2').setImage(encoded);
+                }
+                catch(e: any) {
+                    Logging.Warn("Failed to basisu encode texture: " + t.getName(), e);
+                }
+            }
+        }*/
     }
 
     return io.writeBinary(document);
