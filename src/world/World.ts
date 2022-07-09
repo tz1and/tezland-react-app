@@ -321,6 +321,8 @@ export class World implements WorldInterface {
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
+        await ArtifactMemCache.initialise();
+
         this.worldUpdatePending = true;
 
         // Load districts, ie: ground meshes, bridges, etc.

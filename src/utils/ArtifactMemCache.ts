@@ -3,20 +3,24 @@ import BigNumber from "bignumber.js";
 import ItemNode from "../world/ItemNode";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
-import * as Comlink from 'comlink';
 import AppSettings from "../storage/AppSettings";
+import { ModuleThread, spawn, Thread } from "threads"
+import { Logging } from "./Logging";
+import assert from "assert";
 //import { Logging } from "./Logging";
-
-
-const worker = new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url));
-const workerApi = Comlink.wrap<typeof ArtifactDownloadWorkerApi>(worker);
 
 
 class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
+    private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
 
     constructor() {
         this.artifactCache = new Map();
+    }
+
+    public async initialise() {
+        this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url)));
+        await this.workerThread.initialise();
     }
 
     public dispose() {
@@ -26,9 +30,19 @@ class ArtifactMemCache {
             v.then(res => res.dispose());
         })
         this.artifactCache.clear();
+
+        if (this.workerThread) {
+            this.workerThread.shutdown().then(() => {
+                Thread.terminate(this.workerThread!).then(() => {
+                    Logging.InfoDev("Thread terminated: ArtifactDownload.worker");
+                });
+            });
+        }
     }
 
     public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
+        assert(this.workerThread);
+
         const token_id_number = token_id.toNumber();
         // check if we have this item in the scene already.
         // Otherwise, download it.
@@ -38,7 +52,7 @@ class ArtifactMemCache {
             const sizeLimit = AppSettings.fileSizeLimit.value;
             const polygonLimit = AppSettings.triangleLimit.value;
 
-            assetPromise = workerApi.downloadArtifact(token_id, sizeLimit, polygonLimit).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
+            assetPromise = this.workerThread.downloadArtifact(token_id, sizeLimit, polygonLimit).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);

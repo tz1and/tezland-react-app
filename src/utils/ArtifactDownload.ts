@@ -7,6 +7,8 @@ import pRetry, { AbortError } from "p-retry";
 import { Logging } from "./Logging";
 import { detectInsideWebworker, FileWithMetadata } from "./Utils";
 import { preprocessMesh } from "./MeshPreprocessing";
+import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
+import { ModuleThread, Pool } from "threads";
 
 
 async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {
@@ -28,8 +30,10 @@ function decodeSplitEncodeURI(uri: string) {
     return encodedParts.join('/');
 }
 
+type PreprocessWorkerPoolType = Pool<ModuleThread<typeof MeshPreprocessingWorkerApi>>;
+
 export default class ArtifactDownload {
-    public static async downloadArtifact(token_id: BigNumber, sizeLimit: number, polygonLimit: number, randomGateway: boolean = false): Promise<FileWithMetadata> {
+    public static async downloadArtifact(token_id: BigNumber, sizeLimit: number, polygonLimit: number, randomGateway: boolean = false, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
@@ -83,7 +87,16 @@ export default class ArtifactDownload {
         }
         //else Logging.Info("got artifact from db cache", itemMetadata.artifactUri)
 
-        const processed = await preprocessMesh(cachedBuf, mime_type);
+        let processed: Uint8Array;
+        if (pool) {
+            processed = await pool.queue(moduleThread => {
+                return moduleThread.preprocessMesh(cachedBuf!, mime_type);
+            })
+        }
+        else {
+            processed = await preprocessMesh(cachedBuf, mime_type);
+        }
+
         return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };
 
         //return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
