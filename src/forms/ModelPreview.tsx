@@ -7,7 +7,7 @@ import { countPolygons, getFileType } from '../utils/Utils';
 import SunLight from '../world/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
-import { downloadArtifact } from '../utils/ArtifactDownload.worker';
+import ArtifactDownload from '../utils/ArtifactDownload';
 import BigNumber from 'bignumber.js';
 
 
@@ -157,7 +157,7 @@ class PreviewScene {
         }
 
         try {
-            const asset = await downloadArtifact(new BigNumber(tokenId), Infinity, Infinity, false).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
+            const asset = await ArtifactDownload.downloadArtifact(new BigNumber(tokenId), Infinity, Infinity, false).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
 
             // Instantiate.
             // Getting first root node is probably enough.
