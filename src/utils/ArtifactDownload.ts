@@ -5,7 +5,7 @@ import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
 import pRetry, { AbortError } from "p-retry";
 import { Logging } from "./Logging";
-import { detectInsideWebworker, FileWithMetadata } from "./Utils";
+import { FileWithMetadata } from "./Utils";
 import { preprocessMesh } from "./MeshPreprocessing";
 import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
 import { ModuleThread, Pool } from "threads";

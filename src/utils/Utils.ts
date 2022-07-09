@@ -202,12 +202,3 @@ export type FileWithMetadata = {
   file: File;
   metadata: any;
 }
-
-export function detectInsideWebworker(): boolean {
-  // run this in global scope of window or worker. since window.self = window, we're ok
-  // @ts-expect-error
-  if (typeof WorkerGlobalScope !== 'undefined' && globalThis instanceof WorkerGlobalScope) {
-      return true;
-  }
-  return false;
-}

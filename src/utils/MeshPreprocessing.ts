@@ -4,7 +4,6 @@ import { prune, dedup, quantize, weld, reorder } from '@gltf-transform/functions
 //import { encodeWrapper } from '../external/basis_encoder/basis_loader';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
-import { detectInsideWebworker } from './Utils';
 import { Logging } from './Logging';
 import assert from 'assert';
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
