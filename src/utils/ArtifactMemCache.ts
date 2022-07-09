@@ -2,20 +2,17 @@ import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from "@ba
 import BigNumber from "bignumber.js";
 import ItemNode from "../world/ItemNode";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
-import { downloadArtifact, initialiseWorkerStorage } from "./ArtifactDownload.worker";
+import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
 import * as Comlink from 'comlink';
 import AppSettings from "../storage/AppSettings";
 //import { Logging } from "./Logging";
 
-type workerApiType = {
-    downloadArtifact: typeof downloadArtifact,
-    initialiseWorkerStorage: typeof initialiseWorkerStorage,
-}
 
-const worker = new Worker(new URL("./ArtifactDownload.worker.ts", import.meta.url));
-const workerApi = Comlink.wrap<workerApiType>(worker);
+const worker = new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url));
+const workerApi = Comlink.wrap<typeof ArtifactDownloadWorkerApi>(worker);
 
 const workerStorageInitialised = workerApi.initialiseWorkerStorage();
+
 
 class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
