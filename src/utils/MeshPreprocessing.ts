@@ -28,5 +28,10 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string): Pr
         reorder({encoder: MeshoptEncoder, target: "performance"})
     );
 
+    // Delete all textures
+    /*for (const t of document.getRoot().listTextures()) {
+        t.dispose();
+    }*/
+
     return io.writeBinary(document);
 }

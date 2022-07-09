@@ -1,7 +1,10 @@
 import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { GLTFFileLoader } from '@babylonjs/loaders';
 import PQueue from "p-queue";
 import { Logging } from "./Logging";
 import { FileWithMetadata } from "./Utils";
+
+GLTFFileLoader.IncrementalLoading = false;
 
 class ArtifactProcessingQueue {
     private processArtifactTasks: PQueue;
