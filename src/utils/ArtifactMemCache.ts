@@ -11,8 +11,6 @@ import AppSettings from "../storage/AppSettings";
 const worker = new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url));
 const workerApi = Comlink.wrap<typeof ArtifactDownloadWorkerApi>(worker);
 
-const workerStorageInitialised = workerApi.initialiseWorkerStorage();
-
 
 class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
@@ -31,9 +29,6 @@ class ArtifactMemCache {
     }
 
     public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
-        // TODO: can this be done in the worker?
-        await workerStorageInitialised;
-
         const token_id_number = token_id.toNumber();
         // check if we have this item in the scene already.
         // Otherwise, download it.

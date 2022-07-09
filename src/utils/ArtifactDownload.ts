@@ -30,7 +30,6 @@ function decodeSplitEncodeURI(uri: string) {
 
 export default class ArtifactDownload {
     public static async downloadArtifact(token_id: BigNumber, sizeLimit: number, polygonLimit: number, randomGateway: boolean = false): Promise<FileWithMetadata> {
-        Object.setPrototypeOf(token_id, BigNumber.prototype);
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
 
         // remove ipfs:// from uri. some gateways requre a / in the end.

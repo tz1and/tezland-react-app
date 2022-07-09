@@ -3,11 +3,12 @@ import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
 
+
 export enum StorageKey {
     PlaceMetadata = "placeMetadata",
     ItemMetadata = "itemMetadata",
     PlaceItems = "placeItems"
-  }
+}
 
 export default class Metadata {
     public static Storage: IStorageProvider = new FallbackStorage();

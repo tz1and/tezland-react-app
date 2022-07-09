@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ErrorMessage, Field, Form, Formik, FormikErrors } from 'formik';
 import { triHelper, Trilean } from './FormUtils';
-import { AppTerms } from '../storage';
+import { AppTerms } from '../storage/AppSettings';
 import { PrivacyStatement, TermsAndConditions } from '../TermsAndPrivacy';
 import './Terms.css'
 
