@@ -11,7 +11,7 @@ const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
 
 
 export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, maxTexRes: number): Promise<Uint8Array> {
-    if (detectInsideWebworker()) Logging.InfoDev("Processing in webworker");
+    //if (detectInsideWebworker()) Logging.InfoDev("Processing in webworker");
     
     // TODO: preprocess!
     let document: Document;

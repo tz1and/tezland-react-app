@@ -55,7 +55,7 @@ export default class ArtifactDownload {
 
         const mime_type = itemMetadata.mimeType;
 
-        if (detectInsideWebworker()) Logging.InfoDev("Loading in webworker: " + itemMetadata.artifactUri);
+        //if (detectInsideWebworker()) Logging.InfoDev("Loading in webworker: " + itemMetadata.artifactUri);
 
         let cachedBuf = await ArtifactDownload.loadFromDBCache(itemMetadata.artifactUri)
         if(!cachedBuf) {
