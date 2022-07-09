@@ -59,7 +59,7 @@ const parseShadowOptions: ParseFunc<ShadowOptions> = (value: string) => value as
 const parseTextureRes: ParseFunc<TextureRes> = (value: string) => Number(value) as TextureRes;
 
 export type ShadowOptions = "none" | "standard" | "cascaded";
-export type TextureRes = 512 | 1024 | 2048 | 4096;
+export type TextureRes = 256 | 512 | 1024 | 2048 | 4096;
 
 export default class AppSettings {
     // general

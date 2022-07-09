@@ -223,6 +223,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                     <div className="mb-3">
                                         <label htmlFor="textureRes" className="form-label">Texture resolution</label>
                                         <Field id="textureRes" name="textureRes" as="select" value={values.textureRes} className="form-select" aria-describedby="shadowMapResHelp" disabled={isSubmitting} >
+                                            <option key={256} value={256}>Very Low</option>
                                             <option key={512} value={512}>Low</option>
                                             <option key={1024} value={1024}>Medium</option>
                                             <option key={2048} value={2048}>High</option>
