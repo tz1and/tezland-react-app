@@ -19,7 +19,7 @@ class ArtifactMemCache {
     }
 
     public async initialise() {
-        this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url)));
+        this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url), { name: "ArtifactDownload.worker" }));
         await this.workerThread.initialise();
     }
 
