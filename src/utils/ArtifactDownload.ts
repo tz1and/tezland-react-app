@@ -89,19 +89,24 @@ export default class ArtifactDownload {
         }
         //else Logging.Info("got artifact from db cache", itemMetadata.artifactUri)
 
-        let processed: Uint8Array;
-        if (pool) {
-            processed = await pool.queue(moduleThread => {
-                return moduleThread.preprocessMesh(cachedBuf!, mime_type, maxTexRes);
-            })
-        }
-        else {
-            processed = await preprocessMesh(cachedBuf, mime_type, maxTexRes);
-        }
+        try {
+            let processed: Uint8Array;
+            if (pool) {
+                processed = await pool.queue(moduleThread => {
+                    return moduleThread.preprocessMesh(cachedBuf!, mime_type, maxTexRes);
+                })
+            }
+            else {
+                processed = await preprocessMesh(cachedBuf, mime_type, maxTexRes);
+            }
 
-        return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };
+            return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };
+        }
+        catch(e: any) {
+            Logging.ErrorDev(`Pre-processing model for token ${token_id} failed: ${e}`);
 
-        //return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
+            return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
+        }
     }
 
     /*public static async deleteFromDBCache(token_id: BigNumber) {
