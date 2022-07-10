@@ -9,6 +9,11 @@ GLTFFileLoader.IncrementalLoading = false;
 class ArtifactProcessingQueue {
     private processArtifactTasks: PQueue;
 
+    /**
+     * Using a modified p-queue to be able to switch the queue between slow
+     * and fast processing. Used to optimise for performance when there is
+     * user input.
+     */
     private _isSlow: boolean = false;
     public set isSlow(slow: boolean) {
         // Only change when state changed.

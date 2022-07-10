@@ -777,6 +777,10 @@ export default class PlayerController {
         this.pickingGui.setCursor(cursor);
     }
 
+    /**
+     * Time of last user input. Used by world to optimise for performance
+     * when there is input.
+     */
     public lastUserInputTime: number = 0;
 
     private updateLastUserInput = () => {

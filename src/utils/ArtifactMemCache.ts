@@ -14,6 +14,9 @@ class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
     private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
 
+    /**
+     * This is checked by world to know when it needs to do some cleanup.
+     */
     public itemsLoaded: boolean = false;
 
     constructor() {
