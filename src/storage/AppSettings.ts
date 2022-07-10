@@ -78,8 +78,8 @@ export default class AppSettings {
     // graphics
     static enableAntialiasing = new AppSetting<boolean>("enableAntialiasing", true, parseBool);
     static shadowOptions = new AppSetting<ShadowOptions>("shadowOptions", "none", parseShadowOptions);
-    static shadowMapRes = new AppSetting<TextureRes>("shadowMapRes", 1024, parseTextureRes);
-    static textureRes = new AppSetting<TextureRes>("textureRes", 1024, parseTextureRes);
+    static shadowMapRes = new AppSetting<TextureRes>("shadowMapRes", 512, parseTextureRes);
+    static textureRes = new AppSetting<TextureRes>("textureRes", 512, parseTextureRes);
     static fovHorizontal = new AppSetting<number>("fovHorizontal", 90, parseNumber);
 
     // rpc and related options
@@ -107,5 +107,12 @@ export const upgradeSettings = () => {
         AppSettings.displayPlaceBounds.value = false;
         AppSettings.drawDistance.value = 125;
         settingsVersion.value = 1;
+    }
+
+    if (current_settings_version() < 2) {
+        Logging.Info("Updating client settings to version 2");
+        AppSettings.shadowMapRes.value = 512;
+        AppSettings.textureRes.value = 512;
+        settingsVersion.value = 2;
     }
 }
