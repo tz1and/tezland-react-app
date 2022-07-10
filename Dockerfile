@@ -1,7 +1,15 @@
 # build app
 FROM node:16.13.2-alpine as build
 
-WORKDIR /app
+# Copy our modified p-queue
+WORKDIR /dist
+
+COPY node_modules/p-queue/dist ./p-queue/dist
+COPY node_modules/p-queue/source ./p-queue/source
+COPY node_modules/p-queue/package.json ./p-queue/package.json
+
+# Copy the react app
+WORKDIR /dist/app
 
 COPY package.json ./
 COPY yarn.lock ./
@@ -22,7 +30,7 @@ RUN yarn build
 # build prod
 FROM nginx:stable-alpine
 
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /dist/app/build /usr/share/nginx/html
 
 EXPOSE 80
 EXPOSE 443
