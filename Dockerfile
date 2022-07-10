@@ -20,6 +20,7 @@ COPY tsconfig.json ./
 COPY .env.production.local ./
 COPY craco.config.js ./
 COPY src ./src
+COPY scripts ./scripts
 COPY public ./public
 
 # Generate licenses file for acknowledgements
