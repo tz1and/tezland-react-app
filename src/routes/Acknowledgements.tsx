@@ -1,7 +1,7 @@
 import { Accordion } from 'react-bootstrap';
 import acknowledgements from '../acknowledgements.json';
 import acknowledgementsStatic from '../acknowledgements-static.json';
-import { Link } from 'react-router-dom';
+
 
 export default function Acknowledgements() {
     const elements: JSX.Element[] = []
