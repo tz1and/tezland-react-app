@@ -13,6 +13,7 @@ node_modules/
 build/
 assets/
 TODO.txt
+src/acknowledgements.json
 
 # env files
 .env*

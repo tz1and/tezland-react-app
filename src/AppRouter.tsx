@@ -28,6 +28,7 @@ import { Search } from './routes/directory/Search';
 import { NewMints } from './routes/directory/NewMints';
 import { NewSwaps } from './routes/directory/NewSwaps';
 import EnterDirectory from './routes/EnterDirectory';
+import Acknowledgements from './routes/Acknowledgements';
 
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -67,6 +68,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="faq" element={<Faq />} />
                             <Route path="privacy" element={<Privacy />} />
                             <Route path="terms" element={<Terms />} />
+                            <Route path="acknowledgements" element={<Acknowledgements />} />
 
                             {directoryRoutes}
 

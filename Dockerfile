@@ -14,6 +14,9 @@ COPY craco.config.js ./
 COPY src ./src
 COPY public ./public
 
+# Generate licenses file for acknowledgements
+RUN yarn generate-licenses
+# Build.
 RUN yarn build
 
 # build prod

@@ -29,3 +29,4 @@ src/graphql/generated/
 # notes and stuff
 assets/
 TODO.txt
+src/acknowledgements.json

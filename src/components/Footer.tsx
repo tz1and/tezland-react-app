@@ -23,13 +23,14 @@ export default function Footer() {
                     <h5>Resources</h5>
                     <ul className="list-unstyled text-small">
                         {/*<li><Link className="link-secondary" to="/docs">Documentation</Link></li>*/}
+                        <li><Link className="link-secondary" to="/faq">FAQ</Link></li>
                         <li><a className="link-secondary" target="_blank" rel="noreferrer" href="https://www.github.com/tz1and">GitHub</a></li>
                     </ul>
                 </div>
                 <div className="col-6 col-md">
                     <h5>About</h5>
                     <ul className="list-unstyled text-small">
-                        <li><Link className="link-secondary" to="/faq">FAQ</Link></li>
+                        <li><Link className="link-secondary" to="/acknowledgements">Acknowledgements</Link></li>
                         {/*<li><Link className="link-secondary" to="/team">Team</Link></li>*/}
                         <li><Link className="link-secondary" to="/terms">Terms</Link></li>
                         <li><Link className="link-secondary" to="/privacy">Privacy Policy</Link></li>
