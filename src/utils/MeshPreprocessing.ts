@@ -1,5 +1,5 @@
 import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
-import { prune, dedup, quantize, weld, reorder } from '@gltf-transform/functions';
+import { prune, dedup, quantize, weld, reorder, unpartition } from '@gltf-transform/functions';
 //import { TextureBasisu } from '@gltf-transform/extensions';
 //import { encodeWrapper } from '../external/basis_encoder/basis_loader';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
@@ -36,6 +36,11 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         // Make sure it's ready.
         await MeshoptEncoder.ready;
         transforms.push(reorder({encoder: MeshoptEncoder, target: "performance"}));
+    }
+
+    // If there is more than one buffer, unpartition so we can save as .glb.
+    if (document.getRoot().listBuffers().length > 1) {
+        transforms.push(unpartition());
     }
 
     //if (!isDev())
