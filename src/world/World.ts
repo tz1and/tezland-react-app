@@ -36,6 +36,7 @@ import TeleporterBooth from "./TeleporterBooth";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import { WorldInterface } from "./WorldInterface";
 import world_definition from "../models/districts.json";
+import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -88,7 +89,7 @@ export class World implements WorldInterface {
         this.implicitWorldGrid = new WorldGrid();
 
         this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
-        this.loadingQueue = new PQueue({interval: 1/60, intervalCap: 5}); // {concurrency: 100} //, interval: 1/60, intervalCap: 1});
+        this.loadingQueue = new PQueue({interval: 1000/60, intervalCap: 1}); // {concurrency: 100} //, interval: 1/60, intervalCap: 1});
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
@@ -109,6 +110,10 @@ export class World implements WorldInterface {
             useClonedMeshMap: true
         });
         this.scene.collisionsEnabled = true;
+        this.scene.blockMaterialDirtyMechanism = true;
+
+        // Since we are always inside a skybox, we can turn off autoClear
+        this.scene.autoClear = false; // Color buffer
 
         // Enable inspector in dev
         if(isDev()) {
@@ -646,6 +651,9 @@ export class World implements WorldInterface {
     public updateWorld() {
         const playerPos = this.playerController.getPosition();
 
+        // Set slow artifact loading if there was user input recently.
+        ArtifactProcessingQueue.isSlow = Date.now() - this.playerController.lastUserInputTime < 1000;
+
         // Update current place.
         // TODO: only occasionally check. maybe based on distance or time.
         this.updateCurrentPlace(playerPos);
@@ -700,6 +708,12 @@ export class World implements WorldInterface {
                     this.worldUpdatePending = false;
                 }
             })();
+        }
+
+        // If items have been loaded, clean up some caches.
+        if (ArtifactMemCache.itemsLoaded) {
+            ArtifactMemCache.itemsLoaded = false;
+            this.scene.cleanCachedTextureBuffer();
         }
     }
 }

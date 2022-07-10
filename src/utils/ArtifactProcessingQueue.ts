@@ -8,34 +8,38 @@ GLTFFileLoader.IncrementalLoading = false;
 
 class ArtifactProcessingQueue {
     private processArtifactTasks: PQueue;
-    //private pendingArtifactProcessings: Map<string, Promise<AssetContainer>>;
+
+    private _isSlow: boolean = false;
+    public set isSlow(slow: boolean) {
+        // Only change when state changed.
+        if (slow !== this._isSlow) {
+            this._isSlow = slow;
+
+            if (this._isSlow) {
+                Logging.InfoDev("Setting slow model loading");
+                this.processArtifactTasks.intervalCap = 1;
+                this.processArtifactTasks.concurrency = 1;
+            }
+            else {
+                Logging.InfoDev("Setting fast model loading");
+                this.processArtifactTasks.intervalCap = 10000;
+                this.processArtifactTasks.concurrency = 10;
+            }
+        }
+    }
 
     constructor() {
-        this.processArtifactTasks = new PQueue({concurrency: 1, interval: 1/60, intervalCap: 1});
-        //this.pendingArtifactProcessings = new Map();
+        this.processArtifactTasks = new PQueue({concurrency: 10, interval: 1000, intervalCap: 10000});
     }
 
     public dispose() {
         this.processArtifactTasks.clear();
-        //this.pendingArtifactProcessings.clear();
+        this.isSlow = false;
     }
 
     public queueProcessArtifact(download: FileWithMetadata, scene: Scene): Promise<AssetContainer> {
-        // If this download is already pending, return that promise;
-        /*const pending = this.pendingArtifactProcessings.get(download.file.name);
-        if (pending) {
-            // TODO: probably don't need the pending map. This will never happen.
-            Logging.WarnDev("returning pending artifact processing");
-            return pending;
-        }*/
-    
-        const parsePromiseTask = () => this.processArtifact(download, scene)/*.finally(() => {
-            this.pendingArtifactProcessings.delete(download.file.name);
-        })*/;
-    
-        const parsePromise = this.processArtifactTasks.add(parsePromiseTask);
-        //this.pendingArtifactProcessings.set(download.file.name, parsePromise);
-        return parsePromise;
+        const parsePromiseTask = () => this.processArtifact(download, scene);
+        return this.processArtifactTasks.add(parsePromiseTask);
     }
     
     private async processArtifact(download: FileWithMetadata, scene: Scene): Promise<AssetContainer> {

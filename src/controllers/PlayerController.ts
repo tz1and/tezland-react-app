@@ -103,6 +103,8 @@ export default class PlayerController {
         //this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
 
+        this.camera.onViewMatrixChangedObservable.add(this.updateLastUserInput);
+
         // NOTE: the bounding info seems to get bugged for some reason.
         // We need to update it here, otherwise collisions will be incorrect!
         this.playerTrigger.refreshBoundingInfo();
@@ -646,6 +648,9 @@ export default class PlayerController {
         const moveRight = this.input.right; //right, x
         const moveUp = this.input.up; // up, y
 
+        // Update user input if there was any.
+        if (moveFwd !== 0 || moveRight !== 0 || moveUp !== 0) this.updateLastUserInput();
+
         // Figure out directions.
         const cam_dir = this.camera.getDirection(Axis.Z);
         const right = Vector3.Cross(Vector3.Up(), cam_dir);
@@ -770,5 +775,11 @@ export default class PlayerController {
 
     public setCursor(cursor: CursorType) {
         this.pickingGui.setCursor(cursor);
+    }
+
+    public lastUserInputTime: number = 0;
+
+    private updateLastUserInput = () => {
+        this.lastUserInputTime = Date.now();
     }
 }

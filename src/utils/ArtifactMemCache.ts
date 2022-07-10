@@ -14,6 +14,8 @@ class ArtifactMemCache {
     private artifactCache: Map<number, Promise<AssetContainer>>;
     private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
 
+    public itemsLoaded: boolean = false;
+
     constructor() {
         this.artifactCache = new Map();
     }
@@ -71,6 +73,11 @@ class ArtifactMemCache {
             this.artifactCache.delete(token_id_number);
             throw e;
         }
+
+        // TODO: defer instantiation to do it in batch in beforeRender() or afterRender() in world?
+        // Add to a queue and in World, remove from this queue and all all instances while disabling all
+        // that stuff it says in that babylonjs doc on optimisation.
+        // Can also do some stuff to only load X per frame, maybe.
     
         if (parent.isDisposed()) return null;
 
@@ -86,6 +93,8 @@ class ArtifactMemCache {
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].name = `item${token_id}_clone`;
         instance.rootNodes[0].parent = parent;
+
+        this.itemsLoaded = true;
     
         return parent;
     }
@@ -115,6 +124,8 @@ class ArtifactMemCache {
         const instance = asset.instantiateModelsToScene();
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
+
+        this.itemsLoaded = true;
 
         return parent;
     }

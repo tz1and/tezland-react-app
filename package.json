@@ -32,7 +32,7 @@
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
     "meshoptimizer": "^0.17.0",
-    "p-queue": "^7.2.0",
+    "p-queue": "file:../p-queue",
     "p-retry": "^5.1.1",
     "polygon-clipping": "^0.15.3",
     "prando": "^6.0.1",
@@ -71,7 +71,7 @@
     "crypto-browserify": "^3.12.0",
     "env-cmd": "^10.1.0",
     "graphql": "^16.5.0",
-    "license-checker": "^25.0.1",
+    "license-checker-rseidelsohn": "^3.0.0",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
     "source-map-explorer": "^2.5.2",
@@ -88,7 +88,7 @@
     "test": "craco test --transformIgnorePatterns \"/node_modules/(?!@babylonjs)(.*)\"",
     "eject": "react-scripts eject",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "check-licenses": "license-checker --production --excludePrivatePackages --summary",
+    "generate-licenses": "node scripts/generate-licenses.js",
     "generate-gql-schema": "graphql-codegen"
   },
   "eslintConfig": {
