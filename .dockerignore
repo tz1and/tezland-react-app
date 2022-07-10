@@ -21,4 +21,5 @@ src/acknowledgements.json
 
 # p-queue
 !node_modules/p-queue
-node_modules/p-queue/node_modules
+node_modules/p-queue/node_modules/
+node_modules/p-queue/.git/

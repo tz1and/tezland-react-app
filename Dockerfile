@@ -4,9 +4,7 @@ FROM node:16.13.2-alpine as build
 # Copy our modified p-queue
 WORKDIR /dist
 
-COPY node_modules/p-queue/dist ./p-queue/dist
-COPY node_modules/p-queue/source ./p-queue/source
-COPY node_modules/p-queue/package.json ./p-queue/package.json
+COPY node_modules/p-queue ./p-queue
 
 # Copy the react app
 WORKDIR /dist/app
