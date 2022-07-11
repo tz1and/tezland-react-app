@@ -74,6 +74,9 @@ class ArtifactProcessingQueue {
         })
         // Make sure to stop all animations.
         result.animationGroups.forEach((ag) => { ag.stop(); })
+
+        // Freeze all materials.
+        result.materials.forEach((m) => { m.freeze(); })
     
         // Normalise scale to base scale (1m by default).
         // NOTE: use result.meshes[0] instead of transformNodes
