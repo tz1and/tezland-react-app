@@ -1,0 +1,15 @@
+query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean!, $primaryFilter: [Boolean!]) {
+    dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}, isPrimary: {_in: $primaryFilter}}, order_by: {id: desc}) {
+        endPrice
+        endTime
+        id
+        ownerId
+        startPrice
+        startTime
+        tokenId
+        isPrimary
+        finished
+        finishingBid
+        bidOpHash
+    }
+}

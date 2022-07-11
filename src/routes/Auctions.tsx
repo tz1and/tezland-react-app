@@ -4,7 +4,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction, { discordInviteLink } from '../components/Auction'
 import TezosWalletContext from '../components/TezosWalletContext';
-import { fetchGraphQL } from '../ipfs/graphql';
+import { grapphQLUser } from '../graphql/user';
 import DutchAuction from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
 import { scrollbarVisible } from '../utils/Utils';
@@ -59,28 +59,15 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // load auctions twice because of new added and offset.
         // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
         try {
-            let secondary_filter = '';
-            if (this.state.type_filter === 'primary') secondary_filter = ", isPrimary: {_eq: true}";
-            else if (this.state.type_filter === 'secondary') secondary_filter = ", isPrimary: {_eq: false}";
+            const primaryFilter = this.state.type_filter === 'all' ?
+                [] : this.state.type_filter === 'primary' ? [true] : [true, false];
 
-            const data = await fetchGraphQL(`
-                query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean) {
-                    dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}${secondary_filter}}, order_by: {id: desc}) {
-                        endPrice
-                        endTime
-                        id
-                        ownerId
-                        startPrice
-                        startTime
-                        tokenId
-                        isPrimary
-                        finished
-                        finishingBid
-                        bidOpHash
-                    }
-                }`, "getAuctions", { amount: this.fetchAmount, last: last, finished: this.state.show_finished });
+            const res = await grapphQLUser.getAuctions({
+                last: last, amount: this.fetchAmount,
+                finished: this.state.show_finished,
+                primaryFilter: primaryFilter});
             
-            return data.dutchAuction;
+            return res.dutchAuction;
         } catch(e: any) {
             Logging.InfoDev("failed to fetch auctions: " + e.message);
             return []
