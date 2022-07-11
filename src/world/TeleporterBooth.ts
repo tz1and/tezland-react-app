@@ -12,7 +12,9 @@ export default class TeleporterBooth extends TransformNode {
         // TODO: Well, we should be using webpack for the booth models.
         ArtifactMemCache.loadOther(-80074, 'telebooth.glb', scene, this).then(res => {
             res.getChildMeshes().forEach(c => {
-                if (c.name === "Clone of ControlPanel") {
+                c.freezeWorldMatrix();
+
+                if (c.name === "instance of ControlPanel") {
                     c.isPickable = true;
                     if (!c.actionManager) c.actionManager = new ActionManager(scene);
 

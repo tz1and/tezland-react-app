@@ -105,6 +105,7 @@ class ArtifactMemCache {
     public async loadOther(id: number, fileName: string, scene: Scene, parent: TransformNode) {
         let assetPromise = this.artifactCache.get(id);
         if(!assetPromise) {
+            // TODO: make sure glb file is pre-processed!
             assetPromise = SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
     
             /*if (this.artifactCache.has(token_id_number)) {
@@ -124,7 +125,7 @@ class ArtifactMemCache {
             throw e;
         }
 
-        const instance = asset.instantiateModelsToScene();
+        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
 

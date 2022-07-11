@@ -4,8 +4,7 @@ import { Vector3, Color3, Matrix, Vector4, Quaternion, } from "@babylonjs/core/M
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
-import { EventState, FreeCamera, MeshBuilder,
-    SceneLoader, TransformNode } from "@babylonjs/core";
+import { EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
 import { MapControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata from "./Metadata";
@@ -14,7 +13,6 @@ import { Logging } from "../utils/Logging";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import { isDev } from "../utils/Utils";
-import { Edge } from "../worldgen/WorldPolygon";
 import WorldGrid from "../utils/WorldGrid";
 import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
@@ -431,6 +429,7 @@ export class WorldMap implements WorldInterface {
             mesh.checkCollisions = true;
             mesh.receiveShadows = true;
             mesh.position.y = -0.01;
+            mesh.freezeWorldMatrix();
 
             mesh.enableEdgesRendering();
             mesh.edgesWidth = 6.0;
@@ -543,11 +542,12 @@ export class WorldMap implements WorldInterface {
             bridgeNode.rotation = Quaternion.FromRotationMatrix(rot_m).toEulerAngles();
 
             bridgeNode.getChildMeshes().forEach((m) => {
+                m.freezeWorldMatrix();
                 m.enableEdgesRendering();
                 m.edgesWidth = 6.0;
                 m.edgesColor.set(0.2, 0.2, 0.2, 0.8);
                 //m.material!.alpha = 0;
-            })
+            });
 
             counter++;
         }
@@ -564,34 +564,6 @@ export class WorldMap implements WorldInterface {
                 "red", "teleporter", counter);
 
             counter++;
-        }
-    }
-
-    //private roadDecorations: Nullable<TransformNode> = null;
-
-    // TODO: Needs to be culled!
-    public async loadRoadDecorations(curbs: Edge[], counter: number) {
-        const roadDecorations = new TransformNode(`roadDecorations${counter}`, this.scene);
-
-        // TODO: don't load this multiple times
-        const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.scene, null, '.glb');
-        result.meshes.forEach((m) => { m.checkCollisions = true; })
-        
-        for (var curbEdge of curbs) {
-            const from = new Vector3(curbEdge.a.x, 0, curbEdge.a.y);
-            const to = new Vector3(curbEdge.b.x, 0, curbEdge.b.y);
-
-            const line = from.subtract(to);
-            const line_len = line.length();
-            if(line_len > 13) {
-                //const lineMesh = Mesh.CreateLines("line", [from, to], this.scene, false);
-                
-                for (var d = 6.5; d < line_len - 6.5; d = d + 25) {
-                    const instance = result.instantiateModelsToScene().rootNodes[0];
-                    instance.position = to.add(line.scale(d / line_len));
-                    instance.parent = roadDecorations;
-                }
-            }
         }
     }
 

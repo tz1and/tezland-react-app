@@ -138,13 +138,16 @@ export default class PlaceNode extends BasePlaceNode {
         this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
         this.placeBounds.parent = this;
         // Call getHierarchyBoundingVectors to force updating the bounding info!
+        // TODO: figure out if still needed.
         this.placeBounds.getHierarchyBoundingVectors();
+        this.placeBounds.freezeWorldMatrix();
 
         // create ground
         this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
             new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.scene));
         this.placeGround.receiveShadows = true;
         this.placeGround.parent = this;
+        this.placeGround.freezeWorldMatrix();
 
         // create items node
         this._itemsNode = new TransformNode(`items`, this.world.scene);

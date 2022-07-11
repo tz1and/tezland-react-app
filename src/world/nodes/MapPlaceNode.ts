@@ -51,7 +51,9 @@ export default class MapPlaceNode extends BasePlaceNode {
 
         this.placeBounds.parent = this;
         // Call getHierarchyBoundingVectors to force updating the bounding info!
+        // TODO: figure out if still needed.
         this.placeBounds.getHierarchyBoundingVectors();
+        this.placeBounds.freezeWorldMatrix();
     }
 
     public getName() {

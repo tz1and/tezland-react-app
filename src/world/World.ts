@@ -414,6 +414,7 @@ export class World implements WorldInterface {
             mesh.checkCollisions = true;
             mesh.receiveShadows = true;
             mesh.position.y = -0.01;
+            mesh.freezeWorldMatrix();
 
             this.waterMaterial.addToRenderList(mesh);
 
@@ -519,6 +520,8 @@ export class World implements WorldInterface {
 
             bridgeNode.rotation = Quaternion.FromRotationMatrix(rot_m).toEulerAngles();
 
+            bridgeNode.getChildMeshes().forEach(m => m.freezeWorldMatrix());
+
             counter++;
         }
     }
@@ -536,7 +539,7 @@ export class World implements WorldInterface {
     public async loadRoadDecorations(curbs: Edge[], counter: number) {
         const roadDecorations = new TransformNode(`roadDecorations${counter}`, this.scene);
 
-        // TODO: don't load this multiple times
+        // TODO: don't load this multiple times. Use ArtifactMemCache.loadOther.
         const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.scene, null, '.glb');
         result.meshes.forEach((m) => { m.checkCollisions = true; })
         
