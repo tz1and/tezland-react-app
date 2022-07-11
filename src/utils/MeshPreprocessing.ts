@@ -50,6 +50,16 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         ...transforms
     );
 
+    // Remove lights.
+    for (const n of document.getRoot().listNodes()) {
+        const lightExt = n.getExtension("KHR_lights_punctual");
+        if (lightExt) {
+            if (n.listChildren().length !== 0) Logging.Error("Light node was not empty");
+            n.dispose();
+        }
+    }
+
+    // Pre-process textures.
     for (const t of document.getRoot().listTextures()) {
         // Try to resize image.
         //{
