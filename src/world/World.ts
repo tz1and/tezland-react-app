@@ -89,7 +89,7 @@ export class World implements WorldInterface {
         this.implicitWorldGrid = new WorldGrid();
 
         this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
-        this.loadingQueue = new PQueue({interval: 1000/60, intervalCap: 1}); // {concurrency: 100} //, interval: 1/60, intervalCap: 1});
+        this.loadingQueue = new PQueue({interval: 1000/120, intervalCap: 1}); // {concurrency: 100} //, interval: 1/60, intervalCap: 1});
 
         // Create Babylon engine.
         this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
