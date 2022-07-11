@@ -47,7 +47,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             whitelist_enabled: true,
             administrator: "",
             show_finished: false,
-            type_filter: 'all'
+            type_filter: 'primary'
         };
     }
 
@@ -61,7 +61,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // TODO: probably quite inefficient. find a way to avoid that. maybe a map? 
         try {
             const primaryFilter = this.state.type_filter === 'all' ?
-                [] : this.state.type_filter === 'primary' ? [true] : [true, false];
+                [true, false] : this.state.type_filter === 'primary' ? [true] : [false];
 
             const res = await grapphQLUser.getAuctions({
                 last: last, amount: Auctions.FetchAmount,
@@ -220,7 +220,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         <ToggleButton id='radioStateFinished' type="radio" variant='outline-primary' value='finished'>Finished</ToggleButton>
                     </ToggleButtonGroup>
 
-                    <ToggleButtonGroup type='radio' name='auctionTypeFilter' defaultValue='all' onChange={(v, e) => this.handleSecondaryFilter(v, e)}>
+                    <ToggleButtonGroup type='radio' name='auctionTypeFilter' defaultValue='primary' onChange={(v, e) => this.handleSecondaryFilter(v, e)}>
                         <ToggleButton id='radioFilterAll' type="radio" variant='outline-primary' value='all'>All</ToggleButton>
                         <ToggleButton id='radioFilterPrimary' type="radio" variant='outline-primary' value='primary'>Primary</ToggleButton>
                         <ToggleButton id='radioFilterSecondary' type="radio" variant='outline-primary' value='secondary'>Secondary</ToggleButton>
