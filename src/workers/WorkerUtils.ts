@@ -14,8 +14,5 @@ export function detectInsideWebworker(): boolean {
 }
 
 export function getNumLogicalCores(fallback: number = 4): number {
-    if (typeof navigator.hardwareConcurrency !== 'undefined')
-        return navigator.hardwareConcurrency;
-    else
-        return fallback;
+    return navigator.hardwareConcurrency || fallback;
 }
