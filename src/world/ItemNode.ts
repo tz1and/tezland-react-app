@@ -1,4 +1,5 @@
-import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3, MeshBuilder, BoundingBox, Matrix } from "@babylonjs/core";
+import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3,
+    MeshBuilder, BoundingBox, Matrix, Color3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials";
 import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
@@ -6,6 +7,8 @@ import ItemData from "../utils/ItemData";
 import { Logging } from "../utils/Logging";
 import PlaceNode from "./PlaceNode";
 import { World } from "./World";
+import { triHelper, Trilean } from "../forms/FormUtils";
+import assert from "assert";
 
 
 const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
@@ -23,6 +26,9 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
         if (!place.isInBounds(item)) {
             Logging.WarnDev(`place #${place.placeId} doesn't fully contain item with id`, item.itemId.toNumber());
 
+            // TODO: show this if you are the owner instead of disposing.
+            //item.setDisplayBounds(true, 0);
+
             // Add to out of bounds items to be displayed when owner enters.
             place.outOfBoundsItems.add(item.itemId.toNumber());
 
@@ -30,7 +36,11 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
             // TODO: Probably better to hide/disable items.
             // So they can eventually be shown to the owner for removal.
             item.dispose();
+            return;
         }
+
+        // Freeze wold matrix.
+        item.getChildMeshes(false).forEach((e) => e.freezeWorldMatrix());
     }
 }
 
@@ -118,17 +128,32 @@ export default class ItemNode extends TransformNode {
         return newEnabled;
     }
 
+    private boundsNode: Nullable<TransformNode> = null;
+
+    public setDisplayBounds(show: boolean, valid: Trilean) {
+        const changed = show !== (this.boundsNode !== null);
+
+        if (changed) {
+            if (show) this.createBoundingBoxHelper(valid);
+            else this.boundsNode!.dispose();
+        }
+    }
+
     /**
      * TODO: get material from scene, add a way to make it red, etc.
      * store both a ref to the holder and the actual item node as vars.
      * set a flag if helper should be drawn, etc.
      * show red box for out of bounds items if you have remove permission or own them.
      */
-    private createBoundingBoxHelper() {
+    private createBoundingBoxHelper(valid: Trilean) {
+        // TODO: get valid/inalid material from world or scene.
         const material = new SimpleMaterial("transp", this.getScene());
-        material.alpha = 0.1;
+        material.alpha = 0.2;
         material.backFaceCulling = false;
-        material.diffuseColor.set(0.2, 0.2, 0.8);
+        material.diffuseColor = triHelper(valid,
+            new Color3(0.2, 0.2, 0.8),
+            new Color3(0.8, 0.2, 0.2),
+            new Color3(0.2, 0.8, 0.2));
 
         const {min, max} = this.boundingVectors!;
         const extent = max.subtract(min);
@@ -143,7 +168,12 @@ export default class ItemNode extends TransformNode {
         cube.isPickable = false;
         cube.material = material;
         cube.parent = this;
-        c_m.decompose(cube.scaling, undefined, cube.position)
+        c_m.decompose(cube.scaling, undefined, cube.position);
+
+        // TODO: if already set, only change material and transform.
+        // rename to updateBoundingBoxHelper.
+        assert(!this.boundsNode, "Bounds node was already set");
+        this.boundsNode = cube;
     }
 
     public async loadItem() {
