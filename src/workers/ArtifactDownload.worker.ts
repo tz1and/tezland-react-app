@@ -11,7 +11,9 @@ const pool = Pool(
     () => spawn<typeof MeshPreprocessingWorkerApi>(
         new Worker(new URL("./MeshPreprocessing.worker.ts", import.meta.url),
         { name: "MeshPreprocessing.worker" })),
-    getNumLogicalCores());
+    // At least two, but at most 8 threads.
+    // Note: Pool.terminate chashes chromium if there are 16 threads.
+    Math.max(2, Math.min(8, getNumLogicalCores())));
 
 const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (
     token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes:
