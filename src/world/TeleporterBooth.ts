@@ -5,12 +5,20 @@ import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "./AppContr
 
 
 export default class TeleporterBooth extends TransformNode {
+    private static AvailableBooths = [
+        { id: -80074, filename: 'telebooth.glb', scale: 1.0 },
+        { id: -80075, filename: 'telebooth_dengiskong.glb', scale: 0.55 }
+    ];
+
     constructor(pos: Vector3, scene: Scene, playerController: PlayerController, appControlFunctions: AppControlFunctions, isPure?: boolean) {
         super("Teleporter Booth", scene, isPure);
         this.position = pos;
 
+        const chosen_booth = this.pickRandomBooth();
+        this.scaling.multiplyInPlace(new Vector3(chosen_booth.scale, chosen_booth.scale, chosen_booth.scale));
+
         // TODO: Well, we should be using webpack for the booth models.
-        ArtifactMemCache.loadOther(-80074, 'telebooth.glb', scene, this).then(res => {
+        ArtifactMemCache.loadOther(chosen_booth.id, chosen_booth.filename, scene, this).then(res => {
             res.getChildMeshes().forEach(c => {
                 c.freezeWorldMatrix();
 
@@ -56,6 +64,10 @@ export default class TeleporterBooth extends TransformNode {
                 }
             })
         })
+    }
+
+    private pickRandomBooth() {
+        return TeleporterBooth.AvailableBooths[Math.floor(Math.random() * TeleporterBooth.AvailableBooths.length)];
     }
 
     // TODO: probably want to LOD the booths somehow.
