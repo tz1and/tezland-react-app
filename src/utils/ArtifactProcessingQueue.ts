@@ -34,6 +34,7 @@ class ArtifactProcessingQueue {
     }
 
     constructor() {
+        // TODO: maybe fine-tune the interval and the slow settings. Leaning towards performance too much right now maybe.
         this.processArtifactTasks = new PQueue({concurrency: 10, interval: 1000, intervalCap: 10000});
     }
 
