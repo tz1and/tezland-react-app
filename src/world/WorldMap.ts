@@ -20,7 +20,7 @@ import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
 import { AdvancedDynamicTexture, Control, Image, Vector2WithInfo } from "@babylonjs/gui";
 import { WorldInterface } from "./WorldInterface";
-import Contracts from "../tz/Contracts";
+import { grapphQLUser } from "../graphql/user";
 import assert from "assert";
 
 import markerIconBlue from '../img/map/mapmarker-blue.png'
@@ -309,8 +309,7 @@ export class WorldMap implements WorldInterface {
         this.loadDistricts();
 
         // fetch the most recent world place count
-        // TODO: get place count from indexer, getting it from the contract is too slow.
-        this.worldPlaceCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
+        this.worldPlaceCount = (await grapphQLUser.countExteriorPlaces()).placeTokenMetadataAggregate.aggregate!.count;
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
         const playerPos = this.orthoCam.getTarget();

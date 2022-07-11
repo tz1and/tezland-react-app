@@ -10,11 +10,10 @@ query getPlacesWithSwapsByTag($tag: String!, $offset: Int!, $amount: Int!) {
     }
 }
 
-# TODO: bug in dipdup? permissions for aggregates not set.
-#query countExteriorPlaces {
-#    placeTokenMetadataAggregate(where: {placeType: {_eq: "exterior"}}) {
-#        aggregate {
-#            count
-#        }
-#    }
-#}
+query countExteriorPlaces {
+    placeTokenMetadataAggregate(where: {placeType: {_eq: "exterior"}}) {
+        aggregate {
+            count
+        }
+    }
+}
