@@ -16,6 +16,7 @@ type AuctionsProps = {}
 type AuctionsState = {
     auctions: Map<number, any>;
     more_data: boolean;
+    firstFetchDone: boolean;
     last_auction_id: number;
     user_is_whitelisted: boolean;
 
@@ -37,6 +38,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.state = {
             auctions: new Map(),
             more_data: true,
+            firstFetchDone: false,
             last_auction_id: 10000000,
             user_is_whitelisted: false,
 
@@ -49,8 +51,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         };
     }
 
-    private fetchAmount: number = 8;
-    private firstFetchDone: boolean = false;
+    private static FetchAmount: number = 8;
 
     private async getAuctions(last: number) {
         //query getAuctions($offset: Int!, $amount: Int!) {
@@ -63,7 +64,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 [] : this.state.type_filter === 'primary' ? [true] : [true, false];
 
             const res = await grapphQLUser.getAuctions({
-                last: last, amount: this.fetchAmount,
+                last: last, amount: Auctions.FetchAmount,
                 finished: this.state.show_finished,
                 primaryFilter: primaryFilter});
             
@@ -125,10 +126,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         // TODO: first fetch should probably be by offset 0,
         // but we can also just use a very large id.
         this.getAuctions(10000000).then((res) => {
-            // first things first: set firstFetchDone
-            this.firstFetchDone = true;
-
-            const more_data = res.length === this.fetchAmount;
+            const more_data = res.length === Auctions.FetchAmount;
             let last_auction_id = 0;
             const new_auctions = new Map<number, any>();
             for (const r of res) {
@@ -139,15 +137,16 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             this.setState({
                 auctions: new_auctions,
                 more_data: more_data,
+                firstFetchDone: true,
                 last_auction_id: last_auction_id
             });
         });
     }
 
     private fetchMoreData = () => {
-        if(this.firstFetchDone && this.state.more_data) {
+        if(this.state.firstFetchDone && this.state.more_data) {
             this.getAuctions(this.state.last_auction_id).then((res) => {
-                const more_data = res.length === this.fetchAmount;
+                const more_data = res.length === Auctions.FetchAmount;
                 let last_auction_id = 0;
                 for (const r of res) {
                     this.state.auctions.set(r.id, r);

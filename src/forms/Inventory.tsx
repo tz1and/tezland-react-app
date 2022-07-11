@@ -24,6 +24,7 @@ type InventoryState = {
     //mount: HTMLDivElement | null;
     item_offset: number,
     more_data: boolean;
+    firstFetchDone: boolean;
     counter: number;
 };
 
@@ -37,15 +38,15 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         this.state = {
             item_offset: 0,
             more_data: true,
+            firstFetchDone: false,
             counter: 0
         };
     }
 
-    private fetchAmount: number = 20;
-    private firstFetchDone: boolean = false;
+    private static FetchAmount: number = 20;
 
-    private trackedRemovals: FetchDataResult<FetchDataItemToken>[] = []; // TODO: array should belong to state?
-    private itemMap: Map<number, FetchDataResult<FetchDataItemToken>> = new Map(); // TODO: map should belong to state?
+    private trackedRemovals: FetchDataResult<FetchDataItemToken>[] = []; // TODO: array should belong to state!
+    private itemMap: Map<number, FetchDataResult<FetchDataItemToken>> = new Map(); // TODO: map should belong to state!
 
     override componentDidMount() {
         this.fetchAvailableTempRemovals().then((res) => {
@@ -64,7 +65,9 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private async fetchInventory(): Promise<FetchDataResult<FetchDataItemToken>[]> {
         try {
-            const data = await grapphQLUser.getUserCollection({ address: this.context.walletPHK(), amount: this.fetchAmount, offset: this.state.item_offset });
+            const data = await grapphQLUser.getUserCollection({
+                address: this.context.walletPHK(),
+                amount: Inventory.FetchAmount, offset: this.state.item_offset });
             
             return data.itemTokenHolder;
         } catch(e: any) {
@@ -81,7 +84,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
         try {
             // Fetch tokens with a balance.
-            const tokensWithBalance = await grapphQLUser.getInventoryTokensWithBalances({ address: this.context.walletPHK(), ids: trackedIds });
+            const tokensWithBalance = await grapphQLUser.getInventoryTokensWithBalances({
+                address: this.context.walletPHK(), ids: trackedIds });
 
             // Find all tracked tokens that don't have a balance.
             const tokensWithoutBalance: number[] = [];
@@ -111,20 +115,18 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private fetchData = () => {
         this.fetchInventory().then((res) => {
-            // first things first: set firstFetchDone
-            this.firstFetchDone = true;
-
             for (const r of res) this.itemMap.set(r.token.id, r);
-            const more_data = res.length === this.fetchAmount;
+            const more_data = res.length === Inventory.FetchAmount;
             this.setState({
-                item_offset: this.state.item_offset + this.fetchAmount,
-                more_data: more_data
+                item_offset: this.state.item_offset + Inventory.FetchAmount,
+                more_data: more_data,
+                firstFetchDone: true
             });
         })
     }
 
     private fetchMoreData = () => {
-        if(this.firstFetchDone && this.state.more_data) {
+        if(this.state.firstFetchDone && this.state.more_data) {
             this.fetchData();
         }
     }
