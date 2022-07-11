@@ -122,7 +122,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     override componentDidUpdate() {
-        if(!scrollbarVisible(document.body)) {
+        if(this.state.more_data && !scrollbarVisible(document.body)) {
             this.fetchMoreData();
         }
     }

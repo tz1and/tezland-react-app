@@ -57,7 +57,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     override componentDidUpdate() {
         const scrollTarget = document.getElementById("inventoryScrollTarget");
-        if(scrollTarget && !scrollbarVisible(scrollTarget)) {
+        if(scrollTarget && this.state.more_data && !scrollbarVisible(scrollTarget)) {
             this.fetchMoreData();
         }
     }
