@@ -164,7 +164,7 @@ export default class MultiplayerClient { //extends EventEmitter {
         assert(this.connected, "Not authenticated");
 
         // dont send update if nothing changed.
-        if (this.last_pos.equalsWithEpsilon(pos) && this.last_rot.equalsWithEpsilon(this.last_rot))
+        if (this.last_pos.equalsWithEpsilon(pos) && this.last_rot.equalsWithEpsilon(rot))
             return;
 
         // update last pos.

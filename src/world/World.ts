@@ -254,12 +254,18 @@ export class World implements WorldInterface {
 
         this.registerPlacesSubscription();
 
-        // TODO: on walletChanged event, disconnect and reconnect!
-        this.multiClient = new MultiplayerClient(this);
-
-        // TODO: wait for wallet to be initialised?
+        // Delay start MultiplayerClient.
+        setTimeout(() => {
+            this.multiClient = new MultiplayerClient(this);
+            this.walletProvider.walletEvents().addListener("walletChange", this.reconnectMultiplayer);
+        }, 500);
 
         //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
+    }
+
+    private reconnectMultiplayer = () => {
+        this.multiClient?.disconnectAndDispose();
+        this.multiClient = new MultiplayerClient(this);
     }
 
     private onResize = () => {
@@ -304,6 +310,7 @@ export class World implements WorldInterface {
         // Hide inspector in dev
         if(isDev()) this.scene.debugLayer.hide();
 
+        this.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
         window.removeEventListener('resize', this.onResize);
         
         this.unregisterPlacesSubscription();
