@@ -27,6 +27,6 @@ export default function WalletWidget() {
 
                 <button className="btn btn-primary mb-auto" onClick={() => context.disconnectWallet()}>Disconnect Wallet</button>
             </div> :
-            <button className="btn btn-success mb-auto ms-3" onClick={() => context.connectWallet()}>Connect Wallet</button>
+            <button className="btn btn-success mb-auto ms-3" onClick={() => context.connectWallet().catch(() => {/* TODO: handle error? */})}>Connect Wallet</button>
     );
 }

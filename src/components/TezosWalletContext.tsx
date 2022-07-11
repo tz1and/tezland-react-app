@@ -14,7 +14,7 @@ import Config from "../Config";
 
 export type ITezosWalletProvider = {
     //setWalletAddress(walletAddress: string): void;
-    connectWallet: () => void;
+    connectWallet: () => Promise<void>;
     disconnectWallet: () => void;
     isWalletConnected: () => boolean;
     tezosToolkit: () => TezosToolkit;
@@ -123,28 +123,26 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
         });
     }
 
-    public connectWallet = () => {
-        if (!this.state.beaconWallet) return;
+    public connectWallet = async () => {
+        assert(this.state.beaconWallet);
 
-        // Check if wallet is already connected.
-        this.state.beaconWallet.client.getActiveAccount().then((activeAccount) => {
-            if(activeAccount) {
-                this.setState({ walletAddress: activeAccount.address });
-            } else {
-                assert(this.state.beaconWallet);
+        const activeAccount = await this.state.beaconWallet.client.getActiveAccount();
 
-                this.state.beaconWallet.requestPermissions({ network: {
-                    type: TezosWalletProvider.getNetworkType(),
-                    name: Conf.tezos_network,
-                    rpcUrl: Config.allowed_tezos_nodes[AppSettings.rpcNode.value] } })
-                .then(() => this.state.beaconWallet!.getPKH())
-                .then((address) => this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange")));
-            }
-        });
+        if (activeAccount) {
+            this.setState({ walletAddress: activeAccount.address });
+        } else {
+            await this.state.beaconWallet.requestPermissions({ network: {
+                type: TezosWalletProvider.getNetworkType(),
+                name: Conf.tezos_network,
+                rpcUrl: Config.allowed_tezos_nodes[AppSettings.rpcNode.value] } });
+
+            const address = await this.state.beaconWallet.getPKH();
+            this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange"));
+        }
     }
 
     public disconnectWallet = () => {
-        if (!this.state.beaconWallet) return;
+        assert(this.state.beaconWallet);
 
         // NOte: when using disconnect, on reaload you
         // get a "invalid hex string" error. report it?

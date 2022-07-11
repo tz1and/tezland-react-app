@@ -49,10 +49,9 @@ export default class DutchAuction {
     }
 
     static async bidOnAuction(walletProvider: ITezosWalletProvider, auction_id: number, price_mutez: number, callback?: (completed: boolean) => void) {
+        if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
+
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
-  
-        // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-        if (!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
 
         try {
             const bid_op = await auctionsWallet.methodsObject.bid({ auction_id: auction_id }).send({ amount: price_mutez, mutez: true });
