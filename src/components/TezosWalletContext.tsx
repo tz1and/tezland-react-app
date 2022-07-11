@@ -115,7 +115,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
             this.state.tezos.setWalletProvider(this.state.beaconWallet);
 
             // Check if wallet is already connected.
-            this.state.beaconWallet!.client.getActiveAccount().then((activeAccount) => {
+            this.state.beaconWallet.client.getActiveAccount().then((activeAccount) => {
                 if(activeAccount) {
                     this.setState({ walletAddress: activeAccount.address }, () => this.state.walletEventEmitter.emit("walletChange"));
                 }
@@ -147,8 +147,9 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
         // NOte: when using disconnect, on reaload you
         // get a "invalid hex string" error. report it?
         //this.beaconWallet.disconnect();
-        this.state.beaconWallet.clearActiveAccount();
-        this.setState({ walletAddress: undefined }, () => this.state.walletEventEmitter.emit("walletChange"))
+        this.state.beaconWallet.clearActiveAccount().then(() => {
+            this.setState({ walletAddress: undefined }, () => this.state.walletEventEmitter.emit("walletChange"))
+        });
     }
 
     private setupWallet() {
