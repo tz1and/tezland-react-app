@@ -699,16 +699,17 @@ export class World implements WorldInterface {
                         else v.updateLOD();
                     });
 
-                    const placeLoadPromises: Promise<void>[] = [];
+                    const places_to_fetch: number[] = []
 
                     gridCell.forEach((c) => {
                         c.places.forEach((id) => {
-                            if (!this.places.has(id))
-                                placeLoadPromises.push(Metadata.getPlaceMetadata(id).then(res => this.loadPlace(res)));
+                            if (!this.places.has(id)) places_to_fetch.push(id);
                         });
                     });
 
-                    await Promise.allSettled(placeLoadPromises);
+                    (await Metadata.getPlaceMetadataBatch(places_to_fetch)).forEach((m) => {
+                        this.loadPlace(m);
+                    });
 
                     //const elapsed_total = performance.now() - start_time;
                     //Logging.InfoDev("updateWorld took " + elapsed_total.toFixed(2) + "ms");
