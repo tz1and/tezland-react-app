@@ -51,7 +51,6 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
                     }
                 }
             }`, 'getFeaturedPosts', { tag: tag }, 'https://api.typed.art/v1/graphql').then((res) => {
-                console.log(res);
                 setPosts(res.tokens);
             });
     }, [tag]);
