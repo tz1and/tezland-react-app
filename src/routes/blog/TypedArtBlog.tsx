@@ -41,7 +41,7 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
     useEffect(() => {
         fetchGraphQL(
             `query getFeaturedPosts($tag: String) {
-                tokens(order_by: {token_id: desc}, where: {minter_address: {_eq: "tz1eky73coNLY3e8b3rzBihpkC799Db3UtKp"}, tags: {tag: {_eq: $tag}}}, limit: 10) {
+                tokens(order_by: {token_id: desc}, where: {minter_address: {_eq: "tz1eky73coNLY3e8b3rzBihpkC799Db3UtKp"}, editions: {_gt: 0}, tags: {tag: {_eq: $tag}}}, limit: 10) {
                     token_id
                     description
                     minter_address
@@ -74,7 +74,7 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
             postElements.push(
                 <div className='mt-3 mb-5' key={post.token_id}>
                     <div>
-                        <ReactMarkdown transformImageUri={ipfsUriTransformer}>
+                        <ReactMarkdown transformImageUri={ipfsUriTransformer} components={{ h1: 'h2', h2: 'h3', h3: 'h4', h4: 'h5', h5: 'h6', h6: 'h6' }}>
                             {post.description}
                         </ReactMarkdown>
                     </div>
@@ -84,7 +84,7 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
 
     return (
         <main className="container px-4 py-4">
-            <h1>{props.tag === "tz1andblog" ? "Blog" : "Featured"}</h1>
+            <h1 className='mb-6'>{props.tag === "tz1andblog" ? "Blog" : "Featured"}</h1>
             {postElements}
         </main>
     );
