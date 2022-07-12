@@ -15,6 +15,10 @@ export default function Frontpage() {
                     </Link>
 
                     <Nav className="me-auto mb-2 justify-content-center mb-md-0">
+                        <NavDropdown title={<span>Blog {newBadge}</span>} id="basic-nav-dropdown">
+                            <NavDropdown.Item as={Link} to="/blog">Blog</NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/blog/featured">Featured</NavDropdown.Item>
+                        </NavDropdown>
                         <Nav.Link as={NavLink} to="/auctions" className="nav-link">Place Auctions</Nav.Link>
                         <Nav.Link as={NavLink} to="/faq" className="nav-link">FAQ</Nav.Link>
                         <Nav.Link as={NavLink} to="/map" className="nav-link">Map</Nav.Link>

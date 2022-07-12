@@ -32,10 +32,15 @@ function decodeSplitEncodeURI(uri: string) {
 
 type PreprocessWorkerPoolType = Pool<ModuleThread<typeof MeshPreprocessingWorkerApi>>;
 
+export enum GatewayType {
+    Native = 0,
+    RandomPublic
+}
+
 export default class ArtifactDownload {
     public static async downloadArtifact(
         token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes: number,
-        randomGateway: boolean = false, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
+        gatewayType: GatewayType = GatewayType.Native, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
@@ -63,7 +68,7 @@ export default class ArtifactDownload {
                 // Timeout after 10 seconds.
                 // Disable cache, we cache in the indexed db.
                 // TODO: check if indexed db is available for cache disable?
-                const gateway = randomGateway ? Conf.randomIpfsGateway() : Conf.ipfs_gateways[0];
+                const gateway = gatewayType === GatewayType.RandomPublic ? Conf.randomPublicIpfsGateway() : Conf.ipfs_native_gateway;
                 const response = await fetchWithTimeout(gateway + '/ipfs/' + hash, 30000, { cache: "no-store" });
 
                 // Abort retrying if the resource doesn't exist.

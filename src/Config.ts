@@ -5,6 +5,7 @@ export default class Conf {
 
     public static allowed_tezos_nodes: string[] = process.env.REACT_APP_ALLOWED_TEZOS_NODES.split(' ');
     public static tezos_network: string = process.env.REACT_APP_TEZOS_NETWORK;
+    public static ipfs_native_gateway: string = process.env.REACT_APP_IPFS_NATIVE_GATEWAY;
     public static ipfs_gateways: string[] = process.env.REACT_APP_IPFS_GATEWAYS.split(' ');
     public static hasura_url: string = process.env.REACT_APP_HASURA_URL;
     public static backend_url: string = process.env.REACT_APP_BACKEND;
@@ -18,7 +19,7 @@ export default class Conf {
 
     public static fees_address: string = "tz1UZFB9kGauB6F5c2gfJo4hVcvrD8MeJ3Vf";
 
-    public static randomIpfsGateway(): string {
+    public static randomPublicIpfsGateway(): string {
         return this.ipfs_gateways[Math.floor(Math.random() * this.ipfs_gateways.length)];
     }
 }

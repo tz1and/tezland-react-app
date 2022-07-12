@@ -31,7 +31,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     else quantity = item_data.quantity;
 
     const getThumbnailUrl = (url?: string | null): string => {
-        if(url) return `${Conf.ipfs_gateways[0]}/ipfs/${url.slice(7)}`;
+        if(url) return `${Conf.ipfs_native_gateway}/ipfs/${url.slice(7)}`;
 
         return missing_thumbnail;
     }

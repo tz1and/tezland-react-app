@@ -27,6 +27,7 @@ import { PlacePage } from './routes/directory/PlacePage';
 import { Search } from './routes/directory/Search';
 import { NewMints } from './routes/directory/NewMints';
 import { NewSwaps } from './routes/directory/NewSwaps';
+import { TypedArtBlog } from './routes/blog/TypedArtBlog';
 import EnterDirectory from './routes/EnterDirectory';
 import Acknowledgements from './routes/Acknowledgements';
 
@@ -43,8 +44,10 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
         <Route path="p/:id" element={<PlacePage />} />
         <Route path="t/:tag" element={<Tag />} />
 
-        <Route path="new/mints" element={<NewMints />} />
-        <Route path="new/swaps" element={<NewSwaps />} />
+        <Route path="new">
+            <Route path="mints" element={<NewMints />} />
+            <Route path="swaps" element={<NewSwaps />} />
+        </Route>
     </>;
 
     return (
@@ -69,6 +72,11 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="privacy" element={<Privacy />} />
                             <Route path="terms" element={<Terms />} />
                             <Route path="acknowledgements" element={<Acknowledgements />} />
+
+                            <Route path="blog">
+                                <Route path="" element={<TypedArtBlog tag="tz1andblog" />} />
+                                <Route path="featured" element={<TypedArtBlog tag="tz1andfeatured" />} />
+                            </Route>
 
                             {directoryRoutes}
 

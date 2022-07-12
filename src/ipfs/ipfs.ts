@@ -3,19 +3,6 @@ import '@babylonjs/loaders/glTF';
 import { FileLike } from '../utils/Utils';
 import assert from 'assert';
 
-/*const ipfs_client = ipfs.create({ url: Conf.ipfs_gateways[0] });
-
-export async function get_file_size(cid: string): Promise<number> {
-    try {
-        // @deprecated find a better library and use: dag stat <CID>
-        // also, possibly need to get file from dir.
-        const stat = await ipfs_client.object.stat(ipfs.CID.parse(cid));
-        return stat.CumulativeSize;
-    } catch(e: any) {
-        Logging.Warn("Failed to get file size: " + e.message);
-        return 0; // TODO: assume large or small? or throw?
-    }
-}*/
 
 type Royalties = {
     decimals: number;

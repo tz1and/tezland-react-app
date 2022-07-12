@@ -1,4 +1,4 @@
-import ArtifactDownload from '../utils/ArtifactDownload';
+import ArtifactDownload, { GatewayType } from '../utils/ArtifactDownload';
 import { MeshPreprocessingWorkerApi } from './MeshPreprocessing.worker';
 import { initialiseWorkerStorage, getNumLogicalCores } from './WorkerUtils';
 import BigNumber from 'bignumber.js';
@@ -17,9 +17,9 @@ const pool = Pool(
 
 const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (
     token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes:
-    number, randomGateway?: boolean) => {
+    number, gatwayType: GatewayType = GatewayType.Native) => {
     Object.setPrototypeOf(token_id, BigNumber.prototype);
-    return ArtifactDownload.downloadArtifact(token_id, sizeLimit, polygonLimit, maxTexRes, randomGateway, pool);
+    return ArtifactDownload.downloadArtifact(token_id, sizeLimit, polygonLimit, maxTexRes, gatwayType, pool);
 }
 
 const initialise = async () => {

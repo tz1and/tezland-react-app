@@ -157,7 +157,7 @@ class PreviewScene {
         }
 
         try {
-            const asset = await ArtifactDownload.downloadArtifact(new BigNumber(tokenId), Infinity, Infinity, Infinity, false).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
+            const asset = await ArtifactDownload.downloadArtifact(new BigNumber(tokenId), Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
 
             // Instantiate.
             // Getting first root node is probably enough.
