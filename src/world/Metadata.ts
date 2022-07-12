@@ -2,7 +2,6 @@ import { deleteDB } from "idb";
 import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
-import { PerformanceUtils } from "../utils/PerformanceUtils";
 
 
 export enum StorageKey {
