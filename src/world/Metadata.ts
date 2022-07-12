@@ -2,6 +2,7 @@ import { deleteDB } from "idb";
 import { fetchGraphQL } from "../ipfs/graphql";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
+import { PerformanceUtils } from "../utils/PerformanceUtils";
 
 
 export enum StorageKey {
@@ -50,17 +51,23 @@ export default class Metadata {
     }
 
     public static async getPlaceMetadataBatch(places: number[]) {
-        const place_metadatas = [];
-        const places_to_fetch = [];
+        const place_metadatas: any[] = [];
+        const places_to_fetch: number[] = [];
 
-        for (const place_id of places) {
+        // Try to fetch all from storage.
+        {
+            const metadata_db_promises: Promise<any>[] = []
             // Try to read the token metadata from storage.
-            let tokenMetadata = await Metadata.Storage.loadObject(place_id, StorageKey.PlaceMetadata);
+            for (const place_id of places)
+                metadata_db_promises.push(Metadata.Storage.loadObject(place_id, StorageKey.PlaceMetadata));
 
-            // If it doesn't exist, add to fetch array.
-            if(!tokenMetadata) places_to_fetch.push(place_id);
-            // else, append
-            else place_metadatas.push(tokenMetadata);
+            (await Promise.allSettled(metadata_db_promises)).forEach((res, index) => {
+                // If it doesn't exist, add to fetch array.
+                if (res.status === 'rejected')
+                    places_to_fetch.push(places[index]);
+                // Else, append to metadatae.
+                else place_metadatas.push(res.value);
+            });
         }
 
         if (places_to_fetch.length === 0) return place_metadatas;
