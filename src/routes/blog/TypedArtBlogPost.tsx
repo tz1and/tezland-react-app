@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Helmet } from "react-helmet-async";
 import ReactMarkdown, { uriTransformer } from 'react-markdown'
 import { TransformImage } from 'react-markdown/lib/ast-to-react'
-import { useParams } from 'react-router-dom';
-import Conf from '../../Config';
 import { fetchTypedArtPost, TypedArtPost, typedArtPostLink, typedArtPostTitle, typedArtUserLink } from './TypedArtUtils';
-import { Helmet } from "react-helmet-async";
+import Conf from '../../Config';
 
 
 export const TypedArtBlogPost: React.FC<{}> = (props) => {
