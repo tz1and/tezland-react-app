@@ -28,6 +28,7 @@ import { Search } from './routes/directory/Search';
 import { NewMints } from './routes/directory/NewMints';
 import { NewSwaps } from './routes/directory/NewSwaps';
 import { TypedArtBlog } from './routes/blog/TypedArtBlog';
+import { TypedArtBlogPost } from './routes/blog/TypedArtBlogPost';
 import EnterDirectory from './routes/EnterDirectory';
 import Acknowledgements from './routes/Acknowledgements';
 
@@ -75,6 +76,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                             <Route path="blog">
                                 <Route path="" element={<TypedArtBlog tag="tz1andblog" />} />
+                                <Route path=":id" element={<TypedArtBlogPost />} />
                                 <Route path="featured" element={<TypedArtBlog tag="tz1andfeatured" />} />
                             </Route>
 
