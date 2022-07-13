@@ -14,7 +14,8 @@ export type TypedArtPost = {
 export type TypedArtPostType = "tz1andblog" | "tz1andfeatured";
 
 const whitelist: string[] = [
-    "tz1eky73coNLY3e8b3rzBihpkC799Db3UtKp"
+    "tz1eky73coNLY3e8b3rzBihpkC799Db3UtKp",
+    "tz1UQpm4CRWUTY9GBxmU8bWR8rxMHCu7jxjV"
 ]
 
 export async function fetchTypedArtPosts(postType: TypedArtPostType, limit: number = 10, offset: number = 0): Promise<TypedArtPost[]> {
