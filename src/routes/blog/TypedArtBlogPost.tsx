@@ -53,7 +53,8 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
                     <meta name="twitter:image" content="https://farm6.staticflickr.com/5510/14338202952_93595258ff_z.jpg" />*/}
                 </Helmet>
                 <div>
-                    <ReactMarkdown transformImageUri={ipfsUriTransformer}>
+                    <ReactMarkdown transformImageUri={ipfsUriTransformer} components={{
+                            img: ({node, ...props}) => <img className="img-fluid" {...props} />}}>
                         {post.description}
                     </ReactMarkdown>
                 </div>
