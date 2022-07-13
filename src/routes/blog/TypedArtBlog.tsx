@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Pagination } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
 import ReactMarkdown, { uriTransformer } from 'react-markdown'
 import { TransformImage } from 'react-markdown/lib/ast-to-react'
@@ -12,6 +13,7 @@ type TypedArtBlogProps = {
 }
 
 export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
+    const [page, setPage] = useState(1);
     const [tag, setTag] = useState(props.tag);
     const [posts, setPosts] = useState<TypedArtPost[]>();
 
@@ -24,6 +26,11 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
         return uriTransformer(src);
     }
 
+    const goToPage = (newPage: number) => {
+        setPage(newPage);
+        window.scrollTo(0, 0);
+    }
+
     // Set tag state when prop changes.
     useEffect(() => {
         setTag(props.tag);
@@ -31,10 +38,10 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
 
     // Fetch new posts when tag stage changes.
     useEffect(() => {
-        fetchTypedArtPosts(tag).then((res) => {
+        fetchTypedArtPosts(tag, 10, (page - 1) * 10).then((res) => {
             setPosts(res);
         });
-    }, [tag]);
+    }, [tag, page]);
 
     const postElements: JSX.Element[] = [];
 
@@ -61,13 +68,26 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
 
     const title = props.tag === "tz1andblog" ? "Blog" : "Featured";
 
+    const range1 = (n: number) => Array.from(Array(n), (_,i)=> i+1);
+    console.log()
+
     return (
         <main className="container px-4 py-4">
             <Helmet>
                 <title>tz1and - {title}</title>
             </Helmet>
             <h1 className='mb-6'>{title}</h1>
-            {postElements}
+            {postElements.length > 0 ? postElements : 'No more posts found.'}
+
+            <Pagination className='mt-4'>
+                {page > 1 && <Pagination.First onClick={() => goToPage(1)} />}
+                {page > 1 && <Pagination.Prev onClick={() => goToPage(page - 1)} />}
+
+                {range1(page).map(v => <Pagination.Item onClick={() => goToPage(v)} key={v} active={v === page}>{v}</Pagination.Item>)}
+
+                <Pagination.Ellipsis />
+                <Pagination.Next onClick={() => goToPage(page + 1)} />
+            </Pagination>
         </main>
     );
 }
