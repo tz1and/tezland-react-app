@@ -168,7 +168,7 @@ export class WorldMap implements WorldInterface {
 
             camera.inputs.clear();
             camera.inputs.add(orthoInput);
-            camera.attachControl(canvas, true);
+            camera.attachControl(canvas, false);
     
             // Set movement keys
             //camera.inputs.clear();

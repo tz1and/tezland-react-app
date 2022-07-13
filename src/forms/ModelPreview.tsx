@@ -54,7 +54,7 @@ class PreviewScene {
 
         const camera = new ArcRotateCamera("camera", Math.PI / 1.5, Math.PI / 2.5, 11, new Vector3(0, 0, 0), scene);
         camera.wheelPrecision = 25;
-        camera.attachControl(this.canvas, true);
+        camera.attachControl(this.canvas, false);
         
         // Create sun and skybox
         const sun_direction = new Vector3(-50, -100, 50).normalize();

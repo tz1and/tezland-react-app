@@ -159,9 +159,9 @@ export class OrthoCameraMouseInput implements ICameraInput<FreeCamera> {
 
                     this.onPointerMovedObservable.notifyObservers({ offsetX: 0, offsetY: 0 });
 
-                    //if (!noPreventDefault) {
+                    if (!noPreventDefault) {
                         evt.preventDefault();
-                    //}
+                    }
                 }
             };
         }
