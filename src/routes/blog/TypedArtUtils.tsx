@@ -66,3 +66,7 @@ export const typedArtUserLink = (post: TypedArtPost) => {
 export const typedArtPostLink = (post: TypedArtPost) => {
     return <a className="link-secondary" href={"https://typed.art/" + post.token_id} target="_blank" rel="noreferrer">View on typed.art</a>;
 }
+
+export const typedArtPostTitle = (post: TypedArtPost) => {
+    return post.description.split('\n', 1)[0].replace('#', '').trim();
+}

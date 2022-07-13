@@ -3,7 +3,8 @@ import ReactMarkdown, { uriTransformer } from 'react-markdown'
 import { TransformImage } from 'react-markdown/lib/ast-to-react'
 import { useParams } from 'react-router-dom';
 import Conf from '../../Config';
-import { fetchTypedArtPost, TypedArtPost, typedArtPostLink, typedArtUserLink } from './TypedArtUtils';
+import { fetchTypedArtPost, TypedArtPost, typedArtPostLink, typedArtPostTitle, typedArtUserLink } from './TypedArtUtils';
+import { Helmet } from "react-helmet";
 
 
 export const TypedArtBlogPost: React.FC<{}> = (props) => {
@@ -38,9 +39,19 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
 
     let postElement: JSX.Element | undefined;
 
-    if (post)
+    if (post) {
+        const title = `tz1and Blog - ${typedArtPostTitle(post)}`;
+
         postElement =
             <div className='mt-3 mb-5' key={post.token_id}>
+                <Helmet>
+                    <title>{title}</title>
+                    <meta name="twitter:card" content="summary" />
+                    <meta name="twitter:site" content="@tz1and" />
+                    <meta name="twitter:title" content={title} />
+                    {/*<meta name="twitter:description" content={post.description.substring(0, 15)} />
+                    <meta name="twitter:image" content="https://farm6.staticflickr.com/5510/14338202952_93595258ff_z.jpg" />*/}
+                </Helmet>
                 <div>
                     <ReactMarkdown transformImageUri={ipfsUriTransformer}>
                         {post.description}
@@ -48,9 +59,15 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
                 </div>
                 <div>Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)}</div>
             </div>;
-    else {
+    } else {
         if (error)
-            postElement = <div><h1>Not found</h1>{error}</div>
+            postElement =
+                <div>
+                    <Helmet>
+                        <title>tz1and Blog - Post not found</title>
+                    </Helmet>
+                    <h1>Not found</h1>{error}
+                </div>
     }
 
     return (

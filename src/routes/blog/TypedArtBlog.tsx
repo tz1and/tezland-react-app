@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import ReactMarkdown, { uriTransformer } from 'react-markdown'
 import { TransformImage } from 'react-markdown/lib/ast-to-react'
 import { Link } from 'react-router-dom';
@@ -54,9 +55,14 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
                 </div>);
         }
 
+    const title = props.tag === "tz1andblog" ? "Blog" : "Featured";
+
     return (
         <main className="container px-4 py-4">
-            <h1 className='mb-6'>{props.tag === "tz1andblog" ? "Blog" : "Featured"}</h1>
+            <Helmet>
+                <title>tz1and {title}</title>
+            </Helmet>
+            <h1 className='mb-6'>{title}</h1>
             {postElements}
         </main>
     );
