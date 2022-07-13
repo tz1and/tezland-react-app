@@ -7,6 +7,7 @@ import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/WorldMap';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/DirectoryForm';
 import { useNavigate } from 'react-router-dom';
+import { createBabylonEngine } from '../world/BabylonUtils';
 
 
 type InteractiveMapPopupProps = {
@@ -110,17 +111,18 @@ class InteractiveMap extends React.Component<InteractiveMapProps, InteractiveMap
     override componentDidMount() {
         assert(this.mount.current);
 
-        try {
-            const worldMap = new WorldMap(this.mount.current, this.props.zoom, this.props.threeD, this.props.markerMode, this.state.mapControl, this.context, this.props.placeId, this.props.location);
+        createBabylonEngine(this.mount.current).then(engine => {
+            try {
+                const worldMap = new WorldMap(engine, this.props.zoom, this.props.threeD, this.props.markerMode, this.state.mapControl, this.context, this.props.placeId, this.props.location);
 
-            this.setState({world: worldMap}, () => {
-                worldMap.loadWorld();
-            })
-        }
-        catch(err: any) {
-            this.failedToLoad = true;
-            return;
-        }
+                this.setState({world: worldMap}, () => {
+                    worldMap.loadWorld().catch(e => {});
+                });
+            }
+            catch(err: any) {
+                this.failedToLoad = true;
+            }
+        }).catch(err => { this.failedToLoad = true; });
     }
 
     override componentWillUnmount() {

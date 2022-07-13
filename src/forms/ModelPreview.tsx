@@ -9,23 +9,19 @@ import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';
 import BigNumber from 'bignumber.js';
+import { createBabylonEngine } from '../world/BabylonUtils';
 
 
 class PreviewScene {
 
     private engine: Engine;
     private scene: Scene;
-    private canvas: HTMLCanvasElement;
 
     private previewObject: Nullable<TransformNode>;
 
-    constructor(mount: HTMLCanvasElement) {
+    constructor(engine: Engine) {
         // Get the canvas element from the DOM.
-        this.canvas = mount;
-
-        // Associate a Babylon Engine to it.
-        this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true, stencil: true });
-        this.engine.disableManifestCheck = true;
+        this.engine = engine;
 
         // Create our first scene.
         this.scene = this.createScene();
@@ -52,9 +48,12 @@ class PreviewScene {
 
         scene.collisionsEnabled = false;
 
+        const canvas = this.engine.getRenderingCanvas();
+        assert(canvas, "Engine not attached to a canvas element");
+
         const camera = new ArcRotateCamera("camera", Math.PI / 1.5, Math.PI / 2.5, 11, new Vector3(0, 0, 0), scene);
         camera.wheelPrecision = 25;
-        camera.attachControl(this.canvas, false);
+        camera.attachControl(canvas, false);
         
         // Create sun and skybox
         const sun_direction = new Vector3(-50, -100, 50).normalize();
@@ -255,18 +254,24 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     }
 
     override componentDidMount() {
-        if(this.mount.current) {
-            this.preview = new PreviewScene(this.mount.current);
+        assert(this.mount.current);
 
-            if(this.props.tokenId) {
-                this.preview.loadFromTokenId(this.props.modelLoaded, this.props.tokenId).then((res) => {
-                    this.setState({ polycount: res });
+        createBabylonEngine(this.mount.current).then(engine => {
+            try {
+                // TODO: should be state!
+                this.preview = new PreviewScene(engine);
 
-                    if(this.loadingRef.current) this.loadingRef.current.hidden = true;
-                });
+                if(this.props.tokenId) {
+                    this.preview.loadFromTokenId(this.props.modelLoaded, this.props.tokenId).then((res) => {
+                        this.setState({ polycount: res });
+
+                        if(this.loadingRef.current) this.loadingRef.current.hidden = true;
+                    });
+                }
+                else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
             }
-            else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
-        }
+            catch(err: any) { }
+        }).catch(err => {});
     }
 
     override componentWillUnmount() {

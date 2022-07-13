@@ -71,7 +71,7 @@ export default class PlayerController {
 
     private last_unglitch_time: number = 0;
 
-    constructor(world: World, canvas: HTMLCanvasElement, appControlFunctions: AppControlFunctions) {
+    constructor(world: World, appControlFunctions: AppControlFunctions) {
         this.appControlFunctions = appControlFunctions;
         this.scene = world.scene;
         this._shadowGenerator = null;
@@ -118,14 +118,14 @@ export default class PlayerController {
             // If the user is already locked
             if (!controlEnabled) {
                 // blur canvas to stop keyboard events.
-                canvas.blur();
+                this.scene.getEngine().getRenderingCanvas()?.blur();
                 this.camera.detachControl();
                 this.input.detachControl();
                 //this.isPointerLocked = false;
                 this.appControlFunctions.unlockControls();
             } else {
                 // focus on canvas for keyboard input to work.
-                canvas.focus();
+                this.scene.getEngine().getRenderingCanvas()?.focus();
                 this.camera.attachControl();
                 this.input.attachControl(this.scene);
                 //this.isPointerLocked = true;
@@ -352,6 +352,9 @@ export default class PlayerController {
                     case 'F10': // Screenshot
                         // TODO: Sometimes screenshots are empty. Same issue as in ModelPreview.
                         const engine = this.scene.getEngine();
+                        const canvas = engine.getRenderingCanvas();
+                        assert(canvas, "Engine not attached to a canvas element");
+
                         Tools.CreateScreenshotUsingRenderTargetAsync(
                             engine, this.scene.activeCamera!,
                             { width: canvas.width, height: canvas.height },

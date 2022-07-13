@@ -46,12 +46,12 @@ const shadowListUpdateInterval = 2000; // in ms
 
 export class World implements WorldInterface {
     // From WorldInterface
-    readonly scene: Scene;
     readonly walletProvider: ITezosWalletProvider;
+    readonly engine: Engine;
+    readonly scene: Scene;
 
     readonly appControlFunctions: AppControlFunctions;
-    
-    private engine: Engine;
+
     private defaultMaterial: SimpleMaterial;
     private waterMaterial: WaterMaterial;
     readonly transparentGridMat: GridMaterial;
@@ -77,10 +77,11 @@ export class World implements WorldInterface {
 
     private subscription?: Subscription<OperationContent> | undefined;
 
-    constructor(mount: HTMLCanvasElement, appControlFunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
+    constructor(engine: Engine, appControlFunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
         this.appControlFunctions = appControlFunctions;
+        this.engine = engine;
+
         // Get the canvas element from the DOM.
-        const canvas = mount;
         const divFps = document.getElementById("fps");
 
         this.walletProvider = walletProvider;
@@ -90,14 +91,6 @@ export class World implements WorldInterface {
 
         this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
         this.loadingQueue = new PQueue({interval: 1000/120, intervalCap: 1}); // {concurrency: 100} //, interval: 1/60, intervalCap: 1});
-
-        // Create Babylon engine.
-        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
-            powerPreference: "high-performance",
-            preserveDrawingBuffer: true,
-            stencil: true,
-            doNotHandleContextLost: true});
-        this.engine.disableManifestCheck = true;
 
         // Set max texture res
         const caps = this.engine.getCaps();
@@ -125,7 +118,7 @@ export class World implements WorldInterface {
         }
 
         // create camera first
-        this.playerController = new PlayerController(this, canvas, appControlFunctions);
+        this.playerController = new PlayerController(this, appControlFunctions);
         this.lastUpdatePosition = this.playerController.getPosition().clone();
 
         // Create a default material

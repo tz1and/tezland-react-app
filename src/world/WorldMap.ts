@@ -64,12 +64,12 @@ export type MapPopoverInfo = {
 
 export class WorldMap implements WorldInterface {
     // From WorldInterface
-    readonly scene: Scene;
     readonly walletProvider: ITezosWalletProvider;
+    readonly engine: Engine;
+    readonly scene: Scene;
 
     readonly mapControlFunctions: MapControlFunctions;
     
-    private engine: Engine;
     private defaultMaterial: SimpleMaterial;
     //private waterMaterial: WaterMaterial;
     readonly transparentGridMat: SimpleMaterial;
@@ -96,10 +96,9 @@ export class WorldMap implements WorldInterface {
 
     private markerOverlayTexture: AdvancedDynamicTexture;
 
-    constructor(mount: HTMLCanvasElement, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number, location?: [number, number]) {
+    constructor(engine: Engine, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number, location?: [number, number]) {
         this.mapControlFunctions = mapControlFunctions;
-        // Get the canvas element from the DOM.
-        const canvas = mount;
+        this.engine = engine;
 
         this.walletProvider = walletProvider;
 
@@ -107,14 +106,6 @@ export class WorldMap implements WorldInterface {
 
         this.places = new Map<number, MapPlaceNode>();
         this.implicitWorldGrid = new WorldGrid();
-
-        // Create Babylon engine.
-        this.engine = new Engine(canvas, AppSettings.enableAntialiasing.value, {
-            powerPreference: "high-performance",
-            preserveDrawingBuffer: true,
-            stencil: true,
-            doNotHandleContextLost: true});
-        this.engine.disableManifestCheck = true;
 
         // Set max texture res
         const caps = this.engine.getCaps();
@@ -144,6 +135,9 @@ export class WorldMap implements WorldInterface {
 
             camera.orthoLeft = -(zoom * 0.5);
             camera.orthoRight = (zoom * 0.5);
+
+            const canvas = this.engine.getRenderingCanvas();
+            assert(canvas, "Engine not attached to a canvas element");
 
             const ratio = canvas.height / canvas.width;
             camera.orthoTop = camera.orthoRight * ratio;

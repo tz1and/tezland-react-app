@@ -6,6 +6,7 @@ import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
 import { Vector3 } from '@babylonjs/core';
+import { createBabylonEngine } from '../world/BabylonUtils';
 
 
 type VirtualSpaceProps = {
@@ -73,16 +74,18 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
             return;
         }
 
-        try {
-            const world = new World(this.mount.current, this.props.appControl, this.context);
+        createBabylonEngine(this.mount.current).then(engine => {
+            try {
+                const world = new World(engine, this.props.appControl, this.context);
 
-            this.setState({world: world}, () => {
-                world.loadWorld().catch(e => {});
-            });
-        }
-        catch(err: any) {
-            this.props.errorCallback(err);
-        }
+                this.setState({world: world}, () => {
+                    world.loadWorld().catch(e => {});
+                });
+            }
+            catch(err: any) {
+                this.props.errorCallback(err);
+            }
+        }).catch(err => this.props.errorCallback(err));
     }
 
     override componentWillUnmount() {
