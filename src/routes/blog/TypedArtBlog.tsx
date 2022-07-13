@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import ReactMarkdown, { uriTransformer } from 'react-markdown'
 import { TransformImage } from 'react-markdown/lib/ast-to-react'
 import { Link } from 'react-router-dom';

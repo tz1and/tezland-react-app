@@ -15,6 +15,7 @@ import Metadata from './world/Metadata';
 import { Logging } from './utils/Logging';
 import { isDev, sleep } from './utils/Utils';
 import Conf from './Config';
+import { HelmetProvider } from 'react-helmet-async';
 
 
 function InitialiseApp() {
@@ -69,11 +70,13 @@ function RunApp(dbInitSuccess: boolean = true) {
     //root.render(...);
     ReactDOM.render(
         <React.StrictMode>
-            <AppRouter>
-                {dbFailedNotify}
-                { isDev() ? <div className='bg-danger text-light text-center align-middle py-2 fixed-bottom'><b>DEVELOPMENT - DEVELOPMENT - DEVELOPMENT - DEVELOPMENT</b></div> : null }
-                {testnetNotify}
-            </AppRouter>
+            <HelmetProvider>
+                <AppRouter>
+                    {dbFailedNotify}
+                    { isDev() ? <div className='bg-danger text-light text-center align-middle py-2 fixed-bottom'><b>DEVELOPMENT - DEVELOPMENT - DEVELOPMENT - DEVELOPMENT</b></div> : null }
+                    {testnetNotify}
+                </AppRouter>
+            </HelmetProvider>
         </React.StrictMode>,
         document.getElementById('root'),
         RenderCallback

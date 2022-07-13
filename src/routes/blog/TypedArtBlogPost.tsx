@@ -4,7 +4,7 @@ import { TransformImage } from 'react-markdown/lib/ast-to-react'
 import { useParams } from 'react-router-dom';
 import Conf from '../../Config';
 import { fetchTypedArtPost, TypedArtPost, typedArtPostLink, typedArtPostTitle, typedArtUserLink } from './TypedArtUtils';
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 
 export const TypedArtBlogPost: React.FC<{}> = (props) => {
