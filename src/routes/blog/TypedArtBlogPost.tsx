@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from "react-helmet-async";
-import ReactMarkdown, { uriTransformer } from 'react-markdown'
-import { TransformImage } from 'react-markdown/lib/ast-to-react'
-import { fetchTypedArtPost, TypedArtPost, typedArtPostLink, typedArtPostTitle, typedArtUserLink } from './TypedArtUtils';
-import Conf from '../../Config';
+import ReactMarkdown from 'react-markdown'
+import { fetchTypedArtPost, ipfsUriTransformer, TypedArtPost,
+    typedArtPostLink, typedArtPostTitle, typedArtUserLink } from './TypedArtUtils';
 
 
 export const TypedArtBlogPost: React.FC<{}> = (props) => {
@@ -13,15 +12,6 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
     const [id, setId] = useState(parseInt(params.id!));
     const [post, setPost] = useState<TypedArtPost>();
     const [error, setError] = useState<string>();
-
-    const ipfsUriTransformer: TransformImage = (
-        src: string,
-        alt: string,
-        title: string | null) => {
-        if (src.startsWith('ipfs://'))
-            return Conf.randomPublicIpfsGateway() + '/ipfs/' + src.slice(7);
-        return uriTransformer(src);
-    }
 
     // Set tag state when prop changes.
     useEffect(() => {
@@ -47,10 +37,10 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
                 <Helmet>
                     <title>{title}</title>
                     {/* NOTE: twitter cards don't really work without SSR, twitter crawler doesn't run react apps. */}
-                    <meta name="twitter:card" content="summary" />
+                    {/*<meta name="twitter:card" content="summary" />
                     <meta name="twitter:site" content="@tz1and" />
                     <meta name="twitter:title" content={title} />
-                    {/*<meta name="twitter:description" content={post.description.substring(0, 15)} />
+                    <meta name="twitter:description" content={post.description.substring(0, 15)} />
                     <meta name="twitter:image" content="https://..." />*/}
                 </Helmet>
                 <div className="mb-4">Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)}</div>

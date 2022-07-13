@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pagination } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
-import ReactMarkdown, { uriTransformer } from 'react-markdown'
-import { TransformImage } from 'react-markdown/lib/ast-to-react'
-import { fetchTypedArtPosts, TypedArtPost, typedArtPostLink, TypedArtPostType, typedArtUserLink } from './TypedArtUtils';
-import Conf from '../../Config';
+import ReactMarkdown from 'react-markdown'
+import { fetchTypedArtPosts, ipfsUriTransformer, TypedArtPost,
+    typedArtPostLink, TypedArtPostType, typedArtUserLink } from './TypedArtUtils';
 
 
 type TypedArtBlogProps = {
@@ -16,15 +15,6 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
     const [page, setPage] = useState(1);
     const [tag, setTag] = useState(props.tag);
     const [posts, setPosts] = useState<TypedArtPost[]>();
-
-    const ipfsUriTransformer: TransformImage = (
-        src: string,
-        alt: string,
-        title: string | null) => {
-        if (src.startsWith('ipfs://'))
-            return Conf.randomPublicIpfsGateway() + '/ipfs/' + src.slice(7);
-        return uriTransformer(src);
-    }
 
     const goToPage = (newPage: number) => {
         setPage(newPage);

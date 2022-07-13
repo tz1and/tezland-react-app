@@ -1,5 +1,17 @@
+import { uriTransformer } from "react-markdown";
+import { TransformImage } from "react-markdown/lib/ast-to-react";
 import { fetchGraphQL } from "../../ipfs/graphql";
+import Conf from "../../Config";
 
+
+export const ipfsUriTransformer: TransformImage = (
+    src: string,
+    alt: string,
+    title: string | null) => {
+    if (src.startsWith('ipfs://'))
+        return Conf.randomPublicIpfsGateway() + '/ipfs/' + src.slice(7);
+    return uriTransformer(src);
+}
 
 export type TypedArtPost = {
     token_id: number;
