@@ -50,7 +50,7 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
                     <div className="mb-4">Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)} - {sahreLink(post)}</div>
                     <div>
                         <ReactMarkdown transformImageUri={ipfsUriTransformer} components={{
-                            h1: 'h2', h2: 'h3', h3: 'h4', h4: 'h5', h5: 'h6', h6: 'h6',
+                            //h1: 'h2', h2: 'h3', h3: 'h4', h4: 'h5', h5: 'h6', h6: 'h6',
                             // eslint-disable-next-line jsx-a11y/alt-text
                             img: ({node, ...props}) => <img className="img-fluid" {...props} />}}>
                             {post.description}
