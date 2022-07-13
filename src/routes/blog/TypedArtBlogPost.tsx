@@ -11,6 +11,7 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
 
     const [id, setId] = useState(parseInt(params.id!));
     const [post, setPost] = useState<TypedArtPost>();
+    const [error, setError] = useState<string>();
 
     const ipfsUriTransformer: TransformImage = (
         src: string,
@@ -28,8 +29,10 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
 
     // Fetch new posts when tag stage changes.
     useEffect(() => {
-        fetchTypedArtPost(id).then((res) => {
+        fetchTypedArtPost(id).then(res => {
             setPost(res);
+        }).catch(reason => {
+            setError(reason.message);
         });
     }, [id]);
 
@@ -45,6 +48,10 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
                 </div>
                 <div>Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)}</div>
             </div>;
+    else {
+        if (error)
+            postElement = <div><h1>Not found</h1>{error}</div>
+    }
 
     return (
         <main className="container px-4 py-4">
