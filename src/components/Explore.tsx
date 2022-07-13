@@ -22,6 +22,7 @@ import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
 import { DirectoryForm } from '../forms/DirectoryForm';
 import assert from 'assert';
+import { Helmet } from 'react-helmet-async';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -214,6 +215,9 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         return (
             <div className='Explore'>
+                <Helmet>
+                    <title>tz1and - Explore</title>
+                </Helmet>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}

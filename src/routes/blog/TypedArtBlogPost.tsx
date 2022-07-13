@@ -40,7 +40,7 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
     let postElement: JSX.Element | undefined;
 
     if (post) {
-        const title = `tz1and Blog - ${typedArtPostTitle(post)}`;
+        const title = `tz1and - Blog - ${typedArtPostTitle(post)}`;
 
         postElement =
             <div className='mt-3 mb-5' key={post.token_id}>
@@ -66,7 +66,7 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
             postElement =
                 <div>
                     <Helmet>
-                        <title>tz1and Blog - Post not found</title>
+                        <title>tz1and - Blog - Post not found</title>
                     </Helmet>
                     <h1>Not found</h1>{error}
                 </div>

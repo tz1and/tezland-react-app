@@ -1,3 +1,5 @@
+import { Helmet } from "react-helmet-async";
+
 const faqData = [
     {
         title: 'General',
@@ -155,6 +157,9 @@ export default function Faq() {
 
     return (
         <main>
+            <Helmet>
+                <title>tz1and - FAQ</title>
+            </Helmet>
             <div className="container px-4 py-4">
                 <h1 className="text-center">Frequently Asked Questions</h1>
                 <div className="row mt-3 pt-3 justify-content-center" id="accordionFlush">

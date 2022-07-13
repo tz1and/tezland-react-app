@@ -6,6 +6,7 @@ import { InventoryItem } from '../../components/InventoryItem';
 import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from '../../components/TokenInfiniteScroll';
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
+import { Helmet } from 'react-helmet-async';
 
 type TagProps = { };
 
@@ -46,6 +47,9 @@ export const Tag: React.FC<TagProps> = (props) => {
 
     return (
         <main>
+            <Helmet>
+                <title>tz1and - Tag "{tag}"</title>
+            </Helmet>
             <div className="position-relative container text-start mt-4">
                 <h1>Items by tag '{tag}'</h1>
                 <TokenInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>

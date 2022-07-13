@@ -64,7 +64,7 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
     return (
         <main className="container px-4 py-4">
             <Helmet>
-                <title>tz1and {title}</title>
+                <title>tz1and - {title}</title>
             </Helmet>
             <h1 className='mb-6'>{title}</h1>
             {postElements}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Helmet } from 'react-helmet-async';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction, { discordInviteLink } from '../components/Auction'
@@ -205,6 +206,9 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
 
         return (
             <main>
+                <Helmet>
+                    <title>tz1and - Place Auctions</title>
+                </Helmet>
                 <div className="position-relative container text-start mt-4">
                     <h1>Place Auctions</h1>
                     <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>

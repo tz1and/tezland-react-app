@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { grapphQLUser } from '../graphql/user';
 import assert from 'assert';
+import { Helmet } from 'react-helmet-async';
 
 
 export const EventMap: React.FC<{}> = () => {
@@ -31,6 +32,9 @@ export const EventMap: React.FC<{}> = () => {
 
     return (
         <main>
+            <Helmet>
+                <title>tz1and - Event Map "{eventLabel}"</title>
+            </Helmet>
             <div className="container text-start mt-4">
                 <h1>{eventLabel}</h1>
                 <h5>Showing all places with items tagged '{eventTag}' for sale.{markedPlaces && markedPlaces.length === 0 && " There's none, at the moment."}</h5>
