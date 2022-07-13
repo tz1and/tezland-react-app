@@ -47,6 +47,7 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
             postElements.push(
                 <div className='mt-3 mb-5' key={post.token_id}>
                     <hr />
+                    <div className="mb-4">Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)} - {sahreLink(post)}</div>
                     <div>
                         <ReactMarkdown transformImageUri={ipfsUriTransformer} components={{
                             h1: 'h2', h2: 'h3', h3: 'h4', h4: 'h5', h5: 'h6', h6: 'h6',
@@ -54,7 +55,6 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
                             {post.description}
                         </ReactMarkdown>
                     </div>
-                    <div>Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)} - {sahreLink(post)}</div>
                 </div>);
         }
 

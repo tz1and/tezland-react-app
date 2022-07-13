@@ -52,13 +52,13 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
                     {/*<meta name="twitter:description" content={post.description.substring(0, 15)} />
                     <meta name="twitter:image" content="https://farm6.staticflickr.com/5510/14338202952_93595258ff_z.jpg" />*/}
                 </Helmet>
+                <div className="mb-4">Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)}</div>
                 <div>
                     <ReactMarkdown transformImageUri={ipfsUriTransformer} components={{
                             img: ({node, ...props}) => <img className="img-fluid" {...props} />}}>
                         {post.description}
                     </ReactMarkdown>
                 </div>
-                <div>Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)}</div>
             </div>;
     } else {
         if (error)
