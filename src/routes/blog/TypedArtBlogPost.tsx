@@ -46,11 +46,12 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
             <div className='mt-3 mb-5' key={post.token_id}>
                 <Helmet>
                     <title>{title}</title>
+                    {/* NOTE: twitter cards don't really work without SSR, twitter crawler doesn't run react apps. */}
                     <meta name="twitter:card" content="summary" />
                     <meta name="twitter:site" content="@tz1and" />
                     <meta name="twitter:title" content={title} />
                     {/*<meta name="twitter:description" content={post.description.substring(0, 15)} />
-                    <meta name="twitter:image" content="https://farm6.staticflickr.com/5510/14338202952_93595258ff_z.jpg" />*/}
+                    <meta name="twitter:image" content="https://..." />*/}
                 </Helmet>
                 <div className="mb-4">Post by {typedArtUserLink(post)} - {post.editions} Editions - {typedArtPostLink(post)}</div>
                 <div>
