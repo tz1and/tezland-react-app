@@ -9,7 +9,7 @@ export const ipfsUriTransformer: TransformImage = (
     alt: string,
     title: string | null) => {
     if (src.startsWith('ipfs://'))
-        return Conf.randomPublicIpfsGateway() + '/ipfs/' + src.slice(7);
+        return Conf.ipfs_public_gateways[0] + '/ipfs/' + src.slice(7);
     return uriTransformer(src);
 }
 
