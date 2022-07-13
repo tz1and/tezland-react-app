@@ -11,7 +11,10 @@ export type TypedArtPost = {
     }
 }
 
-export type TypedArtPostType = "tz1andblog" | "tz1andfeatured";
+export enum TypedArtPostType {
+    Blog = "tz1andblog",
+    Featured = "tz1andfeatured"
+}
 
 const whitelist: string[] = [
     "tz1eky73coNLY3e8b3rzBihpkC799Db3UtKp",
@@ -36,7 +39,7 @@ export async function fetchTypedArtPosts(postType: TypedArtPostType, limit: numb
 }
 
 export async function fetchTypedArtPost(id: number): Promise<TypedArtPost> {
-    const validTags: TypedArtPostType[] = [ "tz1andblog", "tz1andfeatured" ];
+    const validTags: string[] = Object.values(TypedArtPostType);
 
     const res = await fetchGraphQL(
         `query getFeaturedPost($id: bigint!, $whitelist: [String!], $validTags: [String!]) {
