@@ -1,23 +1,20 @@
 import React from 'react';
 import { Col, Container, Row, Tab, Tabs } from 'react-bootstrap';
-import { Link, Params, useParams } from 'react-router-dom';
+import { Params, useParams } from 'react-router-dom';
 import assert from 'assert';
 import TezosWalletContext from '../../components/TezosWalletContext';
-import { truncateAddress } from '../../utils/Utils';
 import Metadata from '../../world/Metadata';
-import ModelPreview from '../../forms/ModelPreview';
-import { fetchGraphQL } from '../../ipfs/graphql';
 import { WorldHolderInfo } from '../../components/item/WorldHolderInfo';
 import { CollectionHistory } from '../../components/item/CollectionHistory';
 import { ItemTags } from '../../components/item/ItemTags';
-import { DirectoryUtils } from '../../utils/DirectoryUtils';
+import { MetadataUtils } from '../../utils/MetadataUtils';
+import { ItemDisplay } from '../../components/item/ItemDisplay';
 
 interface UserProps extends WithParamsInterface {
 }
 
 type UserState = {
     metadata?: any;
-    royalties?: any;
 }
 
 class Item extends React.Component<UserProps, UserState> {
@@ -35,59 +32,30 @@ class Item extends React.Component<UserProps, UserState> {
         this.tokenId = parseInt(this.props.params.id)
     }
 
-    private async fetchRoyalties(): Promise<any> {
-        const data = await fetchGraphQL(`
-            query getRoyalties($id: bigint!) {
-                itemToken(where: {id: {_eq: $id}}) {
-                    royalties
-                }
-            }`, "getRoyalties", { id: this.tokenId });
-        
-        return data.itemToken[0];
-    }
-
     override componentDidMount() {
         Metadata.getItemMetadata(this.tokenId).then(res => {
             this.setState({metadata: res});
-
-            this.fetchRoyalties().then(res => {
-                this.setState({royalties: res.royalties});
-            });
         })
     }
 
     override render() {
         const metadata = this.state.metadata;
 
-        let content = undefined;
-        if (metadata) {
-
-            let royalties = undefined;
-            if (this.state.royalties) {
-                royalties = <p>Royalties: {this.state.royalties === 0 ? 0 : (this.state.royalties / 10).toFixed(2)}{"\u0025"}</p>
-            }
-            
-            content = <div>
-                <h1>{metadata.name}</h1>
-                <Container>
+        let content =
+            <div>
+                <h1>{MetadataUtils.getName(metadata)}</h1>
+                <Container className="p-0">
                     <Row>
                         <Col>
-                            by <Link to={DirectoryUtils.userLink(metadata.minter)}>{truncateAddress(metadata.minter)}</Link>
-                            <ModelPreview tokenId={this.tokenId} width={640} height={480} modelLoaded={() => {}} />
-                            {/*<img src={this.getThumbnailUrl(metadata.displayUri ? metadata.displayUri : metadata.thumbnailUri)}></img>*/}
-                            <h5 className="mt-3">Description:</h5>
-                            <p>{metadata.description ? metadata.description : "None."}</p>
-                            {royalties}
+                            <ItemDisplay tokenId={this.tokenId} metadata={this.state.metadata} displayModel={true} />
                         </Col>
                         <Col xs="4" lg="3">
                             <h4>Tags</h4>
-                            <ItemTags tokenId={this.tokenId} />
+                            <ItemTags tokenId={this.tokenId} clickable={true} />
                         </Col>
                     </Row>
                 </Container>
-                
             </div>;
-        }
         
         const activeKey = window.location.hash.replace('#', '') || undefined;
 

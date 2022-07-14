@@ -13,7 +13,7 @@ import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { OverlayForm, DirectoryFormProps, OverlayFormProps,
-    PlaceItemFromProps, TransferItemFromProps } from '../world/AppControlFunctions';
+    PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import PlaceNode from '../world/PlaceNode';
 import { isDev } from '../utils/Utils';
@@ -23,6 +23,7 @@ import { TransferForm } from '../forms/TransferForm';
 import { DirectoryForm } from '../forms/DirectoryForm';
 import assert from 'assert';
 import { Helmet } from 'react-helmet-async';
+import { CollectForm } from '../forms/CollectForm';
 
 type ExploreProps = {
     // using `interface` is also ok
@@ -172,6 +173,15 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 assert(this.state.form_props);
                 const transferItemProps = this.state.form_props as TransferItemFromProps;
                 return <TransferForm closeForm={this.closeForm} itemId={transferItemProps.tokenId} maxQuantity={transferItemProps.maxQuantity} />;
+
+            case OverlayForm.CollectItem:
+                assert(this.state.form_props);
+                const collectItemProps = this.state.form_props as CollectItemFromProps;
+                return <CollectForm closeForm={this.closeForm} tokenId={collectItemProps.tokenId}
+                    placeId={collectItemProps.placeId}
+                    itemId={collectItemProps.itemId}
+                    issuer={collectItemProps.issuer}
+                    xtzPerItem={collectItemProps.xtzPerItem} />;
 
             case OverlayForm.PlaceProperties:
                 return <EditPlace closeForm={this.closeForm} place={this.state.currentPlace!} />;

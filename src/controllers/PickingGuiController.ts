@@ -1,7 +1,6 @@
 import { Node, Nullable, PointerEventTypes, TransformNode } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Control, Ellipse, Image, Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import assert from "assert";
-import Contracts from "../tz/Contracts";
 import { truncate, truncateAddress } from "../utils/Utils";
 import ItemNode from "../world/ItemNode";
 import Metadata from "../world/Metadata";
@@ -9,6 +8,8 @@ import { World } from "../world/World";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
 import { grapphQLUser } from "../graphql/user";
+import { CollectItemFromProps, OverlayForm } from "../world/AppControlFunctions";
+
 
 class ItemInfoGui {
     private control: Control;
@@ -127,7 +128,7 @@ class ItemInfoGui {
 
         this.label_price.text = !forSale && isSaved ? "" : `${current_item.xtzPerItem === 0 ? "Not collectable." : current_item.xtzPerItem + " \uA729"}`;
         this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply > 0 ? this.current_token_supply : '?'}`;
-        this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Not collectable.";
+        this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Right-click to show item info.";
 
         this.control.linkWithMesh(current_node);
         this.setVisible(true);
@@ -176,10 +177,14 @@ export default class PickingGuiController {
                 if(this.current_node) {
                     const instanceRoot = this.getInstanceRoot(this.current_node);
 
-                    if(instanceRoot && instanceRoot.xtzPerItem !== 0) {
+                    if(instanceRoot) {
                         document.exitPointerLock();
-
-                        Contracts.getItem(this.world.walletProvider, instanceRoot.placeId, instanceRoot.itemId.toNumber(), instanceRoot.issuer, instanceRoot.xtzPerItem);
+                        world.appControlFunctions.loadForm(OverlayForm.CollectItem, {
+                            tokenId: instanceRoot.tokenId.toNumber(),
+                            placeId: instanceRoot.placeId,
+                            itemId: instanceRoot.itemId.toNumber(),
+                            issuer: instanceRoot.issuer,
+                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
                     }
 
                     eventState.skipNextObservers = true;

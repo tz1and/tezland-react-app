@@ -9,6 +9,8 @@ import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
 type WorldHolderInfoProps = {
     tokenId: number;
+    onlySwaps?: boolean;
+    targetBlank?: boolean;
 }
 
 type WorldHolderInfoState = {
@@ -26,9 +28,10 @@ export class WorldHolderInfo extends React.Component<WorldHolderInfoProps, World
     }
 
     override componentDidMount() {
-        grapphQLUser.getItemHolderInfo({id: this.props.tokenId}).then(res => {
-            this.setState({holderInfo: res});
-        });
+        if (!this.props.onlySwaps)
+            grapphQLUser.getItemHolderInfo({id: this.props.tokenId}).then(res => {
+                this.setState({holderInfo: res});
+            });
 
         grapphQLUser.getItemWorldInfo({id: this.props.tokenId}).then(res => {
             this.setState({worldInfo: res});
@@ -43,13 +46,18 @@ export class WorldHolderInfo extends React.Component<WorldHolderInfoProps, World
                 holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={DirectoryUtils.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>);
         });
 
+        const extraProps = this.props.targetBlank ? {
+            target: "_blank", rel: "noopener noreferrer"
+        } : {}
+
         const worldInfo = this.state.worldInfo;
         const worldInfoItems: JSX.Element[] = []
         if (worldInfo) worldInfo.worldItemPlacement.forEach((item: any) => {
-            worldInfoItems.push(
-                <p key={item.id}>
-                    {item.tokenAmount}x <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in <Link to={DirectoryUtils.placeLink(item.placeId)}>Place #{item.placeId}</Link> {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
-                </p>);
+            if (!this.props.onlySwaps || (this.props.onlySwaps && item.mutezPerToken > 0))
+                worldInfoItems.push(
+                    <p key={item.id}>
+                        {item.tokenAmount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink(item.placeId)}>Place #{item.placeId}</Link> {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
+                    </p>);
         });
 
         return (

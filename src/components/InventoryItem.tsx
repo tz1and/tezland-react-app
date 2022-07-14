@@ -1,10 +1,9 @@
 import './InventoryItem.css';
-import Conf from "../Config";
 import { mutezToTez, numberWithSign, truncate, truncateAddress } from '../utils/Utils';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
-import missing_thumbnail from '../img/missing_thumbnail.png';
 import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
+import { MetadataUtils } from '../utils/MetadataUtils';
 
 
 type InventoryItemProps = {
@@ -29,12 +28,6 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     let quantity: number | undefined;
     if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
     else quantity = item_data.quantity;
-
-    const getThumbnailUrl = (url?: string | null): string => {
-        if(url) return `${Conf.ipfs_native_gateway}/ipfs/${url.slice(7)}`;
-
-        return missing_thumbnail;
-    }
 
     let itemTrackedBalance = "";
     let balanceColor = "";
@@ -68,7 +61,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                 </div>
 
                 <div onClick={() => props.onSelect(token_data.id, item_data.quantity)}>
-                    <img src={getThumbnailUrl(item_metadata?.thumbnailUri)} width={350} height={350} className="card-img-top inventory-item-image" alt="..."/>
+                    <img src={MetadataUtils.getThumbnailUrl(item_metadata)} width={350} height={350} className="card-img-top inventory-item-image" alt="..."/>
                     <div className="card-body">
                         <h6 className="card-title">{name ? truncate(name, 19, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h6>
                         <p className="card-text">x{quantity}{itemTrackedBalance}<small>/{token_data.supply}</small>{item_data.swapInfo && ` for ${mutezToTez(item_data.swapInfo.price).toNumber().toFixed(2)} \uA729`}</p>

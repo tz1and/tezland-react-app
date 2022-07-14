@@ -229,17 +229,11 @@ export class Contracts {
 
         const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
 
-        try {
-            const get_item_op = await marketplacesWallet.methodsObject.get_item({
-                lot_id: place_id, item_id: item_id, issuer: issuer
-            }).send({ amount: xtz_per_item, mutez: false });
+        const get_item_op = await marketplacesWallet.methodsObject.get_item({
+            lot_id: place_id, item_id: item_id, issuer: issuer
+        }).send({ amount: xtz_per_item, mutez: false });
 
-            this.handleOperation(walletProvider, get_item_op, callback);
-        }
-        catch(e: any) {
-            Logging.Error(e);
-            if(callback) callback(false);
-        }
+        this.handleOperation(walletProvider, get_item_op, callback);
     }
 
     // TODO map or array of item_id to item_data.

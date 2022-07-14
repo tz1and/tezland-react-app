@@ -1,51 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import TezosWalletContext from '../../components/TezosWalletContext';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemTagsQuery } from '../../graphql/generated/user';
 import { Badge } from 'react-bootstrap';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
+
 type ItemTagsProps = {
     tokenId: number;
+    clickable?: boolean;
+    targetBlank?: boolean;
 }
 
-type ItemTagsState = {
-    itemTags?: GetItemTagsQuery;
-}
+export const ItemTags: React.FC<ItemTagsProps> = (props) => {
+    const [itemTags, setItemTags] = useState<GetItemTagsQuery>();
 
-export class ItemTags extends React.Component<ItemTagsProps, ItemTagsState> {
-    static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
-
-    constructor(props: ItemTagsProps) {
-        super(props);
-        this.state = {};
-    }
-
-    override componentDidMount() {
-        grapphQLUser.getItemTags({id: this.props.tokenId}).then(res => {
-            this.setState({itemTags: res});
+    useEffect(() => {
+        grapphQLUser.getItemTags({id: props.tokenId}).then(res => {
+            setItemTags(res);
         })
-    }
+    }, [props.tokenId])
 
-    override render() {
-        const itemTags = this.state.itemTags;
-        const tags: JSX.Element[] = []
-        if (itemTags) itemTags.tag.forEach((tag) => {
-            tags.push(
-                <Link key={tag.name} to={DirectoryUtils.tagLink(tag.name)}>
+    const extraProps = props.targetBlank ? {
+        target: "_blank", rel: "noopener noreferrer"
+    } : {}
+
+    const tags: JSX.Element[] = []
+    if (itemTags) itemTags.tag.forEach((tag) => {
+        tags.push(
+            props.clickable ?
+                <Link key={tag.name} {...extraProps} to={DirectoryUtils.tagLink(tag.name)}>
                     <Badge pill bg="primary" className="me-1">
                         {tag.name}
                     </Badge>
-                </Link>
-            );
-        });
-
-        return (
-            <div>
-                {tags}
-            </div>
+                </Link> :
+                <Badge key={tag.name} pill bg="primary" className="me-1">
+                    {tag.name}
+                </Badge>
         );
-    }
+    });
+
+    return (
+        <div>
+            {tags}
+        </div>
+    );
 }

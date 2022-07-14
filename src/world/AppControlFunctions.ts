@@ -17,6 +17,14 @@ export interface TransferItemFromProps extends OverlayFormProps {
     maxQuantity: number;
 }
 
+export interface CollectItemFromProps extends OverlayFormProps {
+    tokenId: number;
+    placeId: number;
+    itemId: number;
+    issuer: string;
+    xtzPerItem: number;
+}
+
 export interface DirectoryFormProps extends OverlayFormProps {
     mapCoords: [number, number];
 }
@@ -31,6 +39,7 @@ export enum OverlayForm {
     Inventory,
     BurnItem,
     TransferItem,
+    CollectItem,
     Directory,
     Terms
 }
