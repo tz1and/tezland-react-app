@@ -1,10 +1,8 @@
-import { Engine } from "@babylonjs/core/Engines/engine";
-import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Matrix, Vector4, Quaternion, } from "@babylonjs/core/Maths/math";
-import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Engine, Scene, Vector3, Color3,
+    Matrix, Vector4, Quaternion, HemisphericLight, Mesh,
+    EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
 import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
-import { EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
+import { AdvancedDynamicTexture, Control, Image, Vector2WithInfo } from "@babylonjs/gui";
 import { MapControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata from "./Metadata";
@@ -16,7 +14,6 @@ import { isDev } from "../utils/Utils";
 import WorldGrid from "../utils/WorldGrid";
 import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
-import { AdvancedDynamicTexture, Control, Image, Vector2WithInfo } from "@babylonjs/gui";
 import { WorldInterface } from "./WorldInterface";
 import { grapphQLUser } from "../graphql/user";
 import assert from "assert";

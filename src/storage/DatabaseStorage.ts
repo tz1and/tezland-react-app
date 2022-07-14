@@ -1,7 +1,6 @@
 import { Logging } from "../utils/Logging";
 import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
-import { Nullable } from "@babylonjs/core";
 import assert from "assert";
 
 const databaseVersion = 12;
@@ -40,7 +39,7 @@ interface TezlandDB extends DBSchema {
 }
 
 export class DatabaseStorage implements IStorageProvider {
-    private _db: Nullable<IDBPDatabase<TezlandDB>>;
+    private _db: IDBPDatabase<TezlandDB> | null;
 
     constructor() {
         this._db = null;

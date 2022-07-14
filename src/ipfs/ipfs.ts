@@ -1,5 +1,4 @@
 import Conf from '../Config';
-import '@babylonjs/loaders/glTF';
 import { FileLike } from '../utils/Utils';
 import assert from 'assert';
 

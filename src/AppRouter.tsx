@@ -1,6 +1,5 @@
-import React, { useState } from 'react'; // we need this to make JSX compile
+import React, { Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Explore from './components/Explore';
 import Auctions from './routes/Auctions';
 import { CreateAuctionFormW } from './forms/CreateAuction';
 import { Map } from './routes/Map';
@@ -13,7 +12,6 @@ import Faq from './routes/Faq';
 import Docs from './routes/Docs';
 import Terms from './routes/Terms';
 import Privacy from './routes/Privacy';
-import GenerateMap from './routes/GenerateMap';
 import MintFormWrapper from './forms/MintFormWrapper';
 import PageNotFound from './routes/PageNotFound';
 import { TezosWalletProvider } from './components/TezosWalletContext'
@@ -31,8 +29,17 @@ import { TypedArtBlog } from './routes/blog/TypedArtBlog';
 import { TypedArtBlogPost } from './routes/blog/TypedArtBlogPost';
 import { TypedArtPostType } from './routes/blog/TypedArtUtils';
 import EnterDirectory from './routes/EnterDirectory';
-import Acknowledgements from './routes/Acknowledgements';
 
+
+const Loading = () => <div className="d-flex justify-content-center align-items-center" style={{height: "100%"}}>
+    <div className="spinner-border text-primary" style={{width: "6rem", height: "6rem"}} role="status">
+        <span className="visually-hidden">Loading...</span>
+    </div>
+</div>;
+
+const Explore = React.lazy(() => import('./components/Explore'));
+const GenerateMap = React.lazy(() => import('./routes/GenerateMap'));
+const Acknowledgements = React.lazy(() => import('./routes/Acknowledgements'));
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
     const [directoryEnabled, setDirectoryEnabled] = useState(false);
@@ -58,7 +65,10 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                 {props.children}
                 <Routes>
                     {!directoryEnabled ?
-                        <Route path="/" element={<SiteLayout />}>
+                        <Route path="/" element={
+                            <Suspense fallback={<Loading />}>
+                                <SiteLayout />
+                            </Suspense>}>
                             <Route path="" element={<Frontpage />} />
 
                             <Route path="mint" element={<MintFormWrapper />}/>
@@ -97,7 +107,10 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                                 <Route path="*" element={<PageNotFound />} />
                             </Route>
                         </Route> }
-                    <Route path="/explore" element={<Explore />} />
+                    <Route path="/explore" element={
+                        <Suspense fallback={<Loading />}>
+                            <Explore />
+                        </Suspense>} />
                 </Routes>
             </BrowserRouter>
         </TezosWalletProvider>

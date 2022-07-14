@@ -4,7 +4,6 @@ import VirtualSpace from './VirtualSpace';
 import { MintFrom } from '../forms/MintForm';
 import { PlaceForm } from '../forms/PlaceForm';
 import { Inventory } from '../forms/Inventory';
-import { Nullable } from '@babylonjs/core';
 import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
@@ -36,7 +35,7 @@ type ExploreState = {
     form_props?: OverlayFormProps | undefined;
     showFps: boolean; // should be a prop?
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
-    currentPlace: Nullable<PlaceNode>;
+    currentPlace: PlaceNode | null;
     virtualSpaceFailed: boolean;
 };
 
@@ -112,7 +111,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
-    updatePlaceInfo = (place: Nullable<PlaceNode>) => {
+    updatePlaceInfo = (place: PlaceNode | null) => {
         this.setState({currentPlace: place});
     }
 

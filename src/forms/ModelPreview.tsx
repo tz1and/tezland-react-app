@@ -1,5 +1,4 @@
 import React from 'react';
-import '@babylonjs/loaders/glTF';
 import { SkyMaterial } from '@babylonjs/materials';
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";

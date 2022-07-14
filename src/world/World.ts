@@ -1,16 +1,11 @@
-import { Engine } from "@babylonjs/core/Engines/engine";
-import { Scene } from "@babylonjs/core/scene";
-import { Vector3, Color3, Vector2, Matrix, Vector4, Quaternion } from "@babylonjs/core/Maths/math";
-import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
-import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
-import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
-import PlayerController from "../controllers/PlayerController";
-import { AbstractMesh, DeepImmutable, MeshBuilder,
+import { Engine, Scene, Vector3, Color3, Vector2,
+    Matrix, Vector4, Quaternion, HemisphericLight,
+    ShadowGenerator, CascadedShadowGenerator, Mesh,
+    AbstractMesh, DeepImmutable, MeshBuilder,
     Nullable, Ray, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
+import PlayerController from "../controllers/PlayerController";
 import { PlaceId } from "./nodes/BasePlaceNode";
 import PlaceNode from "./PlaceNode";
 import { AppControlFunctions } from "./AppControlFunctions";
