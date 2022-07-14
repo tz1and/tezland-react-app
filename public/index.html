@@ -23,159 +23,84 @@
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>tz1and</title>
-    <style>
-      #loader-container {
-        background-color: white;
-        width: 100vw;
-        height: 100vh;
-        position:fixed;
-        left:0;
-        top:0;
-        z-index: 2000;
-        visibility: visible;
-        opacity: 1;
-      }
-      
-      .hidden {
-        visibility: hidden !important;
-        opacity: 0 !important;
-        transition: visibility 0s 0.2s, opacity 0.2s linear;
-      }
-    
-      .mul4 {
-        height: 8em;
-        width: 8em;
-        background-color: white;
-    
-        margin: 0;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translateY(-50%) translateX(-50%);
-      }
-    
-      .mul4stripe {
-        height: 2em;
-        width: 8em;
-      }
-    
-      .mul4stripe1 {
-        -webkit-animation: mul4stripe1 3s infinite ease-in-out;
-        animation: mul4stripe1 3s infinite ease-in-out;
-      }
-    
-      @-webkit-keyframes mul4stripe1 {
-    
-        0%, 60%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        10%, 50% {
-          background-color: white;
-        }
-      }
-    
-      @keyframes mul4stripe1 {
-    
-        0%, 60%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        10%, 50% {
-          background-color: white;
-        }
-      }
-    
-      .mul4stripe2 {
-        -webkit-animation: mul4stripe2 3s infinite ease-in-out;
-        animation: mul4stripe2 3s infinite ease-in-out;
-      }
-    
-      @-webkit-keyframes mul4stripe2 {
-    
-        0%, 10%, 70%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        20%, 60% {
-          background-color: white;
-        }
-      }
-    
-      @keyframes mul4stripe2 {
-    
-        0%, 10%, 70%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        20%, 60% {
-          background-color: white;
-        }
-      }
-    
-      .mul4stripe3 {
-        -webkit-animation: mul4stripe3 3s infinite ease-in-out;
-        animation: mul4stripe3 3s infinite ease-in-out;
-      }
-    
-      @-webkit-keyframes mul4stripe3 {
-    
-        0%, 20%, 80%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        30%, 70% {
-          background-color: white;
-        }
-      }
-    
-      @keyframes mul4stripe3 {
-    
-        0%, 20%, 80%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        30%, 70% {
-          background-color: white;
-        }
-      }
-    
-      .mul4stripe4 {
-        -webkit-animation: mul4stripe4 3s infinite ease-in-out;
-        animation: mul4stripe4 3s infinite ease-in-out;
-      }
-    
-      @-webkit-keyframes mul4stripe4 {
-    
-        0%, 30%, 90%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        40%, 80% {
-          background-color: white;
-        }
-      }
-    
-      @keyframes mul4stripe4 {
-    
-        0%, 30%, 90%, 100% {
-          background-color: #0d6efd;
-        }
-    
-        40%, 80% {
-          background-color: white;
-        }
-      }
-    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="loader-container">
-      <div class="mul4">
-        <div class="mul4stripe mul4stripe1"></div>
-        <div class="mul4stripe mul4stripe2"></div>
-        <div class="mul4stripe mul4stripe3"></div>
-        <div class="mul4stripe mul4stripe4"></div>
+      <style>
+        #loader-container {
+          font-size: 12px;
+          background-color: white;
+          width: 100vw;
+          height: 100vh;
+          position:fixed;
+          left:0;
+          top:0;
+          z-index: 2000;
+          visibility: visible;
+          opacity: 1;
+        }
+
+        .pre-flex {
+          display: flex!important;
+          align-items: center!important;
+          justify-content: center!important;
+          height: 100%;
+        }
+
+        /*  Grid from https://github.com/tobiasahlin/SpinKit */
+        .sk-grid {
+          width: 8em;
+          height:8em;
+          /* Cube positions
+          * 1 2 3
+          * 4 5 6
+          * 7 8 9
+          */ 
+        }
+        .sk-grid-cube {
+            width: 33.33%;
+            height: 33.33%;
+            background-color: #0d6efd;
+            float: left;
+            animation: sk-grid 1.3s infinite ease-in-out; 
+        }
+        .sk-grid-cube:nth-child(1) { animation-delay: 0.2s; }
+        .sk-grid-cube:nth-child(2) { animation-delay: 0.3s; }
+        .sk-grid-cube:nth-child(3) { animation-delay: 0.4s; }
+        .sk-grid-cube:nth-child(4) { animation-delay: 0.1s; }
+        .sk-grid-cube:nth-child(5) { animation-delay: 0.2s; }
+        .sk-grid-cube:nth-child(6) { animation-delay: 0.3s; }
+        .sk-grid-cube:nth-child(7) { animation-delay: 0.0s; }
+        .sk-grid-cube:nth-child(8) { animation-delay: 0.1s; }
+        .sk-grid-cube:nth-child(9) { animation-delay: 0.2s; }
+
+        @keyframes sk-grid {
+          0%, 70%, 100% {
+            transform: scale3D(1, 1, 1); 
+          } 35% {
+            transform: scale3D(0, 0, 1); 
+          } 
+        }
+
+        .pre-hidden {
+          visibility: hidden !important;
+          opacity: 0 !important;
+          transition: visibility 0s 0.2s, opacity 0.2s linear;
+        }
+      </style>
+      <div class="pre-flex">
+        <div class="sk-grid">
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+          <div class="sk-grid-cube"></div>
+        </div>
       </div>
     </div>
     <div id="root"></div>

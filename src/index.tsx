@@ -35,7 +35,7 @@ const RenderCallback = () => {
         const loader = document.getElementById('loader-container')
         if(!loader) return;
 
-        loader.classList.add("hidden");
+        loader.classList.add("pre-hidden");
         sleep(500).then(() => {
             loader.remove();
         });
