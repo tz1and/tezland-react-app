@@ -1,5 +1,5 @@
 const webpack = require("webpack");
-const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin')
+const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 
 
 module.exports = {
@@ -19,7 +19,16 @@ module.exports = {
                     Buffer: ["buffer", "Buffer"],
                     //process: "process/browser",
                 }),
-            ]
+            ],
+            /*NOTE: Doesn't work, for whatever reason...*/
+            /*module: {
+                rules: [
+                    {
+                        test: /\.(glb|gltf)$/i,
+                        type: 'asset/resource'
+                    }
+                ]
+            }*/
         }
     },
     // Temporary fix for ModuleScopePlugin incorrectly(?) detecting relative imports.
