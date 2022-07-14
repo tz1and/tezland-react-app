@@ -57,7 +57,25 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
                 </div>);
         }
 
-    const title = props.tag === TypedArtPostType.Blog ? "Blog" : "Featured";
+    const typedArtLink = <a href="https://typed.art" target="_blank" rel="noopener noreferrer" className="link-secondary">typed.art</a>;
+
+    let title, subtitle;
+    switch (props.tag) {
+        case TypedArtPostType.Blog:
+            title = "Blog";
+            subtitle = "Updates from the team.";
+            break;
+
+        case TypedArtPostType.Featured:
+            title = "Featured";
+            subtitle = "Artists, Places, Items.";
+            break;
+
+        /*case TypedArtPostType.User:
+            title = "User";
+            subtitle = <>Your {typedArtLink} blog.</>;
+            break;*/
+    }
 
     const range1 = (n: number) => Array.from(Array(n), (_,i)=> i+1);
     console.log()
@@ -67,8 +85,12 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
             <Helmet>
                 <title>tz1and - {title}</title>
             </Helmet>
-            <h1 className='mb-6'>{title}</h1>
-            {postElements.length > 0 ? postElements : 'No more posts found.'}
+            <h1 className='display-1'>
+                {title} <span className="text-muted display-5">{subtitle}</span>
+            </h1>
+            <p className='mb-4'>All blog posts are minted on {typedArtLink}.</p>
+
+            {postElements.length > 0 ? postElements : 'No posts found.'}
 
             <Pagination className='mt-4'>
                 {page > 1 && <Pagination.First onClick={() => goToPage(1)} />}

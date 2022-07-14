@@ -25,7 +25,8 @@ export type TypedArtPost = {
 
 export enum TypedArtPostType {
     Blog = "tz1andblog",
-    Featured = "tz1andfeatured"
+    Featured = "tz1andfeatured",
+    //User = "tz1anduser"
 }
 
 const whitelist: string[] = [
