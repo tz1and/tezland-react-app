@@ -62,7 +62,7 @@ export default class Metadata {
 
             (await Promise.allSettled(metadata_db_promises)).forEach((res, index) => {
                 // If it doesn't exist, add to fetch array.
-                if (res.status === 'rejected')
+                if (res.status === 'rejected' || res.value === undefined)
                     places_to_fetch.push(places[index]);
                 // Else, append to metadatae.
                 else place_metadatas.push(res.value);
