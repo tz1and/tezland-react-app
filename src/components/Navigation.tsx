@@ -22,13 +22,13 @@ export default function Frontpage() {
                         <Nav.Link as={NavLink} to="/map" className="nav-link">Map</Nav.Link>
                         <Nav.Link as={NavLink} to="/mint" className="nav-link">Mint</Nav.Link>
 
-                        <NavDropdown title={<span>Blog {newBadge}</span>} id="basic-nav-dropdown">
+                        <NavDropdown title={<span>Blog {newBadge}</span>} id="blog-nav-dropdown">
                             <NavDropdown.Item as={Link} to="/blog">Blog</NavDropdown.Item>
                             <NavDropdown.Item as={Link} to="/blog/featured">Featured</NavDropdown.Item>
                         </NavDropdown>
 
-                        <NavDropdown title={<span>Events {newBadge}</span>} id="basic-nav-dropdown">
-                            <NavDropdown className="dropdown-submenu" title="1of1 July" id="basic-nav-dropdown">
+                        <NavDropdown title={<span>Events {newBadge}</span>} id="events-nav-dropdown">
+                            <NavDropdown className="dropdown-submenu" title="1of1 July" id="1of1-event-nav-dropdown">
                                 <NavDropdown.Item as={NavLink} to="/event/%231of1/1of1%20July">Places</NavDropdown.Item>
                                 <NavDropdown.Item as={NavLink} to="/t/%231of1">Items</NavDropdown.Item>
                             </NavDropdown>
