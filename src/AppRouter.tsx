@@ -2,7 +2,6 @@ import React, { Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auctions from './routes/Auctions';
 import { CreateAuctionFormW } from './forms/CreateAuction';
-import { Map } from './routes/Map';
 //import ComingSoon from './routes/ComingSoon';
 import SiteLayout from './routes/SiteLayout';
 import DirectoryLayout from './layouts/DirectoryLayout';
@@ -18,8 +17,6 @@ import { TezosWalletProvider } from './components/TezosWalletContext'
 import { isDev } from './utils/Utils';
 import User from './routes/directory/User';
 import Item from './routes/directory/Item';
-import { DirectoryMap } from './routes/DirectoryMap';
-import { EventMap } from './routes/EventMap';
 import { Tag } from './routes/directory/Tag';
 import { PlacePage } from './routes/directory/PlacePage';
 import { Search } from './routes/directory/Search';
@@ -29,14 +26,12 @@ import { TypedArtBlog } from './routes/blog/TypedArtBlog';
 import { TypedArtBlogPost } from './routes/blog/TypedArtBlogPost';
 import { TypedArtPostType } from './routes/blog/TypedArtUtils';
 import EnterDirectory from './routes/EnterDirectory';
+import Loading from './components/util/Loading';
 
 
-const Loading = () => <div className="d-flex justify-content-center align-items-center" style={{height: "100%"}}>
-    <div className="spinner-border text-primary" style={{width: "6rem", height: "6rem"}} role="status">
-        <span className="visually-hidden">Loading...</span>
-    </div>
-</div>;
-
+const Map = React.lazy(() => import('./routes/Map'));
+const EventMap = React.lazy(() => import('./routes/EventMap'));
+const DirectoryMap = React.lazy(() => import('./routes/DirectoryMap'));
 const Explore = React.lazy(() => import('./components/Explore'));
 const GenerateMap = React.lazy(() => import('./routes/GenerateMap'));
 const Acknowledgements = React.lazy(() => import('./routes/Acknowledgements'));
@@ -65,10 +60,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                 {props.children}
                 <Routes>
                     {!directoryEnabled ?
-                        <Route path="/" element={
-                            <Suspense fallback={<Loading />}>
-                                <SiteLayout />
-                            </Suspense>}>
+                        <Route path="/" element={<SiteLayout />}>
                             <Route path="" element={<Frontpage />} />
 
                             <Route path="mint" element={<MintFormWrapper />}/>

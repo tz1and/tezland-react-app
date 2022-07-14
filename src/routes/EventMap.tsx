@@ -1,13 +1,14 @@
-import InteractiveMap from '../components/InteractiveMap';
-import { MarkerMode } from '../world/WorldMap';
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { MarkerMode } from '../world/WorldMap';
 import { useParams } from 'react-router-dom';
 import { grapphQLUser } from '../graphql/user';
 import assert from 'assert';
-import { Helmet } from 'react-helmet-async';
 
 
-export const EventMap: React.FC<{}> = () => {
+const InteractiveMap = React.lazy(() => import('../components/InteractiveMap'));
+
+const EventMap: React.FC<{}> = () => {
     const params = useParams();
 
     const [markedPlaces, setMarkedPlaces] = useState<number[]>()
@@ -46,3 +47,5 @@ export const EventMap: React.FC<{}> = () => {
         </main>
     );
 }
+
+export default EventMap;

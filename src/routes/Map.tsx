@@ -1,9 +1,11 @@
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import InteractiveMap from '../components/InteractiveMap';
 import { MarkerMode } from '../world/WorldMap';
 
 
-export const Map: React.FC<{}> = (props) => {
+const InteractiveMap = React.lazy(() => import('../components/InteractiveMap'));
+
+const Map: React.FC<{}> = () => {
     return (
         <main>
             <Helmet>
@@ -18,3 +20,5 @@ export const Map: React.FC<{}> = (props) => {
         </main>
     );
 }
+
+export default Map;

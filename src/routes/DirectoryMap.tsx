@@ -1,10 +1,12 @@
-import InteractiveMap from '../components/InteractiveMap';
+import React from 'react';
 import { getDirectoryEnabledGlobal } from '../forms/DirectoryForm';
 import { MarkerMode } from '../world/WorldMap';
 import assert from 'assert';
 
 
-export const DirectoryMap: React.FC<{}> = (props) => {
+const InteractiveMap = React.lazy(() => import('../components/InteractiveMap'));
+
+const DirectoryMap: React.FC<{}> = (props) => {
     const directoryState = getDirectoryEnabledGlobal();
     assert(directoryState)
 
@@ -14,3 +16,5 @@ export const DirectoryMap: React.FC<{}> = (props) => {
         </main>
     );
 }
+
+export default DirectoryMap;
