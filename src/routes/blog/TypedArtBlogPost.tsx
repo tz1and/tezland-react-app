@@ -13,7 +13,7 @@ export const TypedArtBlogPost: React.FC<{}> = (props) => {
     const [post, setPost] = useState<TypedArtPost>();
     const [error, setError] = useState<string>();
 
-    // Set tag state when prop changes.
+    // Set id state when prop changes.
     useEffect(() => {
         setId(parseInt(params.id!));
     }, [params.id]);
