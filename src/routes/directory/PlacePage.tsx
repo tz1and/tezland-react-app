@@ -17,17 +17,19 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
     const navigate = useNavigate();
     const params = useParams();
 
-    assert(params.id);
-    const tokenId = parseInt(params.id);
-
+    const [tokenId, setTokenId] = useState(parseInt(params.id!));
     const [metadata, setMetadata] = useState<any>();
 
+    // Set tokenId state when prop changes.
     useEffect(() => {
-        if(!metadata)
-            Metadata.getPlaceMetadata(tokenId).then((res) => {
-                setMetadata(res)
-            });
-    }, [metadata, tokenId]);
+        setTokenId(parseInt(params.id!));
+    }, [params.id]);
+
+    useEffect(() => {
+        Metadata.getPlaceMetadata(tokenId).then(res => {
+            setMetadata(res);
+        });
+    }, [tokenId]);
 
     const teleportToPlace = () => {
         if(getDirectoryEnabledGlobal()) {

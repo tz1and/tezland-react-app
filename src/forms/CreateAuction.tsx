@@ -33,7 +33,7 @@ export const MapSetCenter: React.FC<MapSetCenterProps> = (props) => {
 
     useEffect(() => {
         parentMap.panTo(props.center, { animate: props.animate });
-    });
+    }, [parentMap, props]);
 
     return (
         <div></div>

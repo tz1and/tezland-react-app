@@ -23,7 +23,7 @@ const Item: React.FC<{}> = (props) => {
     useEffect(() => {
         Metadata.getItemMetadata(tokenId).then(res => {
             setMetadata(res);
-        })
+        });
     }, [tokenId]);
 
     let content =
