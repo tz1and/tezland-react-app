@@ -7,7 +7,6 @@ import Metadata from '../../world/Metadata';
 import { MapSetCenter } from '../../forms/CreateAuction';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
-import assert from 'assert';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
 
 
