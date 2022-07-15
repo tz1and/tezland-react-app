@@ -20,7 +20,6 @@ import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
-import { isDev } from "../utils/Utils";
 import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
@@ -104,7 +103,7 @@ export class World implements WorldInterface {
         this.scene.autoClear = false; // Color buffer
 
         // Enable inspector in dev
-        if(isDev()) {
+        if (process.env.NODE_ENV === 'development') {
             import("@babylonjs/inspector").then( () => {
                 const inspector_root = document.getElementById("inspector-host");
                 assert(inspector_root);
@@ -296,7 +295,7 @@ export class World implements WorldInterface {
 
     public dispose() {
         // Hide inspector in dev
-        if(isDev()) this.scene.debugLayer.hide();
+        if(process.env.NODE_ENV === 'development') this.scene.debugLayer.hide();
 
         this.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
         window.removeEventListener('resize', this.onResize);

@@ -7,7 +7,7 @@ import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/WorldMap';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/DirectoryForm';
 import { useNavigate } from 'react-router-dom';
-import { createBabylonEngine } from '../world/BabylonUtils';
+import BabylonUtils from '../world/BabylonUtils';
 
 
 type InteractiveMapPopupProps = {
@@ -111,7 +111,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps, InteractiveMap
     override componentDidMount() {
         assert(this.mount.current);
 
-        createBabylonEngine(this.mount.current).then(engine => {
+        BabylonUtils.createEngine(this.mount.current).then(engine => {
             try {
                 const worldMap = new WorldMap(engine, this.props.zoom, this.props.threeD, this.props.markerMode, this.state.mapControl, this.context, this.props.placeId, this.props.location);
 

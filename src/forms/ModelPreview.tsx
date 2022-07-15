@@ -8,7 +8,7 @@ import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';
 import BigNumber from 'bignumber.js';
-import { createBabylonEngine } from '../world/BabylonUtils';
+import BabylonUtils from '../world/BabylonUtils';
 
 
 class PreviewScene {
@@ -255,7 +255,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     override componentDidMount() {
         assert(this.mount.current);
 
-        createBabylonEngine(this.mount.current).then(engine => {
+        BabylonUtils.createEngine(this.mount.current).then(engine => {
             try {
                 // TODO: should be state!
                 this.preview = new PreviewScene(engine);

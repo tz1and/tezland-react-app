@@ -10,7 +10,6 @@ import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import SunLight from "./SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
-import { isDev } from "../utils/Utils";
 import WorldGrid from "../utils/WorldGrid";
 import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
@@ -262,9 +261,6 @@ export class WorldMap implements WorldInterface {
     }
 
     public dispose() {
-        // Hide inspector in dev
-        if(isDev()) this.scene.debugLayer.hide();
-
         window.removeEventListener('resize', this.onResize);
 
         this.places.clear();

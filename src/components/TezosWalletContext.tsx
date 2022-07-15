@@ -5,7 +5,6 @@ import { BeaconWallet } from '@taquito/beacon-wallet';
 import { NetworkType, DAppClientOptions } from '@airgap/beacon-dapp';
 import Conf from "../Config";
 import { isDev } from "../utils/Utils";
-import { InMemorySigner } from "@taquito/signer";
 import EventEmitter from "events";
 import { OperationPending, OperationPendingData } from "./OperationPending";
 import assert from "assert";
@@ -153,14 +152,17 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
     }
 
     private setupWallet() {
-        if(isDev() && useInMemorySigner) {
+        // Who knows if this will strip the in-memory signer from the package...
+        if(process.env.NODE_ENV === 'development' && useInMemorySigner) {
             // NOTE: these are KNOWN account keys.
             // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
             // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt
-            InMemorySigner.fromSecretKey('edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq').then((signer) => {
-                this.state.tezos.setProvider({signer});
-                signer.publicKeyHash().then((pkh) => this.setState({ walletAddress: pkh }, () => this.state.walletEventEmitter.emit("walletChange")));
-            })
+            import('@taquito/signer').then(signerModule => {
+                signerModule.InMemorySigner.fromSecretKey('edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq').then((signer) => {
+                    this.state.tezos.setProvider({signer});
+                    signer.publicKeyHash().then((pkh) => this.setState({ walletAddress: pkh }, () => this.state.walletEventEmitter.emit("walletChange")));
+                });
+            });
         }
         else this.setupBeaconWallet();
     }

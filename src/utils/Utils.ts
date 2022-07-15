@@ -33,7 +33,16 @@ export const pointIsInside = (point: Vector3, mesh: Mesh) => {
     return pointFound;
 }
 
+// NOTE: using isDev or inDev will stop webpack from stripping this code
+// If that is desired either use inDev or use:
+// if (process.env.NODE_ENV === 'development') ...
+// No, that's not a joke.
 export const isDev = () => !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+
+export const inDev = <T>(func: () => T): T | undefined => {
+  if (process.env.NODE_ENV === 'development') return func();
+  return undefined;
+}
 
 export const toHexString = (bytes: Uint8Array) => bytes.reduce((str: String, byte: Number) => str + byte.toString(16).padStart(2, '0'), '');
 

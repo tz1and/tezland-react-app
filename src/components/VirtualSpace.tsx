@@ -6,7 +6,7 @@ import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
 import { Vector3 } from '@babylonjs/core';
-import { createBabylonEngine } from '../world/BabylonUtils';
+import BabylonUtils from '../world/BabylonUtils';
 
 
 type VirtualSpaceProps = {
@@ -74,7 +74,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
             return;
         }
 
-        createBabylonEngine(this.mount.current).then(engine => {
+        BabylonUtils.createEngine(this.mount.current).then(engine => {
             try {
                 const world = new World(engine, this.props.appControl, this.context);
 

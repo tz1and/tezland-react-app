@@ -14,7 +14,6 @@ import Privacy from './routes/Privacy';
 import MintFormWrapper from './forms/MintFormWrapper';
 import PageNotFound from './routes/PageNotFound';
 import { TezosWalletProvider } from './components/TezosWalletContext'
-import { isDev } from './utils/Utils';
 import User from './routes/directory/User';
 import Item from './routes/directory/Item';
 import { Tag } from './routes/directory/Tag';
@@ -33,7 +32,6 @@ const Map = React.lazy(() => import('./routes/Map'));
 const EventMap = React.lazy(() => import('./routes/EventMap'));
 const DirectoryMap = React.lazy(() => import('./routes/DirectoryMap'));
 const Explore = React.lazy(() => import('./components/Explore'));
-const GenerateMap = React.lazy(() => import('./routes/GenerateMap'));
 const Acknowledgements = React.lazy(() => import('./routes/Acknowledgements'));
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
@@ -53,6 +51,12 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
             <Route path="swaps" element={<NewSwaps />} />
         </Route>
     </>;
+
+    let devRoutes;
+    if (process.env.NODE_ENV === 'development') {
+        const GenerateMap = React.lazy(() => import('./routes/GenerateMap'));
+        devRoutes = <Route path="genmap" element={<GenerateMap />} />;
+    }
 
     return (
         <TezosWalletProvider>
@@ -84,8 +88,8 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             </Route>
 
                             {directoryRoutes}
+                            {devRoutes}
 
-                            {isDev() ? <Route path="genmap" element={<GenerateMap />} /> : null}
                             <Route path="*" element={<PageNotFound />} />
 
                             <Route path="directory/*" element={<EnterDirectory setDirectoryEnabled={setDirectoryEnabled} />} />
