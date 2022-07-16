@@ -16,6 +16,8 @@ import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
 import { WorldInterface } from "./WorldInterface";
 import { grapphQLUser } from "../graphql/user";
+//import MultiplayerClient from "./MultiplayerClient";
+import { truncateAddress } from "../utils/Utils";
 import assert from "assert";
 
 import markerIconBlue from '../img/map/mapmarker-blue.png'
@@ -27,7 +29,6 @@ import markerIconRed from '../img/map/mapmarker-red.png'
 
 import { WorldDefinition } from "../worldgen/WorldGen";
 import world_definition from "../models/districts.json";
-import { truncateAddress } from "../utils/Utils";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -94,6 +95,8 @@ export class WorldMap implements WorldInterface {
 
     private markerOverlayTexture: AdvancedDynamicTexture;
     private underMouseInfo: TextBlock;
+
+    //private multiClient: MultiplayerClient;
 
     constructor(engine: Engine, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number, location?: [number, number]) {
         this.mapControlFunctions = mapControlFunctions;
@@ -293,6 +296,10 @@ export class WorldMap implements WorldInterface {
             }
         });
 
+        // TODO: not sure when to enable. doesn't work well with limited frame-rate.
+        // interpolation gets wonky.
+        //this.multiClient = new MultiplayerClient(this, true);
+
         this.needsRedraw = true;
     }
 
@@ -302,6 +309,8 @@ export class WorldMap implements WorldInterface {
 
     public dispose() {
         window.removeEventListener('resize', this.onResize);
+
+        //this.multiClient.disconnectAndDispose();
 
         this.places.clear();
 
@@ -644,9 +653,18 @@ export class WorldMap implements WorldInterface {
         return Math.max(w,h);
     }
 
+    /*private updateMultiplayer() {
+        if(this.multiClient.connected) {
+            // interpolate other players
+            this.multiClient.interpolateOtherPlayers();
+        }
+    }*/
+
     // TODO: go over this again.
     public updateWorld() {
         const cameraPos = this.orthoCam.getTarget();
+
+        //this.updateMultiplayer();
 
         // Update current place.
         // TODO: only occasionally check. maybe based on distance or time.

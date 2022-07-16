@@ -7,25 +7,28 @@ import {  Constants, DynamicTexture, Mesh, MeshBuilder, Nullable,
 import { fromHexString, toHexString, truncate } from '../utils/Utils';
 import crypto from 'crypto';
 import { Logging } from '../utils/Logging';
+import { WorldInterface } from './WorldInterface';
 
 
 export default class MultiplayerClient { //extends EventEmitter {
     public static UpdateInterval = 100;
 
     private ws: WebSocket;
-    private world: World;
+    private world: WorldInterface;
     private otherPlayersNode: Nullable<TransformNode>;
     private otherPlayers: Map<string, OtherPlayer> = new Map();
 
     private _connected: boolean;
     get connected(): boolean { return this._connected; }
 
+    private readOnlyClient: boolean;
     private identity?: string | undefined;
 
-    constructor(world: World) {
+    constructor(world: WorldInterface, readOnlyClient: boolean = false) {
         //super(); // event emitter
 
         this.world = world;
+        this.readOnlyClient = readOnlyClient;
         this._connected = false;
 
         this.otherPlayersNode = null;
@@ -42,8 +45,11 @@ export default class MultiplayerClient { //extends EventEmitter {
 
         this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.world.scene);
 
-        this.identity = this.world.walletProvider.isWalletConnected() ?
-            this.world.walletProvider.walletPHK() : crypto.randomBytes(18).toString('hex');
+        let randomUid = false;
+        if (this.readOnlyClient) randomUid = true;
+        else randomUid = !this.world.walletProvider.isWalletConnected();
+
+        this.identity = randomUid ? crypto.randomBytes(18).toString('hex') : this.world.walletProvider.walletPHK();
 
         ws.onopen = () => {
             this.handshake();
@@ -142,8 +148,10 @@ export default class MultiplayerClient { //extends EventEmitter {
             let p = this.otherPlayers.get(u.name);
             if(!p) {
                 p = new OtherPlayer(u.name, this.otherPlayersNode!);
-                this.world.shadowGenerator?.addShadowCaster(p.head);
-                this.world.shadowGenerator?.addShadowCaster(p.body);
+                if (this.world instanceof World) {
+                    this.world.shadowGenerator?.addShadowCaster(p.head);
+                    this.world.shadowGenerator?.addShadowCaster(p.body);
+                }
                 this.otherPlayers.set(u.name, p);
                 p.update(u.upd);
                 p.moveToLast();
