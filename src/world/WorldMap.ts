@@ -277,6 +277,9 @@ export class WorldMap implements WorldInterface {
                 this.underMouseInfo.leftInPixels += parseInt(this.underMouseInfo.width.toString()) * 0.5 + 5;
                 this.underMouseInfo.topInPixels += parseInt(this.underMouseInfo.height.toString()) * 0.5 + 5;
             }
+            else {
+                this.underMouseInfo.text = "";
+            }
         }
 
         // Only render if map or camera have been update.
