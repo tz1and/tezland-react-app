@@ -9,6 +9,7 @@ import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
 import { grapphQLUser } from "../graphql/user";
 import { CollectItemFromProps, OverlayForm } from "../world/AppControlFunctions";
+import AppSettings from "../storage/AppSettings";
 
 
 class ItemInfoGui {
@@ -158,6 +159,7 @@ export default class PickingGuiController {
     private infoGui: ItemInfoGui;
 
     private cursor: Nullable<Control>;
+    private fps: Nullable<TextBlock>;
 
     constructor(world: World) {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -170,6 +172,17 @@ export default class PickingGuiController {
 
         this.current_node = null;
         this.world = world;
+
+        if (AppSettings.showFps.value) {
+            this.fps = new TextBlock("fps");
+            this.fps.color = '#eeeeee';
+            this.fps.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_RIGHT;
+            this.fps.textVerticalAlignment = TextBlock.VERTICAL_ALIGNMENT_TOP;
+            this.fps.top = 5;
+            this.fps.left = -5;
+            this.advancedTexture.addControl(this.fps);
+        }
+        else this.fps = null;
 
         // pointer actions
         // mouse interaction when locked
@@ -291,5 +304,9 @@ export default class PickingGuiController {
 
         this.cursor = this.createCursor(cursor);
         this.advancedTexture.addControl(this.cursor);
+    }
+
+    public setFps(fps: number) {
+        if (this.fps) this.fps.text = fps.toFixed() + " fps";
     }
 }

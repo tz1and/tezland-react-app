@@ -41,7 +41,7 @@ export default class PlayerController {
     private tempObjectPos: Vector3;
     //private state: ControllerState;
 
-    private pickingGui: PickingGuiController;
+    readonly pickingGui: PickingGuiController;
 
     readonly playerTrigger: Mesh;
 

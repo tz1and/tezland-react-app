@@ -76,9 +76,6 @@ export class World implements WorldInterface {
         this.appControlFunctions = appControlFunctions;
         this.engine = engine;
 
-        // Get the canvas element from the DOM.
-        const divFps = document.getElementById("fps");
-
         this.walletProvider = walletProvider;
 
         this.places = new Map<number, PlaceNode>();
@@ -235,8 +232,8 @@ export class World implements WorldInterface {
         this.engine.runRenderLoop(() => {
             this.scene.render();
             const frameId = this.engine.frameId;
-            if (divFps && frameId > 0 && frameId % 5 === 0)
-                divFps.innerHTML = this.engine.getFps().toFixed() + " fps";
+            if (frameId > 0 && frameId % 5 === 0)
+                this.playerController.pickingGui.setFps(this.engine.getFps());
         });
 
         window.addEventListener('resize', this.onResize);

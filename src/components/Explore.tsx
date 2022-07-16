@@ -7,7 +7,7 @@ import { Inventory } from '../forms/Inventory';
 import { Instructions } from '../forms/Instructions';
 import { ControlsHelp } from './ControlsHelp';
 import { SettingsForm } from '../forms/SettingsForm';
-import AppSettings, { AppTerms } from '../storage/AppSettings';
+import { AppTerms } from '../storage/AppSettings';
 import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
@@ -33,7 +33,6 @@ type ExploreProps = {
 type ExploreState = {
     show_form: OverlayForm;
     form_props?: OverlayFormProps | undefined;
-    showFps: boolean; // should be a prop?
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     currentPlace: PlaceNode | null;
     virtualSpaceFailed: boolean;
@@ -46,7 +45,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         super(props);
         this.state = {
             show_form: AppTerms.termsAccepted.value ? OverlayForm.Instructions : OverlayForm.Terms,
-            showFps: AppSettings.showFps.value,
             notifications: [],
             currentPlace: null,
             virtualSpaceFailed: false
@@ -229,7 +227,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                     <title>tz1and - Explore</title>
                 </Helmet>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
-                {this.state.showFps ? <div id="fps">0</div> : null}
                 {overlay}
                 {controlInfo}
                 {placeInfoOverlay}
