@@ -71,12 +71,14 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     public async updateOwnerAndPermissions(force: boolean = false) {
         // Update owner and permissions, if they weren't updated recently.
+        // TODO: the rate limiting here is a bit wonky - it breaks when there was an error fetching the owner.
+        // Maybe reset last_owner_and_permission_update on failiure?
         if(force || Date.now() - 60000 > this.last_owner_and_permission_update) {
             Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
             try {
+                this.last_owner_and_permission_update = Date.now();
                 this.owner = await Contracts.getPlaceOwner(this.placeId);
                 this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
-                this.last_owner_and_permission_update = Date.now();
             }
             catch(reason: any) {
                 Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
