@@ -166,7 +166,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
                         next={this.fetchMoreData}
                         hasMore={more_data}
                         loader={<h5 className='mt-3'>Loading...</h5>}
-                        scrollThreshold={1.0}
+                        scrollThreshold="100px"
                         scrollableTarget="inventoryScrollTarget"
                     >
                         {content}

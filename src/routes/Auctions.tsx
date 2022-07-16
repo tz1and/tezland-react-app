@@ -237,7 +237,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         next={this.fetchMoreData}
                         hasMore={this.state.more_data}
                         loader={<h4>Loading...</h4>}
-                        scrollThreshold={1.0}
+                        scrollThreshold="100px"
                     >
                         {rows}
                     </InfiniteScroll>
