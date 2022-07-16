@@ -422,7 +422,7 @@ export class World implements WorldInterface {
             pipeline.imageProcessing.exposure = 1.05;
 
             pipeline.grainEnabled = true;
-            pipeline.grain.intensity = 3;
+            pipeline.grain.intensity = 4;
             pipeline.grain.animated = true;
         }
     }
