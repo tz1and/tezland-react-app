@@ -3,7 +3,8 @@ import { Engine, Scene, Vector3, Color3, Vector2,
     ShadowGenerator, CascadedShadowGenerator, Mesh,
     AbstractMesh, DeepImmutable, MeshBuilder,
     Nullable, Ray, ReflectionProbe, RenderTargetTexture,
-    SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+    SceneLoader, Texture, TransformNode,
+    TonemappingOperator, DefaultRenderingPipeline } from "@babylonjs/core";
 import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import PlayerController from "../controllers/PlayerController";
 import { PlaceId } from "./nodes/BasePlaceNode";
@@ -226,6 +227,9 @@ export class World implements WorldInterface {
         // set shadow generator on player controller.
         this.playerController.shadowGenerator = this.shadowGenerator;
 
+        // TODO: need to figure out how to exclude GUI.
+        // this.setupDefaultRenderingPipeline();
+
         // Render every frame
         this.engine.stopRenderLoop();
         this.engine.runRenderLoop(() => {
@@ -382,6 +386,49 @@ export class World implements WorldInterface {
 
         this.worldUpdatePending = false;
     };
+
+    private setupDefaultRenderingPipeline() {
+        var pipeline = new DefaultRenderingPipeline(
+            "defaultPipeline", // The name of the pipeline
+            false, // NOTE: HDR messes with the brightness. maybe adding tonemapping helps?
+            this.scene, // The scene instance
+            [this.playerController.camera] // The list of cameras to be attached to
+        );
+
+        if (AppSettings.enableAntialiasing) {
+            pipeline.samples = 4;
+        }
+
+        // TODO: add option for FXAA
+        if (AppSettings.enableAntialiasing) {
+            pipeline.fxaaEnabled = true;
+        }
+        
+        // TODO: add bloom option.
+        // NOTE: let's not do bloom for now, because it blooms the UI too.
+        if (false) {
+            pipeline.bloomEnabled = true;
+            // TODO: find some nice settings.
+            //pipeline.bloomThreshold = 0.8;
+            //pipeline.bloomWeight = 0.3;
+            //pipeline.bloomKernel = 64;
+            //pipeline.bloomScale = 0.5;
+        }
+
+        // TODO: figure out what this does.
+        // Maybe have it under some "other postprocessing" option
+        if (true) {
+            pipeline.imageProcessingEnabled = true;
+
+            pipeline.imageProcessing.toneMappingEnabled = true;
+            pipeline.imageProcessing.toneMappingType = TonemappingOperator.Photographic;
+            pipeline.imageProcessing.exposure = 1.05;
+
+            pipeline.grainEnabled = true;
+            pipeline.grain.intensity = 3;
+            pipeline.grain.animated = true;
+        }
+    }
 
     private loadDistricts() {
         const world_def = world_definition;
