@@ -69,11 +69,17 @@ export default abstract class BasePlaceNode extends TransformNode {
         this._buildHeight = this.placeMetadata.buildHeight;
     }
 
-    public async updateOwnerAndPermissions(force: boolean = false) {
+    /**
+     * Updates the place owner and permissions.
+     * @param force force update, ignoring validity.
+     * @param validity validity of information in seconds.
+     */
+    public async updateOwnerAndPermissions(force: boolean = false, validity: number = 60) {
         // Update owner and permissions, if they weren't updated recently.
         // TODO: the rate limiting here is a bit wonky - it breaks when there was an error fetching the owner.
         // Maybe reset last_owner_and_permission_update on failiure?
-        if(force || Date.now() - 60000 > this.last_owner_and_permission_update) {
+        if(force || (Date.now() - (validity * 1000)) > this.last_owner_and_permission_update) {
+            const prev_update = this.last_owner_and_permission_update;
             Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
             try {
                 this.last_owner_and_permission_update = Date.now();
@@ -81,6 +87,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
             }
             catch(reason: any) {
+                this.last_owner_and_permission_update = prev_update;
                 Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
                 Logging.InfoDev(reason);
             }

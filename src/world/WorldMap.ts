@@ -264,7 +264,7 @@ export class WorldMap implements WorldInterface {
             if (pickResult && pickResult.hit) {
                 if (pickResult.pickedMesh && pickResult.pickedMesh.parent instanceof MapPlaceNode) {
                     const parent = pickResult.pickedMesh.parent;
-                    parent.updateOwnerAndPermissions().catch(e => {});
+                    parent.updateOwnerAndPermissions(false, 3600).catch(e => {});
                     
                     this.underMouseInfo.text = "Place #" + parent.placeId + "\nOwner: " + (parent.currentOwner ? truncateAddress(parent.currentOwner) : "Fetching ...");
                 }
