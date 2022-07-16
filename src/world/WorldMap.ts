@@ -93,10 +93,14 @@ export class WorldMap implements WorldInterface {
     private markerMode: MarkerMode;
 
     private markerOverlayTexture: AdvancedDynamicTexture;
+    private underMouseInfo: TextBlock;
 
     constructor(engine: Engine, zoom: number, threeD: boolean, markerMode: MarkerMode, mapControlFunctions: MapControlFunctions, walletProvider: ITezosWalletProvider, placeId?: number, location?: [number, number]) {
         this.mapControlFunctions = mapControlFunctions;
         this.engine = engine;
+
+        const canvas = this.engine.getRenderingCanvas();
+        assert(canvas, "Engine not attached to a canvas element");
 
         this.walletProvider = walletProvider;
 
@@ -133,9 +137,6 @@ export class WorldMap implements WorldInterface {
 
             camera.orthoLeft = -(zoom * 0.5);
             camera.orthoRight = (zoom * 0.5);
-
-            const canvas = this.engine.getRenderingCanvas();
-            assert(canvas, "Engine not attached to a canvas element");
 
             const ratio = canvas.height / canvas.width;
             camera.orthoTop = camera.orthoRight * ratio;
@@ -244,11 +245,17 @@ export class WorldMap implements WorldInterface {
 
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
-        const underMouseInfo = new TextBlock();
-        underMouseInfo.resizeToFit = true;
-        underMouseInfo.color = '#eeeeee';
-        underMouseInfo.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
-        this.markerOverlayTexture.addControl(underMouseInfo);
+        // Set cursor over canvas.
+        canvas.onpointerenter = () => this.setCursor("crosshair");
+        canvas.onpointerleave = () => this.setCursor("default");
+
+        // Show place # and owner when pointing at a place.
+        // TODO: maybe we could have an application-wide cache for this?
+        this.underMouseInfo = new TextBlock();
+        this.underMouseInfo.resizeToFit = true;
+        this.underMouseInfo.color = '#eeeeee';
+        this.underMouseInfo.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
+        this.markerOverlayTexture.addControl(this.underMouseInfo);
 
         this.scene.onPointerMove = (event, pickInfo) => {
             const pickResult = this.scene.pick(this.scene.pointerX, this.scene.pointerY, undefined, false);
@@ -259,16 +266,16 @@ export class WorldMap implements WorldInterface {
                     const parent = pickResult.pickedMesh.parent;
                     parent.updateOwnerAndPermissions().catch(e => {});
                     
-                    underMouseInfo.text = "Place #" + parent.placeId + "\nOwner: " + truncateAddress(parent.currentOwner);
+                    this.underMouseInfo.text = "Place #" + parent.placeId + "\nOwner: " + (parent.currentOwner ? truncateAddress(parent.currentOwner) : "Fetching ...");
                 }
                 else {
-                    underMouseInfo.text = "";
+                    this.underMouseInfo.text = "";
                 }
 
-                underMouseInfo.moveToVector3(pickResult.pickedPoint!, this.scene);
-                underMouseInfo.zIndex = pickResult.pickedPoint!.z+100;
-                underMouseInfo.leftInPixels += parseInt(underMouseInfo.width.toString()) * 0.5 + 15;
-                underMouseInfo.topInPixels += parseInt(underMouseInfo.height.toString()) * 0.5 + 15;
+                this.underMouseInfo.moveToVector3(pickResult.pickedPoint!, this.scene);
+                this.underMouseInfo.zIndex = pickResult.pickedPoint!.z+100;
+                this.underMouseInfo.leftInPixels += parseInt(this.underMouseInfo.width.toString()) * 0.5 + 5;
+                this.underMouseInfo.topInPixels += parseInt(this.underMouseInfo.height.toString()) * 0.5 + 5;
             }
         }
 
@@ -371,12 +378,18 @@ export class WorldMap implements WorldInterface {
         this.mapControlFunctions.showPopover({ screenPos: [target.centerX, target.centerY], metadata: target.metadata } as MapPopoverInfo);
     }
 
+    private setCursor(cursor: string) {
+        document.body.style.cursor = cursor;
+    }
+
     private markerEnterObserver = (control: Control, eventState: EventState) => {
-        document.body.style.cursor = "pointer"; // TODO: crosshair
+        this.setCursor("pointer");
+        this.underMouseInfo.isVisible = false;
     }
 
     private markerOutObserver = (control: Control, eventState: EventState) => {
-        document.body.style.cursor = "default";
+        this.setCursor("crosshair");
+        this.underMouseInfo.isVisible = true;
     }
 
     private createMarker(description: string, pos: Vector3, color: MarkerColor, type: MarkerType, id: number): TransformNode {
