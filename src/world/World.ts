@@ -425,6 +425,22 @@ export class World implements WorldInterface {
             pipeline.grain.intensity = 4;
             pipeline.grain.animated = true;
         }
+
+        // NOTE: SSAO2 is kinda broken right now.
+        /*var ssaoRatio = {
+            ssaoRatio: 0.5, // Ratio of the SSAO post-process, in a lower resolution
+            blurRatio: 0.5// Ratio of the combine post-process (combines the SSAO and the scene)
+        };
+
+        var ssao = new SSAO2RenderingPipeline("ssao", this.scene, ssaoRatio, undefined, false);
+        ssao.radius = 5;
+        ssao.totalStrength = 1.3;
+        ssao.expensiveBlur = false;
+        ssao.samples = 16;
+        ssao.maxZ = 250;
+
+        // Attach camera to the SSAO render pipeline
+        this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", this.playerController.camera);*/
     }
 
     private loadDistricts() {
