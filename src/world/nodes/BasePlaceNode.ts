@@ -74,9 +74,9 @@ export default abstract class BasePlaceNode extends TransformNode {
         if(force || Date.now() - 60000 > this.last_owner_and_permission_update) {
             Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
             try {
-                this.last_owner_and_permission_update = Date.now();
                 this.owner = await Contracts.getPlaceOwner(this.placeId);
                 this.permissions = await Contracts.getPlacePermissions(this.world.walletProvider, this.placeId, this.owner);
+                this.last_owner_and_permission_update = Date.now();
             }
             catch(reason: any) {
                 Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
