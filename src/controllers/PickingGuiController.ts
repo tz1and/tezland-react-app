@@ -164,6 +164,9 @@ export default class PickingGuiController {
         // todo: get size from canvas?
         this.advancedTexture.idealHeight = 1920;
         this.advancedTexture.idealWidth = 1080;
+        // TODO: rendering gui on a different layer requires another camera...
+        //assert(this.advancedTexture.layer);
+        //this.advancedTexture.layer.layerMask = 0x10000000;
 
         this.current_node = null;
         this.world = world;
