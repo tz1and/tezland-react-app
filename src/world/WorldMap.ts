@@ -2,7 +2,8 @@ import { Engine, Scene, Vector3, Color3,
     Matrix, Vector4, Quaternion, HemisphericLight, Mesh,
     EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
 import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
-import { AdvancedDynamicTexture, Control, Image, Vector2WithInfo } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, Control, Image,
+    TextBlock, Vector2WithInfo } from "@babylonjs/gui";
 import { MapControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata from "./Metadata";
@@ -26,6 +27,7 @@ import markerIconRed from '../img/map/mapmarker-red.png'
 
 import { WorldDefinition } from "../worldgen/WorldGen";
 import world_definition from "../models/districts.json";
+import { truncateAddress } from "../utils/Utils";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -242,6 +244,34 @@ export class WorldMap implements WorldInterface {
 
         this.scene.registerAfterRender(this.updateWorld.bind(this));
 
+        const underMouseInfo = new TextBlock();
+        underMouseInfo.resizeToFit = true;
+        underMouseInfo.color = '#eeeeee';
+        underMouseInfo.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
+        this.markerOverlayTexture.addControl(underMouseInfo);
+
+        this.scene.onPointerMove = (event, pickInfo) => {
+            const pickResult = this.scene.pick(this.scene.pointerX, this.scene.pointerY, undefined, false);
+
+            // if the click hits the ground object, we change the impact position
+            if (pickResult && pickResult.hit) {
+                if (pickResult.pickedMesh && pickResult.pickedMesh.parent instanceof MapPlaceNode) {
+                    const parent = pickResult.pickedMesh.parent;
+                    parent.updateOwnerAndPermissions().catch(e => {});
+                    
+                    underMouseInfo.text = "Place #" + parent.placeId + "\nOwner: " + truncateAddress(parent.currentOwner);
+                }
+                else {
+                    underMouseInfo.text = "";
+                }
+
+                underMouseInfo.moveToVector3(pickResult.pickedPoint!, this.scene);
+                underMouseInfo.zIndex = pickResult.pickedPoint!.z+100;
+                underMouseInfo.leftInPixels += parseInt(underMouseInfo.width.toString()) * 0.5 + 15;
+                underMouseInfo.topInPixels += parseInt(underMouseInfo.height.toString()) * 0.5 + 15;
+            }
+        }
+
         // Only render if map or camera have been update.
         // Need to figure out a way to listen for changes in the scene
         this.engine.stopRenderLoop();
@@ -342,7 +372,7 @@ export class WorldMap implements WorldInterface {
     }
 
     private markerEnterObserver = (control: Control, eventState: EventState) => {
-        document.body.style.cursor = "pointer";
+        document.body.style.cursor = "pointer"; // TODO: crosshair
     }
 
     private markerOutObserver = (control: Control, eventState: EventState) => {

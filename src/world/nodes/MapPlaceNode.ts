@@ -41,7 +41,7 @@ export default class MapPlaceNode extends BasePlaceNode {
 
         // create bounds
         this.placeBounds = MeshUtils.extrudeMeshFromShape(shape, this._buildHeight - 0.1, new Vector3(0, this._buildHeight, 0),
-            isPublic ? (this.world as WorldMap).transparentGridMatPublic : (this.world as WorldMap).transparentGridMat, 'bounds', this.world.scene, undefined, false)
+            isPublic ? (this.world as WorldMap).transparentGridMatPublic : (this.world as WorldMap).transparentGridMat, 'bounds', this.world.scene, undefined, true)
 
         // enable edge rendering
         this.placeBounds.enableEdgesRendering();
