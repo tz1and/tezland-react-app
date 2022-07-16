@@ -1,8 +1,6 @@
-import React, { RefObject, useEffect, useRef } from 'react';
-import { MapControlFunctions } from '../world/AppControlFunctions';
+import React, { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import './VirtualSpace.css';
-import TezosWalletContext from './TezosWalletContext';
-import assert from 'assert';
+import { useTezosWalletContext } from './TezosWalletContext';
 import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/WorldMap';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/DirectoryForm';
@@ -80,72 +78,66 @@ type InteractiveMapProps = {
     className?: string;
 };
 
-type InteractiveMapState = {
-    mapControl: MapControlFunctions;
-    world: WorldMap | null;
-    popoverInfo?: any;
-};
+const InteractiveMap: React.FC<InteractiveMapProps> = (props) => {
+    const context = useTezosWalletContext();
 
-class InteractiveMap extends React.Component<InteractiveMapProps, InteractiveMapState> {
-    static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    const mount = useRef<HTMLCanvasElement>(null);
 
-    private mount = React.createRef<HTMLCanvasElement>();
+    const [worldMap, setWorldMap] = useState<WorldMap>();
+    //const [failedToLoad, setFailedToLoad] = useState(false);
+    const [popoverInfo, setPopoverInfo] = useState<MapPopoverInfo>();
 
-    public failedToLoad: boolean = false;
-    private counter: number = 0;
+    const showPopoverCallback = useCallback((data: MapPopoverInfo) => {
+        if (popoverInfo !== data) {
+            setPopoverInfo(data);
+        }
+    }, [popoverInfo])
 
-    constructor(props: InteractiveMapProps) {
-        super(props);
-        this.state = {
-            world: null,
-            mapControl: {
-                showPopover: (data: MapPopoverInfo) => {
-                    if (this.state.popoverInfo !== data)
-                        this.setState({popoverInfo: data}, () => this.counter++)
-                }
-            }
-        };
-    }
+    useEffect(() => {
+        if (!mount.current) return;
 
-    override componentDidMount() {
-        assert(this.mount.current);
-
-        BabylonUtils.createEngine(this.mount.current).then(engine => {
+        var map: WorldMap | undefined;
+        BabylonUtils.createEngine(mount.current).then(engine => {
             try {
-                const worldMap = new WorldMap(engine, this.props.zoom, this.props.threeD, this.props.markerMode, this.state.mapControl, this.context, this.props.placeId, this.props.location);
+                map = new WorldMap(engine, props.zoom, props.threeD, props.markerMode, {showPopover: showPopoverCallback}, context, props.placeId, props.location);
 
-                this.setState({world: worldMap}, () => {
-                    worldMap.loadWorld().catch(e => {});
-                });
+                setWorldMap(map);
+                map.loadWorld().catch(e => {});
             }
             catch(err: any) {
-                this.failedToLoad = true;
+                //setFailedToLoad(true);
             }
-        }).catch(err => { this.failedToLoad = true; });
-    }
+        }).catch(err => { /*setFailedToLoad(true);*/ });
 
-    override componentWillUnmount() {
-        this.state.world?.dispose();
-    }
-
-    override componentDidUpdate(prevProps: InteractiveMapProps) {
-        // add marked places if marked places is now set.
-        if (this.props.markedPlaces && !prevProps.markedPlaces) {
-            this.state.world?.addMarkedPlaces(this.props.markedPlaces);
+        return () => {
+            // NOTE: we want to destroy the var worldMap that
+            // is local to this effect.
+            //setWorldMap(undefined);
+            map?.dispose();
         }
-      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mount]); //, context, props.location, props.markerMode, props.placeId, props.threeD, props.zoom, showPopoverCallback, worldMap]);
 
-    override render() {
-        let popover = this.state.popoverInfo && <InteractiveMapPopup canvasRef={this.mount} key={this.counter} popoverInfo={this.state.popoverInfo} />;
-          
-        return (
-            <div className='position-relative'>
-                {popover}
-                <canvas className={this.props.className} id="renderCanvas" touch-action="none" ref={this.mount} />
-            </div>
-        )
+    useEffect(() => {
+        if (props.markedPlaces) {
+            worldMap?.addMarkedPlaces(props.markedPlaces);
+        }
+    }, [props.markedPlaces, worldMap]);
+
+    let popover;
+    if (popoverInfo) {
+        // Construct key.
+        // NOTE: could just be popoverInfo.metadata.location if teleporters had unique ids.
+        const stringId = `${popoverInfo.metadata.location}-${popoverInfo.metadata.mapPosition[0]}-${popoverInfo.metadata.mapPosition[1]}`;
+        popover = <InteractiveMapPopup canvasRef={mount} key={stringId} popoverInfo={popoverInfo} />;
     }
+        
+    return (
+        <div className='position-relative'>
+            {popover}
+            <canvas className={props.className} id="renderCanvas" touch-action="none" ref={mount} />
+        </div>
+    )
 }
 
 export default InteractiveMap;

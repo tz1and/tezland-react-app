@@ -227,6 +227,7 @@ export class World implements WorldInterface {
         this.playerController.shadowGenerator = this.shadowGenerator;
 
         // Render every frame
+        this.engine.stopRenderLoop();
         this.engine.runRenderLoop(() => {
             this.scene.render();
             const frameId = this.engine.frameId;
