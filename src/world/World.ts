@@ -392,18 +392,16 @@ export class World implements WorldInterface {
             [this.playerController.camera] // The list of cameras to be attached to
         );
 
-        if (AppSettings.enableAntialiasing) {
+        if (AppSettings.enableAntialiasing.value) {
             pipeline.samples = 4;
         }
 
-        // TODO: add option for FXAA
-        if (AppSettings.enableAntialiasing) {
+        if (AppSettings.enableFxaa.value) {
             pipeline.fxaaEnabled = true;
         }
-        
-        // TODO: add bloom option.
+
         // NOTE: let's not do bloom for now, because it blooms the UI too.
-        if (false) {
+        if (AppSettings.enableBloom.value) {
             pipeline.bloomEnabled = true;
             // TODO: find some nice settings.
             //pipeline.bloomThreshold = 0.8;
@@ -412,7 +410,6 @@ export class World implements WorldInterface {
             //pipeline.bloomScale = 0.5;
         }
 
-        // TODO: figure out what this does.
         // Maybe have it under some "other postprocessing" option
         if (true) {
             pipeline.imageProcessingEnabled = true;
@@ -421,9 +418,11 @@ export class World implements WorldInterface {
             pipeline.imageProcessing.toneMappingType = TonemappingOperator.Photographic;
             pipeline.imageProcessing.exposure = 1.05;
 
-            pipeline.grainEnabled = true;
-            pipeline.grain.intensity = 4;
-            pipeline.grain.animated = true;
+            if (AppSettings.enableGrain.value) {
+                pipeline.grainEnabled = true;
+                pipeline.grain.intensity = 4;
+                pipeline.grain.animated = true;
+            }
         }
 
         // NOTE: SSAO2 is kinda broken right now.

@@ -3,6 +3,10 @@ import AppSettings from "../storage/AppSettings";
 
 
 namespace BabylonUtils {
+    function isWebGL2Supported() {
+        return !!document.createElement('canvas').getContext('webgl2');
+    }
+
     export async function createEngine(canvas: HTMLCanvasElement) {
         let engine: Engine;
         /*const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
@@ -19,11 +23,16 @@ namespace BabylonUtils {
             engine = webGpuEngine;
         }
         else*/ {
+            if (!isWebGL2Supported()) throw new Error("WebGL 2 not support");
+
             const options: EngineOptions = {
                 powerPreference: "high-performance",
                 preserveDrawingBuffer: true,
                 stencil: true,
-                doNotHandleContextLost: true};
+                doNotHandleContextLost: true,
+                useHighPrecisionFloats: AppSettings.highPrecisionShaders.value,
+                useHighPrecisionMatrix: AppSettings.highPrecisionShaders.value,
+                failIfMajorPerformanceCaveat: true};
 
             engine = new Engine(canvas, AppSettings.enableAntialiasing.value, options);
         }

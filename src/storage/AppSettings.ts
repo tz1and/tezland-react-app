@@ -82,6 +82,13 @@ export default class AppSettings {
     static textureRes = new AppSetting<TextureRes>("textureRes", 512, parseTextureRes);
     static fovHorizontal = new AppSetting<number>("fovHorizontal", 90, parseNumber);
 
+    static enableFxaa = new AppSetting<boolean>("enableFxaa", true, parseBool);
+    static highPrecisionShaders = new AppSetting<boolean>("highPrecisionShaders", true, parseBool);
+
+    // postprocessing
+    static enableBloom = new AppSetting<boolean>("enableBloom", true, parseBool);
+    static enableGrain = new AppSetting<boolean>("enableGrain", true, parseBool);
+
     // rpc and related options
     static rpcNode = new AppSetting<number>("rpcNode", 0, parseNumber);
 
