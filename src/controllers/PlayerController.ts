@@ -1,22 +1,20 @@
-import { Angle, Axis, FreeCamera, IWheelEvent, KeyboardEventTypes,
-    Mesh, Nullable, PointerEventTypes, Quaternion, Ray, Scene,
+import { Angle, Axis, EventState, FreeCamera, KeyboardEventTypes,
+    KeyboardInfo, Mesh, Nullable, Ray, Scene,
     ShadowGenerator, Tools, Vector2, Vector3 } from "@babylonjs/core";
 import assert from "assert";
-import BigNumber from "bignumber.js";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
-import { AppControlFunctions, DirectoryFormProps, OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";
+import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
 import PlaceNode from "../world/PlaceNode";
-import ItemNode from "../world/ItemNode";
 import { World } from "../world/World";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import PickingGuiController, { CursorType } from "./PickingGuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
-import TempObjectHelper from "./TempObjectHelper";
 import world_definition from "../models/districts.json";
-import ItemTracker from "./ItemTracker";
+import UserControllerManager from "./UserControllerManager";
+import ItemPlacementController from "./ItemPlacementController";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -28,20 +26,15 @@ const UnglitchCooldown = 10000; // 10s
 
 export default class PlayerController {
     readonly camera: FreeCamera;
-    private appControlFunctions: AppControlFunctions;
-    private scene: Scene;
+    readonly appControlFunctions: AppControlFunctions;
+    readonly world: World;
+    readonly scene: Scene;
     private _shadowGenerator: Nullable<ShadowGenerator>;
     public set shadowGenerator(sg: Nullable<ShadowGenerator>) { this._shadowGenerator = sg; }
     public get shadowGenerator(): Nullable<ShadowGenerator> { return this._shadowGenerator; }
 
-    private tempObject: Nullable<ItemNode>;
-    private tempObjectHelper: Nullable<TempObjectHelper>;
-    private tempObjectOffsetY: number;
-    private tempObjectRot: Quaternion;
-    private tempObjectPos: Vector3;
-    //private state: ControllerState;
-
     readonly pickingGui: PickingGuiController;
+    private controllerManager: UserControllerManager;
 
     readonly playerTrigger: Mesh;
 
@@ -58,13 +51,8 @@ export default class PlayerController {
     private _flyMode: boolean;
     public get flyMode(): boolean { return this._flyMode; }
 
-    /*private handleKeyUp: (e: KeyboardEvent) => void;
-    private handleKeyDown: (e: KeyboardEvent) => void;*/
-
     //private isPointerLocked: boolean = false; // TODO: still needed for something?
-    private currentPlace: Nullable<PlaceNode>;
-    private currentItem?: number | undefined;
-    private currentItemQuantity: number = 0;
+    private _currentPlace: Nullable<PlaceNode>;
 
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
@@ -73,15 +61,14 @@ export default class PlayerController {
 
     constructor(world: World, appControlFunctions: AppControlFunctions) {
         this.appControlFunctions = appControlFunctions;
+        this.world = world;
         this.scene = world.scene;
         this._shadowGenerator = null;
-        this.currentPlace = null;
-        this.tempObject = null;
-        this.tempObjectHelper = null;
-        this.tempObjectOffsetY = 0;
-        this.tempObjectRot = new Quaternion();
-        this.tempObjectPos = new Vector3();
-        this.pickingGui = new PickingGuiController(world);
+        this._currentPlace = null;
+
+        this.pickingGui = new PickingGuiController();
+        this.controllerManager = new UserControllerManager();
+        this.controllerManager.activate("picking", this);
         this._flyMode = false;
         this.camera = this.initCamera();
 
@@ -142,61 +129,8 @@ export default class PlayerController {
         document.addEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.addEventListener("pointerlockerror", this.onPointerlockError, false);
 
-        // mouse interaction when locked
-        this.scene.onPointerObservable.add(async (info, eventState) => {
-            switch(info.type) {
-                case PointerEventTypes.POINTERDOWN:
-                    if(info.event.button === 0 &&
-                        // check permissions
-                        this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() &&
-                        // check item
-                        this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
-
-                        // check item balance
-                        const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem);
-                        if (currentItemBalance <= 0) {
-                            // TODO: notification on insufficient balance.
-                            this.appControlFunctions.addNotification({
-                                id: "insufficientBalance" + this.currentItem,
-                                title: "Insufficient Balance",
-                                body: `You don't have sufficient balance to place more of item ${this.currentItem}.`,
-                                type: 'info'
-                            });
-                        }
-                        else {
-                            // TODO: move placing items into Place class.
-                            const parent = this.currentPlace.tempItemsNode;
-                            assert(parent);
-
-                            const newObject = ItemNode.CreateItemNode(this.currentPlace.placeId, new BigNumber(this.currentItem), this.scene, parent);
-                            await newObject.loadItem();
-
-                            if(newObject) {
-                                // Make sure item is place relative to place origin.
-                                newObject.position = this.tempObject.position.subtract(parent.absolutePosition);
-                                newObject.rotationQuaternion = this.tempObjectRot.clone();
-                                newObject.scaling = this.tempObject.scaling.clone();
-
-                                eventState.skipNextObservers = true;
-
-                                document.exitPointerLock();
-                                this.appControlFunctions.loadForm(OverlayForm.PlaceItem, { node: newObject, maxQuantity: currentItemBalance} as PlaceItemFromProps);
-                            }
-                        }
-                    }
-                    break;
-
-                case PointerEventTypes.POINTERWHEEL:
-                    const event = info.event as IWheelEvent;
-                    this.tempObjectOffsetY += event.deltaY * -0.001;
-
-                    eventState.skipNextObservers = true;
-                    break;
-            }
-        }, PointerEventTypes.POINTERDOWN | PointerEventTypes.POINTERWHEEL, true);
-
         // Keyboard controls. Save, remove, place, mint, whatever.
-        this.scene.onKeyboardObservable.add((kbInfo) => {
+        this.scene.onKeyboardObservable.add((kbInfo: KeyboardInfo, eventState: EventState) => {
             if(kbInfo.type === KeyboardEventTypes.KEYUP) {
                 switch(kbInfo.event.code) {
                     // Scale
@@ -208,54 +142,12 @@ export default class PlayerController {
             else if(kbInfo.type === KeyboardEventTypes.KEYDOWN) {
                 // TEMP: switch item in inventory
                 switch(kbInfo.event.code) {
-                    // Scale
-                    case "KeyR":
-                        if (this.tempObject && this.tempObjectHelper) {
-                            const scale = new Vector3(1.1, 1.1, 1.1);
-                            this.tempObject.scaling.multiplyInPlace(scale);
-                            this.tempObjectHelper.scaleUpdate(scale);
-                        }
-                        break;
-                    
-                    case "KeyF":
-                        if (this.tempObject && this.tempObjectHelper) {
-                            const scale = new Vector3(0.9, 0.9, 0.9);
-                            this.tempObject.scaling.multiplyInPlace(scale);
-                            this.tempObjectHelper.scaleUpdate(scale);
-                        }
-                        break;
-                    
-                    // Rotate
-                    case "Digit1":
-                        this.tempObject?.rotate(Vector3.Up(), Math.PI / 32);
-                        break;
-                    
-                    case "Digit2":
-                        this.tempObject?.rotate(Vector3.Up(), -Math.PI / 32);
-                        break;
-
-                    case "Digit3":
-                        this.tempObject?.rotate(Vector3.Forward(), Math.PI / 32);
-                        break;
-                    
-                    case "Digit4":
-                        this.tempObject?.rotate(Vector3.Forward(), -Math.PI / 32);
-                        break;
-
-                    case "Digit5":
-                        this.tempObject?.rotate(Vector3.Right(), Math.PI / 32);
-                        break;
-                    
-                    case "Digit6":
-                        this.tempObject?.rotate(Vector3.Right(), -Math.PI / 32);
-                        break;
-                    
                     // Save place
                     case "KeyU":
-                        if(this.currentPlace) {
+                        if(this._currentPlace) {
                             // We don't check permissions because removing of own items is always allowed.
                             // Permissions are checked when placing/marking for removal instead.
-                            if(this.currentPlace.save())
+                            if(this._currentPlace.save())
                                 document.exitPointerLock();
                         }
                         break;
@@ -268,14 +160,14 @@ export default class PlayerController {
 
                     // Opens the place properties form
                     case 'KeyP':
-                        if(this.currentPlace && this.currentPlace.placeData) {
-                            if (this.currentPlace.getPermissions.hasProps()) {
+                        if(this._currentPlace && this._currentPlace.placeData) {
+                            if (this._currentPlace.getPermissions.hasProps()) {
                                 document.exitPointerLock();
                                 // NOTE: we just assume, placeInfo in Explore is up to date.
                                 this.appControlFunctions.loadForm(OverlayForm.PlaceProperties);
                             } else {
                                 this.appControlFunctions.addNotification({
-                                    id: "permissionsProps" + this.currentPlace.placeId,
+                                    id: "permissionsProps" + this._currentPlace.placeId,
                                     title: "No permission",
                                     body: `You don't have permission to edit the properties of this place.`,
                                     type: 'info'
@@ -292,7 +184,8 @@ export default class PlayerController {
 
                     // Clear item selection
                     case 'KeyC':
-                        this.setCurrentItem(undefined, 0);
+                        console.log("activating picking controller from PlayerController")
+                        this.controllerManager.activate("picking", this);
                         break;
 
                     // Toggle fly mode
@@ -321,34 +214,6 @@ export default class PlayerController {
                         }
                         break;
 
-                    case 'Delete': // Mark item for deletion
-                        const current_item = this.pickingGui.getCurrentItem();
-                        if(current_item) {
-                            const place = world.places.get(current_item.placeId);
-                            if(place && (current_item.issuer === world.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
-                                // If the item is unsaved, remove it directly.
-                                if(current_item.itemId.lt(0)) {
-                                    current_item.dispose();
-
-                                    // track removed items.
-                                    // TODO: set issuer on temp items and avoid code duplication.
-                                    ItemTracker.trackTempItem(current_item.placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
-                                }
-                                // Otherwise mark it for removal.
-                                else {
-                                    current_item.markForRemoval = true;
-                                    current_item.setEnabled(false);
-
-                                    // track removed items.
-                                    // only track items that go to the players wallet.
-                                    if (current_item.issuer === world.walletProvider.walletPHK()) {
-                                        ItemTracker.trackTempItem(current_item.placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
-                                    }
-                                }
-                            }
-                        }
-                        break;
-
                     case 'F10': // Screenshot
                         // TODO: Sometimes screenshots are empty. Same issue as in ModelPreview.
                         const engine = this.scene.getEngine();
@@ -364,8 +229,8 @@ export default class PlayerController {
 
                     // Reload place - Dev only
                     case "KeyL":
-                        if(isDev() && this.currentPlace) {
-                            this.currentPlace.update(true);
+                        if(isDev() && this._currentPlace) {
+                            this._currentPlace.update(true);
                         }
                         break;
 
@@ -479,8 +344,9 @@ export default class PlayerController {
 
         this.pickingGui.dispose();
 
-        this.tempObject = null;
-        this.currentPlace = null;
+        this.controllerManager.deactivate();
+
+        this._currentPlace = null;
         this.shadowGenerator = null;
     }
 
@@ -513,89 +379,39 @@ export default class PlayerController {
         return this.camera.rotation;
     }
 
-    public setCurrentPlace(place: PlaceNode) {
-        if (place !== this.currentPlace) {
-            this.currentPlace = place;
+    public get currentPlace() { return this._currentPlace; }
 
-            // Update permissions, place info, notifications.
-            this.currentPlace.updateOwnerAndPermissions().then(() => {
-                this.appControlFunctions.updatePlaceInfo(place);
+    public set currentPlace(place: Nullable<PlaceNode>) {
+        if (place !== this._currentPlace) {
+            this._currentPlace = place;
 
-                Logging.InfoDev("entered place: " + place.placeId);
+            if (place) {
+                // Update permissions, place info, notifications.
+                place.updateOwnerAndPermissions().then(() => {
+                    this.appControlFunctions.updatePlaceInfo(place);
 
-                place.displayOutOfBoundsItemsNotification();
-            });
+                    Logging.InfoDev("entered place: " + place.placeId);
+
+                    place.displayOutOfBoundsItemsNotification();
+                });
+            }
         }
     }
 
-    public getCurrentPlace() { return this.currentPlace; }
+    public selectItemForPlacement(token_id: number, quantity: number) {
+        const controller = this.controllerManager.activate<ItemPlacementController>("placement", this);
 
-    public async setCurrentItem(token_id: number | undefined, qauntity: number) {
-        // remove old object.
-        if(this.tempObject) {
-            this.tempObject.dispose();
-            this.tempObject = null;
-        }
+        controller.setCurrentItem(token_id, quantity).catch(() => {
+            // TODO: handle error
+        });
+    }
 
-        if(this.tempObjectHelper) {
-            this.tempObjectHelper.dispose()
-            this.tempObjectHelper = null;
-        }
+    public handleDroppedFile(file: File) {
+        const controller = this.controllerManager.activate<ItemPlacementController>("placement", this);
 
-        if (token_id === undefined) {
-            this.currentItem = undefined;
-            this.currentItemQuantity = 0;
-            return;
-        }
-
-        try {
-            this.pickingGui.setCursor(CursorType.Loading);
-
-            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(token_id), this.scene, null);
-            await this.tempObject.loadItem();
-
-            this.currentItem = token_id;
-            this.currentItemQuantity = qauntity;
-
-            // Resetting is important for the TempObjectHelper.
-            // as it doesn't seem to be possible to get a hierarchical OOBB.
-            this.tempObjectOffsetY = 0;
-            this.tempObjectPos.setAll(0);
-            this.tempObjectRot.copyFrom(Quaternion.Identity());
-
-            // the temp object.
-            this.tempObject.rotationQuaternion = this.tempObjectRot;
-            this.tempObject.position = this.tempObjectPos;
-
-            // set pickable false on the whole hierarchy.
-            this.tempObject.getChildMeshes(false).forEach((e) => e.isPickable = false );
-
-            // Since assets are scaled to a normalised base scale now, just scale to 2 meters.
-            const new_scale = 2; // Scale to 2 meters.
-            this.tempObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-
-            // positioning helper.
-            this.tempObjectHelper = new TempObjectHelper(this.scene, this.tempObjectRot);
-            this.tempObjectHelper.modelUpdate(this.tempObject);
-
-            // make sure picking gui goes away.
-            this.pickingGui.updatePickingGui(null, 0);
-            this.pickingGui.setCursor(CursorType.Pointer);
-        }
-        catch(e) {
-            this.currentItem = undefined;
-            this.currentItemQuantity = 0;
-            this.pickingGui.setCursor(CursorType.Pointer);
-
-            this.appControlFunctions.addNotification({
-                id: "itemLimits" + token_id,
-                title: "Item failed to load",
-                body: `The item you selected (token id: ${token_id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
-                type: 'danger'
-            });
-
-            Logging.InfoDev("failed to load item: " + e);
-        }
+        controller.setFile(file).then(() => {
+            // TODO: handle error
+        });
     }
 
     // Some code to measure travel speed, because babylonjs is so
@@ -756,24 +572,7 @@ export default class PlayerController {
             this.camera.globalPosition
         ));
 
-        if(this.tempObject && this.tempObjectHelper) {
-            if(hit && hit.pickedPoint) {
-                const point = hit.pickedPoint;
-                this.tempObjectPos.set(point.x, point.y + this.tempObjectOffsetY, point.z);
-                this.tempObjectHelper.posUpdate(this.tempObjectPos);
-            }
-
-            // TODO: update only when state changed!!!!
-            if(this.currentPlace && this.currentPlace.getPermissions.hasPlaceItems() && this.currentPlace.isInBounds(this.tempObject)) {
-                this.tempObject.setEnabled(true);
-                this.tempObjectHelper.setValid(true);
-            } else {
-                this.tempObject.setEnabled(false);
-                this.tempObjectHelper.setValid(false);
-            }
-        } else if (hit) {
-            this.pickingGui.updatePickingGui(hit.pickedMesh, hit.distance);
-        }
+        this.controllerManager.updateController(hit);
     }
 
     public setCursor(cursor: CursorType) {

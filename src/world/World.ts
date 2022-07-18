@@ -377,7 +377,7 @@ export class World implements WorldInterface {
         await Promise.allSettled(placeLoadPromises);
 
         // TEMP: workaround as long as loading owner and owned is delayed.
-        const currentPlace = this.playerController.getCurrentPlace();
+        const currentPlace = this.playerController.currentPlace;
         if(currentPlace)
             this.appControlFunctions.updatePlaceInfo(currentPlace);
 
@@ -678,7 +678,7 @@ export class World implements WorldInterface {
 
             // TODO: use normal to determine whether we are inside our out.
             if (Vector3.Dot(pickResult.getNormal()!, pickResult.ray!.direction) > 0)
-                this.playerController.setCurrentPlace(pickResult.pickedMesh.parent);
+                this.playerController.currentPlace = pickResult.pickedMesh.parent;
         }
     }
 

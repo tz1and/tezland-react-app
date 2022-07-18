@@ -174,7 +174,7 @@ export default class PlaceNode extends BasePlaceNode {
                 await this.updateOwnerAndPermissions();
 
                 // Then set current place. Updates the UI as well.
-                this.world.playerController.setCurrentPlace(this);
+                this.world.playerController.currentPlace = this;
                 Logging.InfoDev("entered place: " + this.placeId);
 
                 this.displayOutOfBoundsItemsNotification();
