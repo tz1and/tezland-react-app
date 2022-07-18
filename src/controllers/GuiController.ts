@@ -9,13 +9,15 @@ import assert from "assert";
 export enum CursorType {
     Pointer = 0,
     Hand,
-    Loading
+    Loading,
+    None
 }
 
 export default class GuiController {
     private advancedTexture: AdvancedDynamicTexture;
 
-    private cursor: Nullable<Control>;
+    private cursors: Map<CursorType, Control> = new Map();
+    private activeCursor: Nullable<Control> = null;
     private fps: Nullable<TextBlock>;
 
     constructor() {
@@ -38,10 +40,12 @@ export default class GuiController {
         }
         else this.fps = null;
 
-        // circle pointer
-        this.cursor = this.createCursor(0);
-        assert(this.cursor);
-        this.advancedTexture.addControl(this.cursor);
+        // Create cursors
+        this.cursors.set(CursorType.Pointer, this.createCursor(CursorType.Pointer));
+        this.cursors.set(CursorType.Hand, this.createCursor(CursorType.Hand));
+        this.cursors.set(CursorType.Loading, this.createCursor(CursorType.Loading));
+
+        this.setCursor(CursorType.Pointer);
 
         // crosshair
         /*var hor = new Rectangle();
@@ -62,37 +66,46 @@ export default class GuiController {
     }
 
     private createCursor(cursor: CursorType): Control {
+        let cursorControl: Control;
         switch (cursor) {
             default:
             case CursorType.Pointer:
-                var cursorPoint = new Ellipse();
-                cursorPoint.widthInPixels = 4;
-                cursorPoint.heightInPixels = 4;
-                cursorPoint.color = "white";
-                return cursorPoint;
+                cursorControl = new Ellipse();
+                cursorControl.widthInPixels = 4;
+                cursorControl.heightInPixels = 4;
+                break;
 
             case CursorType.Hand:
-                var cursorHand = new Image(undefined, handIcon);
-                cursorHand.widthInPixels = 16;
-                cursorHand.heightInPixels = 16;
-                cursorHand.color = "white";
-                return cursorHand;
+                cursorControl = new Image(undefined, handIcon);
+                cursorControl.widthInPixels = 16;
+                cursorControl.heightInPixels = 16;
+                break;
 
             case CursorType.Loading:
-                var cursorDownload = new Image(undefined, downloadIcon);
-                cursorDownload.widthInPixels = 16;
-                cursorDownload.heightInPixels = 16;
-                cursorDownload.color = "white";
-                return cursorDownload;
+                cursorControl = new Image(undefined, downloadIcon);
+                cursorControl.widthInPixels = 16;
+                cursorControl.heightInPixels = 16;
+                break;
         }
+
+        cursorControl.color = "white";
+        cursorControl.isVisible = false;
+        this.advancedTexture.addControl(cursorControl);
+        return cursorControl;
     }
 
     // TODO: improve this to not constantly re-create the cursors.
     public setCursor(cursor: CursorType) {
-        if (this.cursor) this.advancedTexture.removeControl(this.cursor);
-
-        this.cursor = this.createCursor(cursor);
-        this.advancedTexture.addControl(this.cursor);
+        if (this.activeCursor) {
+            this.activeCursor.isVisible = false;
+            this.activeCursor = null;
+        }
+        
+        const newActiveCursor = this.cursors.get(cursor);
+        if (newActiveCursor) {
+            this.activeCursor = newActiveCursor;
+            this.activeCursor.isVisible = true;
+        }
     }
 
     public setFps(fps: number) {
