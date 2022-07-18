@@ -10,7 +10,7 @@ import Metadata from "../world/Metadata";
 import PlaceNode from "../world/PlaceNode";
 import { World } from "../world/World";
 import { WorldDefinition } from "../worldgen/WorldGen";
-import PickingGuiController, { CursorType } from "./PickingGuiController";
+import GuiController, { CursorType } from "./GuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import world_definition from "../models/districts.json";
 import UserControllerManager from "./UserControllerManager";
@@ -33,7 +33,7 @@ export default class PlayerController {
     public set shadowGenerator(sg: Nullable<ShadowGenerator>) { this._shadowGenerator = sg; }
     public get shadowGenerator(): Nullable<ShadowGenerator> { return this._shadowGenerator; }
 
-    readonly pickingGui: PickingGuiController;
+    readonly gui: GuiController;
     private controllerManager: UserControllerManager;
 
     readonly playerTrigger: Mesh;
@@ -66,7 +66,7 @@ export default class PlayerController {
         this._shadowGenerator = null;
         this._currentPlace = null;
 
-        this.pickingGui = new PickingGuiController();
+        this.gui = new GuiController();
         this.controllerManager = new UserControllerManager();
         this.controllerManager.activate("picking", this);
         this._flyMode = false;
@@ -342,7 +342,7 @@ export default class PlayerController {
         document.removeEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.removeEventListener("pointerlockerror", this.onPointerlockError, false);
 
-        this.pickingGui.dispose();
+        this.gui.dispose();
 
         this.controllerManager.deactivate();
 
@@ -576,7 +576,7 @@ export default class PlayerController {
     }
 
     public setCursor(cursor: CursorType) {
-        this.pickingGui.setCursor(cursor);
+        this.gui.setCursor(cursor);
     }
 
     /**

@@ -233,7 +233,7 @@ export class World implements WorldInterface {
             this.scene.render();
             const frameId = this.engine.frameId;
             if (frameId > 0 && frameId % 5 === 0)
-                this.playerController.pickingGui.setFps(this.engine.getFps());
+                this.playerController.gui.setFps(this.engine.getFps());
         });
 
         window.addEventListener('resize', this.onResize);

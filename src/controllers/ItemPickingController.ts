@@ -144,7 +144,7 @@ export default class ItemPickingController extends BaseUserController {
         this.current_node = null;
 
         this.infoGui = new ItemInfoGui();
-        this.playerController.pickingGui.addControl(this.infoGui);
+        this.playerController.gui.addControl(this.infoGui);
 
         this.mouseObserver = null;
         this.keyboardObserver = null;

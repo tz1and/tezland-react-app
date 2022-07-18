@@ -8,7 +8,7 @@ import { OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";
 import ItemNode from "../world/ItemNode";
 import BaseUserController from "./BaseUserController";
 import ItemTracker from "./ItemTracker";
-import { CursorType } from "./PickingGuiController";
+import { CursorType } from "./GuiController";
 import PlayerController from "./PlayerController";
 import TempObjectHelper from "./TempObjectHelper";
 
@@ -201,7 +201,7 @@ export default class ItemPlacementController extends BaseUserController {
         }
 
         try {
-            this.playerController.pickingGui.setCursor(CursorType.Loading);
+            this.playerController.gui.setCursor(CursorType.Loading);
 
             this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(token_id), this.playerController.scene, null);
             await this.tempObject.loadItem();
@@ -231,12 +231,12 @@ export default class ItemPlacementController extends BaseUserController {
             this.tempObjectHelper.modelUpdate(this.tempObject);
 
             // reset pointer
-            this.playerController.pickingGui.setCursor(CursorType.Pointer);
+            this.playerController.gui.setCursor(CursorType.Pointer);
         }
         catch(e) {
             this.currentItem = undefined;
             this.currentItemQuantity = 0;
-            this.playerController.pickingGui.setCursor(CursorType.Pointer);
+            this.playerController.gui.setCursor(CursorType.Pointer);
 
             this.playerController.appControlFunctions.addNotification({
                 id: "itemLimits" + token_id,
@@ -269,7 +269,7 @@ export default class ItemPlacementController extends BaseUserController {
         }
 
         try {
-            this.playerController.pickingGui.setCursor(CursorType.Loading);
+            this.playerController.gui.setCursor(CursorType.Loading);
 
             this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(-1), this.playerController.scene, null);
             await this.tempObject.loadFromFile(file);
@@ -299,12 +299,12 @@ export default class ItemPlacementController extends BaseUserController {
             this.tempObjectHelper.modelUpdate(this.tempObject);
 
             // reset pointer
-            this.playerController.pickingGui.setCursor(CursorType.Pointer);
+            this.playerController.gui.setCursor(CursorType.Pointer);
         }
         catch(e: any) {
             this.currentItem = undefined;
             this.currentItemQuantity = 0;
-            this.playerController.pickingGui.setCursor(CursorType.Pointer);
+            this.playerController.gui.setCursor(CursorType.Pointer);
 
             this.playerController.appControlFunctions.addNotification({
                 id: "droppedFileFailed" + file.name,

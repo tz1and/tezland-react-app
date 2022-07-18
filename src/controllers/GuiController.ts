@@ -12,8 +12,7 @@ export enum CursorType {
     Loading
 }
 
-// TODO: rename to... GuiController,,,, maybe?
-export default class PickingGuiController {
+export default class GuiController {
     private advancedTexture: AdvancedDynamicTexture;
 
     private cursor: Nullable<Control>;
