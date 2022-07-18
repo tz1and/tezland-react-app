@@ -250,8 +250,6 @@ export default class ItemPlacementController extends BaseUserController {
      * @param file 
      */
      public async setFile(file: File) {
-        Logging.Info("PlayerController.handleDroppedFile");
-
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();

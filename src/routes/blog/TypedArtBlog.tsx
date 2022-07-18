@@ -78,7 +78,6 @@ export const TypedArtBlog: React.FC<TypedArtBlogProps> = (props) => {
     }
 
     const range1 = (n: number) => Array.from(Array(n), (_,i)=> i+1);
-    console.log()
 
     return (
         <main className="container px-4 py-4">
