@@ -196,6 +196,26 @@ export default class ItemNode extends TransformNode {
         }
     }
 
+    public async loadFromFile(file: File) {
+        // TODO: check if items been disposed?
+        if (this._loadState === ItemLoadState.Loaded) {
+            Logging.WarnDev("Attempted to reload token", this.tokenId.toNumber());
+            return;
+        }
+
+        try {
+            await ArtifactMemCache.loadFromFile(file, this.tokenId, this._scene, this);
+            this._loadState = ItemLoadState.Loaded;
+
+            // TODO: see createBoundingBoxHelper
+            //this.createBoundingBoxHelper();
+        }
+        catch(e: any) {
+            this._loadState = ItemLoadState.Failed;
+            throw e;
+        }
+    }
+
     public queueLoadItemTask(world: World, place: PlaceNode) {
         this._loadState = ItemLoadState.Queued;
 
@@ -210,6 +230,13 @@ export default class ItemNode extends TransformNode {
         .catch(reason => {
             Logging.Warn("Failed to load token", this.tokenId.toNumber(), reason);
         }); // TODO: handle error somehow
+    }
+
+    /**
+     * @returns True if it's a valid item. False if it's a model imported for preview.
+     */
+    public isValidItem(): boolean {
+        return this.tokenId.gte(0);
     }
 
     public static CreateItemNode(placeId: number, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {

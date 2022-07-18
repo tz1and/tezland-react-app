@@ -367,7 +367,8 @@ export default class PlaceNode extends BasePlaceNode {
         tempChildren.forEach((child) => {
             assert(child instanceof ItemNode);
             assert(child.itemId.lt(0));
-            add_children.push(child);
+            // Only save valid tokens, not imported models.
+            if (child.isValidItem()) add_children.push(child);
         });
 
         const children = this._itemsNode.getChildren();

@@ -158,8 +158,11 @@ export default class ItemPlacementController extends BaseUserController {
 
                             eventState.skipNextObservers = true;
 
-                            document.exitPointerLock();
-                            this.playerController.appControlFunctions.loadForm(OverlayForm.PlaceItem, { node: newObject, maxQuantity: currentItemBalance} as PlaceItemFromProps);
+                            // If it's a valid token, not an imported model, bring up the place item dialog.
+                            if (this.tempObject.isValidItem()) {
+                                document.exitPointerLock();
+                                this.playerController.appControlFunctions.loadForm(OverlayForm.PlaceItem, { node: newObject, maxQuantity: currentItemBalance} as PlaceItemFromProps);
+                            }
                         }
                     }
                 }
@@ -263,10 +266,12 @@ export default class ItemPlacementController extends BaseUserController {
         try {
             this.playerController.gui.setCursor(CursorType.Loading);
 
-            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(-1), this.playerController.scene, null);
+            const token_id = -100;
+
+            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(token_id), this.playerController.scene, null);
             await this.tempObject.loadFromFile(file);
 
-            this.currentItem = -1;
+            this.currentItem = token_id;
             this.currentItemQuantity = Infinity;
 
             // Resetting is important for the TempObjectHelper.

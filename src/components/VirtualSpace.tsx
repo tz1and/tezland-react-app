@@ -31,7 +31,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
     setInventoryItem(id: number, quantity: number) {
         assert(this.state.world);
-        this.state.world.playerController.setCurrentItem(id, quantity);
+        this.state.world.playerController.selectItemForPlacement(id, quantity);
     }
 
     getCurrentLocation(): [number, number, number] {
@@ -48,6 +48,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     teleportToWorldPos(pos: [number, number]) {
         assert(this.state.world);
         this.state.world.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
+    }
+
+    handleDroppedFile(file: File) {
+        assert(this.state.world);
+        this.state.world.playerController.handleDroppedFile(file);
     }
 
     lockControls() {

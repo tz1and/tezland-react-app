@@ -104,29 +104,39 @@ class ItemInfoGui extends Rectangle {
     public updateInfo(token_id: number, current_node: TransformNode, current_item: ItemNode) {
         const isSaved = current_item.itemId.gte(0);
 
-        // If the item id changed, we need to fetch new metadata to update the title and minter.
-        if (this.current_token_id !== token_id) {
-            this.current_token_id = token_id;
-            this.current_token_supply = -1;
+        // If it's a valid token, not a temporarily placed one.
+        if (current_item.isValidItem()) {
+            // If the item id changed, we need to fetch new metadata to update the title and minter.
+            if (this.current_token_id !== token_id) {
+                this.current_token_id = token_id;
+                this.current_token_supply = -1;
 
-            Metadata.getItemMetadata(this.current_token_id).then(itemMetadata => {
-                this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
-                this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
-            }).catch(() => {
-                this.label_name.text = "Failed to load";
-            });
+                Metadata.getItemMetadata(this.current_token_id).then(itemMetadata => {
+                    this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
+                    this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
+                }).catch(() => {
+                    this.label_name.text = "Failed to load";
+                });
 
-            grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_id }).then(data => {
-                this.current_token_supply = data.itemToken[0].supply;
-                this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply}`;
-            }).catch(() => {});
+                grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_id }).then(data => {
+                    this.current_token_supply = data.itemToken[0].supply;
+                    this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply}`;
+                }).catch(() => {});
+            }
+
+            const forSale: boolean = isSaved && current_item.xtzPerItem !== 0;
+
+            this.label_price.text = !forSale && isSaved ? "" : `${current_item.xtzPerItem === 0 ? "Not collectable." : current_item.xtzPerItem + " \uA729"}`;
+            this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply > 0 ? this.current_token_supply : '?'}`;
+            this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Right-click to show item info.";
         }
-
-        const forSale: boolean = isSaved && current_item.xtzPerItem !== 0;
-
-        this.label_price.text = !forSale && isSaved ? "" : `${current_item.xtzPerItem === 0 ? "Not collectable." : current_item.xtzPerItem + " \uA729"}`;
-        this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply > 0 ? this.current_token_supply : '?'}`;
-        this.label_instructions.text = !isSaved ? "Press U to save changes." : forSale ? "Right-click to get this item." : "Right-click to show item info.";
+        else {
+            this.label_name.text = "Imported model";
+            this.label_minter.text = "";
+            this.supply_label.text = "";
+            this.label_price.text = "";
+            this.label_instructions.text = "Imported for preview.";
+        }
 
         this.linkWithMesh(current_node);
         this.isVisible = true;
@@ -282,15 +292,18 @@ export default class ItemPickingController extends BaseUserController {
                 const instanceRoot = this.getCurrentItem();
 
                 if(instanceRoot) {
-                    document.exitPointerLock();
-                    this.playerController.appControlFunctions.loadForm(OverlayForm.CollectItem, {
-                        tokenId: instanceRoot.tokenId.toNumber(),
-                        placeId: instanceRoot.placeId,
-                        itemId: instanceRoot.itemId.toNumber(),
-                        issuer: instanceRoot.issuer,
-                        xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
+                    // If it's a valid token, not an imported model.
+                    if (instanceRoot.isValidItem()) {
+                        document.exitPointerLock();
+                        this.playerController.appControlFunctions.loadForm(OverlayForm.CollectItem, {
+                            tokenId: instanceRoot.tokenId.toNumber(),
+                            placeId: instanceRoot.placeId,
+                            itemId: instanceRoot.itemId.toNumber(),
+                            issuer: instanceRoot.issuer,
+                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
+                    }
 
-                        eventState.skipNextObservers = true;
+                    eventState.skipNextObservers = true;
                 }
             }
         }

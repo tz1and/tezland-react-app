@@ -129,6 +129,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         if (curVS) curVS.teleportToWorldPos(pos);
     };
 
+    handleFileDrop = (fileList: FileList) => {
+        const curVS = this.virtualSpaceRef.current;
+        if (curVS) curVS.handleDroppedFile(fileList.item(0)!);
+    };
+
     virtualSpaceFailed = (e: any) => {
         this.setState({virtualSpaceFailed: true});
     }
@@ -140,7 +145,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 return undefined;
 
             case OverlayForm.Instructions:
-                return <Instructions closeForm={this.closeForm} loadForm={this.loadForm} getCurrentLocation={this.getCurrentLocation} teleportToLocation={this.teleportToLocation} />
+                return <Instructions closeForm={this.closeForm}
+                    loadForm={this.loadForm}
+                    getCurrentLocation={this.getCurrentLocation}
+                    teleportToLocation={this.teleportToLocation}
+                    handleFileDrop={this.handleFileDrop} />
 
             case OverlayForm.Terms: 
                 return <TermsForm closeForm={this.closeForm} />;
@@ -195,22 +204,27 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }
     }
 
-    override render() {
-        // NOTE: maybe could use router for overlay/forms.
-        if(this.state.virtualSpaceFailed) return <LoadingError/>;
-
+    private getOverlay() {
         const form = this.getFormElement();
+        if (!form) return undefined;
 
-        const overlay = !form ? null :
+        return (
             <div className="Explore-overlay">
                 <div className='my-auto mx-auto'>
                     {form}
                 </div>
-            </div>
+            </div>);
+    }
 
-        let controlInfo = form ? <ControlsHelp/> : null;
+    override render() {
+        // NOTE: maybe could use router for overlay/forms.
+        if(this.state.virtualSpaceFailed) return <LoadingError/>;
 
-        let placeInfoOverlay = !form && this.state.currentPlace ?
+        const overlay = this.getOverlay();
+
+        const controlInfo = overlay ? <ControlsHelp/> : null;
+
+        const placeInfoOverlay = !overlay && this.state.currentPlace ?
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
                 <h5 className='mb-0'>{this.state.currentPlace.getName()}</h5>
                 <small className='text-muted'>#{this.state.currentPlace.placeId}</small>
@@ -219,7 +233,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 Permissions: {this.state.currentPlace.getPermissions.toString()}
             </div> : null;
 
-        let toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
+        const toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 
         return (
             <div className='Explore'>

@@ -7,6 +7,7 @@ import AppSettings from "../storage/AppSettings";
 import { ModuleThread, spawn, Thread } from "threads"
 import { Logging } from "./Logging";
 import assert from "assert";
+import { getFileType } from "./Utils";
 //import { Logging } from "./Logging";
 
 
@@ -43,6 +44,60 @@ class ArtifactMemCache {
                 });
             });
         }
+    }
+
+    public async loadFromFile(file: File, token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
+        const token_id_number = token_id.toNumber();
+        // check if we have this item in the scene already.
+        // Otherwise, download it.
+        // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
+        let assetPromise = this.artifactCache.get(token_id_number);
+        if(assetPromise) {
+            (await assetPromise).dispose();
+            this.artifactCache.delete(token_id_number);
+        }
+
+        var mime_type;
+        const file_type = await getFileType(file);
+        if(file_type === "glb") mime_type = "model/gltf-binary";
+        else if(file_type === "gltf") mime_type = "model/gltf+json";
+        else throw new Error("Unsupported mimeType");
+
+        const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });
+
+        assetPromise = ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
+            baseScale: 1
+        }}, scene);
+
+        this.artifactCache.set(token_id_number, assetPromise);
+
+        let asset;
+        try {
+            asset = await assetPromise;
+        } catch(e: any) {
+            // If the asset fails to resolve, remove the promise from cache.
+            this.artifactCache.delete(token_id_number);
+            throw e;
+        }
+
+        if (parent.isDisposed()) return null;
+
+        // get the original, untransformed bounding vectors from the asset.
+        parent.boundingVectors = asset.meshes[0].getHierarchyBoundingVectors();
+    
+        // Instantiate.
+        // Getting first root node is probably enough.
+        // Note: imported glTFs are rotate because of the difference in coordinate systems.
+        // Don't flip em.
+        // NOTE: when an object is supposed to animate, instancing won't work.
+        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
+        instance.rootNodes[0].name = `item${file.name}_clone`;
+        instance.rootNodes[0].parent = parent;
+
+        this.itemsLoaded = true;
+    
+        return parent;
     }
 
     public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
