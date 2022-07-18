@@ -4,10 +4,12 @@ import { Nullable, PickingInfo, TransformNode, Node,
 import { Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import { grapphQLUser } from "../graphql/user";
 import { truncate, truncateAddress } from "../utils/Utils";
-import { CollectItemFromProps, OverlayForm } from "../world/AppControlFunctions";
+import { CollectItemFromProps, DirectoryFormProps, OverlayForm } from "../world/AppControlFunctions";
 import ItemNode from "../world/ItemNode";
 import Metadata from "../world/Metadata";
+import TeleporterBooth from "../world/TeleporterBooth";
 import BaseUserController from "./BaseUserController";
+import { CursorType } from "./GuiController";
 import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
 
@@ -135,9 +137,8 @@ export default class ItemPickingController extends BaseUserController {
     private infoGui: ItemInfoGui;
     private current_node: Nullable<TransformNode>;
 
-    private mouseObserver: Nullable<Observer<PointerInfo>>;
-    private keyboardObserver: Nullable<Observer<KeyboardInfo>>;
-    private observerAddTimeout: number;
+    private mouseObserver: Observer<PointerInfo>;
+    private keyboardObserver: Observer<KeyboardInfo>;
 
     constructor(playerController: PlayerController) {
         super(playerController);
@@ -147,22 +148,11 @@ export default class ItemPickingController extends BaseUserController {
         this.infoGui = new ItemInfoGui();
         this.playerController.gui.addControl(this.infoGui);
 
-        this.mouseObserver = null;
-        this.keyboardObserver = null;
-
-        // Add the observers with a delay.
-        // NOTE: if we don't, they will cause an infinite loop.
-        // possibly because of the insertFirst option.
-        this.observerAddTimeout = window.setTimeout(() => {
-            this.mouseObserver = this.playerController.scene.onPointerObservable.add(this.mouseInput, PointerEventTypes.POINTERDOWN, true);
-            this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true);
-            this.observerAddTimeout = -1;
-        }, 0);
+        this.mouseObserver = this.playerController.scene.onPointerObservable.add(this.mouseInput, PointerEventTypes.POINTERDOWN, true)!;
+        this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true)!;
     }
 
     public override dispose() {
-        if (this.observerAddTimeout !== -1) window.clearTimeout(this.observerAddTimeout);
-
         this.playerController.scene.onPointerObservable.remove(this.mouseObserver);
         this.playerController.scene.onKeyboardObservable.remove(this.keyboardObserver);
 
@@ -170,43 +160,68 @@ export default class ItemPickingController extends BaseUserController {
     }
 
     public override updateController(hit: Nullable<PickingInfo>): void {
-        // TODO: move to picking controller
-        if (hit) {
-            this.updatePickingGui(hit.pickedMesh, hit.distance);
-        }
+        if (hit) this.updatePickingGui(hit.pickedMesh, hit.distance);
+        else this.updatePickingGui(null, Infinity);
     }
 
-    private getInstanceRoot(node: Nullable<Node>): Nullable<ItemNode> {
+    private getInstanceRoot(node: Nullable<Node>): Nullable<ItemNode | TeleporterBooth> {
         let parent: Nullable<Node> = node;
         while(parent) {
             if (parent instanceof ItemNode) return parent;
+            if (parent instanceof TeleporterBooth) return parent;
             parent = parent.parent;
         }
         return null;
     }
 
     public getCurrentItem(): Nullable<ItemNode> {
-        return this.getInstanceRoot(this.current_node);
+        const root = this.getInstanceRoot(this.current_node);
+
+        if (root && root instanceof ItemNode) return root;
+        return null;
+    }
+
+    public getCurrentTeleporterBooth(): Nullable<TeleporterBooth> {
+        const root = this.getInstanceRoot(this.current_node);
+
+        if (root && root instanceof TeleporterBooth) return root;
+        return null;
     }
 
     private updatePickingGui(node: Nullable<TransformNode>, distance: number) {
-        if(node === this.current_node) return;
-
+        // TODO: rethink this and updateInfo, so we can early out when nothing changes
         this.current_node = node;
 
+        // If no current_node or the distance is to great for interacting,
+        // disable stuff and early out.
         if(!this.current_node || distance > 20) {
             this.infoGui.isVisible = false;
+            this.playerController.gui.setCursor(CursorType.Pointer);
             return;
         }
 
-        const current_item = this.getCurrentItem();
+        // Get the root Node for the current_node.
+        const instance_root = this.getInstanceRoot(this.current_node);
 
-        if(!current_item) {
+        // The root node being null means it's not something the player
+        // can pick or interact with.
+        if(!instance_root) {
             this.infoGui.isVisible = false;
+            this.playerController.gui.setCursor(CursorType.Pointer);
             return;
         }
 
-        this.infoGui.updateInfo(current_item.tokenId.toNumber(), this.current_node, current_item);
+        // If it's an ItemNode, update the info overlay.
+        if (instance_root instanceof ItemNode) {
+            this.infoGui.updateInfo(instance_root.tokenId.toNumber(), this.current_node, instance_root);
+        }
+        // If it's a TeleporterBooth, change the cursor, depending on if we are
+        // pointing at the control panel.
+        else if (instance_root instanceof TeleporterBooth) {
+            if (this.current_node.name === "instance of ControlPanel")
+                this.playerController.gui.setCursor(CursorType.Hand);
+            else this.playerController.gui.setCursor(CursorType.Pointer);
+        }
     }
 
     // Keyboard controls.
@@ -248,10 +263,23 @@ export default class ItemPickingController extends BaseUserController {
 
     // pointer actions
     private mouseInput = async (info: PointerInfo, eventState: EventState) => {
-        // button 2 is right click.
-        if (info.type === PointerEventTypes.POINTERDOWN && info.event.button === 2) {
-            if(this.current_node) {
-                const instanceRoot = this.getInstanceRoot(this.current_node);
+        if (this.current_node && info.type === PointerEventTypes.POINTERDOWN) {
+            // button 0 is left click
+            if(info.event.button === 0) {
+                const instanceRoot = this.getCurrentTeleporterBooth();
+
+                if(instanceRoot) {
+                    document.exitPointerLock();
+                    this.playerController.appControlFunctions.loadForm(OverlayForm.Directory, {
+                        mapCoords: [instanceRoot.position.x, instanceRoot.position.z]
+                    } as DirectoryFormProps);
+
+                    eventState.skipNextObservers = true;
+                }
+            }
+            // button 2 is right click.
+            else if(info.event.button === 2) {
+                const instanceRoot = this.getCurrentItem();
 
                 if(instanceRoot) {
                     document.exitPointerLock();
@@ -261,9 +289,9 @@ export default class ItemPickingController extends BaseUserController {
                         itemId: instanceRoot.itemId.toNumber(),
                         issuer: instanceRoot.issuer,
                         xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
-                }
 
-                eventState.skipNextObservers = true;
+                        eventState.skipNextObservers = true;
+                }
             }
         }
     }

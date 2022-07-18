@@ -14,9 +14,8 @@ import TempObjectHelper from "./TempObjectHelper";
 
 
 export default class ItemPlacementController extends BaseUserController {
-    private mouseObserver: Nullable<Observer<PointerInfo>>;
-    private keyboardObserver: Nullable<Observer<KeyboardInfo>>;
-    private observerAddTimeout: number;
+    private mouseObserver: Observer<PointerInfo>;
+    private keyboardObserver: Observer<KeyboardInfo>;
 
     private tempObject: Nullable<ItemNode>;
     private tempObjectHelper: Nullable<TempObjectHelper>;
@@ -36,22 +35,11 @@ export default class ItemPlacementController extends BaseUserController {
         this.tempObjectRot = new Quaternion();
         this.tempObjectPos = new Vector3();
 
-        this.mouseObserver = null;
-        this.keyboardObserver = null;
-
-        // Add the observers with a delay.
-        // NOTE: if we don't, they will cause an infinite loop.
-        // possibly because of the insertFirst option.
-        this.observerAddTimeout = window.setTimeout(() => {
-            this.mouseObserver = this.playerController.scene.onPointerObservable.add(this.mouseInput, PointerEventTypes.POINTERDOWN | PointerEventTypes.POINTERWHEEL, true);
-            this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true);
-            this.observerAddTimeout = -1;
-        }, 0);
+        this.mouseObserver = this.playerController.scene.onPointerObservable.add(this.mouseInput, PointerEventTypes.POINTERDOWN | PointerEventTypes.POINTERWHEEL, true)!;
+        this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true)!;
     }
 
     public override dispose() {
-        if (this.observerAddTimeout !== -1) window.clearTimeout(this.observerAddTimeout);
-
         this.playerController.scene.onPointerObservable.remove(this.mouseObserver);
         this.playerController.scene.onKeyboardObservable.remove(this.keyboardObserver);
 

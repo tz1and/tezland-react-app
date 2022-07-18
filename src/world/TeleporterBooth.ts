@@ -1,7 +1,5 @@
-import { ActionManager, ExecuteCodeAction, Scene, TransformNode, Vector3 } from "@babylonjs/core";
-import PlayerController from "../controllers/PlayerController";
+import { Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
-import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "./AppControlFunctions";
 
 
 export default class TeleporterBooth extends TransformNode {
@@ -10,7 +8,7 @@ export default class TeleporterBooth extends TransformNode {
         { id: -80075, filename: 'telebooth_dengiskong_v2.glb', scale: 0.525 }
     ];
 
-    constructor(pos: Vector3, scene: Scene, playerController: PlayerController, appControlFunctions: AppControlFunctions, isPure?: boolean) {
+    constructor(pos: Vector3, scene: Scene, isPure?: boolean) {
         super("Teleporter Booth", scene, isPure);
         this.position = pos;
 
@@ -21,47 +19,6 @@ export default class TeleporterBooth extends TransformNode {
         ArtifactMemCache.loadOther(chosen_booth.id, chosen_booth.filename, scene, this).then(res => {
             res.getChildMeshes().forEach(c => {
                 c.freezeWorldMatrix();
-
-                if (c.name === "instance of ControlPanel") {
-                    c.isPickable = true;
-                    if (!c.actionManager) c.actionManager = new ActionManager(scene);
-
-                    // TODO: OnPointerOverTrigger als thriggers through walls, maybe don't want that
-                    // but OnPicked (or whatever) wasn't working for whatever reason.
-                    c.actionManager.registerAction(
-                        new ExecuteCodeAction(
-                            {
-                                trigger: ActionManager.OnPointerOverTrigger,
-                            },
-                            function () {
-                                if (Vector3.Distance(playerController.getPosition(), c.absolutePosition) < 5)
-                                    playerController.setCursor(1);
-                            }
-                        ))
-
-                    c.actionManager.registerAction(
-                        new ExecuteCodeAction(
-                            {
-                                trigger: ActionManager.OnPointerOutTrigger,
-                            },
-                            function () {
-                                playerController.setCursor(0);
-                            }
-                        ))
-
-                    c.actionManager.registerAction(
-                        new ExecuteCodeAction(
-                            {
-                                trigger: ActionManager.OnPickDownTrigger
-                            },
-                            function () {
-                                document.exitPointerLock();
-                                appControlFunctions.loadForm(OverlayForm.Directory, {
-                                    mapCoords: [pos.x, pos.z]
-                                } as DirectoryFormProps);
-                            }
-                        ))
-                }
             })
         })
     }

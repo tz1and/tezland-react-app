@@ -576,7 +576,7 @@ export class World implements WorldInterface {
     //private teleportation booths
     private async loadTeleportationBooths(district: any) {
         for (const p of district.teleportation_booths) {
-            new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.scene, this.playerController, this.appControlFunctions);
+            new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.scene);
         }
     }
 

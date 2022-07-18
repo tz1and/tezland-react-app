@@ -184,8 +184,8 @@ export default class PlayerController {
 
                     // Clear item selection
                     case 'KeyC':
-                        console.log("activating picking controller from PlayerController")
                         this.controllerManager.activate("picking", this);
+                        eventState.skipNextObservers = true;
                         break;
 
                     // Toggle fly mode
