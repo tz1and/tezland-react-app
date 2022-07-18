@@ -155,7 +155,7 @@ export default class ItemPickingController extends BaseUserController {
         setTimeout(() => {
             this.mouseObserver = this.playerController.scene.onPointerObservable.add(this.mouseInput, PointerEventTypes.POINTERDOWN, true);
             this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true);
-        }, 50);
+        }, 0);
     }
 
     public override dispose() {

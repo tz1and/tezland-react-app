@@ -44,7 +44,7 @@ export default class ItemPlacementController extends BaseUserController {
         setTimeout(() => {
             this.mouseObserver = this.playerController.scene.onPointerObservable.add(this.mouseInput, PointerEventTypes.POINTERDOWN | PointerEventTypes.POINTERWHEEL, true);
             this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true);
-        }, 50);
+        }, 0);
     }
 
     public override dispose() {
