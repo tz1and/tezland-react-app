@@ -134,7 +134,7 @@ Place type: {res.placeType}</small>;
     override componentWillUnmount() {
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
 
-        if(this.navTimeout) clearInterval(this.navTimeout);
+        if(this.navTimeout) clearTimeout(this.navTimeout);
     }
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;

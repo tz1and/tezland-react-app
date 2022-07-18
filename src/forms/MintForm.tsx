@@ -67,7 +67,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
     }
 
     override componentWillUnmount() {
-        if(this.closeTimeout) clearInterval(this.closeTimeout);
+        if(this.closeTimeout) clearTimeout(this.closeTimeout);
     }
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;

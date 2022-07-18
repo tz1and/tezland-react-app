@@ -3,7 +3,6 @@ import { AdvancedDynamicTexture, Control, Ellipse, Image, TextBlock } from "@bab
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
 import AppSettings from "../storage/AppSettings";
-import assert from "assert";
 
 
 export enum CursorType {

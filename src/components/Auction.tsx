@@ -161,7 +161,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     override componentWillUnmount() {
         // Clear the interval right before component unmount
         if(this.refreshInterval) clearInterval(this.refreshInterval);
-        if(this.reloadTimeout) clearInterval(this.reloadTimeout);
+        if(this.reloadTimeout) clearTimeout(this.reloadTimeout);
     }
 
     override render() {
