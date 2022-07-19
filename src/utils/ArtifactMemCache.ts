@@ -46,6 +46,29 @@ class ArtifactMemCache {
         }
     }
 
+    public cleanup() {
+        // For all assets in the cache
+        this.artifactCache.forEach((v, k) => {
+            v.then(res => {
+                // Figure out if it has instances in the scene.
+                let hasInstances = false;
+                for (const m of res.meshes) {
+                    if (m.hasInstances) {
+                        hasInstances = true;
+                        break;
+                    }
+                }
+
+                // If it doesn't, delete asset and cache entry.
+                if (!hasInstances) {
+                    Logging.InfoDev("Grabage collecting", k);
+                    res.dispose();
+                    this.artifactCache.delete(k);
+                }
+            });
+        });
+    }
+
     public async loadFromFile(file: File, token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
         const token_id_number = token_id.toNumber();
         // check if we have this item in the scene already.

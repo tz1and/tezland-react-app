@@ -72,6 +72,8 @@ export class World implements WorldInterface {
 
     private subscription?: Subscription<OperationContent> | undefined;
 
+    private cleanupInterval: number;
+
     constructor(engine: Engine, appControlFunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
         this.appControlFunctions = appControlFunctions;
         this.engine = engine;
@@ -249,6 +251,13 @@ export class World implements WorldInterface {
             this.walletProvider.walletEvents().addListener("walletChange", this.reconnectMultiplayer);
         }, 500);
 
+        // Run asset cleanup once every minute.
+        this.cleanupInterval = window.setInterval(() => {
+            Logging.Info("Running asset cleanup")
+            ArtifactMemCache.cleanup();
+            this.scene.cleanCachedTextureBuffer();
+        }, 60000);
+
         //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
     }
 
@@ -314,6 +323,7 @@ export class World implements WorldInterface {
         this.loadingQueue.clear();
 
         // Dispose assets and processing queues.
+        window.clearInterval(this.cleanupInterval);
         ArtifactMemCache.dispose();
 
         // Destorying the engine should prbably be enough.
