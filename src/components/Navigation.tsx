@@ -18,16 +18,16 @@ export default function Frontpage() {
 
                         <Nav.Link as={NavLink} to="/explore" className="nav-link">Explore</Nav.Link>
                         <Nav.Link as={NavLink} to="/auctions" className="nav-link">Place Auctions</Nav.Link>
-                        <Nav.Link as={NavLink} to="/faq" className="nav-link">FAQ</Nav.Link>
                         <Nav.Link as={NavLink} to="/map" className="nav-link">Map</Nav.Link>
                         <Nav.Link as={NavLink} to="/mint" className="nav-link">Mint</Nav.Link>
+                        <Nav.Link as={NavLink} to="/tools" className="nav-link">Tools {newBadge}</Nav.Link>
 
                         <NavDropdown title={<span>Blog {newBadge}</span>} id="blog-nav-dropdown">
                             <NavDropdown.Item as={Link} to="/blog">Blog</NavDropdown.Item>
                             <NavDropdown.Item as={Link} to="/blog/featured">Featured</NavDropdown.Item>
                         </NavDropdown>
 
-                        <NavDropdown title={<span>Events {newBadge}</span>} id="events-nav-dropdown">
+                        <NavDropdown title="Events" id="events-nav-dropdown">
                             <NavDropdown className="dropdown-submenu" title="1of1 July" id="1of1-event-nav-dropdown">
                                 <NavDropdown.Item as={NavLink} to="/event/%231of1/1of1%20July">Places</NavDropdown.Item>
                                 <NavDropdown.Item as={NavLink} to="/t/%231of1">Items</NavDropdown.Item>

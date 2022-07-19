@@ -26,6 +26,7 @@ import { TypedArtBlogPost } from './routes/blog/TypedArtBlogPost';
 import { TypedArtPostType } from './routes/blog/TypedArtUtils';
 import EnterDirectory from './routes/EnterDirectory';
 import Loading from './components/util/Loading';
+import Tools from './routes/Tools';
 
 
 const Map = React.lazy(() => import('./routes/Map'));
@@ -77,6 +78,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
                             <Route path="docs" element={<Docs />} />
                             <Route path="faq" element={<Faq />} />
+                            <Route path="tools" element={<Tools />} />
                             <Route path="privacy" element={<Privacy />} />
                             <Route path="terms" element={<Terms />} />
                             <Route path="acknowledgements" element={<Acknowledgements />} />
