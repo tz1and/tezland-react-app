@@ -78,7 +78,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
             </div>
             <div id="explore-instructions" onClick={() => props.closeForm()}>
                 {dragging ?
-                    <div className='m-5 p-5 border bg-dark text-light rounded-3'><i className="bi bi-file-earmark-arrow-up"></i> Drow file here to preview.</div> :
+                    <div className='m-5 p-5 border bg-dark text-light rounded-3'><i className="bi bi-file-earmark-arrow-up"></i> Drop file here to preview.</div> :
                     <>
                         <img src="/logo_header.png" className='mb-4' style={{filter: "invert(1)", height: "calc(20px + 8vmin)"}} alt="tz1and" />
                         <p style={{ fontSize: 'calc(20px + 2vmin)' }}>Click to enter</p>
