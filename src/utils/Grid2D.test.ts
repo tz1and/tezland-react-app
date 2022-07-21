@@ -93,7 +93,7 @@ test('get/set WorldGridAccessor', () => {
     expect(gridNumber.getA(worldAccessor, [-401, -401])).toBe(17);
 });
 
-test('run benchmark', () => {
+test.skip('run benchmark', () => {
     const bench_2d = new GridBenchmark(new Grid2D<number>([1, 1]));
 
     bench_2d.run([10,10]);
