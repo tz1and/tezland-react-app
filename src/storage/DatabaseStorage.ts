@@ -1,43 +1,10 @@
 import { Logging } from "../utils/Logging";
-import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
-import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
+import { IStorageProvider, TezlandDB } from "./IStorageProvider";
+import { openDB, IDBPDatabase, StoreNames, StoreValue, StoreKey } from 'idb';
 import assert from "assert";
-import { ItemTokenMetadata, PlaceTokenMetadata } from "../world/Metadata";
+
 
 const databaseVersion = 13;
-
-type ArtifactMetaType = {
-    lastAccess: Date;
-    size: number;
-}
-
-interface TezlandDB extends DBSchema {
-    placeMetadata: {
-        key: number;
-        value: PlaceTokenMetadata;
-    };
-    placeItems: {
-        key: number;
-        value: any;
-    };
-    itemMetadata: {
-        key: number;
-        value: ItemTokenMetadata;
-    };
-    worldGrid: {
-        key: string;
-        value: any;
-    };
-    artifactCache: {
-        key: string;
-        value: ArrayBuffer;
-    };
-    artifactMeta: {
-        key: string;
-        value: ArtifactMetaType;
-        indexes: { lastAccess: Date, size: number };
-    };
-}
 
 export class DatabaseStorage implements IStorageProvider {
     private _db: IDBPDatabase<TezlandDB> | null;
@@ -59,8 +26,6 @@ export class DatabaseStorage implements IStorageProvider {
 
     /**
      * Open DB and return promise
-     * @param successCallback defines the callback to call on success
-     * @param errorCallback defines the callback to call on error
      */
     async open(): Promise<void> {
         if (!this._db) {
@@ -117,28 +82,28 @@ export class DatabaseStorage implements IStorageProvider {
         return Promise.resolve();
     }
 
-    // TODO: sepcialised functions for saving/loading item/place metadata
+    // TODO: maybe should never assert in the db interface?
 
     /**
      * Load an object from storage.
-     * @param url defines the key to load from.
+     * @param key defines the key to load from.
      * @param table the table to store the object in.
      */
-    async loadObject(key: StorageKeyType, table: StoreNames<TezlandDB>): Promise<any | undefined> {
+    loadObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name): Promise<StoreValue<TezlandDB, Name> | undefined> {
         assert(this._db);
-        const tx = this._db.transaction(table, "readonly", { durability: "relaxed" })
+        const tx = this._db.transaction(table, "readonly", { durability: "relaxed" });
         return tx.store.get(key);
     }
 
     /**
      * Save an object to storage.
-     * @param url defines the key to save to.
+     * @param key defines the key to save to.
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    async saveObject(key: StorageKeyType, table: StoreNames<TezlandDB>, data: any): Promise<IDBValidKey> {
+    saveObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name, data: StoreValue<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name>> {
         assert(this._db);
-        const tx = this._db.transaction(table, "readwrite", { durability: "relaxed" })
+        const tx = this._db.transaction(table, "readwrite", { durability: "relaxed" });
         return tx.store.put(data, key);
     }
 }

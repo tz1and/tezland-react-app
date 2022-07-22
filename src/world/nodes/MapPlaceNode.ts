@@ -1,7 +1,5 @@
 import { Mesh, Nullable,
     Vector3, Color4 } from "@babylonjs/core";
-import { bytes2Char } from "@taquito/utils";
-import { PlaceData } from "../PlaceNode";
 import { WorldMap } from "../WorldMap";
 import { MeshUtils } from "../../utils/MeshUtils";
 import { PublicPlaces } from "../../worldgen/PublicPlaces";
@@ -10,8 +8,6 @@ import { PlaceTokenMetadata } from "../Metadata";
 
 
 export default class MapPlaceNode extends BasePlaceNode {
-    // TODO: remove placeData, don't need it.
-    public placeData: Nullable<PlaceData> = null;
     private placeBounds: Nullable<Mesh> = null;
 
     constructor(placeId: number, placeMetadata: PlaceTokenMetadata, worldMap: WorldMap) {
@@ -56,14 +52,5 @@ export default class MapPlaceNode extends BasePlaceNode {
         // TODO: figure out if still needed.
         this.placeBounds.getHierarchyBoundingVectors();
         this.placeBounds.freezeWorldMatrix();
-    }
-
-    public getName() {
-        if (this.placeData) {
-            const place_name = this.placeData.place_props.get('01');
-            if (place_name) return bytes2Char(place_name);
-        }
-
-        return `Place #${this.placeId}`;
     }
 }

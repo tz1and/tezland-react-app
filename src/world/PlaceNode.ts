@@ -11,7 +11,7 @@ import { Logging } from "../utils/Logging";
 import BigNumber from "bignumber.js";
 import AppSettings from "../storage/AppSettings";
 import assert from "assert";
-import Metadata, { PlaceTokenMetadata, StorageKey } from "./Metadata";
+import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import { bytes2Char } from "@taquito/utils";
 import ItemNode, { ItemLoadState } from "./ItemNode";
 import ItemTracker from "../controllers/ItemTracker";
@@ -206,7 +206,7 @@ export default class PlaceNode extends BasePlaceNode {
         assert(this.placeBounds && this.placeGround, "Place not initialised.");
 
         // First, load the palce data from disk.
-        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, StorageKey.PlaceItems);
+        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, "placeItems");
         if (this.isDisposed()) return;
 
         // If we have place data, load the items.

@@ -3,7 +3,7 @@ import { MichelsonV1Expression } from "@taquito/rpc";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { char2Bytes } from '@taquito/utils'
-import Metadata, { StorageKey } from "../world/Metadata";
+import Metadata from "../world/Metadata";
 import { PlacePermissions } from "../world/nodes/BasePlaceNode";
 import { PlaceData, PlaceItemData } from "../world/PlaceNode";
 import ItemNode from "../world/ItemNode";
@@ -325,7 +325,7 @@ export class Contracts {
         const place_data = { stored_items: flattened_item_data, place_props: place_props, place_seq: seqHash } as PlaceData;
 
         // TODO: await save?
-        Metadata.Storage.saveObject(place_id, StorageKey.PlaceItems, place_data);
+        Metadata.Storage.saveObject(place_id, "placeItems", place_data);
 
         return place_data;
     }

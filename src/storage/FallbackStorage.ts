@@ -1,4 +1,5 @@
-import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
+import { StoreKey, StoreNames, StoreValue } from "idb";
+import { IStorageProvider, TezlandDB } from "./IStorageProvider";
 
 interface IStorage {
     getItem: (key: string) => string | undefined;
@@ -34,11 +35,11 @@ export class FallbackStorage implements IStorageProvider {
 
     /**
      * Load an object from storage.
-     * @param url defines the key to load from.
+     * @param key defines the key to load from.
      * @param table the table to store the object in.
      * @returns the fetched object or null
      */
-    loadObject(key: StorageKeyType, table: string): Promise<any | undefined> {
+    loadObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name): Promise<StoreValue<TezlandDB, Name> | undefined> {
         return new Promise((resolve) => {
             const value = this.storage.getItem(table + key);
             if (value === undefined) resolve(undefined);
@@ -48,11 +49,11 @@ export class FallbackStorage implements IStorageProvider {
  
     /**
      * Save an object to storage.
-     * @param url defines the key to save to.
+     * @param key defines the key to save to.
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject(key: StorageKeyType, table: string, data: any): Promise<IDBValidKey> {
+    saveObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name, data: StoreValue<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name>> {
         return new Promise((resolve) => {
             this.storage.setItem(table + key, JSON.stringify(data));
             resolve(key);
