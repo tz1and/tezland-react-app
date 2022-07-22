@@ -109,9 +109,10 @@ Place type: {res.placeType}</small>;
     private updatePlacesAndMap() {
         fetchPlaces(this.context).then((result) => {
             this.setState({ placeInventory: result });
+            // TODO: this sure is clumsy. Not sure what to do.
             if(result.length > 0) {
-                this.panMapToPlace(result[0].tokenId);
-                this.initialValues.placeId = result[0].tokenId;
+                this.panMapToPlace(result[0].token.tokenId);
+                this.initialValues.placeId = result[0].token.tokenId;
             }
         })
     }

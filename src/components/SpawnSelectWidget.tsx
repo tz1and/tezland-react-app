@@ -10,7 +10,7 @@ type SpawnSelectProps = {
 };
 
 type SpawnSelectState = {
-    userPlaces: any[];
+    userPlaces: {token: {tokenId: number}}[];
     currentIsDefault: boolean;
 }
 
@@ -71,7 +71,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     override render(): React.ReactNode {
         const listElements: JSX.Element[] = []
         for (var place of this.state.userPlaces) {
-            listElements.push(<option key={place.tokenId} value={"place" + place.tokenId}>Place #{place.tokenId}</option>);
+            listElements.push(<option key={place.token.tokenId} value={"place" + place.token.tokenId}>Place #{place.token.tokenId}</option>);
         }
 
         // TODO: don't hardcode number of districts, load them from DistrictDefinition.

@@ -1,5 +1,6 @@
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Conf from "../Config";
+import { grapphQLUser } from "../graphql/user";
 import { Logging } from "../utils/Logging";
 
 export async function fetchGraphQL(query: string, query_name: string, variables?: any, api_url = Conf.hasura_url) {
@@ -34,12 +35,7 @@ export async function fetchPlaces(walletProvider: ITezosWalletProvider) {
     // Maybe need to keep fetching.
 
     try {
-        const data = await fetchGraphQL(`
-            query getPlaces($address: String!) {
-                placeTokenHolder(where: {holderId: {_eq: $address}}, order_by: {tokenId: asc}) {
-                    tokenId
-                }
-            }`, "getPlaces", { address: walletProvider.walletPHK() });
+        const data = await grapphQLUser.getUserPlaces({ address: walletProvider.walletPHK(), offset: 0, amount: 100 });
         
         return data.placeTokenHolder;
     } catch(e: any) {
