@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-export const DirectoryFooterPadding = (props: any) => {
+export const DirectoryFooterPadding = () => {
     return (
         <div className="pb-5">
             <Outlet />
