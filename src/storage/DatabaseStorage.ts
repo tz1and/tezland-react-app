@@ -2,6 +2,7 @@ import { Logging } from "../utils/Logging";
 import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import assert from "assert";
+import { ItemTokenMetadata, PlaceTokenMetadata } from "../world/Metadata";
 
 const databaseVersion = 12;
 
@@ -13,7 +14,7 @@ type ArtifactMetaType = {
 interface TezlandDB extends DBSchema {
     placeMetadata: {
         key: number;
-        value: any;
+        value: PlaceTokenMetadata;
     };
     placeItems: {
         key: number;
@@ -21,7 +22,7 @@ interface TezlandDB extends DBSchema {
     };
     itemMetadata: {
         key: number;
-        value: any;
+        value: ItemTokenMetadata;
     };
     worldGrid: {
         key: string;
@@ -113,12 +114,14 @@ export class DatabaseStorage implements IStorageProvider {
         return Promise.resolve();
     }
 
+    // TODO: sepcialised functions for saving/loading item/place metadata
+
     /**
      * Load an object from storage.
      * @param url defines the key to load from.
      * @param table the table to store the object in.
      */
-    async loadObject(key: StorageKeyType, table: StoreNames<TezlandDB>): Promise<any> {
+    async loadObject(key: StorageKeyType, table: StoreNames<TezlandDB>): Promise<any | undefined> {
         assert(this._db);
         const tx = this._db.transaction(table, "readonly", { durability: "relaxed" })
         return tx.store.get(key);

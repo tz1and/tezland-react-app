@@ -1,7 +1,7 @@
 import { IStorageProvider, StorageKeyType } from "./IStorageProvider";
 
 interface IStorage {
-    getItem: (key: string) => string | null;
+    getItem: (key: string) => string | undefined;
     setItem: (key: string, value: string) => void;
 }
 
@@ -15,8 +15,7 @@ export class FallbackStorage implements IStorageProvider {
         const inMemoryStorage: { [key: string]: string } = {};
         this.storage = {
             getItem: (key) => {
-                const value = inMemoryStorage[key];
-                return value === undefined ? null : value;
+                return inMemoryStorage[key];
             },
             setItem: (key, value) => {
                 inMemoryStorage[key] = value;
@@ -39,10 +38,10 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @returns the fetched object or null
      */
-    loadObject(key: StorageKeyType, table: string): Promise<any> {
+    loadObject(key: StorageKeyType, table: string): Promise<any | undefined> {
         return new Promise((resolve) => {
             const value = this.storage.getItem(table + key);
-            if (value === null) resolve(null);
+            if (value === undefined) resolve(undefined);
             else resolve(JSON.parse(value));
         })
     }

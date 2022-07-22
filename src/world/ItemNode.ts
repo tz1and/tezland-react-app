@@ -3,7 +3,7 @@ import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3,
 import { SimpleMaterial } from "@babylonjs/materials";
 import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
-import ItemData from "../utils/ItemData";
+import { ItemDataFlags, ItemDataParser, TeleporterData } from "../utils/ItemData";
 import { Logging } from "../utils/Logging";
 import PlaceNode from "./PlaceNode";
 import { World } from "./World";
@@ -65,6 +65,19 @@ export default class ItemNode extends TransformNode {
     private _loadState: ItemLoadState;
     public get loadState(): ItemLoadState { return this._loadState; }
 
+    private _disableCollision: boolean;
+    public get disableCollisions() { return this._disableCollision; }
+    public set disableCollisions(val: boolean) {
+        // if changed, disable/enable collisions
+        if (this._disableCollision !== val) {
+            this._disableCollision = val;
+            // TODO: disable/enabled collision on all sub-meshes
+            this.getChildMeshes().forEach((m) => { m.checkCollisions = !this._disableCollision; })
+        }
+    }
+
+    public teleporterData: Nullable<TeleporterData>;
+
     public boundingVectors: Nullable<{
         min: Vector3;
         max: Vector3;
@@ -82,6 +95,9 @@ export default class ItemNode extends TransformNode {
         this.itemAmount = new BigNumber(0);
         this.markForRemoval = false;
 
+        this._disableCollision = false;
+        this.teleporterData = null;
+
         this._loadState = ItemLoadState.NotLoaded;
 
         this.boundingVectors = null;
@@ -93,11 +109,13 @@ export default class ItemNode extends TransformNode {
     }*/
 
     public updateFromData(data: string) {
-        const [quat, pos, scale] = ItemData.parse(data);
+        const [quat, pos, scale, flags, tele] = ItemDataParser.parse(data);
 
         this.rotationQuaternion = quat;
         this.position = pos;
         this.scaling.set(scale, scale, scale);
+        this.disableCollisions = (flags & ItemDataFlags.DISABLE_COLLISIONS) === ItemDataFlags.DISABLE_COLLISIONS;
+        this.teleporterData = tele;
         //this.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
     }
 
@@ -184,7 +202,7 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
-            await ArtifactMemCache.loadArtifact(this.tokenId, this._scene, this);
+            await ArtifactMemCache.loadArtifact(this.tokenId, this._scene, this, this._disableCollision);
             this._loadState = ItemLoadState.Loaded;
 
             // TODO: see createBoundingBoxHelper

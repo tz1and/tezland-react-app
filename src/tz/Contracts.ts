@@ -1,9 +1,7 @@
-import { Quaternion } from "@babylonjs/core";
 import { Contract, MichelCodecPacker, MichelsonMap, OpKind, PollingSubscribeProvider, TransactionWalletOperation } from "@taquito/taquito";
 import { MichelsonV1Expression } from "@taquito/rpc";
 import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
-import { packTo } from 'byte-data';
 import { char2Bytes } from '@taquito/utils'
 import Metadata, { StorageKey } from "../world/Metadata";
 import { PlacePermissions } from "../world/nodes/BasePlaceNode";
@@ -13,9 +11,10 @@ import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
 import { Logging } from "../utils/Logging";
-import { fetchGraphQL } from "../ipfs/graphql";
 import { SHA3 } from 'sha3';
 import assert from "assert";
+import { ItemDataWriter } from "../utils/ItemData";
+import { grapphQLUser } from "../graphql/user";
 
 
 export class Contracts {
@@ -55,12 +54,7 @@ export class Contracts {
 
     public async getPlaceOwner(place_id: number): Promise<string> {
         try {   
-            const data = await fetchGraphQL(`
-                query getPlaceOwner($id: bigint!) {
-                    placeTokenHolder(limit: 1, where: {tokenId: {_eq: $id}}) {
-                        holderId
-                    }
-                }`, "getPlaceOwner", { id: place_id });
+            const data = await grapphQLUser.getPlaceOwner({id: place_id});
             
             assert(data.placeTokenHolder[0]);
             return data.placeTokenHolder[0].holderId;
@@ -377,25 +371,8 @@ export class Contracts {
             const token_id = item.tokenId;
             const item_amount = item.itemAmount;
             const item_price = tezToMutez(item.xtzPerItem);
-            const rot = item.rotationQuaternion ? item.rotationQuaternion : new Quaternion();
-            const euler_angles = rot.toEulerAngles();
-            // 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
-            const array = new Uint8Array(15);
-            // format - version 1
-            packTo(1, { bits: 8, signed: false, be: true }, array, 0);
-            // float data
-            const type = { bits: 16, fp: true, be: true };
-            // quat
-            packTo(euler_angles.x, type, array, 1);
-            packTo(euler_angles.y, type, array, 3);
-            packTo(euler_angles.z, type, array, 5);
-            // pos
-            packTo(item.position.x, type, array, 7);
-            packTo(item.position.y, type, array, 9);
-            packTo(item.position.z, type, array, 11);
-            // scale
-            packTo(Math.abs(item.scaling.x), type, array, 13);
-            const item_data = toHexString(array);
+
+            const item_data = toHexString(ItemDataWriter.write(item));
 
             add_item_list.push({ item: { token_id: token_id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });
 

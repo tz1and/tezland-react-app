@@ -8,6 +8,7 @@ import { ModuleThread, spawn, Thread } from "threads"
 import { Logging } from "./Logging";
 import assert from "assert";
 import { getFileType } from "./Utils";
+import { ItemTokenMetadata } from "../world/Metadata";
 //import { Logging } from "./Logging";
 
 
@@ -88,9 +89,10 @@ class ArtifactMemCache {
 
         const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });
 
+        // NOTE: this is kinda nasty...
         assetPromise = ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
             baseScale: 1
-        }}, scene);
+        } as ItemTokenMetadata}, scene);
 
         this.artifactCache.set(token_id_number, assetPromise);
 
@@ -113,7 +115,8 @@ class ArtifactMemCache {
         // Note: imported glTFs are rotate because of the difference in coordinate systems.
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
-        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
+        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].name = `item${file.name}_clone`;
         instance.rootNodes[0].parent = parent;
@@ -123,7 +126,7 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
+    public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
         assert(this.workerThread);
 
         const token_id_number = token_id.toNumber();
@@ -170,8 +173,9 @@ class ArtifactMemCache {
         // Note: imported glTFs are rotate because of the difference in coordinate systems.
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
-        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
-        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
+        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
+        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
+        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
         instance.rootNodes[0].name = `item${token_id}_clone`;
         instance.rootNodes[0].parent = parent;
 
@@ -203,7 +207,8 @@ class ArtifactMemCache {
             throw e;
         }
 
-        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
+        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
 

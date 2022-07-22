@@ -1,12 +1,12 @@
 query getPlacesWithItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
-    placeToken(where: {worldItemPlacements: {itemToken: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}}}, limit: $amount, offset: $offset, order_by: {id: asc}) {
-        id
+    placeToken(where: {worldItemPlacements: {itemToken: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}}}, limit: $amount, offset: $offset, order_by: {tokenId: asc}) {
+        tokenId
     }
 }
 
 query getPlacesWithSwapsByTag($tag: String!, $offset: Int!, $amount: Int!) {
-    placeToken(where: {worldItemPlacements: {itemToken: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}, mutezPerToken: {_gt: "0"}}}, limit: $amount, offset: $offset, order_by: {id: asc}) {
-        id
+    placeToken(where: {worldItemPlacements: {itemToken: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}, mutezPerToken: {_gt: "0"}}}, limit: $amount, offset: $offset, order_by: {tokenId: asc}) {
+        tokenId
     }
 }
 
@@ -15,5 +15,17 @@ query countExteriorPlaces {
         aggregate {
             count
         }
+    }
+}
+
+query getWorldGridCell($gridHash: String!) {
+    placeTokenMetadata(where: { gridHash: { _eq: $gridHash }, placeType: { _eq: "exterior" } }) {
+        tokenId
+    }
+}
+
+query getPlaceOwner($id: bigint!) {
+    placeTokenHolder(limit: 1, where: { token: { tokenId: { _eq: $id }, metadata: { placeType: { _eq: "exterior" } } } }) {
+        holderId
     }
 }

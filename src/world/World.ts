@@ -11,7 +11,7 @@ import { PlaceId } from "./nodes/BasePlaceNode";
 import PlaceNode from "./PlaceNode";
 import { AppControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
-import Metadata from "./Metadata";
+import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
@@ -610,7 +610,8 @@ export class World implements WorldInterface {
                 //const lineMesh = Mesh.CreateLines("line", [from, to], this.scene, false);
                 
                 for (var d = 6.5; d < line_len - 6.5; d = d + 25) {
-                    const instance = result.instantiateModelsToScene().rootNodes[0];
+                    // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
+                    const instance = result.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false }).rootNodes[0];
                     instance.position = to.add(line.scale(d / line_len));
                     instance.parent = roadDecorations;
                     this.shadowGenerator?.addShadowCaster(instance as Mesh);
@@ -627,12 +628,12 @@ export class World implements WorldInterface {
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
     // Should probably be batched before loading places.
-    private async loadPlace(metadata: any) {
+    private async loadPlace(metadata: PlaceTokenMetadata) {
         // early out if it's already loaded.
         // NOTE: done't need to early out. Souldn't happen.
         // Check anyway and log. For now.
-        if(this.places.has(metadata.id)) {
-            Logging.InfoDev("Place already existed", metadata.id);
+        if(this.places.has(metadata.tokenId)) {
+            Logging.InfoDev("Place already existed", metadata.tokenId);
             return;
         }
 
@@ -643,15 +644,15 @@ export class World implements WorldInterface {
             const player_pos = this.playerController.getPosition();
             if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
                 // Create place.
-                const new_place = new PlaceNode(metadata.id, metadata, this);
-                this.places.set(metadata.id, new_place);
+                const new_place = new PlaceNode(metadata.tokenId, metadata, this);
+                this.places.set(metadata.tokenId, new_place);
 
                 // Load items.
                 await new_place.load();
             }
         }
         catch(e) {
-            Logging.InfoDev("Error loading place: " + metadata.id);
+            Logging.InfoDev("Error loading place: " + metadata.tokenId);
             Logging.InfoDev(e);
             Logging.InfoDev(metadata);
         }

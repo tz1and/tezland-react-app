@@ -2,6 +2,7 @@ import { TransformNode, Vector3 } from "@babylonjs/core";
 import Contracts from "../../tz/Contracts";
 import { Logging } from "../../utils/Logging";
 import { yesNo } from "../../utils/Utils";
+import { PlaceTokenMetadata } from "../Metadata";
 import { WorldInterface } from "../WorldInterface";
 
 
@@ -42,7 +43,7 @@ export class PlacePermissions {
 
 export default abstract class BasePlaceNode extends TransformNode {
     readonly placeId: number;
-    readonly placeMetadata: any;
+    readonly placeMetadata: PlaceTokenMetadata;
     protected world: WorldInterface;
 
     protected _origin: Vector3;
@@ -57,7 +58,7 @@ export default abstract class BasePlaceNode extends TransformNode {
     protected permissions: PlacePermissions = new PlacePermissions(PlacePermissions.permissionNone);
     protected last_owner_and_permission_update = 0;
 
-    constructor(placeId: number, placeMetadata: any, world: WorldInterface) {
+    constructor(placeId: number, placeMetadata: PlaceTokenMetadata, world: WorldInterface) {
         super(`placeRoot${placeId}`, world.scene);
 
         this.world = world;

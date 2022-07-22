@@ -23,7 +23,7 @@ const EventMap: React.FC<{}> = () => {
             grapphQLUser.getPlacesWithSwapsByTag({tag: eventTag, amount: 100, offset: 0}).then(res => {
                 const placeIds: number[] = [];
                 for (const p of res.placeToken) {
-                    placeIds.push(p.id);
+                    placeIds.push(p.tokenId);
                 }
 
                 setMarkedPlaces(placeIds);

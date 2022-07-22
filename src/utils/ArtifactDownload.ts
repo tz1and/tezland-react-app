@@ -9,6 +9,7 @@ import { FileWithMetadata } from "./Utils";
 import { preprocessMesh } from "./MeshPreprocessing";
 import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
 import { ModuleThread, Pool } from "threads";
+import assert from "assert";
 
 
 async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {
@@ -42,6 +43,7 @@ export default class ArtifactDownload {
         token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes: number,
         gatewayType: GatewayType = GatewayType.Native, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
+        assert(itemMetadata);
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
         const hash = decodeSplitEncodeURI(itemMetadata.artifactUri.slice(7)) + '/';

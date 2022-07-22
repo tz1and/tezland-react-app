@@ -1,5 +1,6 @@
 import { AbstractMesh, Axis, Mesh, Ray, Vector3 } from "@babylonjs/core";
 import BigNumber from 'bignumber.js';
+import { ItemTokenMetadata } from "../world/Metadata";
 
 
 export const pointIsInside = (point: Vector3, mesh: Mesh) => {
@@ -209,5 +210,5 @@ export const numberWithSign = (n: number): string => { return (n > 0) ? "+" + n 
 
 export type FileWithMetadata = {
   file: File;
-  metadata: any;
+  metadata: ItemTokenMetadata;
 }

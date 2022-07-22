@@ -3,7 +3,7 @@ import map from "!file-loader!../../img/map.svg"; // Temp workaround for CRA5
 import L from 'leaflet';
 import { Circle, ImageOverlay, MapContainer, Polygon } from 'react-leaflet';
 import { useEffect, useState } from 'react';
-import Metadata from '../../world/Metadata';
+import Metadata, { PlaceTokenMetadata } from '../../world/Metadata';
 import { MapSetCenter } from '../../forms/CreateAuction';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -17,7 +17,7 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
     const params = useParams();
 
     const [tokenId, setTokenId] = useState(parseInt(params.id!));
-    const [metadata, setMetadata] = useState<any>();
+    const [metadata, setMetadata] = useState<PlaceTokenMetadata>();
 
     // Set tokenId state when prop changes.
     useEffect(() => {

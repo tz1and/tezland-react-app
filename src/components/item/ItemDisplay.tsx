@@ -5,11 +5,12 @@ import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import { MetadataUtils, RoyaltiesAndSupply } from '../../utils/MetadataUtils';
 import { truncateAddress } from '../../utils/Utils';
+import { ItemTokenMetadata } from '../../world/Metadata';
 
 
 type ItemDisplayProps = {
     tokenId: number;
-    metadata: any;
+    metadata: ItemTokenMetadata;
     displayModel?: boolean;
     targetBlank?: boolean;
 }

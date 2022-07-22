@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
-import Metadata from '../world/Metadata';
+import Metadata, { ItemTokenMetadata } from '../world/Metadata';
 import { MetadataUtils } from '../utils/MetadataUtils';
 import { Button, Container, Row, Col } from 'react-bootstrap';
 import Contracts from '../tz/Contracts';
@@ -22,7 +22,7 @@ type CollectFormProps = {
 export const CollectForm: React.FC<CollectFormProps> = (props) => {
     const context = useTezosWalletContext();
 
-    const [metadata, setMetadata] = useState<any>();
+    const [metadata, setMetadata] = useState<ItemTokenMetadata>();
 
     useEffect(() => {
         Metadata.getItemMetadata(props.tokenId).then(res => {
@@ -45,7 +45,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
                 <Container className="p-0">
                     <Row>
                         <Col xs="6" className='pe-3' style={{minWidth: "350px", maxWidth: "400px"}}>
-                            <ItemDisplay tokenId={props.tokenId} metadata={metadata} targetBlank={true} />
+                            {metadata && <ItemDisplay tokenId={props.tokenId} metadata={metadata} targetBlank={true} />}
                         </Col>
                         <Col xs="6" className='ps-3' style={{minWidth: "350px", maxWidth: "400px"}}>
                             <h4>Tags</h4>

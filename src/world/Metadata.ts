@@ -1,5 +1,5 @@
 import { deleteDB } from "idb";
-import { fetchGraphQL } from "../ipfs/graphql";
+import { grapphQLUser } from "../graphql/user";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
 
@@ -8,6 +8,33 @@ export enum StorageKey {
     PlaceMetadata = "placeMetadata",
     ItemMetadata = "itemMetadata",
     PlaceItems = "placeItems"
+}
+
+export type ItemTokenMetadata = {
+    tokenId: number;
+    name: string;
+    description: string;
+    artifactUri: string;
+    displayUri: string | null;
+    thumbnailUri: string | null;
+    baseScale: number;
+    fileSize: number;
+    mimeType: string;
+    polygonCount: number;
+    timestamp: string;
+    minter: string;
+}
+
+export type PlaceTokenMetadata = {
+    tokenId: number;
+    name: string;
+    description: string;
+    borderCoordinates: number[][];
+    centerCoordinates: number[];
+    placeType: string;
+    buildHeight: number;
+    timestamp: string;
+    minter: string;
 }
 
 export default class Metadata {
@@ -49,8 +76,8 @@ export default class Metadata {
         }
     }
 
-    public static async getPlaceMetadataBatch(places: number[]) {
-        const place_metadatas: any[] = [];
+    public static async getPlaceMetadataBatch(places: number[]): Promise<PlaceTokenMetadata[]> {
+        const place_metadatas: PlaceTokenMetadata[] = [];
         const places_to_fetch: number[] = [];
 
         // Try to fetch all from storage.
@@ -77,63 +104,35 @@ export default class Metadata {
         for (let i = 0; i < places_to_fetch.length; i += chunk_size) {
             const chunk = places_to_fetch.slice(i, i + chunk_size);
 
-            const data = await fetchGraphQL(`
-                query getPlaceTokenMetadataBatch($ids: [bigint!]) {
-                    placeTokenMetadata(where: { id: { _in: $ids } }) {
-                        id
-                        name
-                        description
-                        borderCoordinates
-                        centerCoordinates
-                        placeType
-                        buildHeight
-                        timestamp
-                        placeToken {
-                            minterId
-                        }
-                    }
-                }`, "getPlaceTokenMetadataBatch", { ids: chunk });
+            const data = await grapphQLUser.getPlaceTokenMetadataBatch({ids: chunk});
 
             for (const metadata of data.placeTokenMetadata) {
                 // fix up the coordinates
                 metadata.borderCoordinates = JSON.parse(metadata.borderCoordinates)
                 metadata.centerCoordinates = JSON.parse(metadata.centerCoordinates)
                 // set minter
-                metadata.minter = metadata.placeToken[0].minterId;
-                delete metadata.placeToken;
+                // TODO: this is nasty
+                const placeMeta: PlaceTokenMetadata = (metadata as any);
+                placeMeta.minter = metadata.placeToken[0].minterId;
+                delete (metadata as any).placeToken;
 
-                Metadata.Storage.saveObject(metadata.id, StorageKey.PlaceMetadata, metadata);
-                place_metadatas.push(metadata);
+                Metadata.Storage.saveObject(metadata.tokenId, StorageKey.PlaceMetadata, metadata);
+                place_metadatas.push(placeMeta);
             }
         }
 
         return place_metadatas;
     }
 
-    public static async getPlaceMetadata(token_id: number): Promise<any> {
+    public static async getPlaceMetadata(token_id: number): Promise<PlaceTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata = await Metadata.Storage.loadObject(token_id, StorageKey.PlaceMetadata);
+        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject(token_id, StorageKey.PlaceMetadata);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
-            const data = await fetchGraphQL(`
-                query getPlaceTokenMetadata($id: bigint!) {
-                    placeTokenMetadata(where: { id: { _eq: $id } }) {
-                        id
-                        name
-                        description
-                        borderCoordinates
-                        centerCoordinates
-                        placeType
-                        buildHeight
-                        timestamp
-                        placeToken {
-                            minterId
-                        }
-                    }
-                }`, "getPlaceTokenMetadata", { id: token_id });
+            const data = await grapphQLUser.getPlaceTokenMetadata({id: token_id});
 
             // fix up border and center coords
             const metadata = data.placeTokenMetadata[0];
@@ -144,56 +143,43 @@ export default class Metadata {
                 metadata.borderCoordinates = JSON.parse(metadata.borderCoordinates)
                 metadata.centerCoordinates = JSON.parse(metadata.centerCoordinates)
                 // set minter
-                metadata.minter = metadata.placeToken[0].minterId;
-                delete metadata.placeToken;
+                // TODO: this is nasty
+                // TODO: don't modify minter???? use it as it comes in from graphql....
+                const placeMeta: PlaceTokenMetadata = (metadata as any);
+                placeMeta.minter = metadata.placeToken[0].minterId;
+                delete (metadata as any).placeToken;
 
-                Metadata.Storage.saveObject(metadata.id, StorageKey.PlaceMetadata, metadata);
+                Metadata.Storage.saveObject(metadata.tokenId, StorageKey.PlaceMetadata, metadata);
+                tokenMetadata = placeMeta;
             }
-            tokenMetadata = metadata;
         }
 
         return tokenMetadata;
     }
 
-    public static async getItemMetadata(token_id: number): Promise<any> {
+    public static async getItemMetadata(token_id: number): Promise<ItemTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata = await Metadata.Storage.loadObject(token_id, StorageKey.ItemMetadata);
+        let tokenMetadata: ItemTokenMetadata | undefined = await Metadata.Storage.loadObject(token_id, StorageKey.ItemMetadata);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
-            const data = await fetchGraphQL(`
-                query getItemTokenMetadata($id: bigint!) {
-                    itemTokenMetadata(where: { id: { _eq: $id } }) {
-                        id
-                        name
-                        description
-                        artifactUri
-                        displayUri
-                        thumbnailUri
-                        baseScale
-                        fileSize
-                        mimeType
-                        polygonCount
-                        timestamp
-                        itemToken {
-                            minterId
-                        }
-                    }
-                }`, "getItemTokenMetadata", { id: token_id });
+            const data = await grapphQLUser.getItemTokenMetadata({id: token_id});
 
             const metadata = data.itemTokenMetadata[0];
 
             // TODO: await store?
             if (metadata) {
                 // set minter
-                metadata.minter = metadata.itemToken[0].minterId;
-                delete metadata.itemToken;
+                // TODO: this is nasty
+                const itemMeta: ItemTokenMetadata = (metadata as any);
+                itemMeta.minter = metadata.itemToken[0].minterId;
+                delete (metadata as any).itemToken;
 
                 Metadata.Storage.saveObject(token_id, StorageKey.ItemMetadata, metadata);
+                tokenMetadata = itemMeta;
             }
-            tokenMetadata = metadata;
         }
 
         return tokenMetadata;

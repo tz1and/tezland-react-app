@@ -91,7 +91,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
             const tokensWithoutBalance: number[] = [];
 
             for (const tracked of trackedIds) {
-                if (!tokensWithBalance.itemTokenHolder.find((e) => e.tokenId === tracked))
+                if (!tokensWithBalance.itemTokenHolder.find((e) => e.token.tokenId === tracked))
                     tokensWithoutBalance.push(tracked);
             }
 
@@ -115,7 +115,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private fetchData = () => {
         this.fetchInventory().then((res) => {
-            for (const r of res) this.itemMap.set(r.token.id, r);
+            for (const r of res) this.itemMap.set(r.token.tokenId, r);
             const more_data = res.length === Inventory.FetchAmount;
             this.setState({
                 item_offset: this.state.item_offset + Inventory.FetchAmount,
@@ -148,8 +148,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
         const items: JSX.Element[] = []
         if (!error) {
-            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} item_metadata={item} trackItems={true} isTempItem={true} />))
-            this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.id} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} />))
+            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.token.tokenId} onSelect={this.handleClick} item_metadata={item} trackItems={true} isTempItem={true} />))
+            this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.tokenId} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} />))
         }
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;

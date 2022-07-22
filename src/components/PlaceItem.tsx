@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { Circle, ImageOverlay, MapContainer, Polygon } from 'react-leaflet';
 import './PlaceItem.css'
 import { useEffect, useState } from 'react';
-import Metadata from '../world/Metadata';
+import Metadata, { PlaceTokenMetadata } from '../world/Metadata';
 import { MapSetCenter } from '../forms/CreateAuction';
 import { FetchDataPlaceToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
 
@@ -19,14 +19,14 @@ type PlaceItemProps = {
 
 export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
 
-    const [metadata, setMetadata] = useState<any>();
+    const [metadata, setMetadata] = useState<PlaceTokenMetadata>();
 
     useEffect(() => {
         if(!metadata)
-            Metadata.getPlaceMetadata(props.item_metadata.token.id).then((res) => {
+            Metadata.getPlaceMetadata(props.item_metadata.token.tokenId).then((res) => {
                 setMetadata(res)
             });
-    }, [metadata, props.item_metadata.token.id]);
+    }, [metadata, props.item_metadata.token.tokenId]);
 
     let name = null;
     let description = "None.";
@@ -48,12 +48,12 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
     }
 
     return (
-        <div className="card m-2 inventory-item" id={props.item_metadata.token.id.toString()}>
+        <div className="card m-2 inventory-item" id={props.item_metadata.token.tokenId.toString()}>
             <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
-                { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(props.item_metadata.token.id)}><i className="bi bi-send-fill"></i></button> }
+                { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(props.item_metadata.token.tokenId)}><i className="bi bi-send-fill"></i></button> }
             </div>
 
-            <div onClick={() => props.onSelect(props.item_metadata.token.id)}>
+            <div onClick={() => props.onSelect(props.item_metadata.token.tokenId)}>
                 <MapContainer className="card-img-top place-item-map" center={center_pos} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
                     <MapSetCenter center={center_pos} animate={false}/>
                     <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />

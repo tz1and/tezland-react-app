@@ -1,0 +1,50 @@
+query getPlaceTokenMetadataBatch($ids: [bigint!]) {
+    placeTokenMetadata(where: { tokenId: { _in: $ids }, placeType: { _eq: "exterior" } }) {
+        tokenId
+        name
+        description
+        borderCoordinates
+        centerCoordinates
+        placeType
+        buildHeight
+        timestamp
+        placeToken {
+            minterId
+        }
+    }
+}
+
+query getPlaceTokenMetadata($id: bigint!) {
+    placeTokenMetadata(where: { tokenId: { _eq: $id }, placeType: { _eq: "exterior" } }) {
+        tokenId
+        name
+        description
+        borderCoordinates
+        centerCoordinates
+        placeType
+        buildHeight
+        timestamp
+        placeToken {
+            minterId
+        }
+    }
+}
+
+query getItemTokenMetadata($id: bigint!) {
+    itemTokenMetadata(where: { tokenId: { _eq: $id } }) {
+        tokenId
+        name
+        description
+        artifactUri
+        displayUri
+        thumbnailUri
+        baseScale
+        fileSize
+        mimeType
+        polygonCount
+        timestamp
+        itemToken {
+            minterId
+        }
+    }
+}

@@ -1,5 +1,5 @@
 fragment ItemTokenSelect on item_token {
-    id
+    tokenId
     metadata {
         name
         description

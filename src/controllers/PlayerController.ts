@@ -250,6 +250,8 @@ export default class PlayerController {
 
     private async teleportToPlace(place_id: number) {
         const metadata = await Metadata.getPlaceMetadata(place_id);
+        assert(metadata);
+
         const origin = Vector3.FromArray(metadata.centerCoordinates);
         const p0 = Vector3.FromArray(metadata.borderCoordinates[0]);
 

@@ -128,10 +128,10 @@ export default function Faq() {
 
     const categories: JSX.Element[] = []
 
-    faqData.forEach((cat: any, catIdx: number) => {
+    faqData.forEach((cat) => {
         const items: JSX.Element[] = []
 
-        cat.items.forEach((item: any, itemIdx: number) => {
+        cat.items.forEach((item, itemIdx) => {
             items.push(<div className="accordion-item" key={itemIdx}>
                 <h2 className="accordion-header" id={`panel-heading-${cat.id}-${itemIdx}`}>
                     <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target={`#panel-collapse-${cat.id}-${itemIdx}`} aria-expanded="false" aria-controls={`panel-collapse-${cat.id}-${itemIdx}`}>

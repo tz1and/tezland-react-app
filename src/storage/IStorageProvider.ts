@@ -18,7 +18,7 @@ export type StorageKeyType = number | string;
      * @param url defines the key to load from.
      * @param table the table to store the object in.
      */
-    loadObject(key: StorageKeyType, table: string): Promise<any>;
+    loadObject(key: StorageKeyType, table: string): Promise<any | undefined>;
 
     /**
      * Save an object to storage.

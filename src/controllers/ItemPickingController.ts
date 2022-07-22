@@ -12,6 +12,7 @@ import BaseUserController from "./BaseUserController";
 import { CursorType } from "./GuiController";
 import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
+import assert from "assert";
 
 
 class ItemInfoGui extends Rectangle {
@@ -112,6 +113,7 @@ class ItemInfoGui extends Rectangle {
                 this.current_token_supply = -1;
 
                 Metadata.getItemMetadata(this.current_token_id).then(itemMetadata => {
+                    assert(itemMetadata);
                     this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
                     this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
                 }).catch(() => {

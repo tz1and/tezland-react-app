@@ -6,7 +6,7 @@ import { AdvancedDynamicTexture, Control, Image,
     TextBlock, Vector2WithInfo } from "@babylonjs/gui";
 import { MapControlFunctions } from "./AppControlFunctions";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
-import Metadata from "./Metadata";
+import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import SunLight from "./SunLight";
@@ -611,12 +611,12 @@ export class WorldMap implements WorldInterface {
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
     // Should probably be batched before loading places.
-    private loadPlace(metadata: any) {
+    private loadPlace(metadata: PlaceTokenMetadata) {
         // early out if it's already loaded.
         // NOTE: done't need to early out. Souldn't happen.
         // Check anyway and log. For now.
-        if(this.places.has(metadata.id)) {
-            Logging.InfoDev("Place already existed", metadata.id);
+        if(this.places.has(metadata.tokenId)) {
+            Logging.InfoDev("Place already existed", metadata.tokenId);
             return;
         }
 
@@ -626,21 +626,21 @@ export class WorldMap implements WorldInterface {
             //const player_pos = new Vector3();
             //if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
                 // Create place.
-                const new_place = new MapPlaceNode(metadata.id, metadata, this);
-                this.places.set(metadata.id, new_place);
+                const new_place = new MapPlaceNode(metadata.tokenId, metadata, this);
+                this.places.set(metadata.tokenId, new_place);
 
                 // If this place should be marked, mark it
-                if (this.markedPlaces.has(metadata.id)) {
-                    this.createMarker(`Place #${metadata.id}`,
+                if (this.markedPlaces.has(metadata.tokenId)) {
+                    this.createMarker(`Place #${metadata.tokenId}`,
                         new Vector3(metadata.centerCoordinates[0], metadata.centerCoordinates[1], metadata.centerCoordinates[2]),
-                        "purple", "place", metadata.id);
+                        "purple", "place", metadata.tokenId);
                 }
 
                 this.needsRedraw = true;
             //}
         }
         catch(e) {
-            Logging.InfoDev("Error loading place: " + metadata.id);
+            Logging.InfoDev("Error loading place: " + metadata.tokenId);
             Logging.InfoDev(e);
             Logging.InfoDev(metadata);
         }

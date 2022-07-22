@@ -87,6 +87,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 
         // Note: To match leaflet coords, both x and y are flipped and mirrored.
         Metadata.getPlaceMetadata(place_id).then((res) => {
+            assert(res);
             const coords = res.centerCoordinates;
             const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
 

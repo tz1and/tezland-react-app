@@ -33,7 +33,7 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
     }, [props.tokenId]);
 
     const holderInfoItems: JSX.Element[] = []
-    if (holderInfo) holderInfo.itemTokenHolder.forEach((item: any) => {
+    if (holderInfo) holderInfo.itemTokenHolder.forEach((item) => {
         if (item.holderId !== Conf.world_contract)
             holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={DirectoryUtils.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>);
     });
@@ -43,11 +43,11 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
     } : {}
 
     const worldInfoItems: JSX.Element[] = []
-    if (worldInfo) worldInfo.worldItemPlacement.forEach((item: any) => {
+    if (worldInfo) worldInfo.worldItemPlacement.forEach((item) => {
         if (!props.onlySwaps || (props.onlySwaps && item.mutezPerToken > 0))
             worldInfoItems.push(
-                <p key={item.id}>
-                    {item.tokenAmount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink(item.placeId)}>Place #{item.placeId}</Link> {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
+                <p key={item.transientId}>
+                    {item.tokenAmount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink(item.place.tokenId)}>Place #{item.place.tokenId}</Link> {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
                 </p>);
     });
 

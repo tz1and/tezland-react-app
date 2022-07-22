@@ -6,13 +6,15 @@ import { WorldMap } from "../WorldMap";
 import { MeshUtils } from "../../utils/MeshUtils";
 import { PublicPlaces } from "../../worldgen/PublicPlaces";
 import BasePlaceNode from "./BasePlaceNode";
+import { PlaceTokenMetadata } from "../Metadata";
 
 
 export default class MapPlaceNode extends BasePlaceNode {
+    // TODO: remove placeData, don't need it.
     public placeData: Nullable<PlaceData> = null;
     private placeBounds: Nullable<Mesh> = null;
 
-    constructor(placeId: number, placeMetadata: any, worldMap: WorldMap) {
+    constructor(placeId: number, placeMetadata: PlaceTokenMetadata, worldMap: WorldMap) {
         super(placeId, placeMetadata, worldMap);
 
         this.initialisePlace();

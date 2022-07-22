@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Container, Row, Tab, Tabs } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
-import Metadata from '../../world/Metadata';
+import Metadata, { ItemTokenMetadata } from '../../world/Metadata';
 import { WorldHolderInfo } from '../../components/item/WorldHolderInfo';
 import { CollectionHistory } from '../../components/item/CollectionHistory';
 import { ItemTags } from '../../components/item/ItemTags';
@@ -13,7 +13,7 @@ const Item: React.FC<{}> = (props) => {
     const params = useParams();
 
     const [tokenId, setTokenId] = useState(parseInt(params.id!));
-    const [metadata, setMetadata] = useState<any>();
+    const [metadata, setMetadata] = useState<ItemTokenMetadata>();
 
     // Set tokenId state when prop changes.
     useEffect(() => {
@@ -32,7 +32,7 @@ const Item: React.FC<{}> = (props) => {
             <Container className="p-0">
                 <Row>
                     <Col>
-                        <ItemDisplay tokenId={tokenId} metadata={metadata} displayModel={true} />
+                        {metadata && <ItemDisplay tokenId={tokenId} metadata={metadata} displayModel={true} />}
                     </Col>
                     <Col xs="4" lg="3">
                         <h4>Tags</h4>

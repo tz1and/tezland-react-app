@@ -32,7 +32,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     let itemTrackedBalance = "";
     let balanceColor = "";
     if (props.trackItems) {
-        const trackedItemBalance = -ItemTracker.getTempItemTrack(token_data.id);
+        const trackedItemBalance = -ItemTracker.getTempItemTrack(token_data.tokenId);
         if (trackedItemBalance !== 0) itemTrackedBalance = `(${numberWithSign(trackedItemBalance)})`;
 
         if (props.isTempItem) balanceColor = "bg-success-light";
@@ -54,13 +54,13 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                 </Popover>
             }
         >
-            <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.id.toString()}>
+            <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.tokenId.toString()}>
                 <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
-                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.id, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
-                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.id, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }
+                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.tokenId, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
+                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.tokenId, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }
                 </div>
 
-                <div onClick={() => props.onSelect(token_data.id, item_data.quantity)}>
+                <div onClick={() => props.onSelect(token_data.tokenId, item_data.quantity)}>
                     <img src={MetadataUtils.getThumbnailUrl(item_metadata)} width={350} height={350} className="card-img-top inventory-item-image" alt="..."/>
                     <div className="card-body">
                         <h6 className="card-title">{name ? truncate(name, 19, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h6>
@@ -69,7 +69,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                             Royalties: {token_data.royalties === 0 ? 0 : (token_data.royalties / 10).toFixed(2)}{"\u0025"}<br/>
                             Minter: </p>
                         <p className="card-text small text-muted">{truncateAddress(token_data.minterId)}</p>
-                        <p className="card-text text-end" style={{fontSize: '0.6rem'}}>Token ID: {token_data.id}</p>
+                        <p className="card-text text-end" style={{fontSize: '0.6rem'}}>Token ID: {token_data.tokenId}</p>
                     </div>
                 </div>
             </div>
