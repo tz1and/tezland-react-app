@@ -4,7 +4,7 @@ import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import assert from "assert";
 import { ItemTokenMetadata, PlaceTokenMetadata } from "../world/Metadata";
 
-const databaseVersion = 12;
+const databaseVersion = 13;
 
 type ArtifactMetaType = {
     lastAccess: Date;
@@ -86,13 +86,16 @@ export class DatabaseStorage implements IStorageProvider {
                             artifactCache.createIndex("lastAccess", "lastAccess");
                             artifactCache.createIndex("size", "size");
                         }
-                        else if (oldVersion < 12) {
-                            // Need to clear metadata tables
+                        
+                        if (oldVersion < 13) {
+                            // Need to clear metadata tables and world grid
                             db.deleteObjectStore("placeMetadata");
                             db.deleteObjectStore("itemMetadata");
+                            db.deleteObjectStore("worldGrid");
 
                             db.createObjectStore("placeMetadata");
                             db.createObjectStore("itemMetadata");
+                            db.createObjectStore("worldGrid");
                         }
                     } catch (ex: any) {
                         Logging.Error("Error while creating object stores. Exception: " + ex.message);
