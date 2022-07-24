@@ -41,7 +41,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
     const [state, setState] = useState<PlacePropertiesFormState>({error: "", successState: 0});
 
     assert(props.place.placeData);
-    const place_props = props.place.placeData.place_props;
+    const place_props = props.place.placeData.placeProps;
     const place_color = place_props.get('00');
     const place_name = place_props.get('01');
     

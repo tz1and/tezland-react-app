@@ -27,9 +27,9 @@ export type PlaceItemData = {
 export type PlaceData = {
     tokenId: number;
     placeType: string;
-    stored_items: PlaceItemData[];
-    place_props: Map<string, string>;
-    place_seq: string;
+    storedItems: PlaceItemData[];
+    placeProps: Map<string, string>;
+    placeSeq: string;
 }
 
 
@@ -232,7 +232,7 @@ export default class PlaceNode extends BasePlaceNode {
                 if (this.isDisposed()) return;
 
                 // Check the sequence number.
-                if (this.placeData.place_seq === newSeqNum) {
+                if (this.placeData.placeSeq === newSeqNum) {
                     //Logging.InfoDev("sequence number is identical, no update needed", this.placeId);
                     return;
                 }
@@ -262,14 +262,14 @@ export default class PlaceNode extends BasePlaceNode {
             assert(this.placeData);
             assert(this.placeGround);
             assert(this.placeGround.material instanceof SimpleMaterial);
-            this.placeGround.material.diffuseColor = Color3.FromHexString(`#${this.placeData.place_props.get('00')}`);
+            this.placeGround.material.diffuseColor = Color3.FromHexString(`#${this.placeData.placeProps.get('00')}`);
 
             // The new item map.
             // We add new additions and move existing items to this one.
             const newItems: Map<number, ItemNode> = new Map();
 
             //items.forEach(async (element: any) => {
-            for (const element of this.placeData.stored_items) {
+            for (const element of this.placeData.storedItems) {
                 if(!element.data.item) continue;
 
                 // Set prototype to make sure BigNumbers get recognised.
@@ -425,7 +425,7 @@ export default class PlaceNode extends BasePlaceNode {
 
     public getName() {
         if (this.placeData) {
-            const place_name = this.placeData.place_props.get('01');
+            const place_name = this.placeData.placeProps.get('01');
             if (place_name) return bytes2Char(place_name);
         }
 
