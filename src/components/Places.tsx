@@ -20,7 +20,7 @@ export const Places: React.FC<PlacesProps> = (props) => {
     const navigate = useNavigate();
 
     const fetchInventory: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
-        const res = await grapphQLUser.getUserPlaces({ address: props.address, amount: fetchAmount, offset: dataOffset });
+        const res = await grapphQLUser.getUserPlaces({ address: props.address, placeTypes: ['exterior', 'interior'], amount: fetchAmount, offset: dataOffset });
         
         return res.placeTokenHolder;
     }

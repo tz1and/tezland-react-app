@@ -30,7 +30,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
 
     private walletChangeListener = () => {
         // TODO: allow Browser to cache this by setting some max age or something
-        fetchUserPlaces(this.context).then((res) => {
+        fetchUserPlaces(this.context, 'exterior').then((res) => {
             this.setState({userPlaces: res}, () => {
                 assert(this.selectRef.current);
                 this.selectRef.current.value = AppSettings.defaultSpawn.value;

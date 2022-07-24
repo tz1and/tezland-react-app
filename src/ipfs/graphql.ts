@@ -28,14 +28,14 @@ export async function fetchGraphQL(query: string, query_name: string, variables?
     return obj.data;
 }
 
-export async function fetchUserPlaces(walletProvider: ITezosWalletProvider) {
+export async function fetchUserPlaces(walletProvider: ITezosWalletProvider, placeTypes: string | string[]) {
     if(!walletProvider.isWalletConnected()) return [];
 
     // TODO: hasura limits to 100 results.
     // Maybe need to keep fetching.
 
     try {
-        const data = await grapphQLUser.getUserPlaces({ address: walletProvider.walletPHK(), offset: 0, amount: 100 });
+        const data = await grapphQLUser.getUserPlaces({ address: walletProvider.walletPHK(), placeTypes: placeTypes, offset: 0, amount: 100 });
         
         return data.placeTokenHolder;
     } catch(e: any) {

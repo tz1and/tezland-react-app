@@ -59,7 +59,7 @@ type CreateAuctionFormState = {
     mapLocation: [number, number],
     placePoly: [number, number][],
     placeInfo: JSX.Element,
-    placeInventory?: any[]
+    placeInventory?: {token: {tokenId: number}}[]
 }
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
@@ -107,7 +107,7 @@ Place type: {res.placeType}</small>;
     }
 
     private updatePlacesAndMap() {
-        fetchUserPlaces(this.context).then((result) => {
+        fetchUserPlaces(this.context, 'exterior').then((result) => {
             this.setState({ placeInventory: result });
             // TODO: this sure is clumsy. Not sure what to do.
             if(result.length > 0) {
@@ -214,7 +214,7 @@ Place type: {res.placeType}</small>;
                                                     this.state.placeInventory.length === 0 ?
                                                         (<option value={-1}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not connected."}</option>) :
                                                             this.state.placeInventory.map((key) => (
-                                                                <option key={key.tokenId} value={key.tokenId}>Place #{key.tokenId}</option>
+                                                                <option key={key.token.tokenId} value={key.token.tokenId}>Place #{key.token.tokenId}</option>
                                                             ))}
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
