@@ -5,7 +5,7 @@ import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
 import AppSettings from "../storage/AppSettings";
 
 
-export enum CursorType {
+export const enum CursorType {
     Pointer = 0,
     Hand,
     Loading,

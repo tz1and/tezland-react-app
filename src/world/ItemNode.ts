@@ -45,7 +45,7 @@ const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
 }
 
 
-export enum ItemLoadState {
+export const enum ItemLoadState {
     NotLoaded = 0,
     Queued = 1,
     Loaded = 2,

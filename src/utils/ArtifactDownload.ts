@@ -33,7 +33,7 @@ function decodeSplitEncodeURI(uri: string) {
 
 type PreprocessWorkerPoolType = Pool<ModuleThread<typeof MeshPreprocessingWorkerApi>>;
 
-export enum GatewayType {
+export const enum GatewayType {
     Native = 0,
     RandomPublic
 }

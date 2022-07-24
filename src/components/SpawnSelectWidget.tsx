@@ -1,7 +1,7 @@
 import TezosWalletContext from "./TezosWalletContext";
 import { OverlayTrigger, Popover } from "react-bootstrap";
 import React from "react";
-import { fetchPlaces } from "../ipfs/graphql";
+import { fetchUserPlaces } from "../ipfs/graphql";
 import AppSettings from "../storage/AppSettings";
 import assert from "assert";
 
@@ -30,7 +30,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
 
     private walletChangeListener = () => {
         // TODO: allow Browser to cache this by setting some max age or something
-        fetchPlaces(this.context).then((res) => {
+        fetchUserPlaces(this.context).then((res) => {
             this.setState({userPlaces: res}, () => {
                 assert(this.selectRef.current);
                 this.selectRef.current.value = AppSettings.defaultSpawn.value;

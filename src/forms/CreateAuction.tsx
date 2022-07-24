@@ -13,7 +13,7 @@ import BigNumber from 'bignumber.js';
 import DutchAuction from '../tz/DutchAuction';
 import Metadata from '../world/Metadata';
 import { useNavigate } from 'react-router-dom';
-import { fetchPlaces } from '../ipfs/graphql';
+import { fetchUserPlaces } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
 import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
@@ -107,7 +107,7 @@ Place type: {res.placeType}</small>;
     }
 
     private updatePlacesAndMap() {
-        fetchPlaces(this.context).then((result) => {
+        fetchUserPlaces(this.context).then((result) => {
             this.setState({ placeInventory: result });
             // TODO: this sure is clumsy. Not sure what to do.
             if(result.length > 0) {

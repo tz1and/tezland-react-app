@@ -3,7 +3,7 @@ import assert from "assert";
 import { packTo, unpack } from "byte-data";
 import { fromHexString } from "./Utils";
 
-export enum TeleporterType {
+export const enum TeleporterType {
     Exterior = 0,
     Interior = 1,
     Local = 2
@@ -15,7 +15,7 @@ export type TeleporterData = {
     position?: Vector3;
 }
 
-export enum ItemDataFlags {
+export const enum ItemDataFlags {
     NONE = 0,
     DISABLE_COLLISIONS = 1
 }

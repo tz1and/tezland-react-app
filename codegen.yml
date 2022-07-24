@@ -21,9 +21,17 @@
       ],
       config: {
         preResolveTypes: true,
-        skipTypename: false,
-        enumsAsTypes: true,
+        skipTypename: true,
         constEnums: true,
+        strictScalars: true,
+        scalars: {
+          bigint: number,
+          smallint: number,
+          numeric: number,
+          float8: number,
+          timestamptz: string, # Date?
+          jsonb: any,
+        },
         # apollo config from here
         #withHooks: true,
         #withHOC: false,
@@ -50,9 +58,17 @@
       ],
       config: {
         preResolveTypes: true,
-        skipTypename: false,
-        enumsAsTypes: true,
+        skipTypename: true,
         constEnums: true,
+        strictScalars: true,
+        scalars: {
+          bigint: number,
+          smallint: number,
+          numeric: number,
+          float8: number,
+          timestamptz: string, # Date?
+          jsonb: any,
+        },
       },
     },
   },

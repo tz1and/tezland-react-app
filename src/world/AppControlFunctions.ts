@@ -29,7 +29,7 @@ export interface DirectoryFormProps extends OverlayFormProps {
     mapCoords: [number, number];
 }
 
-export enum OverlayForm {
+export const enum OverlayForm {
     None = 0,
     PlaceProperties,
     Instructions,

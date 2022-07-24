@@ -32,7 +32,7 @@ import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
-export enum MarkerMode {
+export const enum MarkerMode {
     SpawnsAndTeleporters = 0,
     Places = 1 // Can also be used to not mark anything
 }

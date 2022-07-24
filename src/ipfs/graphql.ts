@@ -28,7 +28,7 @@ export async function fetchGraphQL(query: string, query_name: string, variables?
     return obj.data;
 }
 
-export async function fetchPlaces(walletProvider: ITezosWalletProvider) {
+export async function fetchUserPlaces(walletProvider: ITezosWalletProvider) {
     if(!walletProvider.isWalletConnected()) return [];
 
     // TODO: hasura limits to 100 results.
