@@ -295,10 +295,12 @@ export class Contracts {
         return new SHA3(256).update(packed.packed, 'hex').digest('hex');
     }
 
-    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number): Promise<any> {
+    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, place_type: "exterior" | "interior"): Promise<any> {
         // use get_place_data on-chain view.
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
+
+        assert(place_type === "exterior");
 
         Logging.InfoDev("Reading place data from chain", place_id);
 
@@ -322,10 +324,10 @@ export class Contracts {
             place_props.set(key, value);
         }
 
-        const place_data = { stored_items: flattened_item_data, place_props: place_props, place_seq: seqHash } as PlaceData;
+        const place_data = { stored_items: flattened_item_data, place_props: place_props, place_seq: seqHash, tokenId: place_id, placeType: place_type } as PlaceData;
 
         // TODO: await save?
-        Metadata.Storage.saveObject(place_id, "placeItems", place_data);
+        Metadata.Storage.saveObject("placeItems", place_data);
 
         return place_data;
     }

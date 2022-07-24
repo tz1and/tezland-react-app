@@ -55,11 +55,13 @@ export class DatabaseStorage implements IStorageProvider {
                         if (oldVersion < 13) {
                             // Need to clear metadata tables and world grid
                             db.deleteObjectStore("placeMetadata");
+                            db.deleteObjectStore("placeItems");
                             db.deleteObjectStore("itemMetadata");
                             db.deleteObjectStore("worldGrid");
 
-                            db.createObjectStore("placeMetadata");
-                            db.createObjectStore("itemMetadata");
+                            db.createObjectStore("placeMetadata", { keyPath: ['tokenId', 'placeType'] });
+                            db.createObjectStore("placeItems", { keyPath: ['tokenId', 'placeType'] });
+                            db.createObjectStore("itemMetadata", { keyPath: 'tokenId' });
                             db.createObjectStore("worldGrid");
                         }
                     } catch (ex: any) {
@@ -89,7 +91,7 @@ export class DatabaseStorage implements IStorageProvider {
      * @param key defines the key to load from.
      * @param table the table to store the object in.
      */
-    loadObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name): Promise<StoreValue<TezlandDB, Name> | undefined> {
+    loadObject<Name extends StoreNames<TezlandDB>>(table: Name, key: StoreKey<TezlandDB, Name>): Promise<StoreValue<TezlandDB, Name> | undefined> {
         assert(this._db);
         const tx = this._db.transaction(table, "readonly", { durability: "relaxed" });
         return tx.store.get(key);
@@ -101,7 +103,7 @@ export class DatabaseStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name, data: StoreValue<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name>> {
+    saveObject<Name extends StoreNames<TezlandDB>>(table: Name, data: StoreValue<TezlandDB, Name>, key?: StoreKey<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name>> {
         assert(this._db);
         const tx = this._db.transaction(table, "readwrite", { durability: "relaxed" });
         return tx.store.put(data, key);

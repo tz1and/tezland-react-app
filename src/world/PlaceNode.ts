@@ -25,6 +25,8 @@ export type PlaceItemData = {
 }
 
 export type PlaceData = {
+    tokenId: number;
+    placeType: string;
     stored_items: PlaceItemData[];
     place_props: Map<string, string>;
     place_seq: string;
@@ -32,7 +34,7 @@ export type PlaceData = {
 
 
 export default class PlaceNode extends BasePlaceNode {
-    public placeData: Nullable<PlaceData> = null;
+    public placeData: PlaceData | undefined;
 
     private placeBounds: Nullable<Mesh> = null;
     private placeGround: Nullable<Mesh> = null;
@@ -206,7 +208,7 @@ export default class PlaceNode extends BasePlaceNode {
         assert(this.placeBounds && this.placeGround, "Place not initialised.");
 
         // First, load the palce data from disk.
-        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject(this.placeId, "placeItems");
+        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject("placeItems", [this.placeId, "exterior"]);
         if (this.isDisposed()) return;
 
         // If we have place data, load the items.
@@ -237,7 +239,7 @@ export default class PlaceNode extends BasePlaceNode {
             }
 
             // reload place data if it changed or we don't have any.
-            this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId);
+            this.placeData = await Contracts.getItemsForPlaceView(this.world.walletProvider, this.placeId, "exterior");
             if (this.isDisposed()) return;
         }
         // catch exceptions and queue another update.

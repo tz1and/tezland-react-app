@@ -79,7 +79,7 @@ export default class Metadata {
             const metadata_db_promises: Promise<PlaceTokenMetadata | undefined>[] = []
             // Try to read the token metadata from storage.
             for (const place_id of places)
-                metadata_db_promises.push(Metadata.Storage.loadObject(place_id, "placeMetadata"));
+                metadata_db_promises.push(Metadata.Storage.loadObject("placeMetadata", [place_id, 'exterior']));
 
             (await Promise.allSettled(metadata_db_promises)).forEach((res, index) => {
                 // If it doesn't exist, add to fetch array.
@@ -110,7 +110,7 @@ export default class Metadata {
                 placeMeta.minter = metadata.placeToken[0].minterId;
                 delete (metadata as any).placeToken;
 
-                Metadata.Storage.saveObject(metadata.tokenId, "placeMetadata", placeMeta);
+                Metadata.Storage.saveObject("placeMetadata", placeMeta);
                 place_metadatas.push(placeMeta);
             }
         }
@@ -120,7 +120,7 @@ export default class Metadata {
 
     public static async getPlaceMetadata(token_id: number): Promise<PlaceTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject(token_id, "placeMetadata");
+        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject("placeMetadata", [token_id, 'exterior']);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
@@ -143,7 +143,7 @@ export default class Metadata {
                 placeMeta.minter = metadata.placeToken[0].minterId;
                 delete (metadata as any).placeToken;
 
-                Metadata.Storage.saveObject(metadata.tokenId, "placeMetadata", placeMeta);
+                Metadata.Storage.saveObject("placeMetadata", placeMeta);
                 tokenMetadata = placeMeta;
             }
         }
@@ -153,7 +153,7 @@ export default class Metadata {
 
     public static async getItemMetadata(token_id: number): Promise<ItemTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata: ItemTokenMetadata | undefined = await Metadata.Storage.loadObject(token_id, "itemMetadata");
+        let tokenMetadata: ItemTokenMetadata | undefined = await Metadata.Storage.loadObject("itemMetadata", token_id);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
@@ -171,7 +171,7 @@ export default class Metadata {
                 itemMeta.minter = metadata.itemToken[0].minterId;
                 delete (metadata as any).itemToken;
 
-                Metadata.Storage.saveObject(token_id, "itemMetadata", itemMeta);
+                Metadata.Storage.saveObject("itemMetadata", itemMeta);
                 tokenMetadata = itemMeta;
             }
         }

@@ -41,7 +41,7 @@ export default class WorldGrid {
                 }
                 else {
                     promisedCells.push(new Promise((resolve) => {
-                        Metadata.Storage.loadObject(gridHash, "worldGrid").then((cell) => {
+                        Metadata.Storage.loadObject("worldGrid", gridHash).then((cell) => {
                             // Fetch cell if updated or doesn't exist.
                             if (!cell || cell.worldPlaceCount !== worldPlaceCount) {
                                 Logging.InfoDev("fetching cell", gridHash, cell ? cell.worldPlaceCount : "unknown cell");
@@ -52,7 +52,7 @@ export default class WorldGrid {
 
                                         const cell = { places: places_in_cell, worldPlaceCount: worldPlaceCount };
 
-                                        Metadata.Storage.saveObject(gridHash, "worldGrid", cell);
+                                        Metadata.Storage.saveObject("worldGrid", cell, gridHash);
 
                                         // Add to cell cache
                                         WorldGrid.cellCache.set(gridHash, cell);

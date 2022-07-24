@@ -1,5 +1,7 @@
 import { DBSchema, StoreKey, StoreNames, StoreValue } from "idb";
+import { WorldGridCell } from "../utils/WorldGrid";
 import { PlaceTokenMetadata, ItemTokenMetadata } from "../world/Metadata";
+import { PlaceData } from "../world/PlaceNode";
 
 
 type ArtifactMetaType = {
@@ -9,12 +11,12 @@ type ArtifactMetaType = {
 
 export interface TezlandDB extends DBSchema {
     placeMetadata: {
-        key: number;
+        key: [number, string];
         value: PlaceTokenMetadata;
     };
     placeItems: {
-        key: number;
-        value: any; // TODO: PlaceData type
+        key: [number, string];
+        value: PlaceData;
     };
     itemMetadata: {
         key: number;
@@ -22,7 +24,7 @@ export interface TezlandDB extends DBSchema {
     };
     worldGrid: {
         key: string;
-        value: any; // TODO: WorldGrid type
+        value: WorldGridCell;
     };
     artifactCache: {
         key: string;
@@ -52,7 +54,7 @@ export interface TezlandDB extends DBSchema {
      * @param key defines the key to load from.
      * @param table the table to store the object in.
      */
-    loadObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name): Promise<StoreValue<TezlandDB, Name> | undefined>;
+    loadObject<Name extends StoreNames<TezlandDB>>(table: Name, key: StoreKey<TezlandDB, Name>): Promise<StoreValue<TezlandDB, Name> | undefined>;
 
     /**
      * Save an object to storage.
@@ -60,5 +62,5 @@ export interface TezlandDB extends DBSchema {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name, data: StoreValue<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name>>;
+    saveObject<Name extends StoreNames<TezlandDB>>(table: Name, data: StoreValue<TezlandDB, Name>, key?: StoreKey<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name> | undefined>;
 }

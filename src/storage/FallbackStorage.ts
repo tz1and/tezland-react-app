@@ -39,7 +39,7 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @returns the fetched object or null
      */
-    loadObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name): Promise<StoreValue<TezlandDB, Name> | undefined> {
+    loadObject<Name extends StoreNames<TezlandDB>>(table: Name, key: StoreKey<TezlandDB, Name>): Promise<StoreValue<TezlandDB, Name> | undefined> {
         return new Promise((resolve) => {
             const value = this.storage.getItem(table + key);
             if (value === undefined) resolve(undefined);
@@ -53,7 +53,7 @@ export class FallbackStorage implements IStorageProvider {
      * @param table the table to store the object in.
      * @param data the object to save.
      */
-    saveObject<Name extends StoreNames<TezlandDB>>(key: StoreKey<TezlandDB, Name>, table: Name, data: StoreValue<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name>> {
+    saveObject<Name extends StoreNames<TezlandDB>>(table: Name, data: StoreValue<TezlandDB, Name>, key?: StoreKey<TezlandDB, Name>): Promise<StoreKey<TezlandDB, Name> | undefined> {
         return new Promise((resolve) => {
             this.storage.setItem(table + key, JSON.stringify(data));
             resolve(key);
