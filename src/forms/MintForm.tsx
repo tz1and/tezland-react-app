@@ -11,7 +11,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { dataURItoBlob, FileLike, fileToFileLike, getFileType, RefLike } from '../utils/Utils';
+import { dataURItoBlob, fileToFileLike, getFileType } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
