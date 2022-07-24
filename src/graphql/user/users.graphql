@@ -13,15 +13,23 @@ query getUserCreations($address: String!, $offset: Int!, $amount: Int!) {
     }
 }
 
-query getUserPlaces($address: String!, $offset: Int!, $amount: Int!) {
-    placeTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {token: {tokenId: desc}}) {
+query getUserPlaces($address: String!, $placeTypes: [String!]!, $offset: Int!, $amount: Int!) {
+    placeTokenHolder(
+        where: {
+            holderId: {_eq: $address},
+            token: {
+                metadata: {
+                    placeType: {_in: $placeTypes}
+                }
+            }
+        }, limit: $amount, offset: $offset, order_by: {token: {tokenId: desc}}) {
         token {
             tokenId
         }
     }
 }
 
-query getInventoryTokensWithBalances($address: String!, $ids: [bigint!]) {
+query getInventoryTokensWithBalances($address: String!, $ids: [bigint!]!) {
     itemTokenHolder(where: {token: {tokenId: {_in: $ids}}, holderId: {_eq: $address}}) {
         token {
             tokenId
@@ -29,7 +37,7 @@ query getInventoryTokensWithBalances($address: String!, $ids: [bigint!]) {
     }
 }
 
-query getInventoryTokensWithoutBalance($ids: [bigint!]) {
+query getInventoryTokensWithoutBalance($ids: [bigint!]!) {
     itemToken(where: {tokenId: {_in: $ids}}) {
         ...ItemTokenSelect
     }

@@ -1,4 +1,4 @@
-query getPlaceTokenMetadataBatch($ids: [bigint!]) {
+query getPlaceTokenMetadataBatch($ids: [bigint!]!) {
     placeTokenMetadata(where: { tokenId: { _in: $ids }, placeType: { _eq: "exterior" } }) {
         tokenId
         name
