@@ -81,7 +81,7 @@ class ItemTracker {
             return;
         }
 
-        tempItem = { count: count } as TempItem;
+        tempItem = { count: count };
         tempItemsMap.set(itemId, tempItem);
     }
 

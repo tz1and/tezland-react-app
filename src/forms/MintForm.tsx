@@ -141,32 +141,32 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             date: this.state.modelMintDate,
             minter: this.context.walletPHK(),
             artifactUri: await fileToFileLike(values.itemFile, mime_type),
-            displayUri: { dataUri: display, type: "image/png", name: "display.png" } as FileLike,
-            thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" } as FileLike,
+            displayUri: { dataUri: display, type: "image/png", name: "display.png" },
+            thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" },
             tags: values.itemTags,
             formats: [
                 {
-                    uri: { topLevelRef: "artifactUri" } as RefLike,
+                    uri: { topLevelRef: "artifactUri" },
                     mimeType: mime_type,
                     fileSize: values.itemFile.size,
                     fileName: values.itemFile.name,
                 },
                 {
-                    uri: { topLevelRef: "displayUri" } as RefLike,
+                    uri: { topLevelRef: "displayUri" },
                     mimeType: "image/png",
                     fileName: "display.png",
                     dimensions: {
-                        "value": displayRes + "x" + displayRes,
-                        "unit": "px"
+                        value: displayRes + "x" + displayRes,
+                        unit: "px"
                     }
                 },
                 {
-                    uri: { topLevelRef: "thumbnailUri" } as RefLike,
+                    uri: { topLevelRef: "thumbnailUri" },
                     mimeType: "image/png",
                     fileName: "thumbnail.png",
                     dimensions: {
-                        "value": thumbnailRes + "x" + thumbnailRes,
-                        "unit": "px"
+                        value: thumbnailRes + "x" + thumbnailRes,
+                        unit: "px"
                     }
                 }
             ],

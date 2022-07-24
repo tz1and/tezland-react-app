@@ -1,11 +1,24 @@
 import Conf from '../Config';
-import { FileLike } from '../utils/Utils';
+import { FileLike, RefLike } from '../utils/Utils';
 import assert from 'assert';
 
 
 type Royalties = {
     decimals: number;
     shares: Map<string, number>;
+}
+
+type MetadataFormatDimensions = {
+    value: string;
+    unit: string;
+}
+
+type MetadataFormat = {
+    uri: RefLike;
+    mimeType: string;
+    fileName: string;
+    fileSize?: number;
+    dimensions?: MetadataFormatDimensions;
 }
 
 type ItemMetadata = {
@@ -16,7 +29,7 @@ type ItemMetadata = {
     displayUri: FileLike;
     thumbnailUri: FileLike;
     tags: string; // unprocessed tags
-    formats: object[];
+    formats: MetadataFormat[];
     baseScale: number;
     polygonCount: number;
     date: Date;
