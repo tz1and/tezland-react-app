@@ -34,8 +34,8 @@ class PreviewScene {
 
     public dispose() {
         // Destorying the engine should prbably be enough.
-        this.engine.dispose();
         this.scene.dispose();
+        this.engine.dispose();
     }
 
     public setBgColor(color: string) {
@@ -220,33 +220,30 @@ type ModelPreviewState = {
     loading: boolean;
     thumbnail: any;
     polycount: number;
+    preview: PreviewScene | null;
 };
 
 class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState> {
     private mount = React.createRef<HTMLCanvasElement>();
     private loadingRef = React.createRef<HTMLHeadingElement>();
-    private preview: PreviewScene | null;
 
     constructor(props: ModelPreviewProps) {
         super(props);
         this.state = {
-            // optional second annotation for better type inference
             loading: false,
             thumbnail: null,
             polycount: -1,
-            //count: 0,
-            //mount: null
+            preview: null
         };
-        this.preview = null;
-      }
+    }
 
-      override componentDidUpdate(prevProps: ModelPreviewProps) {
+    override componentDidUpdate(prevProps: ModelPreviewProps) {
         // did the file change?
         // if yes, update the preview.
         if(this.props.file !== prevProps.file) {
             // if file is not null and preview exists.
-            if(this.preview) {
-                this.preview.loadObject(this.props.modelLoaded, this.props.file).then((res) => {
+            if(this.state.preview) {
+                this.state.preview.loadObject(this.props.modelLoaded, this.props.file).then((res) => {
                     this.setState({ polycount: res });
                 });
             }
@@ -258,31 +255,30 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
 
         BabylonUtils.createEngine(this.mount.current).then(engine => {
             try {
-                // TODO: should be state!
-                this.preview = new PreviewScene(engine);
-
-                if(this.props.tokenId) {
-                    this.preview.loadFromTokenId(this.props.modelLoaded, this.props.tokenId).then((res) => {
-                        this.setState({ polycount: res });
-
-                        if(this.loadingRef.current) this.loadingRef.current.hidden = true;
-                    });
-                }
-                else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
+                this.setState({preview: new PreviewScene(engine)}, () => {
+                    assert(this.state.preview);
+                    if(this.props.tokenId) {
+                        this.state.preview.loadFromTokenId(this.props.modelLoaded, this.props.tokenId).then((res) => {
+                            this.setState({ polycount: res });
+    
+                            if(this.loadingRef.current) this.loadingRef.current.hidden = true;
+                        });
+                    }
+                    else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
+                });
             }
             catch(err: any) { }
         }).catch(err => {});
     }
 
     override componentWillUnmount() {
-        if(this.preview) {
-            this.preview.dispose();
-            this.preview = null;
+        if(this.state.preview) {
+            this.state.preview.dispose();
         }
     }
 
     getThumbnail(res: number): Promise<string> {
-        return this.preview!.getScreenshot(res);
+        return this.state.preview!.getScreenshot(res);
     }
 
     override render() {
@@ -290,7 +286,7 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         <div className='position-relative'>
             <h4 className="position-absolute p-3 start-0 bottom-0" ref={this.loadingRef}>Loading...</h4>
             <canvas className='img-thumbnail mt-2' id="previewCanvas" touch-action="none" width={this.props.width} height={this.props.height} ref={this.mount} />
-            { this.props.bgColorSelection && <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#DDEEFF" onChange={(col) => this.preview?.setBgColor(col.target.value)}/></p> }
+            { this.props.bgColorSelection && <p className='align-middle mb-2'>Background color: <input type="color" id="backgroundColorPicker" defaultValue="#DDEEFF" onChange={(col) => this.state.preview?.setBgColor(col.target.value)}/></p> }
         </div>);
     }
 }
