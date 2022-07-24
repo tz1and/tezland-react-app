@@ -131,7 +131,6 @@ export default class Metadata {
             // fix up border and center coords
             const metadata = data.placeTokenMetadata[0];
 
-            // TODO: await store?
             if (metadata) {
                 // fix up the coordinates
                 metadata.borderCoordinates = JSON.parse(metadata.borderCoordinates)
@@ -163,7 +162,6 @@ export default class Metadata {
 
             const metadata = data.itemTokenMetadata[0];
 
-            // TODO: await store?
             if (metadata) {
                 // set minter
                 // TODO: this is nasty

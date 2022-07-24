@@ -326,7 +326,6 @@ export class Contracts {
 
         const place_data: PlaceData = { tokenId: place_id, placeType: place_type, storedItems: flattened_item_data, placeProps: place_props, placeSeq: seqHash };
 
-        // TODO: await save?
         Metadata.Storage.saveObject("placeItems", place_data);
 
         return place_data;
