@@ -15,22 +15,7 @@ import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import { bytes2Char } from "@taquito/utils";
 import ItemNode, { ItemLoadState } from "./ItemNode";
 import ItemTracker from "../controllers/ItemTracker";
-import BasePlaceNode from "./nodes/BasePlaceNode";
-
-
-export type PlaceItemData = {
-    item_id: BigNumber;
-    issuer: string;
-    data: any;
-}
-
-export type PlaceData = {
-    tokenId: number;
-    placeType: string;
-    storedItems: PlaceItemData[];
-    placeProps: Map<string, string>;
-    placeSeq: string;
-}
+import BasePlaceNode, { PlaceData } from "./nodes/BasePlaceNode";
 
 
 export default class PlaceNode extends BasePlaceNode {

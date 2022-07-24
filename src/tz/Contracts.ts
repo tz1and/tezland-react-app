@@ -4,8 +4,7 @@ import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
-import { PlacePermissions } from "../world/nodes/BasePlaceNode";
-import { PlaceData, PlaceItemData } from "../world/PlaceNode";
+import { PlacePermissions, PlaceType, PlaceData, PlaceItemData } from "../world/nodes/BasePlaceNode";
 import ItemNode from "../world/ItemNode";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -295,7 +294,7 @@ export class Contracts {
         return new SHA3(256).update(packed.packed, 'hex').digest('hex');
     }
 
-    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, place_type: "exterior" | "interior"): Promise<any> {
+    public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, place_type: PlaceType): Promise<any> {
         // use get_place_data on-chain view.
         if (!this.marketplaces)
             this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);

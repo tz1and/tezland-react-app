@@ -3,6 +3,7 @@ import { OverlayTrigger, Popover } from "react-bootstrap";
 import React from "react";
 import { fetchUserPlaces } from "../ipfs/graphql";
 import AppSettings from "../storage/AppSettings";
+import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
 import assert from "assert";
 
 type SpawnSelectProps = {
@@ -10,7 +11,7 @@ type SpawnSelectProps = {
 };
 
 type SpawnSelectState = {
-    userPlaces: {token: {tokenId: number}}[];
+    userPlaces: FetchDataResult<FetchDataPlaceToken>[];
     currentIsDefault: boolean;
 }
 

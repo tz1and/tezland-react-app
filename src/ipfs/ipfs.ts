@@ -1,5 +1,6 @@
 import Conf from '../Config';
 import { FileLike, RefLike } from '../utils/Utils';
+import { PlaceType } from '../world/nodes/BasePlaceNode';
 import assert from 'assert';
 
 
@@ -79,7 +80,7 @@ type PlaceMetadata = {
     description: string;
     minter: string;
     name: string;
-    placeType: "exterior" | "interior";
+    placeType: PlaceType;
     royalties: Royalties;
 }
 
@@ -101,14 +102,15 @@ export function createPlaceTokenMetadata(metadata: PlaceMetadata) {
         }
     }
 
-    if (metadata.placeType === "exterior") {
+    // TODO!!! IMPORTANT!!!
+    //if (metadata.placeType === "exterior") {
         assert(metadata.borderCoordinates);
         assert(metadata.centerCoordinates);
         assert(metadata.buildHeight);
         full_metadata.centerCoordinates = metadata.centerCoordinates;
         full_metadata.borderCoordinates = metadata.borderCoordinates;
         full_metadata.buildHeight = metadata.buildHeight;
-    }
+    //}
     
     return JSON.stringify(full_metadata);
 }

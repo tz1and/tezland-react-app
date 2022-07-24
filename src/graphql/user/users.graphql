@@ -25,6 +25,9 @@ query getUserPlaces($address: String!, $placeTypes: [String!]!, $offset: Int!, $
         }, limit: $amount, offset: $offset, order_by: {token: {tokenId: desc}}) {
         token {
             tokenId
+            metadata {
+                placeType
+            }
         }
     }
 }

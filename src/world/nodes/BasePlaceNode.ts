@@ -1,4 +1,5 @@
 import { TransformNode, Vector3 } from "@babylonjs/core";
+import BigNumber from "bignumber.js";
 import Contracts from "../../tz/Contracts";
 import { Logging } from "../../utils/Logging";
 import { yesNo } from "../../utils/Utils";
@@ -8,6 +9,21 @@ import { WorldInterface } from "../WorldInterface";
 
 export type PlaceId = number;
 
+export type PlaceType = "exterior" | "interior";
+
+export type PlaceItemData = {
+    item_id: BigNumber;
+    issuer: string;
+    data: any;
+}
+
+export type PlaceData = {
+    tokenId: number;
+    placeType: string;
+    storedItems: PlaceItemData[];
+    placeProps: Map<string, string>;
+    placeSeq: string;
+}
 
 export class PlacePermissions {
     private _permissions: number;

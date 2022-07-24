@@ -1,7 +1,7 @@
 import { DBSchema, StoreKey, StoreNames, StoreValue } from "idb";
 import { WorldGridCell } from "../utils/WorldGrid";
 import { PlaceTokenMetadata, ItemTokenMetadata } from "../world/Metadata";
-import { PlaceData } from "../world/PlaceNode";
+import { PlaceData, PlaceType } from "../world/nodes/BasePlaceNode";
 
 
 type ArtifactMetaType = {
@@ -11,11 +11,11 @@ type ArtifactMetaType = {
 
 export interface TezlandDB extends DBSchema {
     placeMetadata: {
-        key: [number, string];
+        key: [number, PlaceType];
         value: PlaceTokenMetadata;
     };
     placeItems: {
-        key: [number, string];
+        key: [number, PlaceType];
         value: PlaceData;
     };
     itemMetadata: {

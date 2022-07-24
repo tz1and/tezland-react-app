@@ -30,6 +30,9 @@ type FetchDataSwapInfo = {
 
 export type FetchDataPlaceToken = {
     tokenId: number;
+    metadata?: {
+        placeType: string;
+    } | null;
 }
 
 export type FetchDataResult<T> = {

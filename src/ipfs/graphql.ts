@@ -2,6 +2,8 @@ import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Conf from "../Config";
 import { grapphQLUser } from "../graphql/user";
 import { Logging } from "../utils/Logging";
+import { PlaceType } from "../world/nodes/BasePlaceNode";
+
 
 export async function fetchGraphQL(query: string, query_name: string, variables?: any, api_url = Conf.hasura_url) {
     // NOTE:
@@ -28,7 +30,7 @@ export async function fetchGraphQL(query: string, query_name: string, variables?
     return obj.data;
 }
 
-export async function fetchUserPlaces(walletProvider: ITezosWalletProvider, placeTypes: string | string[]) {
+export async function fetchUserPlaces(walletProvider: ITezosWalletProvider, placeTypes: PlaceType | PlaceType[]) {
     if(!walletProvider.isWalletConnected()) return [];
 
     // TODO: hasura limits to 100 results.
