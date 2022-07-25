@@ -2,6 +2,7 @@ import { deleteDB } from "idb";
 import { grapphQLUser } from "../graphql/user";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
+import { PlaceType } from "./nodes/BasePlaceNode";
 
 
 export type ItemTokenMetadata = {
@@ -118,15 +119,16 @@ export default class Metadata {
         return place_metadatas;
     }
 
-    public static async getPlaceMetadata(token_id: number): Promise<PlaceTokenMetadata | undefined> {
+    // TODO: IMPORTANT!!! remove default place_type
+    public static async getPlaceMetadata(token_id: number, place_type: PlaceType = "exterior"): Promise<PlaceTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject("placeMetadata", [token_id, 'exterior']);
+        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject("placeMetadata", [token_id, place_type]);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
-            const data = await grapphQLUser.getPlaceTokenMetadata({id: token_id});
+            const data = await grapphQLUser.getPlaceTokenMetadata({id: token_id, placeType: place_type});
 
             // fix up border and center coords
             const metadata = data.placeTokenMetadata[0];

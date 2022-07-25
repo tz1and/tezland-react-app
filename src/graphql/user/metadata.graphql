@@ -14,8 +14,8 @@ query getPlaceTokenMetadataBatch($ids: [bigint!]!) {
     }
 }
 
-query getPlaceTokenMetadata($id: bigint!) {
-    placeTokenMetadata(where: { tokenId: { _eq: $id }, placeType: { _eq: "exterior" } }) {
+query getPlaceTokenMetadata($id: bigint!, $placeType: String!) {
+    placeTokenMetadata(where: { tokenId: { _eq: $id }, placeType: { _eq: $placeType } }) {
         tokenId
         name
         description

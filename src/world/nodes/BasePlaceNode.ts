@@ -9,7 +9,8 @@ import { WorldInterface } from "../WorldInterface";
 
 export type PlaceId = number;
 
-export type PlaceType = "exterior" | "interior";
+export const AllPlaceTypes = ["exterior", "interior"] as const;
+export type PlaceType = (typeof AllPlaceTypes)[number];
 
 export type PlaceItemData = {
     item_id: BigNumber;

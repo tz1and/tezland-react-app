@@ -4,7 +4,6 @@ import { grapphQLUser } from "../graphql/user";
 import { Logging } from "../utils/Logging";
 import { PlaceType } from "../world/nodes/BasePlaceNode";
 
-
 export async function fetchGraphQL(query: string, query_name: string, variables?: any, api_url = Conf.hasura_url) {
     // NOTE:
     // HTTP caching with graphql is kinda broken, sort of. The response doesn't have the right headers set

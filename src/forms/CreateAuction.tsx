@@ -17,6 +17,8 @@ import { fetchUserPlaces } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
 import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
+import { FetchDataPlaceToken, FetchDataResult } from '../components/TokenInfiniteScroll';
+import { AllPlaceTypes, PlaceType } from '../world/nodes/BasePlaceNode';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
 
@@ -44,7 +46,7 @@ interface CreateAuctionFormValues {
     /*itemTitle: string;
     itemDescription: string;
     itemTags: string;*/
-    placeId: number;
+    placeId: string;
     duration: number;
     startPrice: number;
     endPrice: number;
@@ -54,16 +56,17 @@ interface CreateAuctionFormValues {
 type CreateAuctionFormProps = { }
 
 type CreateAuctionFormState = {
-    error: string,
-    successState: Trilean,
-    mapLocation: [number, number],
-    placePoly: [number, number][],
-    placeInfo: JSX.Element,
-    placeInventory?: {token: {tokenId: number}}[]
+    error: string;
+    successState: Trilean;
+    mapLocation: [number, number];
+    placePoly: [number, number][];
+    isExteriorPlace: boolean;
+    placeInfo: JSX.Element;
+    placeInventory: FetchDataResult<FetchDataPlaceToken>[];
 }
 
 class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAuctionFormState> {
-    private initialValues: CreateAuctionFormValues = { placeId: -1, duration: 48, startPrice: 2, endPrice: 1 };
+    private initialValues: CreateAuctionFormValues = { placeId: "-1", duration: 48, startPrice: 2, endPrice: 1 };
 
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
@@ -78,15 +81,17 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
             successState: 0,
             mapLocation: [1000, 1000],
             placePoly: [],
-            placeInfo: <br/>
+            isExteriorPlace: true,
+            placeInfo: <br/>,
+            placeInventory: []
         };
     }
 
-    private panMapToPlace(place_id: number) {
+    private panMapToPlace(place_id: number, place_type: PlaceType) {
         if(place_id < 0) return;
 
         // Note: To match leaflet coords, both x and y are flipped and mirrored.
-        Metadata.getPlaceMetadata(place_id).then((res) => {
+        Metadata.getPlaceMetadata(place_id, place_type).then((res) => {
             assert(res);
             const coords = res.centerCoordinates;
             const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
@@ -102,25 +107,28 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 Build height: {res.buildHeight}<br/>
 Place type: {res.placeType}</small>;
 
-            this.setState({ mapLocation: center_pos, placePoly: placePoly, placeInfo: placeInfo });
+            this.setState({ mapLocation: center_pos, placePoly: placePoly, isExteriorPlace: place_type === "exterior", placeInfo: placeInfo });
         }, () => {});
     }
 
     private updatePlacesAndMap() {
-        fetchUserPlaces(this.context, 'exterior').then((result) => {
-            this.setState({ placeInventory: result });
-            // TODO: this sure is clumsy. Not sure what to do.
-            if(result.length > 0) {
-                this.panMapToPlace(result[0].token.tokenId);
-                this.initialValues.placeId = result[0].token.tokenId;
-            }
+        fetchUserPlaces(this.context, ['exterior', 'interior']).then((result) => {
+            this.setState({ placeInventory: result }, () => {
+                if(this.state.placeInventory.length > 0) {
+                    const first = this.state.placeInventory[0];
+                    this.panMapToPlace(first.token.tokenId, first.token.metadata!.placeType as PlaceType);
+                    this.initialValues.placeId = this.serialisePlaceId(first.token.metadata!.placeType, first.token.tokenId);
+                }
+            });
         })
     }
 
     onIdChange(e: React.ChangeEvent<any>) {
-        const place_id = parseInt(e.target.value);
-
-        this.panMapToPlace(place_id);
+        try {
+            const [placeType, placeTokenId] = this.parsePlaceId(e.target.value);
+            this.panMapToPlace(placeTokenId, placeType as PlaceType);
+        }
+        catch(e) {}
     };
 
     private walletChangeListener = () => {
@@ -141,6 +149,28 @@ Place type: {res.placeType}</small>;
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
+    private parsePlaceId(placeId: string): [PlaceType, number] {
+        const array = placeId.split(',')
+        assert(array.length === 2, "PlaceId must be a tuple.");
+
+        const placeTokenId = parseInt(array[1]);
+        const placeType = array[0];
+
+        if (placeTokenId < 0) {
+            throw new Error('Place token ID invalid.');
+        }
+
+        if (AllPlaceTypes.find(t => t === placeType) === undefined) {
+            throw new Error('Place type invalid.');
+        }
+
+        return [placeType as PlaceType, placeTokenId];
+    }
+
+    private serialisePlaceId(type: string, id: number): string {
+        return `${type},${id}`;
+    }
+
     override render() {
         return (
             <div className="container text-start pt-4">
@@ -152,9 +182,12 @@ Place type: {res.placeType}</small>;
                             initialValues={this.initialValues}
                             validate = {(values) => {
                                 const errors: FormikErrors<CreateAuctionFormValues> = {};
-            
-                                if (values.placeId < 0) {
-                                    errors.placeId = 'Place ID invalid.';
+
+                                try {
+                                    this.parsePlaceId(values.placeId);
+                                }
+                                catch(e: any) {
+                                    errors.placeId = e.message;
                                 }
             
                                 if (values.duration * 3600 <= 60 || values.duration > 720) {
@@ -177,7 +210,11 @@ Place type: {res.placeType}</small>;
                             onSubmit={(values, actions) => {
                                 assert(values.startPrice);
                                 assert(values.endPrice);
-                                DutchAuction.createAuction(this.context, new BigNumber(values.placeId), values.startPrice, values.endPrice, values.duration, (completed: boolean) => {
+
+                                const [placeType, placeTokenId] = this.parsePlaceId(values.placeId);
+
+                                // TODO: IMPORTANT! auction creation needs token contract type
+                                DutchAuction.createAuction(this.context, new BigNumber(placeTokenId), values.startPrice, values.endPrice, values.duration, (completed: boolean) => {
                                     if (completed) {
                                         this.setState({error: "", successState: 1}, () => {
                                             this.navTimeout = setTimeout(() => {
@@ -210,11 +247,11 @@ Place type: {res.placeType}</small>;
                                         <label htmlFor="placeId" className="form-label">Place ID</label>
                                         <Field id="placeId" name="placeId" as="select" className="form-select" aria-describedby="idHelp" disabled={isSubmitting} onChange={(e: React.ChangeEvent<any>) => { handleChange(e); this.onIdChange(e); }}>
                                             {!this.state.placeInventory ?
-                                                (<option value={-1}>Loading Place Inventory...</option>) :
+                                                (<option value={"-1"}>Loading Place Inventory...</option>) :
                                                     this.state.placeInventory.length === 0 ?
-                                                        (<option value={-1}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not connected."}</option>) :
-                                                            this.state.placeInventory.map((key) => (
-                                                                <option key={key.token.tokenId} value={key.token.tokenId}>Place #{key.token.tokenId}</option>
+                                                        (<option value={"-1"}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not connected."}</option>) :
+                                                            this.state.placeInventory.map((key, index) => (
+                                                                <option key={index} value={this.serialisePlaceId(key.token.metadata!.placeType, key.token.tokenId)}>{key.token.metadata!.placeType === 'exterior' ? 'Place' : 'Interior'} #{key.token.tokenId}</option>
                                                             ))}
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>
@@ -261,7 +298,7 @@ Place type: {res.placeType}</small>;
                     <div className='col-lg-4 col-md-6'>
                         <h2>Map Preview</h2>
                         <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[1000, 1000]} zoom={2} attributionControl={false} dragging={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                            <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />
+                            {this.state.isExteriorPlace && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
                             <MapSetCenter center={this.state.mapLocation}/>
                             <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                             <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
