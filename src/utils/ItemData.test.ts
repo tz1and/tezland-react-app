@@ -196,3 +196,29 @@ describe('IItemData without flags', () => {
         expect(tele).toStrictEqual(node.teleporterData);
     });
 });
+
+it('Teleporter to place 0', () => {
+    const node: IItemData = {
+        position: new Vector3(0.0, 1.0, 1.5),
+        scaling: new Vector3(1.5, 1.5, 1.5),
+        rotationQuaternion: Quaternion.Identity(),
+        disableCollisions: false,
+        teleporterData: null
+    };
+
+    node.teleporterData = {
+        type: TeleporterType.Exterior,
+        placeId: 0
+    };
+
+    const arr = ItemDataWriter.write(node);
+    expect(arr).toHaveLength(18);
+
+    // TODO: parse it.
+    const [quat, pos, scale, flags, tele] = ItemDataParser.parse(toHexString(arr));
+    expect(pos).toStrictEqual(node.position);
+    expect(quat).toStrictEqual(node.rotationQuaternion);
+    expect(scale).toEqual(node.scaling.x);
+    expect(flags).toEqual(ItemDataFlags.NONE);
+    expect(tele).toStrictEqual(node.teleporterData);
+});

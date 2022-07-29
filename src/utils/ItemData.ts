@@ -226,7 +226,7 @@ export class ItemDataWriter {
         chunks.push(this.writeItemData(item));
         // TODO:
         // push any other chunks
-        if (item.teleporterData) chunks.push(this.writeTeleporter(item.teleporterData));
+        if (item.teleporterData !== null) chunks.push(this.writeTeleporter(item.teleporterData));
         const flags = this.writeFlags(item)
         if (flags) chunks.push(flags);
         // push flags
@@ -266,7 +266,7 @@ export class ItemDataWriter {
      */
     private static writeTeleporter(tele: TeleporterData): Uint8Array {
         // To another place
-        if (tele.placeId) {
+        if (tele.placeId !== undefined) {
             // 32 bit
             if (tele.placeId > 65535) {
                 const arr = new Uint8Array(5);
@@ -299,7 +299,7 @@ export class ItemDataWriter {
             }
         }
         // Local
-        else if (tele.position) {
+        else if (tele.position !== undefined) {
             const arr = new Uint8Array(7);
             this.writeUint8(arr, 4, 0);
             this.writeVec3_16(arr, tele.position, 1);
