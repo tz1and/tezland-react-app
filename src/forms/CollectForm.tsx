@@ -8,6 +8,7 @@ import { ItemTags } from '../components/item/ItemTags';
 import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
 import { ItemDisplay } from '../components/item/ItemDisplay';
 import { Logging } from '../utils/Logging';
+import { PlaceType } from '../world/nodes/BasePlaceNode';
 
 
 type CollectFormProps = {
@@ -17,6 +18,7 @@ type CollectFormProps = {
     itemId: number;
     issuer: string;
     xtzPerItem: number;
+    placeType: PlaceType;
 }
 
 export const CollectForm: React.FC<CollectFormProps> = (props) => {
@@ -31,7 +33,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
     }, [props]);
 
     const collectItem = () => {
-        Contracts.getItem(context, props.placeId, props.itemId, props.issuer, props.xtzPerItem).then(() => {
+        Contracts.getItem(context, props.placeId, props.itemId, props.issuer, props.xtzPerItem, props.placeType).then(() => {
             props.closeForm();
         }).catch((e) => { Logging.Error(e); });
     }

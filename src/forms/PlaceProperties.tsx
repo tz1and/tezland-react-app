@@ -10,8 +10,9 @@ import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
 import { char2Bytes, bytes2Char } from "@taquito/utils";
-import PlaceNode from '../world/PlaceNode';
+import BasePlaceNode from '../world/nodes/BasePlaceNode';
 import assert from 'assert';
+
 
 interface PlacePropertiesFormValues {
     placeGroundColor: string;
@@ -19,7 +20,7 @@ interface PlacePropertiesFormValues {
 }
 
 type PlacePropertiesFormProps = {
-    place: PlaceNode;
+    place: BasePlaceNode;
 }
 
 type PlacePropertiesFormState = {
@@ -75,7 +76,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                 return errors;
             }}
             onSubmit={(values, actions) => {
-                Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), char2Bytes(values.placeName), props.place.placeId, props.place.currentOwner, (completed: boolean) => {
+                Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), char2Bytes(values.placeName), props.place.placeId, props.place.currentOwner, props.place.placeType, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed)

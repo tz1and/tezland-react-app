@@ -1,16 +1,11 @@
-import { Engine, Scene, Vector3, Color3, Vector2,
+import { Vector3, Color3, Vector2,
     Matrix, Vector4, Quaternion, HemisphericLight,
     ShadowGenerator, CascadedShadowGenerator, Mesh,
     AbstractMesh, DeepImmutable, MeshBuilder,
     Nullable, Ray, ReflectionProbe, RenderTargetTexture,
-    SceneLoader, Texture, TransformNode,
-    TonemappingOperator, DefaultRenderingPipeline } from "@babylonjs/core";
-import { GridMaterial, SimpleMaterial, SkyMaterial, WaterMaterial } from "@babylonjs/materials";
-import PlayerController from "../controllers/PlayerController";
+    SceneLoader, Texture, TransformNode } from "@babylonjs/core";
+import { SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import { PlaceId } from "./nodes/BasePlaceNode";
-import PlaceNode from "./PlaceNode";
-import { AppControlFunctions } from "./AppControlFunctions";
-import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
@@ -25,13 +20,14 @@ import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
-import PQueue from 'p-queue';
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./TeleporterBooth";
 import { WorldDefinition } from "../worldgen/WorldGen";
-import { WorldInterface } from "./WorldInterface";
-import world_definition from "../models/districts.json";
+import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
+import { Game } from "./Game";
+import world_definition from "../models/districts.json";
+import PlaceNode from "./PlaceNode";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -39,31 +35,20 @@ const worldUpdateDistance = 10; // in m
 const shadowListUpdateInterval = 2000; // in ms
 
 
-export class World implements WorldInterface {
-    // From WorldInterface
-    readonly walletProvider: ITezosWalletProvider;
-    readonly engine: Engine;
-    readonly scene: Scene;
+export class World extends BaseWorld {
+    private worldNode: TransformNode;
 
-    readonly appControlFunctions: AppControlFunctions;
-
-    private defaultMaterial: SimpleMaterial;
     private waterMaterial: WaterMaterial;
-    readonly transparentGridMat: GridMaterial;
     
     private sunLight: SunLight;
     private skybox: Mesh;
     
-    readonly playerController: PlayerController;
     readonly shadowGenerator: Nullable<ShadowGenerator>;
 
     readonly places: Map<number, PlaceNode>; // The currently loaded places.
 
     private implicitWorldGrid: WorldGrid;
     private worldPlaceCount: number = 0;
-
-    readonly onchainQueue; // For onchain views.
-    readonly loadingQueue; // For loading items.
 
     private lastUpdatePosition: Vector3;
     private worldUpdatePending: boolean = false;
@@ -72,71 +57,29 @@ export class World implements WorldInterface {
 
     private subscription?: Subscription<OperationContent> | undefined;
 
-    private cleanupInterval: number;
-
-    constructor(engine: Engine, appControlFunctions: AppControlFunctions, walletProvider: ITezosWalletProvider) {
-        this.appControlFunctions = appControlFunctions;
-        this.engine = engine;
-
-        this.walletProvider = walletProvider;
+    constructor(game: Game) {
+        super(game);
 
         this.places = new Map<number, PlaceNode>();
         this.implicitWorldGrid = new WorldGrid();
 
-        this.onchainQueue = new PQueue({concurrency: 1, interval: 125, intervalCap: 1});
-        this.loadingQueue = new PQueue({interval: 1000/120, intervalCap: 1}); // {concurrency: 100} //, interval: 1/60, intervalCap: 1});
+        this.lastUpdatePosition = this.game.playerController.getPosition().clone();
 
-        // Set max texture res
-        const caps = this.engine.getCaps();
-        caps.maxTextureSize = Math.min(caps.maxTextureSize, AppSettings.textureRes.value);
-
-        // Create our first scene.
-        this.scene = new Scene(this.engine, {
-            useGeometryUniqueIdsMap: true,
-            useMaterialMeshMap: true,
-            useClonedMeshMap: true
-        });
-        this.scene.collisionsEnabled = true;
-        this.scene.blockMaterialDirtyMechanism = true;
-
-        // Since we are always inside a skybox, we can turn off autoClear
-        this.scene.autoClear = false; // Color buffer
-
-        // Enable inspector in dev
-        if (process.env.NODE_ENV === 'development') {
-            import("@babylonjs/inspector").then( () => {
-                const inspector_root = document.getElementById("inspector-host");
-                assert(inspector_root);
-                this.scene.debugLayer.show({ showExplorer: true, embedMode: true, globalRoot: inspector_root });
-            });
-        }
-
-        // create camera first
-        this.playerController = new PlayerController(this, appControlFunctions);
-        this.lastUpdatePosition = this.playerController.getPosition().clone();
-
-        // Create a default material
-        this.defaultMaterial = new SimpleMaterial("defaulDistrictMat", this.scene);
-        this.defaultMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9);
-
-        // transparent grid material for place bounds
-        this.transparentGridMat = new GridMaterial("transp_grid", this.scene);
-        this.transparentGridMat.opacity = 0.3;
-        this.transparentGridMat.mainColor.set(0.2, 0.2, 0.8);
-        this.transparentGridMat.lineColor.set(0.2, 0.8, 0.8);
-        this.transparentGridMat.backFaceCulling = false;
+        this.worldNode = new TransformNode("worldNode", this.game.scene);
         
         // Create sun and skybox
         const sun_direction = new Vector3(-50, -100, 50).normalize();
-        this.sunLight = new SunLight("sunLight", sun_direction, this.scene);
+        this.sunLight = new SunLight("sunLight", sun_direction, this.game.scene);
+        this.sunLight.parent = this.worldNode;
 
-        const ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.scene);
+        const ambient_light = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), this.game.scene);
         ambient_light.intensity = 0.25;
         ambient_light.diffuse = new Color3(0.7, 0.7, 1);
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
+        ambient_light.parent = this.worldNode;
 
-        const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
+        const skyMaterial = new SkyMaterial("skyMaterial", this.game.scene);
         skyMaterial.backFaceCulling = false;
         //skyMaterial.inclination = 0.25;
         //skyMaterial.turbidity = 1;
@@ -145,20 +88,22 @@ export class World implements WorldInterface {
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
 
-        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.scene);
+        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.game.scene);
         this.skybox.material = skyMaterial;
+        this.skybox.parent = this.worldNode;
 
         // reflection probe
-        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.scene);
+        // TODO: remove probe when world unloads
+        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
         assert(reflectionProbe.renderList);
         reflectionProbe.renderList.push(this.skybox);
         reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-        this.scene.environmentTexture = reflectionProbe.cubeTexture;
+        this.game.scene.environmentTexture = reflectionProbe.cubeTexture;
 
         // The worlds water.
-        const waterMaterial = new WaterMaterial("water", this.scene, new Vector2(512, 512));
+        const waterMaterial = new WaterMaterial("water", this.game.scene, new Vector2(512, 512));
         waterMaterial.backFaceCulling = true;
-        const bumpTexture = new Texture(waterbump, this.scene);
+        const bumpTexture = new Texture(waterbump, this.game.scene);
         bumpTexture.uScale = 4;
         bumpTexture.vScale = 4;
         waterMaterial.bumpTexture = bumpTexture;
@@ -171,12 +116,13 @@ export class World implements WorldInterface {
         waterMaterial.addToRenderList(this.skybox);
         this.waterMaterial = waterMaterial
 
-        const water = Mesh.CreateGround("water", 2000, 2000, 4, this.scene);
+        const water = Mesh.CreateGround("water", 2000, 2000, 4, this.game.scene);
         water.material = this.waterMaterial;
         water.isPickable = false;
         water.checkCollisions = true;
         water.receiveShadows = true;
         water.position.y = -3;
+        water.parent = this.worldNode;
 
         // After, camera, lights, etc, the shadow generator
         if (AppSettings.shadowOptions.value === "standard") {
@@ -223,56 +169,28 @@ export class World implements WorldInterface {
             }
         }
 
-        // set shadow generator on player controller.
-        this.playerController.shadowGenerator = this.shadowGenerator;
-
-        // TODO: need to figure out how to exclude GUI.
-        // this.setupDefaultRenderingPipeline();
-
-        // Render every frame
-        this.engine.stopRenderLoop();
-        this.engine.runRenderLoop(() => {
-            this.scene.render();
-            const frameId = this.engine.frameId;
-            if (frameId > 0 && frameId % 5 === 0)
-                this.playerController.gui.setFps(this.engine.getFps());
-        });
-
-        window.addEventListener('resize', this.onResize);
-
-        this.scene.registerBeforeRender(this.updateShadowRenderList.bind(this));
-        this.scene.registerAfterRender(this.updateWorld.bind(this));
+        this.game.scene.registerBeforeRender(this.updateShadowRenderList);
+        this.game.scene.registerAfterRender(this.updateWorld);
 
         this.registerPlacesSubscription();
 
         // Delay start MultiplayerClient.
         setTimeout(() => {
-            this.multiClient = new MultiplayerClient(this);
-            this.walletProvider.walletEvents().addListener("walletChange", this.reconnectMultiplayer);
+            this.multiClient = new MultiplayerClient(this.game);
+            this.game.walletProvider.walletEvents().addListener("walletChange", this.reconnectMultiplayer);
         }, 500);
-
-        // Run asset cleanup once every minute.
-        this.cleanupInterval = window.setInterval(() => {
-            Logging.Info("Running asset cleanup")
-            ArtifactMemCache.cleanup();
-            this.scene.cleanCachedTextureBuffer();
-        }, 60000);
 
         //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
     }
 
     private reconnectMultiplayer = () => {
         this.multiClient?.disconnectAndDispose();
-        this.multiClient = new MultiplayerClient(this);
-    }
-
-    private onResize = () => {
-        this.engine.resize();
+        this.multiClient = new MultiplayerClient(this.game);
     }
 
     // TODO: move the subscription stuff into it's own class?
     private async registerPlacesSubscription() {
-        this.subscription = await Contracts.subscribeToPlaceChanges(this.walletProvider);
+        this.subscription = await Contracts.subscribeToPlaceChanges(this.game.walletProvider, "exterior");
         this.subscription?.on('data', this.placeSubscriptionCallback);
     }
 
@@ -290,7 +208,7 @@ export class World implements WorldInterface {
             const ep = tContent.parameters.entrypoint;
             if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items" || ep === "set_item_data") {
                 try {
-                    const schema = new ParameterSchema(Contracts.marketplaces!.entrypoints.entrypoints[ep])
+                    const schema = new ParameterSchema(Contracts.worldContract!.entrypoints.entrypoints[ep])
                     const params = schema.Execute(tContent.parameters.value);
 
                     // Reload place
@@ -305,48 +223,39 @@ export class World implements WorldInterface {
     }
 
     public dispose() {
-        // Hide inspector in dev
-        if(process.env.NODE_ENV === 'development') this.scene.debugLayer.hide();
+        this.game.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
 
-        this.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
-        window.removeEventListener('resize', this.onResize);
+        this.game.scene.unregisterBeforeRender(this.updateShadowRenderList);
+        this.game.scene.unregisterAfterRender(this.updateWorld);
         
         this.unregisterPlacesSubscription();
         this.multiClient?.disconnectAndDispose();
 
+        // Dispose all places.
+        for (const p of this.places.values()) {
+            p.dispose();
+        }
         this.places.clear();
 
-        this.playerController.dispose();
-
-        // Clear queues.
-        this.onchainQueue.clear();
-        this.loadingQueue.clear();
-
-        // Dispose assets and processing queues.
-        window.clearInterval(this.cleanupInterval);
-        ArtifactMemCache.dispose();
-
-        // Destorying the engine should prbably be enough.
-        this.engine.dispose();
+        // Dispose world.
+        this.worldNode.dispose();
     }
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
-        await ArtifactMemCache.initialise();
-
         this.worldUpdatePending = true;
 
         // Load districts, ie: ground meshes, bridges, etc.
         this.loadDistricts();
 
         // fetch the most recent world place count
-        this.worldPlaceCount = (await Contracts.countPlacesView(this.walletProvider)).toNumber();
+        this.worldPlaceCount = (await Contracts.countExteriorPlacesView(this.game.walletProvider)).toNumber();
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
         // Teleport player to his starting position
-        await this.playerController.teleportToSpawn();
+        await this.game.playerController.teleportToSpawn();
 
-        const playerPos = this.playerController.getPosition();
+        const playerPos = this.game.playerController.getPosition();
         // Make sure updateWorld() doesn't immediately run again
         this.lastUpdatePosition = playerPos.clone();
 
@@ -387,70 +296,12 @@ export class World implements WorldInterface {
         await Promise.allSettled(placeLoadPromises);
 
         // TEMP: workaround as long as loading owner and owned is delayed.
-        const currentPlace = this.playerController.currentPlace;
+        const currentPlace = this.game.playerController.currentPlace;
         if(currentPlace)
-            this.appControlFunctions.updatePlaceInfo(currentPlace);
+            this.game.appControlFunctions.updatePlaceInfo(currentPlace);
 
         this.worldUpdatePending = false;
     };
-
-    private setupDefaultRenderingPipeline() {
-        var pipeline = new DefaultRenderingPipeline(
-            "defaultPipeline", // The name of the pipeline
-            false, // NOTE: HDR messes with the brightness. maybe adding tonemapping helps?
-            this.scene, // The scene instance
-            [this.playerController.camera] // The list of cameras to be attached to
-        );
-
-        if (AppSettings.enableAntialiasing.value) {
-            pipeline.samples = 4;
-        }
-
-        if (AppSettings.enableFxaa.value) {
-            pipeline.fxaaEnabled = true;
-        }
-
-        // NOTE: let's not do bloom for now, because it blooms the UI too.
-        if (AppSettings.enableBloom.value) {
-            pipeline.bloomEnabled = true;
-            // TODO: find some nice settings.
-            //pipeline.bloomThreshold = 0.8;
-            //pipeline.bloomWeight = 0.3;
-            //pipeline.bloomKernel = 64;
-            //pipeline.bloomScale = 0.5;
-        }
-
-        // Maybe have it under some "other postprocessing" option
-        if (true) {
-            pipeline.imageProcessingEnabled = true;
-
-            pipeline.imageProcessing.toneMappingEnabled = true;
-            pipeline.imageProcessing.toneMappingType = TonemappingOperator.Photographic;
-            pipeline.imageProcessing.exposure = 1.05;
-
-            if (AppSettings.enableGrain.value) {
-                pipeline.grainEnabled = true;
-                pipeline.grain.intensity = 4;
-                pipeline.grain.animated = true;
-            }
-        }
-
-        // NOTE: SSAO2 is kinda broken right now.
-        /*var ssaoRatio = {
-            ssaoRatio: 0.5, // Ratio of the SSAO post-process, in a lower resolution
-            blurRatio: 0.5// Ratio of the combine post-process (combines the SSAO and the scene)
-        };
-
-        var ssao = new SSAO2RenderingPipeline("ssao", this.scene, ssaoRatio, undefined, false);
-        ssao.radius = 5;
-        ssao.totalStrength = 1.3;
-        ssao.expensiveBlur = false;
-        ssao.samples = 16;
-        ssao.maxZ = 250;
-
-        // Attach camera to the SSAO render pipeline
-        this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", this.playerController.camera);*/
-    }
 
     private loadDistricts() {
         const world_def = world_definition;
@@ -466,11 +317,12 @@ export class World implements WorldInterface {
             vertices = vertices.reverse()
 
             // Create "island".
-            const mesh = MeshUtils.extrudeMeshFromShape(vertices, 50, center, this.defaultMaterial,
-                `district${counter}`, this.scene, Mesh.DEFAULTSIDE, true);
+            const mesh = MeshUtils.extrudeMeshFromShape(vertices, 50, center, this.game.defaultMaterial,
+                `district${counter}`, this.game.scene, Mesh.DEFAULTSIDE, true);
             mesh.checkCollisions = true;
             mesh.receiveShadows = true;
             mesh.position.y = -0.01;
+            mesh.parent = this.worldNode;
             mesh.freezeWorldMatrix();
 
             this.waterMaterial.addToRenderList(mesh);
@@ -497,7 +349,8 @@ export class World implements WorldInterface {
                 points.push(new Vector3(vertex.x, 0, vertex.y));
             });
 
-            const bridgeNode = new TransformNode(`bridge${counter}`, this.scene);
+            const bridgeNode = new TransformNode(`bridge${counter}`, this.game.scene);
+            bridgeNode.parent = this.worldNode;
 
             // For now, bridge paths can only be a line
             const bridge_width = 8;
@@ -514,7 +367,7 @@ export class World implements WorldInterface {
                 width: bridge_width,
                 depth: bridge_length,
                 height: 1,
-            }, this.scene);
+            }, this.game.scene);
             walkway0.checkCollisions = true;
             walkway0.isPickable = true;
             walkway0.receiveShadows = true;
@@ -554,7 +407,7 @@ export class World implements WorldInterface {
                 width: 1,
                 depth: bridge_length,
                 height: 2,
-            }, this.scene);
+            }, this.game.scene);
             left.checkCollisions = true;
             left.isPickable = true;
             left.parent = bridgeNode;
@@ -565,7 +418,7 @@ export class World implements WorldInterface {
                 width: 1,
                 depth: bridge_length,
                 height: 2,
-            }, this.scene);
+            }, this.game.scene);
             right.checkCollisions = true;
             right.isPickable = true;
             right.parent = bridgeNode;
@@ -586,7 +439,8 @@ export class World implements WorldInterface {
     //private teleportation booths
     private async loadTeleportationBooths(district: any) {
         for (const p of district.teleportation_booths) {
-            new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.scene);
+            const booth = new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.game.scene);
+            booth.parent = this.worldNode;
         }
     }
 
@@ -594,10 +448,11 @@ export class World implements WorldInterface {
 
     // TODO: Needs to be culled!
     public async loadRoadDecorations(curbs: Edge[], counter: number) {
-        const roadDecorations = new TransformNode(`roadDecorations${counter}`, this.scene);
+        const roadDecorations = new TransformNode(`roadDecorations${counter}`, this.game.scene);
+        roadDecorations.parent = this.worldNode;
 
         // TODO: don't load this multiple times. Use ArtifactMemCache.loadOther.
-        const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.scene, null, '.glb');
+        const result = await SceneLoader.LoadAssetContainerAsync('/models/', 'lantern.glb', this.game.scene, null, '.glb');
         result.meshes.forEach((m) => { m.checkCollisions = true; })
         
         for (var curbEdge of curbs) {
@@ -623,7 +478,7 @@ export class World implements WorldInterface {
     private async reloadPlace(placeId: PlaceId) {
         // Queue a place update.
         const place = this.places.get(placeId);
-        if (place) this.onchainQueue.add(() => place.update(true));
+        if (place) this.game.onchainQueue.add(() => place.update(true));
     }
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
@@ -641,7 +496,7 @@ export class World implements WorldInterface {
             const origin = Vector3.FromArray(metadata.centerCoordinates);
 
             // Figure out by distance to player if the place should load.
-            const player_pos = this.playerController.getPosition();
+            const player_pos = this.game.playerController.getPosition();
             if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
                 // Create place.
                 const new_place = new PlaceNode(metadata.tokenId, metadata, this);
@@ -665,12 +520,12 @@ export class World implements WorldInterface {
             // Occasionally send player postition.
             const now = performance.now();
             const elapsed = now - this.lastMultiplayerUpdate;
-            if(!this.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
+            if(!this.game.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
                 this.lastMultiplayerUpdate = now;
 
                 this.multiClient.updatePlayerPosition(
-                    this.playerController.getPosition(),
-                    this.playerController.getRotation()
+                    this.game.playerController.getPosition(),
+                    this.game.playerController.getRotation()
                 );
             }
 
@@ -679,8 +534,8 @@ export class World implements WorldInterface {
         }
     }
 
-    public updateCurrentPlace(pos: DeepImmutable<Vector3>) {
-        const pickResult = this.scene.pickWithRay(new Ray(pos, Vector3.Forward()), (mesh) => {
+    private updateCurrentPlace(pos: DeepImmutable<Vector3>) {
+        const pickResult = this.game.scene.pickWithRay(new Ray(pos, Vector3.Forward()), (mesh) => {
             return mesh.parent instanceof PlaceNode;
         });
 
@@ -689,18 +544,18 @@ export class World implements WorldInterface {
 
             // TODO: use normal to determine whether we are inside our out.
             if (Vector3.Dot(pickResult.getNormal()!, pickResult.ray!.direction) > 0)
-                this.playerController.currentPlace = pickResult.pickedMesh.parent;
+                this.game.playerController.currentPlace = pickResult.pickedMesh.parent;
         }
     }
 
     private lastShadowListTime: number = 0;
     private shadowRenderList: AbstractMesh[] = [];
 
-    public updateShadowRenderList() {
+    private updateShadowRenderList = () => {
         // Update shadow list if enough time has passed.
         if(performance.now() - this.lastShadowListTime > shadowListUpdateInterval)
         {
-            const playerPos = this.playerController.getPosition();
+            const playerPos = this.game.playerController.getPosition();
             // clear list
             this.shadowRenderList = [];
             // add items in places nearby.
@@ -716,11 +571,11 @@ export class World implements WorldInterface {
     }
 
     // TODO: go over this again.
-    public updateWorld() {
-        const playerPos = this.playerController.getPosition();
+    private updateWorld = () => {
+        const playerPos = this.game.playerController.getPosition();
 
         // Set slow artifact loading if there was user input recently.
-        ArtifactProcessingQueue.isSlow = Date.now() - this.playerController.lastUserInputTime < 1000;
+        ArtifactProcessingQueue.isSlow = Date.now() - this.game.playerController.lastUserInputTime < 1000;
 
         // Update current place.
         // TODO: only occasionally check. maybe based on distance or time.
@@ -782,7 +637,7 @@ export class World implements WorldInterface {
         // If items have been loaded, clean up some caches.
         if (ArtifactMemCache.itemsLoaded) {
             ArtifactMemCache.itemsLoaded = false;
-            this.scene.cleanCachedTextureBuffer();
+            this.game.scene.cleanCachedTextureBuffer();
         }
     }
 }

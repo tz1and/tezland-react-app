@@ -56,7 +56,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
     return (
         <div className="text-center" onDrop={handleDrop} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver}>
             <div className='position-fixed top-0 start-0 text-white mt-3 ms-3'>
-                <button className='btn btn-outline-light fs-4' onClick={() => { nav("/"); } }><i className="bi bi-arrow-left"></i></button>
+                <button className='btn btn-outline-light fs-4' onClick={() => { nav("/"); } }><i className="bi bi-house"></i></button>
                 <button className='btn btn-light ms-3 fs-4' onClick={() => { props.loadForm(OverlayForm.Settings) } }><i className="bi bi-gear-fill"></i></button>
 
                 <OverlayTrigger

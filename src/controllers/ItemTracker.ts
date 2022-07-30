@@ -8,6 +8,7 @@ type TempItemsMap = Map<number, TempItem>;
 
 type PlaceMap = Map<number, TempItemsMap>;
 
+// IMPORTANT! TODO: the item tracker will probably work fine for inteiors as well as exteriors, but better safe than sorry.
 class ItemTracker {
     private placeMap: PlaceMap;
 

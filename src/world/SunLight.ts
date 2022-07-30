@@ -1,4 +1,4 @@
-import { Color3, DirectionalLight, Scene, Vector3 } from "@babylonjs/core";
+import { Color3, DirectionalLight, Scene, Vector3, Node } from "@babylonjs/core";
 //import { Nullable, DirectionalLightFrustumViewer } from '@babylonjs/core';
 //import { isDev } from "../utils/Utils";
 
@@ -35,6 +35,8 @@ export default class SunLight {
         //    this.dlh.show();
         //}
     }
+
+    public set parent(node: Node) { this.dirLight.parent = node; }
 
     get light() { return this.dirLight; }
 

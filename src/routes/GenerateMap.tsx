@@ -70,7 +70,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const walletphk = this.context.walletPHK();
         assert(walletphk === prodAdminAddress, "Not admin!");
 
-        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
+        const last_minted_place_id = (await Contracts.countExteriorPlacesView(this.context)).minus(1).toNumber();
 
         const places = []
 
@@ -176,7 +176,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // TODO: add batch support!
 
         const last_batch_id = 673 + 1;
-        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
+        const last_minted_place_id = (await Contracts.countExteriorPlacesView(this.context)).minus(1).toNumber();
 
         const known_places: number[] = Array.from({length: last_minted_place_id - last_batch_id + 1}, (x, i) => last_batch_id + i);
         const exclude_places: Set<number> = new Set([
@@ -970,7 +970,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         // TODO: create canvas based on world extent.
         const draw = new Svg(this.svgRef.current!).size(dim, dim).viewbox(-dim/2, -dim/2, dim, dim).scale(-1,1);
 
-        const last_minted_place_id = (await Contracts.countPlacesView(this.context)).minus(1).toNumber();
+        const last_minted_place_id = (await Contracts.countExteriorPlacesView(this.context)).minus(1).toNumber();
 
         const drawMap = (mark_minted: boolean = false) => {
             draw.clear();

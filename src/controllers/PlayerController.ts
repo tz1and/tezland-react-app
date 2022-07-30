@@ -1,20 +1,20 @@
 import { Angle, Axis, EventState, FreeCamera, KeyboardEventTypes,
     KeyboardInfo, Mesh, Nullable, Ray, Scene,
-    ShadowGenerator, Tools, Vector2, Vector3 } from "@babylonjs/core";
+    Tools, Vector2, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
 import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
-import PlaceNode from "../world/PlaceNode";
-import { World } from "../world/World";
+import BasePlaceNode from "../world/nodes/BasePlaceNode";
+import { Game } from "../world/Game";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import GuiController, { CursorType } from "./GuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
-import world_definition from "../models/districts.json";
 import UserControllerManager from "./UserControllerManager";
 import ItemPlacementController from "./ItemPlacementController";
+import world_definition from "../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -27,11 +27,8 @@ const UnglitchCooldown = 10000; // 10s
 export default class PlayerController {
     readonly camera: FreeCamera;
     readonly appControlFunctions: AppControlFunctions;
-    readonly world: World;
+    readonly game: Game;
     readonly scene: Scene;
-    private _shadowGenerator: Nullable<ShadowGenerator>;
-    public set shadowGenerator(sg: Nullable<ShadowGenerator>) { this._shadowGenerator = sg; }
-    public get shadowGenerator(): Nullable<ShadowGenerator> { return this._shadowGenerator; }
 
     readonly gui: GuiController;
     private controllerManager: UserControllerManager;
@@ -52,18 +49,17 @@ export default class PlayerController {
     public get flyMode(): boolean { return this._flyMode; }
 
     //private isPointerLocked: boolean = false; // TODO: still needed for something?
-    private _currentPlace: Nullable<PlaceNode>;
+    private _currentPlace: Nullable<BasePlaceNode>;
 
     private onPointerlockChange: () => void;
     private onPointerlockError: () => void;
 
     private last_unglitch_time: number = 0;
 
-    constructor(world: World, appControlFunctions: AppControlFunctions) {
+    constructor(game: Game, appControlFunctions: AppControlFunctions) {
         this.appControlFunctions = appControlFunctions;
-        this.world = world;
-        this.scene = world.scene;
-        this._shadowGenerator = null;
+        this.game = game;
+        this.scene = game.scene;
         this._currentPlace = null;
 
         this.gui = new GuiController();
@@ -96,7 +92,7 @@ export default class PlayerController {
         // We need to update it here, otherwise collisions will be incorrect!
         this.playerTrigger.refreshBoundingInfo();
 
-        this.scene.registerAfterRender(this.updateController.bind(this));
+        this.scene.registerAfterRender(this.updateController);
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         this.onPointerlockChange = () => {
@@ -344,12 +340,13 @@ export default class PlayerController {
         document.removeEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.removeEventListener("pointerlockerror", this.onPointerlockError, false);
 
+        this.scene.unregisterAfterRender(this.updateController);
+
         this.gui.dispose();
 
         this.controllerManager.deactivate();
 
         this._currentPlace = null;
-        this.shadowGenerator = null;
     }
 
     private toggleFlyMode(): void {
@@ -383,7 +380,7 @@ export default class PlayerController {
 
     public get currentPlace() { return this._currentPlace; }
 
-    public set currentPlace(place: Nullable<PlaceNode>) {
+    public set currentPlace(place: Nullable<BasePlaceNode>) {
         if (place !== this._currentPlace) {
             this._currentPlace = place;
 
@@ -438,7 +435,8 @@ export default class PlayerController {
         let raycastFloorPos = new Vector3(this.playerTrigger.position.x + offsetx, this.playerTrigger.position.y + PlayerController.LEGS_HEIGHT, this.playerTrigger.position.z + offsetz);
         let ray = new Ray(raycastFloorPos, Vector3.Down(), raycastlen);
 
-        let pick = this.scene.pickWithRay(ray);
+        // Only collide with meshes that have collision enabled.
+        let pick = this.scene.pickWithRay(ray, m => m.checkCollisions);
 
         if (pick && pick.hit) {
             return pick.distance;
@@ -559,7 +557,7 @@ export default class PlayerController {
         }
     }
 
-    private updateController() {
+    private updateController = () => {
         const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
         // Player movement.

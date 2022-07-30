@@ -2,7 +2,7 @@
 
 import { NotificationData } from "../components/Notification";
 import ItemNode from "./ItemNode";
-import PlaceNode from "./PlaceNode";
+import BasePlaceNode, { PlaceType } from "./nodes/BasePlaceNode";
 import { MapPopoverInfo } from "./WorldMap";
 
 export interface OverlayFormProps {}
@@ -23,6 +23,7 @@ export interface CollectItemFromProps extends OverlayFormProps {
     itemId: number;
     issuer: string;
     xtzPerItem: number;
+    placeType: PlaceType;
 }
 
 export interface DirectoryFormProps extends OverlayFormProps {
@@ -47,7 +48,7 @@ export const enum OverlayForm {
 export type AppControlFunctions = {
     loadForm(form_type: OverlayForm, props?: OverlayFormProps): void;
     addNotification(data: NotificationData): void;
-    updatePlaceInfo(place: PlaceNode): void;
+    updatePlaceInfo(place: BasePlaceNode): void;
     unlockControls(): void;
 };
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import { World } from '../world/World'
 import { AppControlFunctions } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
@@ -7,6 +6,7 @@ import assert from 'assert';
 import { Logging } from '../utils/Logging';
 import { Vector3 } from '@babylonjs/core';
 import BabylonUtils from '../world/BabylonUtils';
+import { Game } from '../world/Game';
 
 
 type VirtualSpaceProps = {
@@ -15,7 +15,7 @@ type VirtualSpaceProps = {
 };
 
 type VirtualSpaceState = {
-    world: World | null;
+    game: Game | null;
 };
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
@@ -26,33 +26,33 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
     constructor(props: VirtualSpaceProps) {
         super(props);
-        this.state = { world: null };
+        this.state = { game: null };
     }
 
     setInventoryItem(id: number, quantity: number) {
-        assert(this.state.world);
-        this.state.world.playerController.selectItemForPlacement(id, quantity);
+        assert(this.state.game);
+        this.state.game.playerController.selectItemForPlacement(id, quantity);
     }
 
     getCurrentLocation(): [number, number, number] {
-        assert(this.state.world);
-        const pos = this.state.world.playerController.getPosition();
+        assert(this.state.game);
+        const pos = this.state.game.playerController.getPosition();
         return [pos.x, pos.y, pos.z];
     }
 
     teleportToLocation(location: string) {
-        assert(this.state.world);
-        this.state.world.playerController.teleportToLocation(location);
+        assert(this.state.game);
+        this.state.game.playerController.teleportToLocation(location);
     }
 
     teleportToWorldPos(pos: [number, number]) {
-        assert(this.state.world);
-        this.state.world.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
+        assert(this.state.game);
+        this.state.game.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
     }
 
     handleDroppedFile(file: File) {
-        assert(this.state.world);
-        this.state.world.playerController.handleDroppedFile(file);
+        assert(this.state.game);
+        this.state.game.playerController.handleDroppedFile(file);
     }
 
     lockControls() {
@@ -81,10 +81,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
         BabylonUtils.createEngine(this.mount.current).then(engine => {
             try {
-                const world = new World(engine, this.props.appControl, this.context);
+                const game = new Game(engine, this.props.appControl, this.context);
 
-                this.setState({world: world}, () => {
-                    world.loadWorld().catch(e => {});
+                this.setState({game: game}, () => {
+                    assert(this.state.game);
+                    this.state.game.loadWorld();
                 });
             }
             catch(err: any) {
@@ -94,7 +95,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
     }
 
     override componentWillUnmount() {
-        this.state.world?.dispose();
+        this.state.game?.dispose();
     }
 
     override render() {

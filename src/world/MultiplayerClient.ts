@@ -1,20 +1,19 @@
 import assert from 'assert';
 import Conf from '../Config';
 //import EventEmitter from 'events';
-import { World } from './World';
 import {  Constants, DynamicTexture, Mesh, MeshBuilder, Nullable,
     StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { fromHexString, toHexString, truncate } from '../utils/Utils';
 import crypto from 'crypto';
 import { Logging } from '../utils/Logging';
-import { WorldInterface } from './WorldInterface';
+import { Game } from './Game';
 
 
 export default class MultiplayerClient { //extends EventEmitter {
     public static UpdateInterval = 100;
 
     private ws: WebSocket;
-    private world: WorldInterface;
+    private game: Game;
     private otherPlayersNode: Nullable<TransformNode>;
     private otherPlayers: Map<string, OtherPlayer> = new Map();
 
@@ -24,10 +23,10 @@ export default class MultiplayerClient { //extends EventEmitter {
     private readOnlyClient: boolean;
     private identity?: string | undefined;
 
-    constructor(world: WorldInterface, readOnlyClient: boolean = false) {
+    constructor(game: Game, readOnlyClient: boolean = false) {
         //super(); // event emitter
 
-        this.world = world;
+        this.game = game;
         this.readOnlyClient = readOnlyClient;
         this._connected = false;
 
@@ -43,13 +42,13 @@ export default class MultiplayerClient { //extends EventEmitter {
 
         const ws = new WebSocket(Conf.multiplayer_url);
 
-        this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.world.scene);
+        this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.game.scene);
 
         let randomUid = false;
         if (this.readOnlyClient) randomUid = true;
-        else randomUid = !this.world.walletProvider.isWalletConnected();
+        else randomUid = !this.game.walletProvider.isWalletConnected();
 
-        this.identity = randomUid ? crypto.randomBytes(18).toString('hex') : this.world.walletProvider.walletPHK();
+        this.identity = randomUid ? crypto.randomBytes(18).toString('hex') : this.game.walletProvider.walletPHK();
 
         ws.onopen = () => {
             this.handshake();
@@ -148,10 +147,6 @@ export default class MultiplayerClient { //extends EventEmitter {
             let p = this.otherPlayers.get(u.name);
             if(!p) {
                 p = new OtherPlayer(u.name, this.otherPlayersNode!);
-                if (this.world instanceof World) {
-                    this.world.shadowGenerator?.addShadowCaster(p.head);
-                    this.world.shadowGenerator?.addShadowCaster(p.body);
-                }
                 this.otherPlayers.set(u.name, p);
                 p.update(u.upd);
                 p.moveToLast();

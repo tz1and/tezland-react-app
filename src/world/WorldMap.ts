@@ -14,7 +14,6 @@ import { MeshUtils } from "../utils/MeshUtils";
 import WorldGrid from "../utils/WorldGrid";
 import MapPlaceNode from "./nodes/MapPlaceNode";
 import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
-import { WorldInterface } from "./WorldInterface";
 import { grapphQLUser } from "../graphql/user";
 //import MultiplayerClient from "./MultiplayerClient";
 import { truncateAddress } from "../utils/Utils";
@@ -61,7 +60,7 @@ export type MapPopoverInfo = {
     metadata: MapMarkerInfo
 }
 
-export class WorldMap implements WorldInterface {
+export class WorldMap {
     // From WorldInterface
     readonly walletProvider: ITezosWalletProvider;
     readonly engine: Engine;
@@ -246,7 +245,7 @@ export class WorldMap implements WorldInterface {
 
         window.addEventListener('resize', this.onResize);
 
-        this.scene.registerAfterRender(this.updateWorld.bind(this));
+        this.scene.registerAfterRender(this.updateWorld);
 
         // Set cursor over canvas.
         canvas.onpointerenter = () => this.setCursor("crosshair");
@@ -267,7 +266,7 @@ export class WorldMap implements WorldInterface {
             if (pickResult && pickResult.hit) {
                 if (pickResult.pickedMesh && pickResult.pickedMesh.parent instanceof MapPlaceNode) {
                     const parent = pickResult.pickedMesh.parent;
-                    parent.updateOwnerAndPermissions(false, 3600).catch(e => {});
+                    parent.updateOwner(false, 3600).catch(e => {});
                     
                     this.underMouseInfo.text = "Place #" + parent.placeId + "\nOwner: " + (parent.currentOwner ? truncateAddress(parent.currentOwner) : "Fetching ...");
                 }
@@ -309,6 +308,8 @@ export class WorldMap implements WorldInterface {
 
     public dispose() {
         window.removeEventListener('resize', this.onResize);
+
+        this.scene.unregisterAfterRender(this.updateWorld);
 
         //this.multiClient.disconnectAndDispose();
 
@@ -661,7 +662,7 @@ export class WorldMap implements WorldInterface {
     }*/
 
     // TODO: go over this again.
-    public updateWorld() {
+    public updateWorld = () => {
         const cameraPos = this.orthoCam.getTarget();
 
         //this.updateMultiplayer();

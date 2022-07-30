@@ -24,8 +24,8 @@ query getWorldGridCell($gridHash: String!) {
     }
 }
 
-query getPlaceOwner($id: bigint!) {
-    placeTokenHolder(limit: 1, where: { token: { tokenId: { _eq: $id }, metadata: { placeType: { _eq: "exterior" } } } }) {
+query getPlaceOwner($id: bigint!, $placeType: String!) {
+    placeTokenHolder(limit: 1, where: { token: { tokenId: { _eq: $id }, metadata: { placeType: { _eq: $placeType } } } }) {
         holderId
     }
 }

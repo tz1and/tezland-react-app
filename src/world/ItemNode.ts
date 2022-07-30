@@ -5,13 +5,13 @@ import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import { ItemDataFlags, ItemDataParser, TeleporterData } from "../utils/ItemData";
 import { Logging } from "../utils/Logging";
-import PlaceNode from "./PlaceNode";
 import { World } from "./World";
 import { triHelper, Trilean } from "../forms/FormUtils";
+import BasePlaceNode from "./nodes/BasePlaceNode";
 import assert from "assert";
 
 
-const LoadItemTask = (item: ItemNode, place: PlaceNode) => {
+const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
     return async () => {
         if (item.isDisposed()) return;
 
@@ -234,7 +234,7 @@ export default class ItemNode extends TransformNode {
         }
     }
 
-    public queueLoadItemTask(world: World, place: PlaceNode) {
+    public queueLoadItemTask(world: World, place: BasePlaceNode) {
         this._loadState = ItemLoadState.Queued;
 
         // TODO: priority, retry, etc
@@ -242,7 +242,7 @@ export default class ItemNode extends TransformNode {
         const dist = this.getDistanceToCamera();
         const priority = this.scaling.x * (1 / (dist * dist)) * 1000;
 
-        world.loadingQueue.add(
+        world.game.loadingQueue.add(
             LoadItemTask(this, place),
             { priority: priority })
         .catch(reason => {

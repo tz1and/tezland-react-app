@@ -1,14 +1,16 @@
 import { Nullable } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Control, Ellipse, Image, TextBlock } from "@babylonjs/gui";
+import AppSettings from "../storage/AppSettings";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
-import AppSettings from "../storage/AppSettings";
+import worldIcon from 'bootstrap-icons/icons/globe2.svg';
 
 
 export const enum CursorType {
     Pointer = 0,
     Hand,
     Loading,
+    World,
     None
 }
 
@@ -43,6 +45,7 @@ export default class GuiController {
         this.cursors.set(CursorType.Pointer, this.createCursor(CursorType.Pointer));
         this.cursors.set(CursorType.Hand, this.createCursor(CursorType.Hand));
         this.cursors.set(CursorType.Loading, this.createCursor(CursorType.Loading));
+        this.cursors.set(CursorType.World, this.createCursor(CursorType.World));
 
         this.setCursor(CursorType.Pointer);
 
@@ -82,6 +85,12 @@ export default class GuiController {
 
             case CursorType.Loading:
                 cursorControl = new Image(undefined, downloadIcon);
+                cursorControl.widthInPixels = 16;
+                cursorControl.heightInPixels = 16;
+                break;
+
+            case CursorType.World:
+                cursorControl = new Image(undefined, worldIcon);
                 cursorControl.widthInPixels = 16;
                 cursorControl.heightInPixels = 16;
                 break;

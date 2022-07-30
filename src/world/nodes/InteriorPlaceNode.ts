@@ -1,9 +1,9 @@
-import BasePlaceNode, { PlaceType } from "./nodes/BasePlaceNode";
+import BasePlaceNode, { PlaceType } from "./BasePlaceNode";
 import { bytes2Char } from "@taquito/utils";
 
 
-export default class PlaceNode extends BasePlaceNode {
-    public override get placeType(): PlaceType { return "exterior"; }
+export default class InteriorPlaceNode extends BasePlaceNode {
+    public override get placeType(): PlaceType { return "interior"; }
 
     public override getName() {
         if (this.placeData) {
@@ -11,6 +11,6 @@ export default class PlaceNode extends BasePlaceNode {
             if (place_name) return bytes2Char(place_name);
         }
 
-        return `Place #${this.placeId}`;
+        return `Interior #${this.placeId}`;
     }
 }

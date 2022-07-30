@@ -14,7 +14,7 @@ import { EditPlace } from '../forms/EditPlace';
 import { OverlayForm, DirectoryFormProps, OverlayFormProps,
     PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
-import PlaceNode from '../world/PlaceNode';
+import BasePlaceNode from '../world/nodes/BasePlaceNode';
 import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
@@ -34,7 +34,7 @@ type ExploreState = {
     show_form: OverlayForm;
     form_props?: OverlayFormProps | undefined;
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
-    currentPlace: PlaceNode | null;
+    currentPlace: BasePlaceNode | null;
     virtualSpaceFailed: boolean;
 };
 
@@ -109,7 +109,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
-    updatePlaceInfo = (place: PlaceNode | null) => {
+    updatePlaceInfo = (place: BasePlaceNode | null) => {
         this.setState({currentPlace: place});
     }
 
@@ -184,11 +184,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             case OverlayForm.CollectItem:
                 assert(this.state.form_props);
                 const collectItemProps = this.state.form_props as CollectItemFromProps;
-                return <CollectForm closeForm={this.closeForm} tokenId={collectItemProps.tokenId}
-                    placeId={collectItemProps.placeId}
-                    itemId={collectItemProps.itemId}
-                    issuer={collectItemProps.issuer}
-                    xtzPerItem={collectItemProps.xtzPerItem} />;
+                return <CollectForm closeForm={this.closeForm} {...collectItemProps} />;
 
             case OverlayForm.PlaceProperties:
                 return <EditPlace closeForm={this.closeForm} place={this.state.currentPlace!} />;

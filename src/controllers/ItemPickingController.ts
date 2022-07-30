@@ -12,6 +12,8 @@ import BaseUserController from "./BaseUserController";
 import { CursorType } from "./GuiController";
 import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
+import { World } from "../world/World";
+import { PlaceType } from "../world/nodes/BasePlaceNode";
 import assert from "assert";
 
 
@@ -226,6 +228,12 @@ export default class ItemPickingController extends BaseUserController {
         // If it's an ItemNode, update the info overlay.
         if (instance_root instanceof ItemNode) {
             this.infoGui.updateInfo(instance_root.tokenId.toNumber(), this.current_node, instance_root);
+
+            // If it's a teleporter
+            if (instance_root.teleporterData) {
+                this.playerController.gui.setCursor(CursorType.World);
+            }
+            else this.playerController.gui.setCursor(CursorType.Pointer);
         }
         // If it's a TeleporterBooth, change the cursor, depending on if we are
         // pointing at the control panel.
@@ -244,9 +252,8 @@ export default class ItemPickingController extends BaseUserController {
                 case 'Delete': // Mark item for deletion
                     const current_item = this.getCurrentItem();
                     if(current_item) {
-                        const world = this.playerController.world;
-                        const place = world.places.get(current_item.placeId);
-                        if(place && (current_item.issuer === world.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
+                        const place = this.playerController.currentPlace;
+                        if(place && (current_item.issuer === this.playerController.game.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
                             // If the item is unsaved, remove it directly.
                             if(current_item.itemId.lt(0)) {
                                 current_item.dispose();
@@ -262,7 +269,7 @@ export default class ItemPickingController extends BaseUserController {
 
                                 // track removed items.
                                 // only track items that go to the players wallet.
-                                if (current_item.issuer === world.walletProvider.walletPHK()) {
+                                if (current_item.issuer === this.playerController.game.walletProvider.walletPHK()) {
                                     ItemTracker.trackTempItem(current_item.placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
                                 }
                             }
@@ -278,15 +285,19 @@ export default class ItemPickingController extends BaseUserController {
         if (this.current_node && info.type === PointerEventTypes.POINTERDOWN) {
             // button 0 is left click
             if(info.event.button === 0) {
-                const instanceRoot = this.getCurrentTeleporterBooth();
+                const instanceRoot = this.getInstanceRoot(this.current_node);
 
-                if(instanceRoot) {
+                if(instanceRoot && instanceRoot instanceof TeleporterBooth) {
                     document.exitPointerLock();
                     this.playerController.appControlFunctions.loadForm(OverlayForm.Directory, {
                         mapCoords: [instanceRoot.position.x, instanceRoot.position.z]
                     } as DirectoryFormProps);
 
                     eventState.skipNextObservers = true;
+                }
+                else if(instanceRoot && instanceRoot instanceof ItemNode) {
+                    if (instanceRoot.teleporterData)
+                        this.playerController.game.teleportTo(instanceRoot.teleporterData);
                 }
             }
             // button 2 is right click.
@@ -297,12 +308,15 @@ export default class ItemPickingController extends BaseUserController {
                     // If it's a valid token, not an imported model.
                     if (instanceRoot.isValidItem()) {
                         document.exitPointerLock();
+                        // IMPORTANT! TODO: a bit clumsy, but maybe ok.
+                        const placeType: PlaceType = this.playerController.game.getCurrentWorld() instanceof World ? "exterior" : "interior";
                         this.playerController.appControlFunctions.loadForm(OverlayForm.CollectItem, {
                             tokenId: instanceRoot.tokenId.toNumber(),
                             placeId: instanceRoot.placeId,
                             itemId: instanceRoot.itemId.toNumber(),
                             issuer: instanceRoot.issuer,
-                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
+                            xtzPerItem: instanceRoot.xtzPerItem,
+                            placeType: placeType } as CollectItemFromProps);
                     }
 
                     eventState.skipNextObservers = true;

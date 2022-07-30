@@ -1,17 +1,40 @@
 import { Mesh, Nullable,
-    Vector3, Color4 } from "@babylonjs/core";
+    Vector3, Color4, TransformNode } from "@babylonjs/core";
 import { WorldMap } from "../WorldMap";
 import { MeshUtils } from "../../utils/MeshUtils";
 import { PublicPlaces } from "../../worldgen/PublicPlaces";
-import BasePlaceNode from "./BasePlaceNode";
 import { PlaceTokenMetadata } from "../Metadata";
+import { Logging } from "../../utils/Logging";
+import Contracts from "../../tz/Contracts";
 
 
-export default class MapPlaceNode extends BasePlaceNode {
+export default class MapPlaceNode extends TransformNode {
+    readonly placeId: number;
+    readonly placeMetadata: PlaceTokenMetadata;
+    protected worldMap: WorldMap;
+
+    protected _origin: Vector3;
+    get origin(): Vector3 { return this._origin.clone(); }
+
+    protected _buildHeight;
+    get buildHeight(): number { return this._buildHeight; }
+
+    get currentOwner(): string { return this.owner; }
+    protected owner: string = "";
+    protected last_owner_update = 0;
+
     private placeBounds: Nullable<Mesh> = null;
 
     constructor(placeId: number, placeMetadata: PlaceTokenMetadata, worldMap: WorldMap) {
-        super(placeId, placeMetadata, worldMap);
+        super(`placeRoot${placeId}`, worldMap.scene);
+
+        this.worldMap = worldMap;
+
+        this.placeId = placeId;
+        this.placeMetadata = placeMetadata;
+
+        this._origin = Vector3.FromArray(this.placeMetadata.centerCoordinates);
+        this._buildHeight = this.placeMetadata.buildHeight;
 
         this.initialisePlace();
     }
@@ -39,7 +62,7 @@ export default class MapPlaceNode extends BasePlaceNode {
 
         // create bounds
         this.placeBounds = MeshUtils.extrudeMeshFromShape(shape, this._buildHeight - 0.1, new Vector3(0, this._buildHeight, 0),
-            isPublic ? (this.world as WorldMap).transparentGridMatPublic : (this.world as WorldMap).transparentGridMat, 'bounds', this.world.scene, undefined, true)
+            isPublic ? this.worldMap.transparentGridMatPublic : this.worldMap.transparentGridMat, 'bounds', this.worldMap.scene, undefined, true)
 
         // enable edge rendering
         this.placeBounds.enableEdgesRendering();
@@ -52,5 +75,29 @@ export default class MapPlaceNode extends BasePlaceNode {
         // TODO: figure out if still needed.
         this.placeBounds.getHierarchyBoundingVectors();
         this.placeBounds.freezeWorldMatrix();
+    }
+
+    /**
+     * Updates the place owner and permissions.
+     * @param force force update, ignoring validity.
+     * @param validity validity of information in seconds.
+     */
+     public async updateOwner(force: boolean = false, validity: number = 60) {
+        // Update owner and permissions, if they weren't updated recently.
+        // TODO: the rate limiting here is a bit wonky - it breaks when there was an error fetching the owner.
+        // Maybe reset last_owner_and_permission_update on failiure?
+        if(force || (Date.now() - (validity * 1000)) > this.last_owner_update) {
+            const prev_update = this.last_owner_update;
+            Logging.InfoDev("Updating owner for place " + this.placeId);
+            try {
+                this.last_owner_update = Date.now();
+                this.owner = await Contracts.getPlaceOwner(this.placeId, "exterior");
+            }
+            catch(reason: any) {
+                this.last_owner_update = prev_update;
+                Logging.InfoDev("Failed to load ownership for place " + this.placeId);
+                Logging.InfoDev(reason);
+            }
+        }
     }
 }

@@ -17,19 +17,20 @@ import { grapphQLUser } from "../graphql/user";
 
 
 export class Contracts {
-    public marketplaces: Contract | null;
+    public worldContract: Contract | null;
+    public worldInteriorsContract: Contract | null;
     private places: Contract | null;
     private minter: Contract | null;
 
     constructor() {
-        this.marketplaces = null;
+        this.worldContract = null;
+        this.worldInteriorsContract = null;
         this.places = null;
         this.minter = null;
     }
 
-    public async subscribeToPlaceChanges(walletProvider: ITezosWalletProvider) {
-        if (!this.marketplaces)
-            this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
+    public async subscribeToPlaceChanges(walletProvider: ITezosWalletProvider, place_type: PlaceType) {
+        const world_contract = await this.get_world_contract_write(walletProvider, place_type);
 
         walletProvider.tezosToolkit().setStreamProvider(walletProvider.tezosToolkit().getFactory(PollingSubscribeProvider)({
             shouldObservableSubscriptionRetry: true,
@@ -38,7 +39,7 @@ export class Contracts {
 
         try {
             const placesOperation = {
-                and: [{ destination: Conf.world_contract }, { kind: 'transaction' }]
+                and: [{ destination: world_contract.address }, { kind: 'transaction' }]
             }
 
             const sub = walletProvider.tezosToolkit().stream.subscribeOperation(placesOperation);
@@ -51,9 +52,9 @@ export class Contracts {
         return;
     }
 
-    public async getPlaceOwner(place_id: number): Promise<string> {
+    public async getPlaceOwner(place_id: number, place_type: PlaceType): Promise<string> {
         try {   
-            const data = await grapphQLUser.getPlaceOwner({id: place_id});
+            const data = await grapphQLUser.getPlaceOwner({id: place_id, placeType: place_type});
             
             assert(data.placeTokenHolder[0]);
             return data.placeTokenHolder[0].holderId;
@@ -77,36 +78,57 @@ export class Contracts {
       return !balanceRes.isZero();
     }*/
 
-    private async queryPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<PlacePermissions> {
+    private async get_world_contract_read(walletProvider: ITezosWalletProvider, place_type: PlaceType) {
+        if (place_type === "exterior") {
+            if (!this.worldContract)
+                this.worldContract = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
+
+            return this.worldContract;
+        }
+        else { // "interior"
+            if (!this.worldInteriorsContract)
+                this.worldInteriorsContract = await walletProvider.tezosToolkit().contract.at(Conf.world_interiors_contract);
+
+            return this.worldInteriorsContract;
+        }
+    }
+
+    private async get_world_contract_write(walletProvider: ITezosWalletProvider, place_type: PlaceType) {
+        if (place_type === "exterior")
+            return walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+        else // "interior"
+            return walletProvider.tezosToolkit().wallet.at(Conf.world_interiors_contract);
+    }
+
+    private async queryPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string, place_type: PlaceType): Promise<PlacePermissions> {
         // check if wallet is connected before calling walletPHK
         if (!walletProvider.isWalletConnected()) return new PlacePermissions(PlacePermissions.permissionNone);
 
-        if (!this.marketplaces)
-            this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
+        const current_world = await this.get_world_contract_read(walletProvider, place_type);
 
         // use is_operator on-chain view.
-        const permissionsRes: BigNumber = await this.marketplaces.contractViews.get_permissions({ permittee: walletProvider.walletPHK(), owner: owner, lot_id: place_id }).executeView({ viewCaller: this.marketplaces.address });
+        const permissionsRes: BigNumber = await current_world.contractViews.get_permissions({ permittee: walletProvider.walletPHK(), owner: owner, lot_id: place_id }).executeView({ viewCaller: current_world.address });
 
         return new PlacePermissions(permissionsRes.toNumber());
     }
 
-    public async getPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string): Promise<PlacePermissions> {
+    public async getPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string, place_type: PlaceType): Promise<PlacePermissions> {
         // check if wallet is connected before calling walletPHK
         if (!walletProvider.isWalletConnected()) return new PlacePermissions(PlacePermissions.permissionNone);
 
         if (walletProvider.walletPHK() === owner) return new PlacePermissions(PlacePermissions.permissionFull);
 
-        return this.queryPlacePermissions(walletProvider, place_id, owner);
+        return this.queryPlacePermissions(walletProvider, place_id, owner, place_type);
     }
 
-    public async addPlacePermissions(walletProvider: ITezosWalletProvider, owner: string, token_id: number, permittee: string, permissions: number, callback?: (completed: boolean) => void) {
+    public async addPlacePermissions(walletProvider: ITezosWalletProvider, owner: string, token_id: number, permittee: string, permissions: number, place_type: PlaceType, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+        const current_world = await this.get_world_contract_write(walletProvider, place_type);
 
         try {
-            const set_permissions_op = await marketplacesWallet.methodsObject.set_permissions([{
+            const set_permissions_op = await current_world.methodsObject.set_permissions([{
                 add_permission: {
                     owner: owner,
                     permittee: permittee,
@@ -123,14 +145,14 @@ export class Contracts {
         }
     }
 
-    public async removePlacePermissions(walletProvider: ITezosWalletProvider, owner: string, token_id: number, permittee: string, callback?: (completed: boolean) => void) {
+    public async removePlacePermissions(walletProvider: ITezosWalletProvider, owner: string, token_id: number, permittee: string, place_type: PlaceType, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+        const current_world = await this.get_world_contract_write(walletProvider, place_type);
 
         try {
-            const set_permissions_op = await marketplacesWallet.methodsObject.set_permissions([{
+            const set_permissions_op = await current_world.methodsObject.set_permissions([{
                 remove_permission: {
                     owner: owner,
                     permittee: permittee,
@@ -217,12 +239,12 @@ export class Contracts {
         }
     }
 
-    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
+    public async getItem(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, issuer: string, xtz_per_item: number, place_type: PlaceType, callback?: (completed: boolean) => void) {
         if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
 
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+        const current_world = await this.get_world_contract_write(walletProvider, place_type);
 
-        const get_item_op = await marketplacesWallet.methodsObject.get_item({
+        const get_item_op = await current_world.methodsObject.get_item({
             lot_id: place_id, item_id: item_id, issuer: issuer
         }).send({ amount: xtz_per_item, mutez: false });
 
@@ -230,14 +252,14 @@ export class Contracts {
     }
 
     // TODO map or array of item_id to item_data.
-    public async setItemData(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, item_data: string, callback?: (completed: boolean) => void) {
+    public async setItemData(walletProvider: ITezosWalletProvider, place_id: number, item_id: number, item_data: string, place_type: PlaceType, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+        const current_world = await this.get_world_contract_write(walletProvider, place_type);
 
         try {
-            const get_item_op = await marketplacesWallet.methodsObject.set_item_data({
+            const get_item_op = await current_world.methodsObject.set_item_data({
                 lot_id: place_id, update_list: [{ item_id: item_id, item_data: item_data }]
             }).send();
 
@@ -249,18 +271,17 @@ export class Contracts {
         }
     }
 
-    public async countPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
+    public async countExteriorPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
         if (!this.places)
             this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
 
         return this.places.contractViews.count_tokens().executeView({ viewCaller: this.places.address });
     }
 
-    public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_id: number): Promise<string> {
-        if (!this.marketplaces)
-            this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
+    public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_id: number, place_type: PlaceType): Promise<string> {
+        const current_world = await this.get_world_contract_read(walletProvider, place_type);
 
-        return this.marketplaces.contractViews.get_place_seqnum(place_id).executeView({ viewCaller: this.marketplaces.address });
+        return current_world.contractViews.get_place_seqnum(place_id).executeView({ viewCaller: current_world.address });
     }
 
     private async reproduceSeqHash(interaction_counter: BigNumber, next_id: BigNumber): Promise<string> {
@@ -296,14 +317,11 @@ export class Contracts {
 
     public async getItemsForPlaceView(walletProvider: ITezosWalletProvider, place_id: number, place_type: PlaceType): Promise<any> {
         // use get_place_data on-chain view.
-        if (!this.marketplaces)
-            this.marketplaces = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
-
-        assert(place_type === "exterior");
+        const current_world = await this.get_world_contract_read(walletProvider, place_type);
 
         Logging.InfoDev("Reading place data from chain", place_id);
 
-        const result = await this.marketplaces.contractViews.get_place_data(place_id).executeView({ viewCaller: this.marketplaces.address });
+        const result = await current_world.contractViews.get_place_data(place_id).executeView({ viewCaller: current_world.address });
 
         const seqHash = await this.reproduceSeqHash(result.interaction_counter, result.next_id);
 
@@ -330,8 +348,8 @@ export class Contracts {
         return place_data;
     }
 
-    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, placeName: string, place_id: number, owner: string, callback?: (completed: boolean) => void) {
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, placeName: string, place_id: number, owner: string, place_type: PlaceType, callback?: (completed: boolean) => void) {
+        const current_world = await this.get_world_contract_write(walletProvider, place_type);
 
         // owner is optional.
         const props_map = new MichelsonMap<string, string>();
@@ -341,7 +359,7 @@ export class Contracts {
         if(owner) params.owner = owner;
 
         try {
-            const save_props_op = await marketplacesWallet.methodsObject.set_place_props(params).send();
+            const save_props_op = await current_world.methodsObject.set_place_props(params).send();
 
             this.handleOperation(walletProvider, save_props_op, callback);
         }
@@ -351,8 +369,8 @@ export class Contracts {
         }
     }
 
-    public async saveItems(walletProvider: ITezosWalletProvider, remove: ItemNode[], add: ItemNode[], place_id: number, owner: string, callback?: (completed: boolean) => void) {
-        const marketplacesWallet = await walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
+    public async saveItems(walletProvider: ITezosWalletProvider, remove: ItemNode[], add: ItemNode[], place_id: number, owner: string, place_type: PlaceType, callback?: (completed: boolean) => void) {
+        const current_world = await this.get_world_contract_write(walletProvider, place_type);
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
         // build remove item map
@@ -384,7 +402,7 @@ export class Contracts {
 
         item_set.forEach((token_id) => {
             operator_adds.push({
-                operator: marketplacesWallet.address,
+                operator: current_world.address,
                 token_id: token_id
             });
         });
@@ -400,14 +418,14 @@ export class Contracts {
         // removals first. because of item limit.
         if (remove_item_map.size > 0) batch.with([{
             kind: OpKind.TRANSACTION,
-            ...marketplacesWallet.methodsObject.remove_items({
+            ...current_world.methodsObject.remove_items({
                 lot_id: place_id, remove_map: remove_item_map, owner: owner
             }).toTransferParams()
         }]);
 
         if (add_item_list.length > 0) batch.with([{
             kind: OpKind.TRANSACTION,
-            ...marketplacesWallet.methodsObject.place_items({
+            ...current_world.methodsObject.place_items({
                 lot_id: place_id, item_list: add_item_list, owner: owner
             }).toTransferParams()
         }]);
