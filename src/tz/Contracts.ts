@@ -5,7 +5,7 @@ import { tezToMutez, toHexString } from "../utils/Utils";
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
 import { PlacePermissions, PlaceType, PlaceData, PlaceItemData } from "../world/nodes/BasePlaceNode";
-import ItemNode from "../world/ItemNode";
+import ItemNode from "../world/nodes/ItemNode";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";

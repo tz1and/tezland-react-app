@@ -13,7 +13,7 @@ import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
-import SunLight from "./SunLight";
+import SunLight from "./nodes/SunLight";
 import assert from "assert";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import { BaseWorld } from "./BaseWorld";

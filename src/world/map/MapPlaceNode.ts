@@ -1,6 +1,6 @@
 import { Mesh, Nullable,
     Vector3, Color4, TransformNode } from "@babylonjs/core";
-import { WorldMap } from "../WorldMap";
+import { WorldMap } from "./WorldMap";
 import { MeshUtils } from "../../utils/MeshUtils";
 import { PublicPlaces } from "../../worldgen/PublicPlaces";
 import { PlaceTokenMetadata } from "../Metadata";

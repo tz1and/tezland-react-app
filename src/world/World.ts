@@ -14,20 +14,20 @@ import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import MultiplayerClient from "./MultiplayerClient";
-import SunLight from "./SunLight";
+import SunLight from "./nodes/SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
-import TeleporterBooth from "./TeleporterBooth";
+import TeleporterBooth from "./nodes/TeleporterBooth";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
 import { Game } from "./Game";
 import world_definition from "../models/districts.json";
-import PlaceNode from "./PlaceNode";
+import PlaceNode from "./nodes/PlaceNode";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 

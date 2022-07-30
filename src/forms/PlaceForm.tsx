@@ -8,7 +8,7 @@ import {
 } from 'formik';
 import BigNumber from 'bignumber.js';
 import assert from 'assert';
-import ItemNode from '../world/ItemNode';
+import ItemNode from '../world/nodes/ItemNode';
 import ItemTracker from '../controllers/ItemTracker';
 
 interface PlaceFormValues {

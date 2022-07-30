@@ -5,7 +5,7 @@ import assert from "assert";
 import BigNumber from "bignumber.js";
 import { Logging } from "../utils/Logging";
 import { OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";
-import ItemNode from "../world/ItemNode";
+import ItemNode from "../world/nodes/ItemNode";
 import BaseUserController from "./BaseUserController";
 import ItemTracker from "./ItemTracker";
 import { CursorType } from "./GuiController";
@@ -148,6 +148,9 @@ export default class ItemPlacementController extends BaseUserController {
                         assert(parent);
 
                         const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace.placeId, new BigNumber(this.currentItem), this.playerController.scene, parent);
+                        // TEMP
+                        //newObject.teleporterData = { type: TeleporterType.Interior, placeId: 0 }
+                        //newObject.disableCollisions = true;
                         await newObject.loadItem();
 
                         if(newObject) {

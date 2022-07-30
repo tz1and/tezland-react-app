@@ -1,4 +1,4 @@
-import BasePlaceNode, { PlaceType } from "./nodes/BasePlaceNode";
+import BasePlaceNode, { PlaceType } from "./BasePlaceNode";
 import { bytes2Char } from "@taquito/utils";
 
 

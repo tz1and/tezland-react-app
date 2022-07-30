@@ -1,9 +1,9 @@
 // type for app control functions
 
 import { NotificationData } from "../components/Notification";
-import ItemNode from "./ItemNode";
+import ItemNode from "./nodes/ItemNode";
 import BasePlaceNode, { PlaceType } from "./nodes/BasePlaceNode";
-import { MapPopoverInfo } from "./WorldMap";
+import { MapPopoverInfo } from "./map/WorldMap";
 
 export interface OverlayFormProps {}
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { MarkerMode } from '../world/WorldMap';
+import { MarkerMode } from '../world/map/WorldMap';
 import { useParams } from 'react-router-dom';
 import { grapphQLUser } from '../graphql/user';
 import assert from 'assert';

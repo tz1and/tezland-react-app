@@ -1,6 +1,6 @@
 import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from "@babylonjs/core";
 import BigNumber from "bignumber.js";
-import ItemNode from "../world/ItemNode";
+import ItemNode from "../world/nodes/ItemNode";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
 import AppSettings from "../storage/AppSettings";

@@ -1,5 +1,5 @@
 import { Scene, TransformNode, Vector3 } from "@babylonjs/core";
-import ArtifactMemCache from "../utils/ArtifactMemCache";
+import ArtifactMemCache from "../../utils/ArtifactMemCache";
 
 
 export default class TeleporterBooth extends TransformNode {

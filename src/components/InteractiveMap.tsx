@@ -1,7 +1,7 @@
 import React, { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import './VirtualSpace.css';
 import { useTezosWalletContext } from './TezosWalletContext';
-import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/WorldMap';
+import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/map/WorldMap';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/DirectoryForm';
 import { useNavigate } from 'react-router-dom';

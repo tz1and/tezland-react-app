@@ -4,30 +4,30 @@ import { Engine, Scene, Vector3, Color3,
 import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, Control, Image,
     TextBlock, Vector2WithInfo } from "@babylonjs/gui";
-import { MapControlFunctions } from "./AppControlFunctions";
-import { ITezosWalletProvider } from "../components/TezosWalletContext";
-import Metadata, { PlaceTokenMetadata } from "./Metadata";
-import AppSettings from "../storage/AppSettings";
-import { Logging } from "../utils/Logging";
-import SunLight from "./SunLight";
-import { MeshUtils } from "../utils/MeshUtils";
-import WorldGrid from "../utils/WorldGrid";
-import MapPlaceNode from "./nodes/MapPlaceNode";
-import { OrthoCameraMouseInput } from "./input/OrthoCameraMouseInput";
-import { grapphQLUser } from "../graphql/user";
+import { MapControlFunctions } from "../AppControlFunctions";
+import { ITezosWalletProvider } from "../../components/TezosWalletContext";
+import Metadata, { PlaceTokenMetadata } from "../Metadata";
+import AppSettings from "../../storage/AppSettings";
+import { Logging } from "../../utils/Logging";
+import SunLight from "../nodes/SunLight";
+import { MeshUtils } from "../../utils/MeshUtils";
+import WorldGrid from "../../utils/WorldGrid";
+import MapPlaceNode from "./MapPlaceNode";
+import { OrthoCameraMouseInput } from "../input/OrthoCameraMouseInput";
+import { grapphQLUser } from "../../graphql/user";
 //import MultiplayerClient from "./MultiplayerClient";
-import { truncateAddress } from "../utils/Utils";
+import { truncateAddress } from "../../utils/Utils";
 import assert from "assert";
 
-import markerIconBlue from '../img/map/mapmarker-blue.png'
-import markerIconCyan from '../img/map/mapmarker-cyan.png'
-import markerIconOrange from '../img/map/mapmarker-orange.png'
-import markerIconPink from '../img/map/mapmarker-pink.png'
-import markerIconPurple from '../img/map/mapmarker-purple.png'
-import markerIconRed from '../img/map/mapmarker-red.png'
+import markerIconBlue from '../../img/map/mapmarker-blue.png'
+import markerIconCyan from '../../img/map/mapmarker-cyan.png'
+import markerIconOrange from '../../img/map/mapmarker-orange.png'
+import markerIconPink from '../../img/map/mapmarker-pink.png'
+import markerIconPurple from '../../img/map/mapmarker-purple.png'
+import markerIconRed from '../../img/map/mapmarker-red.png'
 
-import { WorldDefinition } from "../worldgen/WorldGen";
-import world_definition from "../models/districts.json";
+import { WorldDefinition } from "../../worldgen/WorldGen";
+import world_definition from "../../models/districts.json";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 

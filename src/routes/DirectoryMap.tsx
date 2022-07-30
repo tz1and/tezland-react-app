@@ -1,6 +1,6 @@
 import React from 'react';
 import { getDirectoryEnabledGlobal } from '../forms/DirectoryForm';
-import { MarkerMode } from '../world/WorldMap';
+import { MarkerMode } from '../world/map/WorldMap';
 import assert from 'assert';
 
 

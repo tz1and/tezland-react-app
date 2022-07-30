@@ -2,12 +2,12 @@ import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3,
     MeshBuilder, BoundingBox, Matrix, Color3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials";
 import BigNumber from "bignumber.js";
-import ArtifactMemCache from "../utils/ArtifactMemCache";
-import { ItemDataFlags, ItemDataParser, TeleporterData } from "../utils/ItemData";
-import { Logging } from "../utils/Logging";
-import { World } from "./World";
-import { triHelper, Trilean } from "../forms/FormUtils";
-import BasePlaceNode from "./nodes/BasePlaceNode";
+import ArtifactMemCache from "../../utils/ArtifactMemCache";
+import { ItemDataFlags, ItemDataParser, TeleporterData } from "../../utils/ItemData";
+import { Logging } from "../../utils/Logging";
+import { World } from "../World";
+import { triHelper, Trilean } from "../../forms/FormUtils";
+import BasePlaceNode from "./BasePlaceNode";
 import assert from "assert";
 
 

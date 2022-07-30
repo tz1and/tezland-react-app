@@ -7,7 +7,7 @@ import { Logging } from "../../utils/Logging";
 import { mutezToTez, pointIsInside, yesNo } from "../../utils/Utils";
 import Metadata, { PlaceTokenMetadata } from "../Metadata";
 import { BaseWorld } from "../BaseWorld";
-import ItemNode, { ItemLoadState } from "../ItemNode";
+import ItemNode, { ItemLoadState } from "./ItemNode";
 import { World } from "../World";
 import ItemTracker from "../../controllers/ItemTracker";
 import AppSettings from "../../storage/AppSettings";

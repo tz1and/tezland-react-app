@@ -3,7 +3,7 @@ import { SkyMaterial } from '@babylonjs/materials';
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { countPolygons, getFileType } from '../utils/Utils';
-import SunLight from '../world/SunLight';
+import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';

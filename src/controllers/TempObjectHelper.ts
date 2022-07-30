@@ -1,6 +1,6 @@
 import { Color3, Mesh, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials";
-import ItemNode from "../world/ItemNode";
+import ItemNode from "../world/nodes/ItemNode";
 
 
 // TODO: remove this and use ItemNode.createBoundingBoxHelper instead.
