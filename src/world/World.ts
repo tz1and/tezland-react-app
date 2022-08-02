@@ -162,8 +162,6 @@ export class World extends BaseWorld {
             if(rtt) {
                 Logging.InfoDev("Setting up custom render list for shadow generator")
                 rtt.getCustomRenderList = (layer, renderList, renderListLength) => {
-                    if (!renderList) return renderList;
-
                     return this.shadowRenderList;
                 };
             }
@@ -562,6 +560,8 @@ export class World extends BaseWorld {
         if(performance.now() - this.lastShadowListTime > shadowListUpdateInterval)
         {
             const playerPos = this.game.playerController.getPosition();
+            // TODO: don't clear list? overwrite elements and then trim remaining?
+            // not sure that's faster... maybe use a smart array instead.
             // clear list
             this.shadowRenderList.length = 0;
             // add items in places nearby.

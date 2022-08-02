@@ -123,14 +123,20 @@ export class InteriorWorld extends BaseWorld {
         }
         else this.shadowGenerator = null;
 
+        // NOTE: add a dummy shadow caster, otherwise shadows won't work.
+        if (this.shadowGenerator) {
+            const shadowDummy = Mesh.CreateBox("skyBox", 1.0, this.game.scene);
+            shadowDummy.position.y = -10;
+            shadowDummy.parent = this.worldNode;
+            this.shadowGenerator.addShadowCaster(shadowDummy);
+        }
+
         if(this.shadowGenerator) {
             let rtt = this.shadowGenerator.getShadowMap();
 
             if(rtt) {
                 Logging.InfoDev("Setting up custom render list for shadow generator")
                 rtt.getCustomRenderList = (layer, renderList, renderListLength) => {
-                    if (!renderList) return renderList;
-
                     return this.shadowRenderList;
                 };
             }

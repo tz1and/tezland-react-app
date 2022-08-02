@@ -118,11 +118,11 @@ export default class GuiController {
 
         switch(data.type) {
             case TeleporterType.Exterior:
-                this.teleporterText.text = `Teleporter to Place #${data.placeId!}${baseText}`;
+                this.teleporterText.text = `Teleporter to Place #${data.placeId!}.${baseText}`;
                 break;
 
             case TeleporterType.Interior:
-                this.teleporterText.text = `Teleporter to Interior #${data.placeId!}${baseText}`;
+                this.teleporterText.text = `Teleporter to Interior #${data.placeId!}.${baseText}`;
                 break;
 
             case TeleporterType.Local:
