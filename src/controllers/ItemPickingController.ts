@@ -231,7 +231,7 @@ export default class ItemPickingController extends BaseUserController {
 
             // If it's a teleporter
             if (instance_root.teleporterData) {
-                this.playerController.gui.setCursor(CursorType.World);
+                this.playerController.gui.showTeleporterInfo(instance_root.teleporterData);
             }
             else this.playerController.gui.setCursor(CursorType.Pointer);
         }

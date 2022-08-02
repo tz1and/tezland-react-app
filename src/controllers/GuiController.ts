@@ -4,6 +4,7 @@ import AppSettings from "../storage/AppSettings";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
 import worldIcon from 'bootstrap-icons/icons/globe2.svg';
+import { TeleporterData, TeleporterType } from "../utils/ItemData";
 
 
 export const enum CursorType {
@@ -20,6 +21,8 @@ export default class GuiController {
     private cursors: Map<CursorType, Control> = new Map();
     private activeCursor: Nullable<Control> = null;
     private fps: Nullable<TextBlock>;
+
+    private teleporterText: TextBlock;
 
     constructor() {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -40,6 +43,14 @@ export default class GuiController {
             this.advancedTexture.addControl(this.fps);
         }
         else this.fps = null;
+
+        this.teleporterText = new TextBlock("telepoterText");
+        this.teleporterText.color = '#eeeeee';
+        this.teleporterText.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_CENTER;
+        this.teleporterText.textVerticalAlignment = TextBlock.VERTICAL_ALIGNMENT_CENTER;
+        this.teleporterText.top = 32;
+        this.teleporterText.isVisible = false;
+        this.advancedTexture.addControl(this.teleporterText);
 
         // Create cursors
         this.cursors.set(CursorType.Pointer, this.createCursor(CursorType.Pointer));
@@ -102,6 +113,22 @@ export default class GuiController {
         return cursorControl;
     }
 
+    public showTeleporterInfo(data: TeleporterData) {
+        const baseText = "\nLeft click to activate."
+        if (data.type === TeleporterType.Exterior) {
+            this.teleporterText.text = `Teleporter to Place #${data.placeId!}${baseText}`;
+        }
+        else if (data.type === TeleporterType.Interior) {
+            this.teleporterText.text = `Teleporter to Interior #${data.placeId!}${baseText}`;
+        }
+        else {
+            this.teleporterText.text = `No idea where this one goes :) Try it!${baseText}`;
+        }
+
+        this.teleporterText.isVisible = true;
+        this.setCursor(CursorType.World);
+    }
+
     // TODO: improve this to not constantly re-create the cursors.
     public setCursor(cursor: CursorType) {
         if (this.activeCursor) {
@@ -114,6 +141,8 @@ export default class GuiController {
             this.activeCursor = newActiveCursor;
             this.activeCursor.isVisible = true;
         }
+
+        if (cursor !== CursorType.World) this.teleporterText.isVisible = false;
     }
 
     public setFps(fps: number) {
