@@ -192,8 +192,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     override render() {
-        var rows = [];
-       this.state.auctions.forEach((auction) => {
+        const rows = [];
+        this.state.auctions.forEach((auction) => {
             rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
                 finished={auction.finished} finishingBid={auction.finishingBid} bidOpHash={auction.bidOpHash}

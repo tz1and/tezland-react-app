@@ -56,11 +56,11 @@ export class PlayerKeyboardInput {
             return;
         }
 
-        this._scene = scene
+        this._scene = scene;
         this._engine = this._scene.getEngine();
 
         this._onCanvasBlurObserver = this._engine.onCanvasBlurObservable.add(() => {
-            this._keys = [];
+            this._keys.length = 0;
         });
 
         this._onKeyboardObserver = this._scene.onKeyboardObservable.add((info) => {
@@ -116,7 +116,7 @@ export class PlayerKeyboardInput {
             this._onKeyboardObserver = null;
             this._onCanvasBlurObserver = null;
         }
-        this._keys = [];
+        this._keys.length = 0;
     }
 
     /**
@@ -155,6 +155,6 @@ export class PlayerKeyboardInput {
 
     /** @hidden */
     public _onLostFocus(): void {
-        this._keys = [];
+        this._keys.length = 0;
     }
 }

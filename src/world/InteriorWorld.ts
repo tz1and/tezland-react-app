@@ -283,7 +283,7 @@ export class InteriorWorld extends BaseWorld {
         {
             const playerPos = this.game.playerController.getPosition();
             // clear list
-            this.shadowRenderList = [];
+            this.shadowRenderList.length = 0;
             // add items in places nearby.
             if (this.place) {
                 if (Vector3.Distance(this.place.origin, playerPos) < 75) // TODO: don't hardcode this value.

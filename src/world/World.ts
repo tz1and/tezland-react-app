@@ -557,7 +557,7 @@ export class World extends BaseWorld {
         {
             const playerPos = this.game.playerController.getPosition();
             // clear list
-            this.shadowRenderList = [];
+            this.shadowRenderList.length = 0;
             // add items in places nearby.
             this.places.forEach(place => {
                 if (Vector3.Distance(place.origin, playerPos) < 75) // TODO: don't hardcode this value.

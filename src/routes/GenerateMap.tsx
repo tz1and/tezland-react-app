@@ -151,7 +151,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 await sleep(10000);
                 console.log("done sleeping, preparing next batch");
 
-                batch = [];
+                batch.length = 0;
             }
         }
 

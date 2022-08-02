@@ -96,7 +96,7 @@ export default class Grid2D<T> extends BaseGrid<T> {
         super(size);
 
         for (var x=0, width=size[0]; x<width; x++) {
-            var row: T[] = [];
+            const row: T[] = [];
             row.length = size[1]; // supposedly resizes the array and fills it with undefined.
             this._grid.push(row);
         }
@@ -122,7 +122,7 @@ export default class Grid2D<T> extends BaseGrid<T> {
     }
 
     public override clear() {
-        this._grid = [];
+        this._grid.length = 0;
     }
 }
 
@@ -158,7 +158,7 @@ export class Grid1D<T> extends BaseGrid<T> {
     }
 
     public override clear() {
-        this._grid = [];
+        this._grid.length = 0;
     }
 }
 
@@ -208,6 +208,7 @@ export class GridBenchmark {
         this.benchmark(name + ' create ' + size, () => { a = new this.gridConstructor(size); });
         this.benchmark(name + ' write ' + size, () => { this.stress_grid_write(a, size); });
         this.benchmark(name + ' read ' + size, () => { this.stress_grid_read(a, size); });
+        this.benchmark(name + ' clear ' + size, () => { a.clear(); });
     }
 
     public run(size: Tuple) {

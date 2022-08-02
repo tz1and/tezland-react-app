@@ -137,7 +137,7 @@ export async function upload_places(places: string[]): Promise<string[]> {
             else throw new Error("Backend: malformed response");
         }
 
-        promises = [];
+        promises.length = 0;
     }
 
     for(const metadata of places) {
