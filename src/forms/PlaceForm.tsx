@@ -10,11 +10,17 @@ import BigNumber from 'bignumber.js';
 import assert from 'assert';
 import ItemNode from '../world/nodes/ItemNode';
 import ItemTracker from '../controllers/ItemTracker';
+import { TeleporterType } from '../utils/ItemData';
+import { Vector3 } from '@babylonjs/core';
+
 
 interface PlaceFormValues {
     tokenId: number;
     itemAmount: number;
     itemPrice: number;
+    disableCollision: boolean;
+    teleporterType: "none" | "exterior" | "interior" | "local";
+    teleporterTargetPlace: number;
 }
 
 type PlaceFormProps = {
@@ -27,7 +33,10 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
     const initialValues: PlaceFormValues = {
         tokenId: props.placedItem.tokenId.toNumber(),
         itemAmount: 1,
-        itemPrice: 0
+        itemPrice: 0,
+        disableCollision: false,
+        teleporterType: "none",
+        teleporterTargetPlace: 0
     };
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
@@ -53,6 +62,10 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     if (values.itemAmount < 1 || values.itemAmount > props.maxQuantity) {
                         errors.itemAmount = 'Amount invalid';
                     }
+
+                    if (values.teleporterTargetPlace < 0 || values.teleporterTargetPlace > 2147483647) {
+                        errors.itemAmount = 'Invalid target place';
+                    }
                   
                     return errors;
                 }}
@@ -62,6 +75,31 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     if (props.placedItem) {
                         props.placedItem.itemAmount = new BigNumber(values.itemAmount);
                         props.placedItem.xtzPerItem = values.itemPrice;
+                        props.placedItem.disableCollisions = values.disableCollision;
+
+                        if (values.teleporterType !== "none") {
+                            switch (values.teleporterType) {
+                                case "exterior":
+                                    props.placedItem.teleporterData = {
+                                        type: TeleporterType.Exterior,
+                                        placeId: values.teleporterTargetPlace };
+                                    break;
+
+                                case "interior":
+                                    props.placedItem.teleporterData = {
+                                        type: TeleporterType.Interior,
+                                        placeId: values.teleporterTargetPlace };
+                                    break;
+
+                                case "local":
+                                    props.placedItem.teleporterData = {
+                                        type: TeleporterType.Local,
+                                        position: new Vector3() };
+                                    break;
+
+                                default: throw new Error("Unhandled teleporter type");
+                            }
+                        }
 
                         ItemTracker.trackTempItem(props.placedItem.placeId, values.tokenId, values.itemAmount);
                     }
@@ -74,7 +112,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                 {({
                     setFieldValue,
                     isSubmitting,
-                    isValid
+                    isValid,
+                    values
                 }) => {
                     return (
                         <Form>
@@ -98,6 +137,35 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                 <div id="priceHelp" className="form-text">The price for each Item. Set 0&#42793; if you don't want to swap.<br/>
                                 For <i>freebies</i>, <button type="button" className="btn btn-sm btn-link p-0 m-0 align-baseline" onClick={() => setFieldValue('itemPrice', 0.000001)}>set 0.000001&#42793;</button>.</div>
                                 <ErrorMessage name="itemPrice" children={errorDisplay}/>
+                            </div>
+                            <div className="mb-3">
+                                <input className="form-check-input" type="checkbox" value="" id="extra-options-check" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" />
+                                <label className="form-check-label" htmlFor="extra-options-check">&nbsp;Show extra options</label>
+                            </div>
+                            <div className="collapse" id="collapseExample">
+                                <div className="card card-body">
+                                    <div className="mb-3">
+                                        <Field id="disableCollision" name="disableCollision" type="checkbox" className="form-check-input me-2" aria-describedby="disableCollisionHelp" disabled={isSubmitting}/>
+                                        <label htmlFor="disableCollision" className="form-label mb-0">Disable collision <div id="disableCollisionHelp" className="form-text mb-0">Disable collision on the placed item.</div></label>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="teleporterType" className="form-label">Teleporter</label>
+                                        <Field id="teleporterType" name="teleporterType" as="select" value={values.teleporterType} className="form-select" aria-describedby="teleporterTypeHelp" disabled={isSubmitting} >
+                                            <option key={"none"} value={"none"}>None</option>
+                                            <option key={"exterior"} value={"exterior"}>Place</option>
+                                            <option key={"interior"} value={"interior"}>Interior</option>
+                                            {/*<option key={"local"} value={"local"}>Local</option>*/}
+                                        </Field>
+                                        <div id="teleporterTypeHelp" className="form-text">Turns this item into a teleporter.</div>
+                                    </div>
+                                    {/* Show place id input for the right teleporter types. */}
+                                    {(values.teleporterType === "exterior" || values.teleporterType === "interior") && <div className="mt-3">
+                                        <label htmlFor="teleporterTargetPlace" className="form-label">Target Place/Interior</label>
+                                        <Field id="teleporterTargetPlace" name="teleporterTargetPlace" type="number" min={0} max={2147483647} className="form-control" aria-describedby="teleporterTargetPlaceHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="teleporterTargetPlaceHelp" className="form-text">The Place or Interior this teleporter should take you to.</div>
+                                        <ErrorMessage name="teleporterTargetPlace" children={errorDisplay}/>
+                                    </div>}
+                                </div>
                             </div>
                             <div className="form-text mb-3">There is a 2.5% management fee on successful swaps.</div>
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>

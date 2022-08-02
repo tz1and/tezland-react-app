@@ -148,9 +148,6 @@ export default class ItemPlacementController extends BaseUserController {
                         assert(parent);
 
                         const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace.placeId, new BigNumber(this.currentItem), this.playerController.scene, parent);
-                        // TEMP
-                        //newObject.teleporterData = { type: TeleporterType.Interior, placeId: 0 }
-                        //newObject.disableCollisions = true;
                         await newObject.loadItem();
 
                         if(newObject) {
