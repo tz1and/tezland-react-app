@@ -115,14 +115,22 @@ export default class GuiController {
 
     public showTeleporterInfo(data: TeleporterData) {
         const baseText = "\nLeft click to activate."
-        if (data.type === TeleporterType.Exterior) {
-            this.teleporterText.text = `Teleporter to Place #${data.placeId!}${baseText}`;
-        }
-        else if (data.type === TeleporterType.Interior) {
-            this.teleporterText.text = `Teleporter to Interior #${data.placeId!}${baseText}`;
-        }
-        else {
-            this.teleporterText.text = `No idea where this one goes :) Try it!${baseText}`;
+
+        switch(data.type) {
+            case TeleporterType.Exterior:
+                this.teleporterText.text = `Teleporter to Place #${data.placeId!}${baseText}`;
+                break;
+
+            case TeleporterType.Interior:
+                this.teleporterText.text = `Teleporter to Interior #${data.placeId!}${baseText}`;
+                break;
+
+            case TeleporterType.Local:
+                this.teleporterText.text = `A local teleporter in this place.${baseText}`;
+                break;
+
+            default:
+                this.teleporterText.text = `No idea where this one goes :) Try it!${baseText}`;
         }
 
         this.teleporterText.isVisible = true;
