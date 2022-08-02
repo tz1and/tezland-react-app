@@ -101,6 +101,13 @@ export class Game {
             ArtifactMemCache.cleanup();
             this.scene.cleanCachedTextureBuffer();
         }, 60000);
+
+        this.world = new World(this);
+
+        ArtifactMemCache.initialise().then(() => {
+            assert(this.world instanceof World);
+            this.world.loadWorld().catch(e => {});
+        });
     }
 
     public dispose() {
@@ -140,16 +147,6 @@ export class Game {
         return this.world;
     }
 
-    public loadWorld() {
-        //this.world = new Interior(this);
-        this.world = new World(this);
-
-        ArtifactMemCache.initialise().then(() => {
-            assert(this.world);
-            this.world.loadWorld().catch(e => {});
-        });
-    }
-
     public teleportTo(teleporterData: TeleporterData) {
         // Figure out if we need to load another world.
         if (teleporterData.type === TeleporterType.Exterior) {
@@ -160,24 +157,35 @@ export class Game {
         }
         else if (teleporterData.type === TeleporterType.Interior) {
             this.switchWorld(InteriorWorld, () => {
+                assert(teleporterData.placeId !== undefined, "placeId is undefined");
                 this.playerController.teleportToWorldPos(new Vector3(0, 0, 0));
-            });
+            }, teleporterData.placeId);
         }
         else { //if (teleporterData.type === TeleporterType.Local)
             Logging.ErrorDev("Local teleporter not implemented");
         }
     }
 
-    private switchWorld(toWorldType: new(game: Game) => World | InteriorWorld, afterSwitch: () => void) {
-        if (!(this.world instanceof toWorldType)) {
-            this.world?.dispose();
-            this.world = new toWorldType(this);
-            this.world.loadWorld().then(() => {
-                afterSwitch();
-            }).catch(e => {});
+    private switchWorld(toWorldType: new(game: Game) => World | InteriorWorld, afterSwitch: () => void, placeId?: number) {
+        // If teleport from exterior to exterior, don't destroy world.
+        if (this.world instanceof World && toWorldType === World) {
+            afterSwitch();
         }
         else {
-            afterSwitch();
+            this.world?.dispose();
+            this.world = new toWorldType(this);
+
+            if (this.world instanceof InteriorWorld) {
+                assert(placeId !== undefined, "placeId is undefined");
+                this.world.loadWorld(placeId).then(() => {
+                    afterSwitch();
+                }).catch(e => {});
+            }
+            else if (this.world instanceof World) {
+                this.world.loadWorld().then(() => {
+                    afterSwitch();
+                }).catch(e => {});
+            }
         }
     }
 

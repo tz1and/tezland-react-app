@@ -218,11 +218,12 @@ export class InteriorWorld extends BaseWorld {
     }
 
     // TODO: add a list of pending places to load.
-    public async loadWorld() {
+    public async loadWorld(placeId: PlaceId) {
+        assert(this.place === null, "Interior was already loaded!");
         this.worldUpdatePending = true;
 
         // Batch load all (un)loaded places metadata and return
-        const place_metadata = await Metadata.getPlaceMetadata(3, "interior");
+        const place_metadata = await Metadata.getPlaceMetadata(placeId, "interior");
         assert(place_metadata);
 
         await this.loadPlace(place_metadata);

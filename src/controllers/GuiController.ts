@@ -3,7 +3,9 @@ import { AdvancedDynamicTexture, Control, Ellipse, Image, TextBlock } from "@bab
 import AppSettings from "../storage/AppSettings";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
 import downloadIcon from 'bootstrap-icons/icons/cloud-download.svg';
+import boxIcon from 'bootstrap-icons/icons/box.svg';
 import worldIcon from 'bootstrap-icons/icons/globe2.svg';
+import questionIcon from 'bootstrap-icons/icons/question.svg';
 import { TeleporterData, TeleporterType } from "../utils/ItemData";
 
 
@@ -11,7 +13,9 @@ export const enum CursorType {
     Pointer = 0,
     Hand,
     Loading,
+    Box,
     World,
+    Question,
     None
 }
 
@@ -56,7 +60,9 @@ export default class GuiController {
         this.cursors.set(CursorType.Pointer, this.createCursor(CursorType.Pointer));
         this.cursors.set(CursorType.Hand, this.createCursor(CursorType.Hand));
         this.cursors.set(CursorType.Loading, this.createCursor(CursorType.Loading));
+        this.cursors.set(CursorType.Box, this.createCursor(CursorType.Box));
         this.cursors.set(CursorType.World, this.createCursor(CursorType.World));
+        this.cursors.set(CursorType.Question, this.createCursor(CursorType.Question));
 
         this.setCursor(CursorType.Pointer);
 
@@ -100,8 +106,20 @@ export default class GuiController {
                 cursorControl.heightInPixels = 16;
                 break;
 
+            case CursorType.Box:
+                cursorControl = new Image(undefined, boxIcon);
+                cursorControl.widthInPixels = 16;
+                cursorControl.heightInPixels = 16;
+                break;
+
             case CursorType.World:
                 cursorControl = new Image(undefined, worldIcon);
+                cursorControl.widthInPixels = 16;
+                cursorControl.heightInPixels = 16;
+                break;
+
+            case CursorType.Question:
+                cursorControl = new Image(undefined, questionIcon);
                 cursorControl.widthInPixels = 16;
                 cursorControl.heightInPixels = 16;
                 break;
@@ -113,28 +131,36 @@ export default class GuiController {
         return cursorControl;
     }
 
+    /**
+     * Sets the cursor and shows the teleporter tooltip text.
+     * @param data the teleporter info.
+     */
     public showTeleporterInfo(data: TeleporterData) {
         const baseText = "\nLeft click to activate."
 
         switch(data.type) {
             case TeleporterType.Exterior:
                 this.teleporterText.text = `Teleporter to Place #${data.placeId!}.${baseText}`;
+                this.setCursor(CursorType.World);
                 break;
 
             case TeleporterType.Interior:
                 this.teleporterText.text = `Teleporter to Interior #${data.placeId!}.${baseText}`;
+                this.setCursor(CursorType.Box);
                 break;
 
             case TeleporterType.Local:
                 this.teleporterText.text = `A local teleporter in this place.${baseText}`;
+                this.setCursor(CursorType.Question);
                 break;
 
             default:
                 this.teleporterText.text = `No idea where this one goes :) Try it!${baseText}`;
+                this.setCursor(CursorType.Question);
+                break;
         }
 
         this.teleporterText.isVisible = true;
-        this.setCursor(CursorType.World);
     }
 
     // TODO: improve this to not constantly re-create the cursors.
@@ -150,7 +176,7 @@ export default class GuiController {
             this.activeCursor.isVisible = true;
         }
 
-        if (cursor !== CursorType.World) this.teleporterText.isVisible = false;
+        this.teleporterText.isVisible = false;
     }
 
     public setFps(fps: number) {

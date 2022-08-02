@@ -247,6 +247,7 @@ export class World extends BaseWorld {
 
     // TODO: add a list of pending places to load.
     public async loadWorld() {
+        // TODO: assert that the world can only be loaded once!
         this.worldUpdatePending = true;
 
         // Load districts, ie: ground meshes, bridges, etc.

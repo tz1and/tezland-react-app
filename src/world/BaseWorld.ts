@@ -7,7 +7,7 @@ export abstract class BaseWorld {
         this.game = game;
     }
 
-    public abstract loadWorld(): Promise<void>;
+    //public abstract loadWorld(): Promise<void>;
 
     public abstract dispose(): void;
 }

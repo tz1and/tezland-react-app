@@ -81,12 +81,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
         BabylonUtils.createEngine(this.mount.current).then(engine => {
             try {
-                const game = new Game(engine, this.props.appControl, this.context);
-
-                this.setState({game: game}, () => {
-                    assert(this.state.game);
-                    this.state.game.loadWorld();
-                });
+                this.setState({game: new Game(engine, this.props.appControl, this.context)});
             }
             catch(err: any) {
                 this.props.errorCallback(err);
