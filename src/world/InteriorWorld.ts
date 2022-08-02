@@ -205,6 +205,9 @@ export class InteriorWorld extends BaseWorld {
         this.unregisterPlacesSubscription();
         this.multiClient?.disconnectAndDispose();
 
+        this.place?.dispose();
+        this.place = null;
+
         this.worldNode.dispose();
     }
 
