@@ -1,4 +1,5 @@
-import { DefaultRenderingPipeline, Engine, Scene, TonemappingOperator, Nullable, Color3, Vector3 } from "@babylonjs/core";
+import { DefaultRenderingPipeline, Engine, Scene,
+    TonemappingOperator, Nullable, Color3, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";

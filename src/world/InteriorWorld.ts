@@ -31,7 +31,8 @@ export class InteriorWorld extends BaseWorld {
     private sunLight: SunLight;
     private skybox: Mesh;
     
-    readonly shadowGenerator: Nullable<ShadowGenerator>;
+    private shadowGenerator: Nullable<ShadowGenerator>;
+    private reflectionProbe: ReflectionProbe;
 
     private lastUpdatePosition: Vector3;
     private worldUpdatePending: boolean = false;
@@ -75,11 +76,11 @@ export class InteriorWorld extends BaseWorld {
         this.skybox.parent = this.worldNode;
 
         // reflection probe
-        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
-        assert(reflectionProbe.renderList);
-        reflectionProbe.renderList.push(this.skybox);
-        reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-        this.game.scene.environmentTexture = reflectionProbe.cubeTexture;
+        this.reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
+        assert(this.reflectionProbe.renderList);
+        this.reflectionProbe.renderList.push(this.skybox);
+        this.reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+        this.game.scene.environmentTexture = this.reflectionProbe.cubeTexture;
 
         const ground = Mesh.CreateGround("water", 2000, 2000, 4, this.game.scene);
         ground.material = this.game.defaultMaterial;
@@ -194,6 +195,12 @@ export class InteriorWorld extends BaseWorld {
 
         this.game.scene.unregisterBeforeRender(this.updateShadowRenderList);
         this.game.scene.unregisterAfterRender(this.updateWorld);
+
+        this.game.scene.environmentTexture = null;
+        this.reflectionProbe.dispose();
+
+        this.shadowGenerator?.dispose();
+        this.shadowGenerator = null;
         
         this.unregisterPlacesSubscription();
         this.multiClient?.disconnectAndDispose();

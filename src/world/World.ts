@@ -43,7 +43,8 @@ export class World extends BaseWorld {
     private sunLight: SunLight;
     private skybox: Mesh;
     
-    readonly shadowGenerator: Nullable<ShadowGenerator>;
+    private shadowGenerator: Nullable<ShadowGenerator>;
+    private reflectionProbe: ReflectionProbe;
 
     readonly places: Map<number, PlaceNode>; // The currently loaded places.
 
@@ -93,12 +94,11 @@ export class World extends BaseWorld {
         this.skybox.parent = this.worldNode;
 
         // reflection probe
-        // TODO: remove probe when world unloads
-        let reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
-        assert(reflectionProbe.renderList);
-        reflectionProbe.renderList.push(this.skybox);
-        reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-        this.game.scene.environmentTexture = reflectionProbe.cubeTexture;
+        this.reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
+        assert(this.reflectionProbe.renderList);
+        this.reflectionProbe.renderList.push(this.skybox);
+        this.reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+        this.game.scene.environmentTexture = this.reflectionProbe.cubeTexture;
 
         // The worlds water.
         const waterMaterial = new WaterMaterial("water", this.game.scene, new Vector2(512, 512));
@@ -227,6 +227,12 @@ export class World extends BaseWorld {
 
         this.game.scene.unregisterBeforeRender(this.updateShadowRenderList);
         this.game.scene.unregisterAfterRender(this.updateWorld);
+
+        this.game.scene.environmentTexture = null;
+        this.reflectionProbe.dispose();
+
+        this.shadowGenerator?.dispose();
+        this.shadowGenerator = null;
         
         this.unregisterPlacesSubscription();
         this.multiClient?.disconnectAndDispose();
