@@ -79,25 +79,14 @@ export class Contracts {
     }*/
 
     private async get_world_contract_read(walletProvider: ITezosWalletProvider, place_type: PlaceType) {
-        if (place_type === "exterior") {
-            if (!this.worldContract)
-                this.worldContract = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
+        if (!this.worldContract)
+            this.worldContract = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
-            return this.worldContract;
-        }
-        else { // "interior"
-            if (!this.worldInteriorsContract)
-                this.worldInteriorsContract = await walletProvider.tezosToolkit().contract.at(Conf.world_interiors_contract);
-
-            return this.worldInteriorsContract;
-        }
+        return this.worldContract;
     }
 
     private async get_world_contract_write(walletProvider: ITezosWalletProvider, place_type: PlaceType) {
-        if (place_type === "exterior")
-            return walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
-        else // "interior"
-            return walletProvider.tezosToolkit().wallet.at(Conf.world_interiors_contract);
+        return walletProvider.tezosToolkit().wallet.at(Conf.world_contract);
     }
 
     private async queryPlacePermissions(walletProvider: ITezosWalletProvider, place_id: number, owner: string, place_type: PlaceType): Promise<PlacePermissions> {
