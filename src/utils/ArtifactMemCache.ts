@@ -9,6 +9,7 @@ import { Logging } from "./Logging";
 import assert from "assert";
 import { getFileType } from "./Utils";
 import { ItemTokenMetadata } from "../world/Metadata";
+import { Game } from "../world/Game";
 //import { Logging } from "./Logging";
 
 
@@ -126,7 +127,7 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadArtifact(token_id: BigNumber, scene: Scene, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
+    public async loadArtifact(token_id: BigNumber, game: Game, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
         assert(this.workerThread);
 
         const token_id_number = token_id.toNumber();
@@ -135,16 +136,15 @@ class ArtifactMemCache {
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
         let assetPromise = this.artifactCache.get(token_id_number);
         if(!assetPromise) {
-            const sizeLimit = AppSettings.fileSizeLimit.value;
-            const polygonLimit = AppSettings.triangleLimit.value;
+            const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this.workerThread.downloadArtifact(token_id, sizeLimit, polygonLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene));
+            assetPromise = this.workerThread.downloadArtifact(token_id, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
             }*/
-    
+
             this.artifactCache.set(token_id_number, assetPromise);
         }
         //else Logging.InfoDev("mesh found in cache");

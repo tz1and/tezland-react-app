@@ -5,6 +5,7 @@ import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../../utils/ArtifactMemCache";
 import { ItemDataFlags, ItemDataParser, TeleporterData } from "../../utils/ItemData";
 import { Logging } from "../../utils/Logging";
+import { BaseWorld } from "../BaseWorld";
 import { World } from "../World";
 import { triHelper, Trilean } from "../../forms/FormUtils";
 import BasePlaceNode from "./BasePlaceNode";
@@ -54,7 +55,7 @@ export const enum ItemLoadState {
 
 
 export default class ItemNode extends TransformNode {
-    readonly placeId: number; // The place the item belongs to
+    private place_or_world: BasePlaceNode | BaseWorld; // The place the item belongs to
     readonly tokenId: BigNumber; // The token this item represents
     public itemId: BigNumber; // The id of the item within the place
     public issuer: string; // The address that placed this item
@@ -83,11 +84,11 @@ export default class ItemNode extends TransformNode {
         max: Vector3;
     }>;
 
-    constructor(placeId: number, tokenId: BigNumber,
+    constructor(place_or_world: BasePlaceNode | BaseWorld, tokenId: BigNumber,
         name: string, scene?: Nullable<Scene>, isPure?: boolean) {
         super(name, scene, isPure);
 
-        this.placeId = placeId;
+        this.place_or_world = place_or_world;
         this.tokenId = tokenId;
         this.itemId = new BigNumber(-1);
         this.issuer = "";
@@ -107,6 +108,18 @@ export default class ItemNode extends TransformNode {
     /*public override getClassName(): string {
         return "ItemNode";
     }*/
+
+    public getWorld(): BaseWorld {
+        if (this.place_or_world instanceof BaseWorld)
+            return this.place_or_world;
+        else
+            return this.place_or_world.world;
+    }
+
+    public getPlace(): BasePlaceNode {
+        assert(this.place_or_world instanceof BasePlaceNode, "ItemNode does not belong to place node.");
+        return this.place_or_world;
+    }
 
     public updateFromData(data: string) {
         const [quat, pos, scale, flags, tele] = ItemDataParser.parse(data);
@@ -202,7 +215,7 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
-            await ArtifactMemCache.loadArtifact(this.tokenId, this._scene, this, this._disableCollision);
+            await ArtifactMemCache.loadArtifact(this.tokenId, this.getWorld().game, this, this._disableCollision);
             this._loadState = ItemLoadState.Loaded;
 
             // TODO: see createBoundingBoxHelper
@@ -257,8 +270,8 @@ export default class ItemNode extends TransformNode {
         return this.tokenId.gte(0);
     }
 
-    public static CreateItemNode(placeId: number, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {
-        const itemNode = new ItemNode(placeId, tokenId, `item${tokenId}`, scene);
+    public static CreateItemNode(place_or_world: BasePlaceNode | BaseWorld, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {
+        const itemNode = new ItemNode(place_or_world, tokenId, `item${tokenId}`, scene);
         itemNode.parent = parent;
 
         return itemNode;

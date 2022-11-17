@@ -11,6 +11,7 @@ import ItemTracker from "./ItemTracker";
 import { CursorType } from "./GuiController";
 import PlayerController from "./PlayerController";
 import TempObjectHelper from "./TempObjectHelper";
+import { BaseWorld } from "../world/BaseWorld";
 
 
 export default class ItemPlacementController extends BaseUserController {
@@ -147,7 +148,7 @@ export default class ItemPlacementController extends BaseUserController {
                         const parent = this.playerController.currentPlace.tempItemsNode;
                         assert(parent);
 
-                        const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace.placeId, new BigNumber(this.currentItem), this.playerController.scene, parent);
+                        const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace, new BigNumber(this.currentItem), this.playerController.scene, parent);
                         await newObject.loadItem();
 
                         if(newObject) {
@@ -177,7 +178,7 @@ export default class ItemPlacementController extends BaseUserController {
         }
     }
 
-    public async setCurrentItem(token_id: number | undefined, qauntity: number) {
+    public async setCurrentItem(world: BaseWorld, token_id: number | undefined, qauntity: number) {
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();
@@ -198,7 +199,7 @@ export default class ItemPlacementController extends BaseUserController {
         try {
             this.playerController.gui.setCursor(CursorType.Loading);
 
-            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(token_id), this.playerController.scene, null);
+            this.tempObject = ItemNode.CreateItemNode(world, new BigNumber(token_id), this.playerController.scene, null);
             await this.tempObject.loadItem();
 
             this.currentItem = token_id;
@@ -249,7 +250,7 @@ export default class ItemPlacementController extends BaseUserController {
      * and gets to place it for preview purposes.
      * @param file 
      */
-     public async setFile(file: File) {
+     public async setFile(world: BaseWorld, file: File) {
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();
@@ -266,7 +267,7 @@ export default class ItemPlacementController extends BaseUserController {
 
             const token_id = -100;
 
-            this.tempObject = ItemNode.CreateItemNode(-1, new BigNumber(token_id), this.playerController.scene, null);
+            this.tempObject = ItemNode.CreateItemNode(world, new BigNumber(token_id), this.playerController.scene, null);
             await this.tempObject.loadFromFile(file);
 
             this.currentItem = token_id;

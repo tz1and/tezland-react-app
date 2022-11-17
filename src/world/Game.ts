@@ -143,6 +143,15 @@ export class Game {
         this.engine.resize();
     }
 
+    public getWorldLimits(): { triangleLimit: number, fileSizeLimit: number } {
+        assert(this.world);
+
+        if (this.world instanceof World)
+            return { triangleLimit: AppSettings.triangleLimit.value, fileSizeLimit: AppSettings.fileSizeLimit.value };
+        else
+            return { triangleLimit: AppSettings.triangleLimitInterior.value, fileSizeLimit: AppSettings.fileSizeLimitInterior.value };
+    }
+
     public getCurrentWorld(): Nullable<BaseWorld> {
         return this.world;
     }

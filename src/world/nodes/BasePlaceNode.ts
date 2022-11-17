@@ -68,7 +68,7 @@ export class PlacePermissions {
 export default abstract class BasePlaceNode extends TransformNode {
     readonly placeId: number;
     readonly placeMetadata: PlaceTokenMetadata;
-    protected world: BaseWorld;
+    readonly world: BaseWorld;
 
     protected _origin: Vector3;
     get origin(): Vector3 { return this._origin.clone(); }
@@ -327,7 +327,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 }
                 else {
                     try {
-                        const itemNode = ItemNode.CreateItemNode(this.placeId, token_id, this.world.game.scene, this._itemsNode);
+                        const itemNode = ItemNode.CreateItemNode(this, token_id, this.world.game.scene, this._itemsNode);
                         itemNode.updateFromData(item_data);
 
                         // Set issuer, etc.

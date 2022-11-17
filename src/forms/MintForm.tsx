@@ -80,14 +80,20 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
 
         // Model limits warning
         if(loadingState === "success") {
-            let modelLimitWarning = '';
+            let modelLimitWarnings: string[] = [];
             if(polyCount > AppSettings.triangleLimit.defaultValue)
-                modelLimitWarning = 'Exceeds default triangle limit. It may not be displayed.';
+                modelLimitWarnings.push('Exceeds default World triangle limit. It may not be displayed.');
+
+            if(polyCount > AppSettings.triangleLimitInterior.defaultValue)
+                modelLimitWarnings.push('Exceeds default Interior triangle limit. It may not be displayed.');
 
             if(modelFileSize > AppSettings.fileSizeLimit.defaultValue)
-                modelLimitWarning = 'Exceeds default file size limit. It may not be displayed.';
+                modelLimitWarnings.push('Exceeds default World file size limit. It may not be displayed.');
 
-            this.setState({ modelLimitWarning: modelLimitWarning, modelLoadingState: loadingState }, validateCallback);
+            if(modelFileSize > AppSettings.fileSizeLimitInterior.defaultValue)
+                modelLimitWarnings.push('Exceeds default Interior file size limit. It may not be displayed.');
+
+            this.setState({ modelLimitWarning: modelLimitWarnings.join('\n'), modelLoadingState: loadingState }, validateCallback);
         }
         else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState }, validateCallback);
     }
@@ -312,10 +318,10 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                     Only glb models are supported.<br/>
                                                     Self-contained gltf files will work, too.<br/>
                                                     <a href="https://framer.tz1and.com/" target="_blank" rel="noreferrer">3D-framed images are also supported.</a><br/>
-                                                    Current (default, soft) limit: {AppSettings.triangleLimit.defaultValue} triangles, {AppSettings.fileSizeLimit.defaultValue / 1024 / 1024} Mb
+                                                    Current (default, soft) limit: {AppSettings.triangleLimit.defaultValue}/{AppSettings.triangleLimitInterior.defaultValue} triangles, {AppSettings.fileSizeLimit.defaultValue / 1024 / 1024}/{AppSettings.fileSizeLimitInterior.defaultValue / 1024 / 1024} Mb
                                                 </div>
                                                 <ErrorMessage name="itemFile" children={this.errorDisplay}/>
-                                                {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1">
+                                                {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1" style={{whiteSpace: "pre"}}>
                                                     <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
                                             </div>
                                             <div className="mb-3">

@@ -101,7 +101,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                             }
                         }
 
-                        ItemTracker.trackTempItem(props.placedItem.placeId, values.tokenId, values.itemAmount);
+                        ItemTracker.trackTempItem(props.placedItem.getPlace().placeId, values.tokenId, values.itemAmount);
                     }
 
                     actions.setSubmitting(false);

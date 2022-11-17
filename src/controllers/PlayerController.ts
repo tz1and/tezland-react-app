@@ -400,7 +400,9 @@ export default class PlayerController {
     public selectItemForPlacement(token_id: number, quantity: number) {
         const controller = this.controllerManager.activate<ItemPlacementController>("placement", this);
 
-        controller.setCurrentItem(token_id, quantity).catch(() => {
+        const world = this.game.getCurrentWorld();
+        assert(world, "World not set");
+        controller.setCurrentItem(world, token_id, quantity).catch(() => {
             // TODO: handle error
         });
     }
@@ -408,7 +410,9 @@ export default class PlayerController {
     public handleDroppedFile(file: File) {
         const controller = this.controllerManager.activate<ItemPlacementController>("placement", this);
 
-        controller.setFile(file).then(() => {
+        const world = this.game.getCurrentWorld();
+        assert(world, "World not set");
+        controller.setFile(world, file).then(() => {
             // TODO: handle error
         });
     }

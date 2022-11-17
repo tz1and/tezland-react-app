@@ -13,6 +13,9 @@ interface SettingsFormValues {
     // general
     triangleLimit: number;
     modelFileSizeLimit: number; // in MB
+    triangleLimitInterior: number;
+    modelFileSizeLimitInterior: number; // in MB
+
     displayPlaceBounds: boolean;
     drawDistance: number;
     showFps: boolean;
@@ -46,6 +49,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     const initialValues: SettingsFormValues = {
         triangleLimit: AppSettings.triangleLimit.value,
         modelFileSizeLimit: AppSettings.fileSizeLimit.value / 1024 / 1024, // should be in MB
+        triangleLimitInterior: AppSettings.triangleLimitInterior.value,
+        modelFileSizeLimitInterior: AppSettings.fileSizeLimitInterior.value / 1024 / 1024, // should be in MB
+
         displayPlaceBounds: AppSettings.displayPlaceBounds.value,
         drawDistance: AppSettings.drawDistance.value,
         showFps: AppSettings.showFps.value,
@@ -95,6 +101,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         // general
                         AppSettings.triangleLimit.value = values.triangleLimit;
                         AppSettings.fileSizeLimit.value = parseInt((values.modelFileSizeLimit * 1024 * 1024).toFixed(0));
+                        AppSettings.triangleLimitInterior.value = values.triangleLimitInterior;
+                        AppSettings.fileSizeLimitInterior.value = parseInt((values.modelFileSizeLimitInterior * 1024 * 1024).toFixed(0));
+
                         AppSettings.displayPlaceBounds.value = values.displayPlaceBounds;
                         AppSettings.drawDistance.value = values.drawDistance;
                         AppSettings.showFps.value = values.showFps;

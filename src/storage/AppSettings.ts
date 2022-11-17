@@ -66,6 +66,9 @@ export default class AppSettings {
     static triangleLimit = new AppSetting<number>("triangleLimit", 5120, parseNumber);
     static fileSizeLimit = new AppSetting<number>("fileSizeLimit", 6291456, parseNumber); // MiB default.
 
+    static triangleLimitInterior = new AppSetting<number>("triangleLimitInterior", 30720, parseNumber);
+    static fileSizeLimitInterior = new AppSetting<number>("fileSizeLimitInterior", 25165824, parseNumber); // MiB default.
+
     static drawDistance = new AppSetting<number>("drawDistance", 125, parseNumber);
 
     static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", false, parseBool);
