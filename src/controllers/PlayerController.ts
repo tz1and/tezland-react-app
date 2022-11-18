@@ -15,6 +15,7 @@ import { PlayerKeyboardInput } from "./PlayerInput";
 import UserControllerManager from "./UserControllerManager";
 import ItemPlacementController from "./ItemPlacementController";
 import world_definition from "../models/districts.json";
+import Conf from "../Config";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -163,7 +164,7 @@ export default class PlayerController {
                                 this.appControlFunctions.loadForm(OverlayForm.PlaceProperties);
                             } else {
                                 this.appControlFunctions.addNotification({
-                                    id: "permissionsProps" + this._currentPlace.placeId,
+                                    id: "permissionsProps" + this._currentPlace.placeKey.id,
                                     title: "No permission",
                                     body: `You don't have permission to edit the properties of this place.`,
                                     type: 'info'
@@ -245,7 +246,7 @@ export default class PlayerController {
     }
 
     private async teleportToPlace(place_id: number) {
-        const metadata = await Metadata.getPlaceMetadata(place_id);
+        const metadata = await Metadata.getPlaceMetadata(place_id, Conf.place_contract);
         assert(metadata);
 
         const origin = Vector3.FromArray(metadata.centerCoordinates);
@@ -389,7 +390,7 @@ export default class PlayerController {
                 place.updateOwnerAndPermissions().then(() => {
                     this.appControlFunctions.updatePlaceInfo(place);
 
-                    Logging.InfoDev("entered place: " + place.placeId);
+                    Logging.InfoDev("entered place: " + place.placeKey.id);
 
                     place.displayOutOfBoundsItemsNotification();
                 });

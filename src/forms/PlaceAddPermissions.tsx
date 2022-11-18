@@ -89,7 +89,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                     //if (values.permissionCanSell) permissions |= permCanSell;
                 }
                 
-                Contracts.addPlacePermissions(context, props.place.currentOwner, props.place.placeId, values.permissionsTo, permissions, props.place.placeType, (completed: boolean) => {
+                Contracts.addPlacePermissions(context, props.place.currentOwner, props.place.placeKey, values.permissionsTo, permissions, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed) {

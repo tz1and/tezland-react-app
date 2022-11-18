@@ -5,6 +5,7 @@ import { fetchUserPlaces } from "../ipfs/graphql";
 import AppSettings from "../storage/AppSettings";
 import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
 import assert from "assert";
+import Conf from "../Config";
 
 type SpawnSelectProps = {
     teleportToLocation(location: string): void;
@@ -31,7 +32,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
 
     private walletChangeListener = () => {
         // TODO: allow Browser to cache this by setting some max age or something
-        fetchUserPlaces(this.context, 'exterior').then((res) => {
+        fetchUserPlaces(this.context, Conf.place_contract).then((res) => {
             this.setState({userPlaces: res}, () => {
                 assert(this.selectRef.current);
                 this.selectRef.current.value = AppSettings.defaultSpawn.value;

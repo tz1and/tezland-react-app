@@ -13,6 +13,7 @@ import PQueue from "p-queue";
 import { InteriorWorld } from "./InteriorWorld";
 import { GridMaterial, SimpleMaterial } from "@babylonjs/materials";
 import { TeleporterData, TeleporterType } from "../utils/ItemData";
+import Conf from "../Config";
 
 
 export class Game {
@@ -186,7 +187,7 @@ export class Game {
 
             if (this.world instanceof InteriorWorld) {
                 assert(placeId !== undefined, "placeId is undefined");
-                this.world.loadWorld(placeId).then(() => {
+                this.world.loadWorld({id: placeId, fa2: Conf.interior_contract}).then(() => {
                     afterSwitch();
                 }).catch(e => {});
             }

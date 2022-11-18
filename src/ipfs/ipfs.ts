@@ -1,6 +1,5 @@
 import Conf from '../Config';
 import { FileLike, RefLike } from '../utils/Utils';
-import { PlaceType } from '../world/nodes/BasePlaceNode';
 import assert from 'assert';
 
 
@@ -80,7 +79,7 @@ type PlaceMetadata = {
     description: string;
     minter: string;
     name: string;
-    placeType: PlaceType;
+    placeType: "exterior" | "interior";
     royalties: Royalties;
 }
 

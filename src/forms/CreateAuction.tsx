@@ -18,9 +18,9 @@ import TezosWalletContext from '../components/TezosWalletContext';
 import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
 import { FetchDataPlaceToken, FetchDataResult } from '../components/TokenInfiniteScroll';
-import { AllPlaceTypes, PlaceType } from '../world/nodes/BasePlaceNode';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+import Conf from '../Config';
 
 
 type MapSetCenterProps = {
@@ -87,11 +87,11 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
         };
     }
 
-    private panMapToPlace(place_id: number, place_type: PlaceType) {
+    private panMapToPlace(place_id: number, fa2: string) {
         if(place_id < 0) return;
 
         // Note: To match leaflet coords, both x and y are flipped and mirrored.
-        Metadata.getPlaceMetadata(place_id, place_type).then((res) => {
+        Metadata.getPlaceMetadata(place_id, fa2).then((res) => {
             assert(res);
             const coords = res.centerCoordinates;
             const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
@@ -107,17 +107,17 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
 Build height: {res.buildHeight}<br/>
 Place type: {res.placeType}</small>;
 
-            this.setState({ mapLocation: center_pos, placePoly: placePoly, isExteriorPlace: place_type === "exterior", placeInfo: placeInfo });
+            this.setState({ mapLocation: center_pos, placePoly: placePoly, isExteriorPlace: fa2 === Conf.place_contract, placeInfo: placeInfo });
         }, () => {});
     }
 
     private updatePlacesAndMap() {
-        fetchUserPlaces(this.context, ['exterior', 'interior']).then((result) => {
+        fetchUserPlaces(this.context, [Conf.place_contract, Conf.interior_contract]).then((result) => {
             this.setState({ placeInventory: result }, () => {
                 if(this.state.placeInventory.length > 0) {
                     const first = this.state.placeInventory[0];
-                    this.panMapToPlace(first.token.tokenId, first.token.metadata!.placeType as PlaceType);
-                    this.initialValues.placeId = this.serialisePlaceId(first.token.metadata!.placeType, first.token.tokenId);
+                    this.panMapToPlace(first.token.tokenId, first.token.contract);
+                    this.initialValues.placeId = this.serialisePlaceId(first.token.contract, first.token.tokenId);
                 }
             });
         })
@@ -125,8 +125,8 @@ Place type: {res.placeType}</small>;
 
     onIdChange(e: React.ChangeEvent<any>) {
         try {
-            const [placeType, placeTokenId] = this.parsePlaceId(e.target.value);
-            this.panMapToPlace(placeTokenId, placeType as PlaceType);
+            const [placeContract, placeTokenId] = this.parsePlaceId(e.target.value);
+            this.panMapToPlace(placeTokenId, placeContract);
         }
         catch(e) {}
     };
@@ -149,22 +149,18 @@ Place type: {res.placeType}</small>;
 
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
-    private parsePlaceId(placeId: string): [PlaceType, number] {
+    private parsePlaceId(placeId: string): [string, number] {
         const array = placeId.split(',')
         assert(array.length === 2, "PlaceId must be a tuple.");
 
         const placeTokenId = parseInt(array[1]);
-        const placeType = array[0];
+        const placeContract = array[0];
 
         if (placeTokenId < 0) {
             throw new Error('Place token ID invalid.');
         }
 
-        if (AllPlaceTypes.find(t => t === placeType) === undefined) {
-            throw new Error('Place type invalid.');
-        }
-
-        return [placeType as PlaceType, placeTokenId];
+        return [placeContract, placeTokenId];
     }
 
     private serialisePlaceId(type: string, id: number): string {
@@ -251,7 +247,7 @@ Place type: {res.placeType}</small>;
                                                     this.state.placeInventory.length === 0 ?
                                                         (<option value={"-1"}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not connected."}</option>) :
                                                             this.state.placeInventory.map((key, index) => (
-                                                                <option key={index} value={this.serialisePlaceId(key.token.metadata!.placeType, key.token.tokenId)}>{key.token.metadata!.placeType === 'exterior' ? 'Place' : 'Interior'} #{key.token.tokenId}</option>
+                                                                <option key={index} value={this.serialisePlaceId(key.token.contract, key.token.tokenId)}>{key.token.contract === Conf.place_contract ? 'Place' : 'Interior'} #{key.token.tokenId}</option>
                                                             ))}
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>

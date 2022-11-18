@@ -55,7 +55,7 @@ export const PlaceRemovePermissionsForm: React.FC<PlaceRemovePermissionsFormProp
                 return errors;
             }}
             onSubmit={(values, actions) => {
-                Contracts.removePlacePermissions(context, props.place.currentOwner, props.place.placeId, values.permissionsTo, props.place.placeType, (completed: boolean) => {
+                Contracts.removePlacePermissions(context, props.place.currentOwner, props.place.placeKey, values.permissionsTo, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed) {

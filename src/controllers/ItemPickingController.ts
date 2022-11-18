@@ -12,8 +12,6 @@ import BaseUserController from "./BaseUserController";
 import { CursorType } from "./GuiController";
 import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
-import { World } from "../world/World";
-import { PlaceType } from "../world/nodes/BasePlaceNode";
 import assert from "assert";
 
 
@@ -260,7 +258,7 @@ export default class ItemPickingController extends BaseUserController {
 
                                 // track removed items.
                                 // TODO: set issuer on temp items and avoid code duplication.
-                                ItemTracker.trackTempItem(current_item.getPlace().placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
+                                ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenId.toNumber(), -current_item.itemAmount);
                             }
                             // Otherwise mark it for removal.
                             else {
@@ -270,7 +268,7 @@ export default class ItemPickingController extends BaseUserController {
                                 // track removed items.
                                 // only track items that go to the players wallet.
                                 if (current_item.issuer === this.playerController.game.walletProvider.walletPHK()) {
-                                    ItemTracker.trackTempItem(current_item.getPlace().placeId, current_item.tokenId.toNumber(), -current_item.itemAmount);
+                                    ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenId.toNumber(), -current_item.itemAmount);
                                 }
                             }
                         }
@@ -309,14 +307,12 @@ export default class ItemPickingController extends BaseUserController {
                     if (instanceRoot.isValidItem()) {
                         document.exitPointerLock();
                         // IMPORTANT! TODO: a bit clumsy, but maybe ok.
-                        const placeType: PlaceType = this.playerController.game.getCurrentWorld() instanceof World ? "exterior" : "interior";
                         this.playerController.appControlFunctions.loadForm(OverlayForm.CollectItem, {
                             tokenId: instanceRoot.tokenId.toNumber(),
-                            placeId: instanceRoot.getPlace().placeId,
+                            placeKey: instanceRoot.getPlace().placeKey,
                             itemId: instanceRoot.itemId.toNumber(),
                             issuer: instanceRoot.issuer,
-                            xtzPerItem: instanceRoot.xtzPerItem,
-                            placeType: placeType } as CollectItemFromProps);
+                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
                     }
 
                     eventState.skipNextObservers = true;

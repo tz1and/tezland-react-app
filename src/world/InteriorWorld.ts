@@ -3,7 +3,7 @@ import { Vector3, Color3, HemisphericLight,
     AbstractMesh, Nullable, ReflectionProbe,
     RenderTargetTexture, TransformNode } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
-import { PlaceId } from "./nodes/BasePlaceNode";
+import { PlaceKey } from "./nodes/BasePlaceNode";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
@@ -163,7 +163,7 @@ export class InteriorWorld extends BaseWorld {
 
     // TODO: move the subscription stuff into it's own class?
     private async registerPlacesSubscription() {
-        this.subscription = await Contracts.subscribeToPlaceChanges(this.game.walletProvider, "interior");
+        this.subscription = await Contracts.subscribeToPlaceChanges(this.game.walletProvider);
         this.subscription?.on('data', this.placeSubscriptionCallback);
     }
 
@@ -181,11 +181,13 @@ export class InteriorWorld extends BaseWorld {
             const ep = tContent.parameters.entrypoint;
             if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items" || ep === "set_item_data") {
                 try {
-                    const schema = new ParameterSchema(Contracts.worldInteriorsContract!.entrypoints.entrypoints[ep])
+                    const schema = new ParameterSchema(Contracts.worldContract!.entrypoints.entrypoints[ep])
                     const params = schema.Execute(tContent.parameters.value);
 
-                    // Reload place if out interior canged.
-                    if (this.place && this.place.placeId === params.lot_id.toNumber())
+                    // Reload place if our interior canged.
+                    if (this.place
+                        && this.place.placeKey.id === params.place_key.id.toNumber()
+                        && this.place.placeKey.fa2 === params.place_key.fa2)
                         this.reloadPlace();
                 }
                 catch (e) {
@@ -218,15 +220,15 @@ export class InteriorWorld extends BaseWorld {
     }
 
     // TODO: add a list of pending places to load.
-    public async loadWorld(placeId: PlaceId) {
+    public async loadWorld(placeKey: PlaceKey) {
         assert(this.place === null, "Interior was already loaded!");
         this.worldUpdatePending = true;
 
         // Batch load all (un)loaded places metadata and return
-        const place_metadata = await Metadata.getPlaceMetadata(placeId, "interior");
+        const place_metadata = await Metadata.getPlaceMetadata(placeKey.id, placeKey.fa2);
         assert(place_metadata);
 
-        await this.loadPlace(place_metadata);
+        await this.loadPlace(placeKey, place_metadata);
 
         // We only need to set the place once for interiors.
         this.updateCurrentPlace();
@@ -242,7 +244,7 @@ export class InteriorWorld extends BaseWorld {
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
     // Should probably be batched before loading places.
-    private async loadPlace(metadata: PlaceTokenMetadata) {
+    private async loadPlace(placeKey: PlaceKey, metadata: PlaceTokenMetadata) {
         // early out if it's already loaded.
         // NOTE: done't need to early out. Souldn't happen.
         // Check anyway and log. For now.
@@ -253,7 +255,7 @@ export class InteriorWorld extends BaseWorld {
 
         try {
             // Create place.
-            const new_place = new InteriorPlaceNode(metadata.tokenId, metadata, this);
+            const new_place = new InteriorPlaceNode(placeKey, metadata, this);
             this.place = new_place;
 
             // Load items.

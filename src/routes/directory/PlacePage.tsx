@@ -8,6 +8,8 @@ import { MapSetCenter } from '../../forms/CreateAuction';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
+import { PlaceKey } from "../../world/nodes/BasePlaceNode";
+import Conf from "../../Config";
 
 
 type PlacePageProps = { };
@@ -16,29 +18,29 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
     const navigate = useNavigate();
     const params = useParams();
 
-    const [tokenId, setTokenId] = useState(parseInt(params.id!));
+    const [placeKey, setPlaceKey] = useState<PlaceKey>({id: parseInt(params.id!), fa2: Conf.place_contract});
     const [metadata, setMetadata] = useState<PlaceTokenMetadata>();
 
     // Set tokenId state when prop changes.
     useEffect(() => {
-        setTokenId(parseInt(params.id!));
+        setPlaceKey({id: parseInt(params.id!), fa2: Conf.place_contract});
     }, [params.id]);
 
     useEffect(() => {
-        Metadata.getPlaceMetadata(tokenId).then(res => {
+        Metadata.getPlaceMetadata(placeKey.id, placeKey.fa2).then(res => {
             setMetadata(res);
         });
-    }, [tokenId]);
+    }, [placeKey]);
 
     const teleportToPlace = () => {
         if(getDirectoryEnabledGlobal()) {
             window.parent.postMessage({
                 tz1andEvent: true,
-                teleportToLocation: "place" + tokenId
+                teleportToLocation: "place" + placeKey.id
             } as iFrameControlEvent, "*");
         }
         else
-            navigate(`/explore?placeid=${tokenId}`);
+            navigate(`/explore?placeid=${placeKey.id}`);
     }
 
     let name = null;

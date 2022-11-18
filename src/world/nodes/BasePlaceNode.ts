@@ -15,10 +15,10 @@ import { SimpleMaterial } from "@babylonjs/materials";
 import assert from "assert";
 
 
-export type PlaceId = number;
-
-export const AllPlaceTypes = ["exterior", "interior"] as const;
-export type PlaceType = (typeof AllPlaceTypes)[number];
+export type PlaceKey = {
+    fa2: string;
+    id: number;
+};
 
 export type PlaceItemData = {
     item_id: BigNumber;
@@ -66,7 +66,7 @@ export class PlacePermissions {
 };
 
 export default abstract class BasePlaceNode extends TransformNode {
-    readonly placeId: number;
+    readonly placeKey: PlaceKey;
     readonly placeMetadata: PlaceTokenMetadata;
     readonly world: BaseWorld;
 
@@ -108,14 +108,12 @@ export default abstract class BasePlaceNode extends TransformNode {
     // Set of out of bounds items in this place.
     public outOfBoundsItems: Set<number> = new Set();
 
-    public abstract get placeType(): PlaceType;
-
-    constructor(placeId: number, placeMetadata: PlaceTokenMetadata, world: BaseWorld) {
-        super(`placeRoot${placeId}`, world.game.scene);
+    constructor(placeKey: PlaceKey, placeMetadata: PlaceTokenMetadata, world: BaseWorld) {
+        super(`placeRoot${placeKey.id}`, world.game.scene);
 
         this.world = world;
 
-        this.placeId = placeId;
+        this.placeKey = placeKey;
         this.placeMetadata = placeMetadata;
 
         this._origin = Vector3.FromArray(this.placeMetadata.centerCoordinates);
@@ -141,7 +139,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         this._tempItemsNode?.dispose();
         this._tempItemsNode = null;
 
-        ItemTracker.removeTrackedItemsForPlace(this.placeId);
+        ItemTracker.removeTrackedItemsForPlace(this.placeKey.id);
 
         super.dispose();
     }
@@ -197,7 +195,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         // create ground
         this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
-            new SimpleMaterial(`placeGroundMat${this.placeId}`, this.world.game.scene));
+            new SimpleMaterial(`placeGroundMat${this.placeKey.id}`, this.world.game.scene));
         this.placeGround.receiveShadows = true;
         this.placeGround.parent = this;
         this.placeGround.freezeWorldMatrix();
@@ -219,9 +217,9 @@ export default abstract class BasePlaceNode extends TransformNode {
         if (this.outOfBoundsItems.size > 0 && this.permissions.hasPlaceItems()) {
             const itemList = Array.from(this.outOfBoundsItems).join(', ');
             this.world.game.appControlFunctions.addNotification({
-                id: "oobItems" + this.placeId,
+                id: "oobItems" + this.placeKey.id,
                 title: "Out of bounds items!",
-                body: `Your Place #${this.placeId} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
+                body: `Your Place #${this.placeKey.id} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
                 type: 'warning'
             })
             Logging.Warn("place doesn't fully contain objects: " + itemList);
@@ -233,7 +231,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         assert(this.placeBounds && this.placeGround, "Place not initialised.");
 
         // First, load the palce data from disk.
-        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject("placeItems", [this.placeId, this.placeType]);
+        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject("placeItems", [this.placeKey.id, this.placeKey.fa2]);
         if (this.isDisposed()) return;
 
         // If we have place data, load the items.
@@ -246,14 +244,14 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     public async update(force: boolean = false, attempt: number = 1) {
         if (attempt > 5) {
-            Logging.Warn("Too many failed attempts updating place. Giving up. Place id:", this.placeId);
+            Logging.Warn("Too many failed attempts updating place. Giving up. Place id:", this.placeKey.id);
             return;
         }
 
         try {
             // If not forced and we have place data...
             if (!force && this.placeData) {
-                const newSeqNum = await Contracts.getPlaceSeqNum(this.world.game.walletProvider, this.placeId, this.placeType);
+                const newSeqNum = await Contracts.getPlaceSeqNum(this.world.game.walletProvider, this.placeKey);
                 if (this.isDisposed()) return;
 
                 // Check the sequence number.
@@ -264,13 +262,13 @@ export default abstract class BasePlaceNode extends TransformNode {
             }
 
             // reload place data if it changed or we don't have any.
-            this.placeData = await Contracts.getItemsForPlaceView(this.world.game.walletProvider, this.placeId, this.placeType);
+            this.placeData = await Contracts.getItemsForPlaceView(this.world.game.walletProvider, this.placeKey);
             if (this.isDisposed()) return;
         }
         // catch exceptions and queue another update.
         catch(e: any) {
             // Handle failiures to fetch updates. Queue again.
-            Logging.InfoDev("Updating place failed", this.placeId, e);
+            Logging.InfoDev("Updating place failed", this.placeKey.id, e);
             setTimeout(() => this.world.game.onchainQueue.add(() => this.update(force, attempt + 1)), 1000);
             return;
         }
@@ -339,7 +337,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                         newItems.set(item_id_num, itemNode);
                     }
                     catch(e) {
-                        Logging.InfoDev("Failed to load placed item", this.placeId, token_id.toNumber(), e);
+                        Logging.InfoDev("Failed to load placed item", this.placeKey.id, token_id.toNumber(), e);
                     }
                 }
             };
@@ -358,7 +356,7 @@ export default abstract class BasePlaceNode extends TransformNode {
             this.updateLOD();
         }
         catch(e: any) {
-            Logging.Error("Failed to load items for place " + this.placeId, e);
+            Logging.Error("Failed to load items for place " + this.placeKey.id, e);
         }
     }
 
@@ -378,12 +376,12 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     public save(): boolean {
         if(!this._tempItemsNode || !this._itemsNode) {
-            Logging.InfoDev("can't save: items not loaded", this.placeId);
+            Logging.InfoDev("can't save: items not loaded", this.placeKey.id);
             return false;
         }
 
         if(this.savePending) {
-            Logging.Info("Can't save again while operaton is pending", this.placeId);
+            Logging.Info("Can't save again while operaton is pending", this.placeKey.id);
             return false;
         }
 
@@ -410,19 +408,19 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         if (add_children.length === 0 && remove_children.length === 0) {
             // TODO: probably should throw exceptions here.
-            Logging.InfoDev("Nothing to save", this.placeId);
+            Logging.InfoDev("Nothing to save", this.placeKey.id);
             return false;
         }
 
         this.savePending = true;
 
-        Contracts.saveItems(this.world.game.walletProvider, remove_children, add_children, this.placeId, this.owner, this.placeType, (completed: boolean) => {
+        Contracts.saveItems(this.world.game.walletProvider, remove_children, add_children, this.placeKey, this.owner, (completed: boolean) => {
             this.savePending = false;
 
             // Only remove temp items if op completed.
             if(completed) {
                 this.clearTempItems();
-                ItemTracker.removeTrackedItemsForPlace(this.placeId);
+                ItemTracker.removeTrackedItemsForPlace(this.placeKey.id);
             }
         }).catch(e => {
             Logging.ErrorDev(e);
@@ -457,11 +455,11 @@ export default abstract class BasePlaceNode extends TransformNode {
         if(this._tempItemsNode) {
             this._tempItemsNode.dispose();
             this._tempItemsNode = null;
-            Logging.InfoDev("cleared temp items", this.placeId);
+            Logging.InfoDev("cleared temp items", this.placeKey.id);
         }
 
         // create NEW temp items node
-        this._tempItemsNode = new TransformNode(`placeTemp${this.placeId}`, this.world.game.scene);
+        this._tempItemsNode = new TransformNode(`placeTemp${this.placeKey.id}`, this.world.game.scene);
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
         this._tempItemsNode.parent = this;
     }
@@ -477,15 +475,15 @@ export default abstract class BasePlaceNode extends TransformNode {
         // Maybe reset last_owner_and_permission_update on failiure?
         if(force || (Date.now() - (validity * 1000)) > this.last_owner_and_permission_update) {
             const prev_update = this.last_owner_and_permission_update;
-            Logging.InfoDev("Updating owner and permissions for place " + this.placeId);
+            Logging.InfoDev("Updating owner and permissions for place " + this.placeKey.id);
             try {
                 this.last_owner_and_permission_update = Date.now();
-                this.owner = await Contracts.getPlaceOwner(this.placeId, this.placeType);
-                this.permissions = await Contracts.getPlacePermissions(this.world.game.walletProvider, this.placeId, this.owner, this.placeType);
+                this.owner = await Contracts.getPlaceOwner(this.placeKey);
+                this.permissions = await Contracts.getPlacePermissions(this.world.game.walletProvider, this.placeKey, this.owner);
             }
             catch(reason: any) {
                 this.last_owner_and_permission_update = prev_update;
-                Logging.InfoDev("failed to load permissions/ownership " + this.placeId);
+                Logging.InfoDev("failed to load permissions/ownership " + this.placeKey.id);
                 Logging.InfoDev(reason);
             }
         }

@@ -131,8 +131,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             let last_auction_id = 0;
             const new_auctions = new Map<number, any>();
             for (const r of res) {
-                new_auctions.set(r.id, r);
-                last_auction_id = r.id;
+                new_auctions.set(r.transientId, r);
+                last_auction_id = r.transientId;
             }
 
             this.setState({
@@ -150,8 +150,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 const more_data = res.length === Auctions.FetchAmount;
                 let last_auction_id = 0;
                 for (const r of res) {
-                    this.state.auctions.set(r.id, r);
-                    last_auction_id = r.id;
+                    this.state.auctions.set(r.transientId, r);
+                    last_auction_id = r.transientId;
                 }
 
                 this.setState({

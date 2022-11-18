@@ -8,17 +8,16 @@ import { ItemTags } from '../components/item/ItemTags';
 import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
 import { ItemDisplay } from '../components/item/ItemDisplay';
 import { Logging } from '../utils/Logging';
-import { PlaceType } from '../world/nodes/BasePlaceNode';
+import { PlaceKey } from '../world/nodes/BasePlaceNode';
 
 
 type CollectFormProps = {
     closeForm(): void;
     tokenId: number;
-    placeId: number;
+    placeKey: PlaceKey;
     itemId: number;
     issuer: string;
     xtzPerItem: number;
-    placeType: PlaceType;
 }
 
 export const CollectForm: React.FC<CollectFormProps> = (props) => {
@@ -33,7 +32,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
     }, [props]);
 
     const collectItem = () => {
-        Contracts.getItem(context, props.placeId, props.itemId, props.issuer, props.xtzPerItem, props.placeType).then(() => {
+        Contracts.getItem(context, props.placeKey, props.itemId, props.issuer, props.xtzPerItem).then(() => {
             props.closeForm();
         }).catch((e) => { Logging.Error(e); });
     }
@@ -63,7 +62,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
                 </Container>
 
                 {props.xtzPerItem > 0 ?
-                    <><Button onClick={collectItem}>{`Collect for ${props.xtzPerItem} \uA729`}</Button> from Place #{props.placeId}</> :
+                    <><Button onClick={collectItem}>{`Collect for ${props.xtzPerItem} \uA729`}</Button> from Place #{props.placeKey.id}</> :
                     <><Button disabled>Not collectible</Button></>}
             </div>
         </div>

@@ -1,5 +1,6 @@
 import { Vector3 } from '@babylonjs/core';
 import { createHash } from 'crypto';
+import Conf from '../Config';
 import { grapphQLUser } from '../graphql/user';
 import Metadata from '../world/Metadata';
 import { Logging } from './Logging';
@@ -45,7 +46,7 @@ export default class WorldGrid {
                             // Fetch cell if updated or doesn't exist.
                             if (!cell || cell.worldPlaceCount !== worldPlaceCount) {
                                 Logging.InfoDev("fetching cell", gridHash, cell ? cell.worldPlaceCount : "unknown cell");
-                                grapphQLUser.getWorldGridCell({gridHash: gridHash}).then((data) => {
+                                grapphQLUser.getWorldGridCell({gridHash: gridHash, fa2: Conf.place_contract}).then((data) => {
                                         const places_in_cell: number[] = [];
                                         for (const placeToken of data.placeTokenMetadata)
                                             places_in_cell.push(placeToken.tokenId);

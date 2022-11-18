@@ -213,7 +213,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         let running_total = new BigNumber(0);
 
         for (const place_id of auction_id_list) {
-            const place_metadata = await Metadata.getPlaceMetadata(place_id);
+            const place_metadata = await Metadata.getPlaceMetadata(place_id, Conf.place_contract);
             assert(place_metadata);
 
             const polygon = place_metadata.borderCoordinates;

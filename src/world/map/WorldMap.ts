@@ -28,6 +28,7 @@ import markerIconRed from '../../img/map/mapmarker-red.png'
 
 import { WorldDefinition } from "../../worldgen/WorldGen";
 import world_definition from "../../models/districts.json";
+import Conf from "../../Config";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -344,7 +345,7 @@ export class WorldMap {
         this.loadDistricts();
 
         // fetch the most recent world place count
-        this.worldPlaceCount = (await grapphQLUser.countExteriorPlaces()).placeTokenMetadataAggregate.aggregate!.count;
+        this.worldPlaceCount = (await grapphQLUser.countPlaces({fa2: Conf.place_contract})).placeTokenMetadataAggregate.aggregate!.count;
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
         const playerPos = this.orthoCam.getTarget();
@@ -362,7 +363,7 @@ export class WorldMap {
         });
 
         // Batch load all (un)loaded places metadata and return
-        const place_metadatas = await Metadata.getPlaceMetadataBatch(placeIds);
+        const place_metadatas = await Metadata.getPlaceMetadataBatch(placeIds, Conf.place_contract);
 
         // TODO: Get rid of places out of reach?
         /*// Figure out by distance to player if the place should be loaded load.
@@ -708,7 +709,7 @@ export class WorldMap {
                         });
                     });
 
-                    (await Metadata.getPlaceMetadataBatch(places_to_fetch)).forEach((m) => {
+                    (await Metadata.getPlaceMetadataBatch(places_to_fetch, Conf.place_contract)).forEach((m) => {
                         this.loadPlace(m);
                     });
 

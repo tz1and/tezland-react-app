@@ -1,8 +1,8 @@
 query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean!, $primaryFilter: [Boolean!]!) {
-    dutchAuction(limit: $amount, where: {id: {_lt: $last}, finished: {_eq: $finished}, isPrimary: {_in: $primaryFilter}}, order_by: {id: desc}) {
+    dutchAuction(limit: $amount, where: {transientId: {_lt: $last}, finished: {_eq: $finished}, isPrimary: {_in: $primaryFilter}}, order_by: {transientId: desc}) {
         endPrice
         endTime
-        id
+        transientId
         ownerId
         startPrice
         startTime

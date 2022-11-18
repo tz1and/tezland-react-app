@@ -5,6 +5,7 @@ import { PlaceItem } from './PlaceItem';
 import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from './TokenInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
+import Conf from '../Config';
 
 type PlacesProps = {
     //selectItemFromInventory(id: number, quantity: number): void;
@@ -20,7 +21,7 @@ export const Places: React.FC<PlacesProps> = (props) => {
     const navigate = useNavigate();
 
     const fetchInventory: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
-        const res = await grapphQLUser.getUserPlaces({ address: props.address, placeTypes: ['exterior', 'interior'], amount: fetchAmount, offset: dataOffset });
+        const res = await grapphQLUser.getUserPlaces({ address: props.address, contracts: [Conf.place_contract, Conf.interior_contract], amount: fetchAmount, offset: dataOffset });
         
         return res.placeTokenHolder;
     }

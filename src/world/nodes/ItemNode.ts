@@ -25,7 +25,7 @@ const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
 
         // TODO: isInBounds fails if artifact failed to load for some reason (limits or whatever)
         if (!place.isInBounds(item)) {
-            Logging.WarnDev(`place #${place.placeId} doesn't fully contain item with id`, item.itemId.toNumber());
+            Logging.WarnDev(`place #${place.placeKey.id} doesn't fully contain item with id`, item.itemId.toNumber());
 
             // TODO: show this if you are the owner instead of disposing.
             //item.setDisplayBounds(true, 0);

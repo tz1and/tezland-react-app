@@ -6,6 +6,7 @@ import { PublicPlaces } from "../../worldgen/PublicPlaces";
 import { PlaceTokenMetadata } from "../Metadata";
 import { Logging } from "../../utils/Logging";
 import Contracts from "../../tz/Contracts";
+import Conf from "../../Config";
 
 
 export default class MapPlaceNode extends TransformNode {
@@ -91,7 +92,7 @@ export default class MapPlaceNode extends TransformNode {
             Logging.InfoDev("Updating owner for place " + this.placeId);
             try {
                 this.last_owner_update = Date.now();
-                this.owner = await Contracts.getPlaceOwner(this.placeId, "exterior");
+                this.owner = await Contracts.getPlaceOwner({id: this.placeId, fa2: Conf.place_contract});
             }
             catch(reason: any) {
                 this.last_owner_update = prev_update;

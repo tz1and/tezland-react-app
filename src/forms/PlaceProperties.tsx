@@ -76,7 +76,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                 return errors;
             }}
             onSubmit={(values, actions) => {
-                Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), char2Bytes(values.placeName), props.place.placeId, props.place.currentOwner, props.place.placeType, (completed: boolean) => {
+                Contracts.savePlaceProps(context, colorToBytes(values.placeGroundColor), char2Bytes(values.placeName), props.place.placeKey, props.place.currentOwner, (completed: boolean) => {
                     actions.setSubmitting(false);
 
                     if (completed)

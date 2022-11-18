@@ -23,10 +23,10 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
 
     useEffect(() => {
         if(!metadata)
-            Metadata.getPlaceMetadata(props.item_metadata.token.tokenId).then((res) => {
+            Metadata.getPlaceMetadata(props.item_metadata.token.tokenId, props.item_metadata.token.contract).then((res) => {
                 setMetadata(res)
             });
-    }, [metadata, props.item_metadata.token.tokenId]);
+    }, [metadata, props.item_metadata.token.tokenId, props.item_metadata.token.contract]);
 
     let name = null;
     let description = "None.";

@@ -13,18 +13,17 @@ query getUserCreations($address: String!, $offset: Int!, $amount: Int!) {
     }
 }
 
-query getUserPlaces($address: String!, $placeTypes: [String!]!, $offset: Int!, $amount: Int!) {
+query getUserPlaces($address: String!, $contracts: [String!]!, $offset: Int!, $amount: Int!) {
     placeTokenHolder(
         where: {
             holderId: {_eq: $address},
             token: {
-                metadata: {
-                    placeType: {_in: $placeTypes}
-                }
+                contract: {_in: $contracts}
             }
         }, limit: $amount, offset: $offset, order_by: {token: {tokenId: desc}}) {
         token {
             tokenId
+            contract
             metadata {
                 placeType
             }

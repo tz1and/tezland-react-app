@@ -5,7 +5,7 @@ import { Vector3, Color3, Vector2,
     Nullable, Ray, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import { SkyMaterial, WaterMaterial } from "@babylonjs/materials";
-import { PlaceId } from "./nodes/BasePlaceNode";
+import { PlaceKey } from "./nodes/BasePlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts from "../tz/Contracts";
@@ -28,6 +28,7 @@ import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
 import { Game } from "./Game";
 import world_definition from "../models/districts.json";
 import PlaceNode from "./nodes/PlaceNode";
+import Conf from "../Config";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -188,7 +189,7 @@ export class World extends BaseWorld {
 
     // TODO: move the subscription stuff into it's own class?
     private async registerPlacesSubscription() {
-        this.subscription = await Contracts.subscribeToPlaceChanges(this.game.walletProvider, "exterior");
+        this.subscription = await Contracts.subscribeToPlaceChanges(this.game.walletProvider);
         this.subscription?.on('data', this.placeSubscriptionCallback);
     }
 
@@ -277,7 +278,7 @@ export class World extends BaseWorld {
         });
 
         // Batch load all (un)loaded places metadata and return
-        const place_metadatas = await Metadata.getPlaceMetadataBatch(placeIds);
+        const place_metadatas = await Metadata.getPlaceMetadataBatch(placeIds, Conf.place_contract);
 
         // TODO: Get rid of places out of reach?
         /*// Figure out by distance to player if the place should be loaded load.
@@ -295,7 +296,7 @@ export class World extends BaseWorld {
 
         // Finally, load places.
         place_metadatas.forEach((metadata) => {
-            placeLoadPromises.push(this.loadPlace(metadata));
+            placeLoadPromises.push(this.loadPlace({ id: metadata.tokenId, fa2: metadata.contract }, metadata));
         })
 
         await Promise.allSettled(placeLoadPromises);
@@ -480,15 +481,16 @@ export class World extends BaseWorld {
         }
     }
 
-    private async reloadPlace(placeId: PlaceId) {
+    private async reloadPlace(placeKey: PlaceKey) {
+        // TODO: assert the place belong to this world.
         // Queue a place update.
-        const place = this.places.get(placeId);
+        const place = this.places.get(placeKey.id);
         if (place) this.game.onchainQueue.add(() => place.update(true));
     }
 
     // TODO: metadata gets (re)loaded too often and isn't batched.
     // Should probably be batched before loading places.
-    private async loadPlace(metadata: PlaceTokenMetadata) {
+    private async loadPlace(placeKey: PlaceKey, metadata: PlaceTokenMetadata) {
         // early out if it's already loaded.
         // NOTE: done't need to early out. Souldn't happen.
         // Check anyway and log. For now.
@@ -504,7 +506,7 @@ export class World extends BaseWorld {
             const player_pos = this.game.playerController.getPosition();
             if(Vector3.Distance(player_pos, origin) < AppSettings.drawDistance.value) {
                 // Create place.
-                const new_place = new PlaceNode(metadata.tokenId, metadata, this);
+                const new_place = new PlaceNode(placeKey, metadata, this);
                 this.places.set(metadata.tokenId, new_place);
 
                 // Load items.
@@ -627,8 +629,8 @@ export class World extends BaseWorld {
                         });
                     });
 
-                    (await Metadata.getPlaceMetadataBatch(places_to_fetch)).forEach((m) => {
-                        this.loadPlace(m);
+                    (await Metadata.getPlaceMetadataBatch(places_to_fetch, Conf.place_contract)).forEach((m) => {
+                        this.loadPlace({ id: m.tokenId, fa2: m.contract }, m);
                     });
 
                     //const elapsed_total = performance.now() - start_time;

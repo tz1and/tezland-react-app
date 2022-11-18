@@ -2,7 +2,7 @@
 
 import { NotificationData } from "../components/Notification";
 import ItemNode from "./nodes/ItemNode";
-import BasePlaceNode, { PlaceType } from "./nodes/BasePlaceNode";
+import BasePlaceNode, { PlaceKey } from "./nodes/BasePlaceNode";
 import { MapPopoverInfo } from "./map/WorldMap";
 
 export interface OverlayFormProps {}
@@ -19,11 +19,10 @@ export interface TransferItemFromProps extends OverlayFormProps {
 
 export interface CollectItemFromProps extends OverlayFormProps {
     tokenId: number;
-    placeId: number;
+    placeKey: PlaceKey;
     itemId: number;
     issuer: string;
     xtzPerItem: number;
-    placeType: PlaceType;
 }
 
 export interface DirectoryFormProps extends OverlayFormProps {

@@ -13,6 +13,7 @@ import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
 import assert from 'assert';
+import Conf from '../Config';
 
 
 type AuctionProps = {
@@ -117,7 +118,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
     private panMapToPlace(place_id: number) {
         // Note: To match leaflet coords, both x and y are flipped and mirrored.
-        Metadata.getPlaceMetadata(place_id).then((res) => {
+        Metadata.getPlaceMetadata(place_id, Conf.place_contract).then((res) => {
             assert(res);
             const coords = res.centerCoordinates;
             const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];

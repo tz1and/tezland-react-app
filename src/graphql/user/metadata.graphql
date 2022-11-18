@@ -1,6 +1,7 @@
-query getPlaceTokenMetadataBatch($ids: [bigint!]!) {
-    placeTokenMetadata(where: { tokenId: { _in: $ids }, placeType: { _eq: "exterior" } }) {
+query getPlaceTokenMetadataBatch($ids: [bigint!]!, $fa2: String!) {
+    placeTokenMetadata(where: { tokenId: { _in: $ids }, contract: { _eq: $fa2 } }) {
         tokenId
+        contract
         name
         description
         borderCoordinates
@@ -14,9 +15,10 @@ query getPlaceTokenMetadataBatch($ids: [bigint!]!) {
     }
 }
 
-query getPlaceTokenMetadata($id: bigint!, $placeType: String!) {
-    placeTokenMetadata(where: { tokenId: { _eq: $id }, placeType: { _eq: $placeType } }) {
+query getPlaceTokenMetadata($id: bigint!, $fa2: String!) {
+    placeTokenMetadata(where: { tokenId: { _eq: $id }, contract: { _eq: $fa2 } }) {
         tokenId
+        contract
         name
         description
         borderCoordinates
@@ -33,6 +35,7 @@ query getPlaceTokenMetadata($id: bigint!, $placeType: String!) {
 query getItemTokenMetadata($id: bigint!) {
     itemTokenMetadata(where: { tokenId: { _eq: $id } }) {
         tokenId
+        contract
         name
         description
         artifactUri

@@ -2,11 +2,11 @@ import { deleteDB } from "idb";
 import { grapphQLUser } from "../graphql/user";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
-import { PlaceType } from "./nodes/BasePlaceNode";
 
 
 export type ItemTokenMetadata = {
     tokenId: number;
+    contract: string;
     name: string;
     description: string;
     artifactUri: string;
@@ -22,6 +22,7 @@ export type ItemTokenMetadata = {
 
 export type PlaceTokenMetadata = {
     tokenId: number;
+    contract: string;
     name: string;
     description: string;
     borderCoordinates: number[][];
@@ -71,7 +72,7 @@ export default class Metadata {
         }
     }
 
-    public static async getPlaceMetadataBatch(places: number[]): Promise<PlaceTokenMetadata[]> {
+    public static async getPlaceMetadataBatch(places: number[], fa2: string): Promise<PlaceTokenMetadata[]> {
         const place_metadatas: PlaceTokenMetadata[] = [];
         const places_to_fetch: number[] = [];
 
@@ -80,7 +81,7 @@ export default class Metadata {
             const metadata_db_promises: Promise<PlaceTokenMetadata | undefined>[] = []
             // Try to read the token metadata from storage.
             for (const place_id of places)
-                metadata_db_promises.push(Metadata.Storage.loadObject("placeMetadata", [place_id, 'exterior']));
+                metadata_db_promises.push(Metadata.Storage.loadObject("placeMetadata", [place_id, fa2]));
 
             (await Promise.allSettled(metadata_db_promises)).forEach((res, index) => {
                 // If it doesn't exist, add to fetch array.
@@ -99,7 +100,7 @@ export default class Metadata {
         for (let i = 0; i < places_to_fetch.length; i += chunk_size) {
             const chunk = places_to_fetch.slice(i, i + chunk_size);
 
-            const data = await grapphQLUser.getPlaceTokenMetadataBatch({ids: chunk});
+            const data = await grapphQLUser.getPlaceTokenMetadataBatch({ids: chunk, fa2: fa2});
 
             for (const metadata of data.placeTokenMetadata) {
                 // fix up the coordinates
@@ -120,15 +121,15 @@ export default class Metadata {
     }
 
     // TODO: IMPORTANT!!! remove default place_type
-    public static async getPlaceMetadata(token_id: number, place_type: PlaceType = "exterior"): Promise<PlaceTokenMetadata | undefined> {
+    public static async getPlaceMetadata(token_id: number, fa2: string): Promise<PlaceTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject("placeMetadata", [token_id, place_type]);
+        let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject("placeMetadata", [token_id, fa2]);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
-            const data = await grapphQLUser.getPlaceTokenMetadata({id: token_id, placeType: place_type});
+            const data = await grapphQLUser.getPlaceTokenMetadata({id: token_id, fa2: fa2});
 
             // fix up border and center coords
             const metadata = data.placeTokenMetadata[0];
