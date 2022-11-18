@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import Metadata from "../world/Metadata";
 //import { Logging } from "./Logging";
 import Conf from "../Config";
@@ -10,6 +9,7 @@ import { preprocessMesh } from "./MeshPreprocessing";
 import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
 import { ModuleThread, Pool } from "threads";
 import assert from "assert";
+import TokenKey from "./TokenKey";
 
 
 async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {
@@ -40,9 +40,9 @@ export const enum GatewayType {
 
 export default class ArtifactDownload {
     public static async downloadArtifact(
-        token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes: number,
+        token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes: number,
         gatewayType: GatewayType = GatewayType.Native, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
-        const itemMetadata = await Metadata.getItemMetadata(token_id.toNumber());
+        const itemMetadata = await Metadata.getItemMetadata(token_key.id.toNumber(), token_key.fa2);
         assert(itemMetadata);
 
         // remove ipfs:// from uri. some gateways requre a / in the end.
@@ -52,12 +52,12 @@ export default class ArtifactDownload {
         let polygonCount = itemMetadata.polygonCount;
         // early out if the file size from metadata is > sizeLimit.
         if(fileSize > sizeLimit) {
-            throw new Error(`Item ${token_id} exceeds size limits (${fileSize} > ${sizeLimit}). Ignoring.`);
+            throw new Error(`Item ${token_key.id} exceeds size limits (${fileSize} > ${sizeLimit}). Ignoring.`);
         }
 
         // early out if the polygon count from metadata is > polygonLimit.
         if(polygonCount > polygonLimit) {
-            throw new Error(`Item ${token_id} exceeds triangle limits (${polygonCount} > ${polygonLimit}). Ignoring.`);
+            throw new Error(`Item ${token_key.id} exceeds triangle limits (${polygonCount} > ${polygonLimit}). Ignoring.`);
         }
 
         const mime_type = itemMetadata.mimeType;
@@ -110,7 +110,7 @@ export default class ArtifactDownload {
             return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };
         }
         catch(e: any) {
-            Logging.ErrorDev(`Pre-processing model for token ${token_id} failed: ${e}`);
+            Logging.ErrorDev(`Pre-processing model for token ${token_key.id} failed: ${e}`);
 
             return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
         }

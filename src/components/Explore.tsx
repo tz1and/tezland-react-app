@@ -23,6 +23,7 @@ import { DirectoryForm } from '../forms/DirectoryForm';
 import assert from 'assert';
 import { Helmet } from 'react-helmet-async';
 import { CollectForm } from '../forms/CollectForm';
+import TokenKey from '../utils/TokenKey';
 
 
 type ExploreProps = {
@@ -74,22 +75,22 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             this.loadForm(OverlayForm.Instructions);
     }
 
-    selectItemFromInventory = (id: number, quantity: number) => {
+    selectItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
         this.loadForm(OverlayForm.None);
 
         const curVS = this.virtualSpaceRef.current;
         if (curVS) {
-            curVS.setInventoryItem(id, quantity);
+            curVS.setInventoryItem(tokenKey, quantity);
             curVS.lockControls();
         }
     }
 
-    burnItemFromInventory = (id: number, quantity: number) => {
-        this.loadForm(OverlayForm.BurnItem, { tokenId: id, maxQuantity: quantity} as TransferItemFromProps);
+    burnItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
+        this.loadForm(OverlayForm.BurnItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
     }
 
-    transferItemFromInventory = (id: number, quantity: number) => {
-        this.loadForm(OverlayForm.TransferItem, { tokenId: id, maxQuantity: quantity} as TransferItemFromProps);
+    transferItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
+        this.loadForm(OverlayForm.TransferItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
     }
 
     addNotification = (data: NotificationData) => {
@@ -174,12 +175,12 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             case OverlayForm.BurnItem:
                 assert(this.state.form_props);
                 const burnItemProps = this.state.form_props as TransferItemFromProps;
-                return <BurnForm closeForm={this.closeForm} itemId={burnItemProps.tokenId} maxQuantity={burnItemProps.maxQuantity} />;
+                return <BurnForm closeForm={this.closeForm} tokenKey={burnItemProps.tokenKey} maxQuantity={burnItemProps.maxQuantity} />;
 
             case OverlayForm.TransferItem:
                 assert(this.state.form_props);
                 const transferItemProps = this.state.form_props as TransferItemFromProps;
-                return <TransferForm closeForm={this.closeForm} itemId={transferItemProps.tokenId} maxQuantity={transferItemProps.maxQuantity} />;
+                return <TransferForm closeForm={this.closeForm} tokenKey={transferItemProps.tokenKey} maxQuantity={transferItemProps.maxQuantity} />;
 
             case OverlayForm.CollectItem:
                 assert(this.state.form_props);

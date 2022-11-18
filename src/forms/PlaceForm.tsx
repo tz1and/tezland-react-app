@@ -12,10 +12,11 @@ import ItemNode from '../world/nodes/ItemNode';
 import ItemTracker from '../controllers/ItemTracker';
 import { TeleporterType } from '../utils/ItemData';
 import { Vector3 } from '@babylonjs/core';
+import TokenKey from '../utils/TokenKey';
 
 
 interface PlaceFormValues {
-    tokenId: number;
+    tokenKey: TokenKey;
     itemAmount: number;
     itemPrice: number;
     disableCollision: boolean;
@@ -31,7 +32,7 @@ type PlaceFormProps = {
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
     const initialValues: PlaceFormValues = {
-        tokenId: props.placedItem.tokenId.toNumber(),
+        tokenKey: props.placedItem.tokenKey,
         itemAmount: 1,
         itemPrice: 0,
         disableCollision: false,
@@ -101,7 +102,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                             }
                         }
 
-                        ItemTracker.trackTempItem(props.placedItem.getPlace().placeKey.id, values.tokenId, values.itemAmount);
+                        ItemTracker.trackTempItem(props.placedItem.getPlace().placeKey.id, values.tokenKey.id.toNumber(), values.itemAmount);
                     }
 
                     actions.setSubmitting(false);

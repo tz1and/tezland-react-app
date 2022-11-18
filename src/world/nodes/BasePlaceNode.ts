@@ -13,6 +13,8 @@ import ItemTracker from "../../controllers/ItemTracker";
 import AppSettings from "../../storage/AppSettings";
 import { SimpleMaterial } from "@babylonjs/materials";
 import assert from "assert";
+import Conf from "../../Config";
+import TokenKey from "../../utils/TokenKey";
 
 
 export type PlaceKey = {
@@ -231,7 +233,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         assert(this.placeBounds && this.placeGround, "Place not initialised.");
 
         // First, load the palce data from disk.
-        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject("placeItems", [this.placeKey.id, this.placeKey.fa2]);
+        if (!this.placeData) this.placeData = await Metadata.Storage.loadObject("placeData", [this.placeKey.id, this.placeKey.fa2]);
         if (this.isDisposed()) return;
 
         // If we have place data, load the items.
@@ -325,7 +327,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 }
                 else {
                     try {
-                        const itemNode = ItemNode.CreateItemNode(this, token_id, this.world.game.scene, this._itemsNode);
+                        const itemNode = ItemNode.CreateItemNode(this, new TokenKey(token_id, Conf.item_contract), this.world.game.scene, this._itemsNode);
                         itemNode.updateFromData(item_data);
 
                         // Set issuer, etc.

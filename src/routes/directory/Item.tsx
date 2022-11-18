@@ -7,24 +7,25 @@ import { CollectionHistory } from '../../components/item/CollectionHistory';
 import { ItemTags } from '../../components/item/ItemTags';
 import { MetadataUtils } from '../../utils/MetadataUtils';
 import { ItemDisplay } from '../../components/item/ItemDisplay';
+import TokenKey from '../../utils/TokenKey';
 
 
 const Item: React.FC<{}> = (props) => {
     const params = useParams();
 
-    const [tokenId, setTokenId] = useState(parseInt(params.id!));
+    const [tokenKey, setTokenKey] = useState<TokenKey>(TokenKey.fromNumber(parseInt(params.id!), params.fa2!));
     const [metadata, setMetadata] = useState<ItemTokenMetadata>();
 
     // Set tokenId state when prop changes.
     useEffect(() => {
-        setTokenId(parseInt(params.id!));
-    }, [params.id]);
+        setTokenKey(TokenKey.fromNumber(parseInt(params.id!), params.fa2!));
+    }, [params.id, params.fa2]);
 
     useEffect(() => {
-        Metadata.getItemMetadata(tokenId).then(res => {
+        Metadata.getItemMetadata(tokenKey.id.toNumber(), tokenKey.fa2).then(res => {
             setMetadata(res);
         });
-    }, [tokenId]);
+    }, [tokenKey]);
 
     let content =
         <div>
@@ -32,11 +33,11 @@ const Item: React.FC<{}> = (props) => {
             <Container className="p-0">
                 <Row>
                     <Col>
-                        {metadata && <ItemDisplay tokenId={tokenId} metadata={metadata} displayModel={true} />}
+                        {metadata && <ItemDisplay tokenKey={tokenKey} metadata={metadata} displayModel={true} />}
                     </Col>
                     <Col xs="4" lg="3">
                         <h4>Tags</h4>
-                        <ItemTags tokenId={tokenId} clickable={true} />
+                        <ItemTags tokenKey={tokenKey} clickable={true} />
                     </Col>
                 </Row>
             </Container>
@@ -53,10 +54,10 @@ const Item: React.FC<{}> = (props) => {
                     mountOnEnter={true} unmountOnExit={true}
                     onSelect={(eventKey) => window.location.hash = eventKey || ""}>
                     <Tab eventKey="holders" title="World/Holders">
-                        <WorldHolderInfo tokenId={tokenId} />
+                        <WorldHolderInfo tokenKey={tokenKey} />
                     </Tab>
                     <Tab eventKey="history" title="History">
-                        <CollectionHistory tokenId={tokenId} />
+                        <CollectionHistory tokenKey={tokenKey} />
                     </Tab>
                 </Tabs>
             </div>

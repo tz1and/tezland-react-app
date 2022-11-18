@@ -16,6 +16,7 @@ import UserControllerManager from "./UserControllerManager";
 import ItemPlacementController from "./ItemPlacementController";
 import world_definition from "../models/districts.json";
 import Conf from "../Config";
+import TokenKey from "../utils/TokenKey";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -398,12 +399,12 @@ export default class PlayerController {
         }
     }
 
-    public selectItemForPlacement(token_id: number, quantity: number) {
+    public selectItemForPlacement(token_key: TokenKey, quantity: number) {
         const controller = this.controllerManager.activate<ItemPlacementController>("placement", this);
 
         const world = this.game.getCurrentWorld();
         assert(world, "World not set");
-        controller.setCurrentItem(world, token_id, quantity).catch(() => {
+        controller.setCurrentItem(world, token_key, quantity).catch(() => {
             // TODO: handle error
         });
     }

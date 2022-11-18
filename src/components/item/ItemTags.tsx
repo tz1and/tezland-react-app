@@ -4,10 +4,11 @@ import { grapphQLUser } from '../../graphql/user';
 import { GetItemTagsQuery } from '../../graphql/generated/user';
 import { Badge } from 'react-bootstrap';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
+import TokenKey from '../../utils/TokenKey';
 
 
 type ItemTagsProps = {
-    tokenId: number;
+    tokenKey: TokenKey;
     clickable?: boolean;
     targetBlank?: boolean;
 }
@@ -16,10 +17,11 @@ export const ItemTags: React.FC<ItemTagsProps> = (props) => {
     const [itemTags, setItemTags] = useState<GetItemTagsQuery>();
 
     useEffect(() => {
-        grapphQLUser.getItemTags({id: props.tokenId}).then(res => {
+        // TODO: needs FA2
+        grapphQLUser.getItemTags({id: props.tokenKey.id.toNumber()}).then(res => {
             setItemTags(res);
         })
-    }, [props.tokenId])
+    }, [props.tokenKey])
 
     const extraProps = props.targetBlank ? {
         target: "_blank", rel: "noopener noreferrer"

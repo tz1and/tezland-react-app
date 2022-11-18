@@ -7,8 +7,8 @@ import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';
-import BigNumber from 'bignumber.js';
 import BabylonUtils from '../world/BabylonUtils';
+import TokenKey from '../utils/TokenKey';
 
 
 class PreviewScene {
@@ -145,7 +145,7 @@ class PreviewScene {
         }
     }
 
-    async loadFromTokenId(modelLoaded: ModelLoadedCallback, tokenId: number): Promise<number> {
+    async loadFromTokenKey(modelLoaded: ModelLoadedCallback, tokenKey: TokenKey): Promise<number> {
         // Tell the mint form the model is unloaded/false.
         modelLoaded('none', 0, 0);
 
@@ -155,7 +155,7 @@ class PreviewScene {
         }
 
         try {
-            const asset = await ArtifactDownload.downloadArtifact(new BigNumber(tokenId), Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
+            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
 
             // Instantiate.
             // Getting first root node is probably enough.
@@ -209,7 +209,7 @@ type ModelLoadedCallback = (loadingState: ModelLoadingState, modelFileSize: numb
 
 type ModelPreviewProps = {
     file?: File | undefined;
-    tokenId?: number | undefined;
+    tokenKey?: TokenKey | undefined;
     modelLoaded: ModelLoadedCallback;
     width?: number;
     height?: number;
@@ -257,8 +257,8 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
             try {
                 this.setState({preview: new PreviewScene(engine)}, () => {
                     assert(this.state.preview);
-                    if(this.props.tokenId) {
-                        this.state.preview.loadFromTokenId(this.props.modelLoaded, this.props.tokenId).then((res) => {
+                    if(this.props.tokenKey) {
+                        this.state.preview.loadFromTokenKey(this.props.modelLoaded, this.props.tokenKey).then((res) => {
                             this.setState({ polycount: res });
     
                             if(this.loadingRef.current) this.loadingRef.current.hidden = true;

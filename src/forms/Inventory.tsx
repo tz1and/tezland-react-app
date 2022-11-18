@@ -7,12 +7,13 @@ import { scrollbarVisible } from '../utils/Utils';
 import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from '../components/TokenInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
+import TokenKey from '../utils/TokenKey';
 
 
 type InventoryProps = {
-    selectItemFromInventory(id: number, quantity: number): void;
-    burnItemFromInventory(id: number, quantity: number): void;
-    transferItemFromInventory(id: number, quantity: number): void;
+    selectItemFromInventory(tokenKey: TokenKey, quantity: number): void;
+    burnItemFromInventory(tokenKey: TokenKey, quantity: number): void;
+    transferItemFromInventory(tokenKey: TokenKey, quantity: number): void;
     closeForm(): void;
     // using `interface` is also ok
     //message: string;
@@ -131,16 +132,16 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         }
     }
 
-    handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        this.props.selectItemFromInventory(item_id, quantity || 0);
+    handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        this.props.selectItemFromInventory(token_key, quantity || 0);
     }
 
-    handleBurn: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        this.props.burnItemFromInventory(item_id, quantity || 0);
+    handleBurn: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        this.props.burnItemFromInventory(token_key, quantity || 0);
     }
 
-    handleTransfer: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        this.props.transferItemFromInventory(item_id, quantity || 0);
+    handleTransfer: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        this.props.transferItemFromInventory(token_key, quantity || 0);
     }
 
     override render() {

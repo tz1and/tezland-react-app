@@ -9,11 +9,12 @@ import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
 import { ItemDisplay } from '../components/item/ItemDisplay';
 import { Logging } from '../utils/Logging';
 import { PlaceKey } from '../world/nodes/BasePlaceNode';
+import TokenKey from '../utils/TokenKey';
 
 
 type CollectFormProps = {
     closeForm(): void;
-    tokenId: number;
+    tokenKey: TokenKey;
     placeKey: PlaceKey;
     itemId: number;
     issuer: string;
@@ -26,7 +27,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
     const [metadata, setMetadata] = useState<ItemTokenMetadata>();
 
     useEffect(() => {
-        Metadata.getItemMetadata(props.tokenId).then(res => {
+        Metadata.getItemMetadata(props.tokenKey.id.toNumber(), props.tokenKey.fa2).then(res => {
             setMetadata(res);
         })
     }, [props]);
@@ -46,16 +47,16 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
                 <Container className="p-0">
                     <Row>
                         <Col xs="6" className='pe-3' style={{minWidth: "350px", maxWidth: "400px"}}>
-                            {metadata && <ItemDisplay tokenId={props.tokenId} metadata={metadata} targetBlank={true} />}
+                            {metadata && <ItemDisplay tokenKey={props.tokenKey} metadata={metadata} targetBlank={true} />}
                         </Col>
                         <Col xs="6" className='ps-3' style={{minWidth: "350px", maxWidth: "400px"}}>
                             <h4>Tags</h4>
-                            <ItemTags tokenId={props.tokenId} clickable={true} targetBlank={true} />
+                            <ItemTags tokenKey={props.tokenKey} clickable={true} targetBlank={true} />
 
                             <hr />
                             <h4>Listings</h4>
                             <div className='text-nowrap'>
-                                <WorldHolderInfo tokenId={props.tokenId} onlySwaps={true} targetBlank={true} />
+                                <WorldHolderInfo tokenKey={props.tokenKey} onlySwaps={true} targetBlank={true} />
                             </div>
                         </Col>
                     </Row>

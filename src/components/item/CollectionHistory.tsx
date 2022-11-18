@@ -4,20 +4,22 @@ import { mutezToTez, truncateAddress } from '../../utils/Utils';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemHistoryQuery } from '../../graphql/generated/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
+import TokenKey from '../../utils/TokenKey';
 
 
 type CollectionHistoryProps = {
-    tokenId: number;
+    tokenKey: TokenKey;
 }
 
 export const CollectionHistory: React.FC<CollectionHistoryProps> = (props) => {
     const [itemHistory, setItemHistory] = useState<GetItemHistoryQuery>();
 
     useEffect(() => {
-        grapphQLUser.getItemHistory({id: props.tokenId}).then(res => {
+        // TODO: need to use fa2
+        grapphQLUser.getItemHistory({id: props.tokenKey.id.toNumber()}).then(res => {
             setItemHistory(res);
         })
-    }, [props.tokenId]);
+    }, [props.tokenKey]);
 
     const itemHistoryItems: JSX.Element[] = []
     if (itemHistory) itemHistory.itemCollectionHistory.forEach((item) => {

@@ -6,6 +6,10 @@ import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFu
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 import Conf from '../Config';
+import TokenKey from '../utils/TokenKey';
+
+
+// TODO: should be using PlaceKey
 
 type PlacesProps = {
     //selectItemFromInventory(id: number, quantity: number): void;
@@ -26,8 +30,9 @@ export const Places: React.FC<PlacesProps> = (props) => {
         return res.placeTokenHolder;
     }
 
-    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        navigate(DirectoryUtils.placeLink(item_id));
+    const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        // TODO: should link to fa2/tokenid
+        navigate(DirectoryUtils.placeLink(token_key.id.toNumber()));
     }
 
     /*const handleTransfer = (item_id: number, quantity: number) => {

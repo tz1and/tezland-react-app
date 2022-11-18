@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from './TokenInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
+import TokenKey from '../utils/TokenKey';
+
 
 type CreationsProps = {
     //selectItemFromInventory(id: number): void;
@@ -32,8 +34,9 @@ export const Creations: React.FC<CreationsProps> = (props) => {
         return formatted;
     }
 
-    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        navigate(DirectoryUtils.itemLink(item_id));
+    const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        // TODO: should link to fa2/tokenid
+        navigate(DirectoryUtils.itemLink(token_key.id.toNumber()));
     }
 
     /*const handleBurn = (item_id: number) => {

@@ -10,17 +10,21 @@ type ArtifactMetaType = {
 }
 
 export interface TezlandDB extends DBSchema {
-    placeMetadata: {
+    itemMetadata: { // token_key: id, fa2
         key: [number, string];
+        value: ItemTokenMetadata;
+    };
+    placeMetadata: {
+        key: [number, string]; // place_key: id, fa2
         value: PlaceTokenMetadata;
     };
-    placeItems: {
-        key: [number, string];
+    placeData: {
+        key: [number, string]; // place_key: id, fa2
         value: PlaceData;
     };
-    itemMetadata: {
-        key: number;
-        value: ItemTokenMetadata;
+    placeChunks: {
+        key: [number, string, number]; // chunk_key: id, fa2, chunk_id
+        value: PlaceData;
     };
     worldGrid: {
         key: string;

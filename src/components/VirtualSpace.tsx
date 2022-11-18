@@ -7,6 +7,7 @@ import { Logging } from '../utils/Logging';
 import { Vector3 } from '@babylonjs/core';
 import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
+import TokenKey from '../utils/TokenKey';
 
 
 type VirtualSpaceProps = {
@@ -29,9 +30,9 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         this.state = { game: null };
     }
 
-    setInventoryItem(id: number, quantity: number) {
+    setInventoryItem(tokenKey: TokenKey, quantity: number) {
         assert(this.state.game);
-        this.state.game.playerController.selectItemForPlacement(id, quantity);
+        this.state.game.playerController.selectItemForPlacement(tokenKey, quantity);
     }
 
     getCurrentLocation(): [number, number, number] {

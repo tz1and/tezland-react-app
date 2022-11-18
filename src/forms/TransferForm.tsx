@@ -10,12 +10,14 @@ import Contracts from '../tz/Contracts';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { triHelper, Trilean } from './FormUtils';
+import TokenKey from '../utils/TokenKey';
+
 
 interface TransferFormValues {
     /*itemTitle: string;
     itemDescription: string;
     itemTags: string;*/
-    itemId: number;
+    tokenKey: TokenKey;
     itemAmount: number;
     transferTo: string;
     //itemFile: ArrayBuffer;
@@ -23,7 +25,7 @@ interface TransferFormValues {
 
 type TransferFormProps = {
     closeForm(): void;
-    itemId: number;
+    tokenKey: TokenKey;
     maxQuantity: number;
 }
 
@@ -38,7 +40,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
     const [state, setState] = useState<TransferFormState>({error: "", successState: 0});
     
     const initialValues: TransferFormValues = {
-        itemId: props.itemId,
+        tokenKey: props.tokenKey,
         itemAmount: 1,
         transferTo: ""
     };
@@ -65,7 +67,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
                     return errors;
                 }}
                 onSubmit={(values, actions) => {
-                    Contracts.transferItem(context, values.itemId, values.itemAmount, values.transferTo, (completed: boolean) => {
+                    Contracts.transferItem(context, values.tokenKey, values.itemAmount, values.transferTo, (completed: boolean) => {
                         actions.setSubmitting(false);
     
                         if (completed) {

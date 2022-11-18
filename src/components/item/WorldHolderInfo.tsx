@@ -5,10 +5,11 @@ import Conf from '../../Config';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemHolderInfoQuery, GetItemWorldInfoQuery } from '../../graphql/generated/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
+import TokenKey from '../../utils/TokenKey';
 
 
 type WorldHolderInfoProps = {
-    tokenId: number;
+    tokenKey: TokenKey;
     onlySwaps?: boolean;
     targetBlank?: boolean;
 }
@@ -20,17 +21,19 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
 
     useEffect(() => {
         if (!props.onlySwaps)
-            grapphQLUser.getItemHolderInfo({id: props.tokenId}).then(res => {
+            // TODO: needs fa2
+            grapphQLUser.getItemHolderInfo({id: props.tokenKey.id.toNumber()}).then(res => {
                 setHolderInfo(res);
             });
-    }, [props.tokenId, props.onlySwaps]);
+    }, [props.tokenKey, props.onlySwaps]);
 
     useEffect(() => {
-        grapphQLUser.getItemWorldInfo({id: props.tokenId}).then(res => {
+        // TODO: needs fa2
+        grapphQLUser.getItemWorldInfo({id: props.tokenKey.id.toNumber()}).then(res => {
             setWorldInfo(res);
         });
 
-    }, [props.tokenId]);
+    }, [props.tokenKey]);
 
     const holderInfoItems: JSX.Element[] = []
     if (holderInfo) holderInfo.itemTokenHolder.forEach((item) => {

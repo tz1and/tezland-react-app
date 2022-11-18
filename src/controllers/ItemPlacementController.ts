@@ -2,7 +2,6 @@ import { EventState, IWheelEvent, KeyboardEventTypes,
     KeyboardInfo, Nullable, Observer, PickingInfo,
     PointerEventTypes, PointerInfo, Quaternion, Vector3 } from "@babylonjs/core";
 import assert from "assert";
-import BigNumber from "bignumber.js";
 import { Logging } from "../utils/Logging";
 import { OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";
 import ItemNode from "../world/nodes/ItemNode";
@@ -12,6 +11,7 @@ import { CursorType } from "./GuiController";
 import PlayerController from "./PlayerController";
 import TempObjectHelper from "./TempObjectHelper";
 import { BaseWorld } from "../world/BaseWorld";
+import TokenKey from "../utils/TokenKey";
 
 
 export default class ItemPlacementController extends BaseUserController {
@@ -24,7 +24,7 @@ export default class ItemPlacementController extends BaseUserController {
     private tempObjectRot: Quaternion;
     private tempObjectPos: Vector3;
 
-    private currentItem?: number | undefined;
+    private currentItem?: TokenKey | undefined;
     private currentItemQuantity: number = 0;
 
     constructor(playerController: PlayerController) {
@@ -133,7 +133,7 @@ export default class ItemPlacementController extends BaseUserController {
                     this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
                     // check item balance
-                    const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem);
+                    const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem.id.toNumber());
                     if (currentItemBalance <= 0) {
                         // TODO: notification on insufficient balance.
                         this.playerController.appControlFunctions.addNotification({
@@ -148,7 +148,7 @@ export default class ItemPlacementController extends BaseUserController {
                         const parent = this.playerController.currentPlace.tempItemsNode;
                         assert(parent);
 
-                        const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace, new BigNumber(this.currentItem), this.playerController.scene, parent);
+                        const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace, this.currentItem, this.playerController.scene, parent);
                         await newObject.loadItem();
 
                         if(newObject) {
@@ -178,7 +178,7 @@ export default class ItemPlacementController extends BaseUserController {
         }
     }
 
-    public async setCurrentItem(world: BaseWorld, token_id: number | undefined, qauntity: number) {
+    public async setCurrentItem(world: BaseWorld, token_key: TokenKey | undefined, qauntity: number) {
         // remove old object.
         if(this.tempObject) {
             this.tempObject.dispose();
@@ -190,7 +190,7 @@ export default class ItemPlacementController extends BaseUserController {
             this.tempObjectHelper = null;
         }
 
-        if (token_id === undefined) {
+        if (token_key === undefined) {
             this.currentItem = undefined;
             this.currentItemQuantity = 0;
             return;
@@ -199,10 +199,10 @@ export default class ItemPlacementController extends BaseUserController {
         try {
             this.playerController.gui.setCursor(CursorType.Loading);
 
-            this.tempObject = ItemNode.CreateItemNode(world, new BigNumber(token_id), this.playerController.scene, null);
+            this.tempObject = ItemNode.CreateItemNode(world, token_key, this.playerController.scene, null);
             await this.tempObject.loadItem();
 
-            this.currentItem = token_id;
+            this.currentItem = token_key;
             this.currentItemQuantity = qauntity;
 
             // Resetting is important for the TempObjectHelper.
@@ -235,9 +235,9 @@ export default class ItemPlacementController extends BaseUserController {
             this.playerController.gui.setCursor(CursorType.Pointer);
 
             this.playerController.appControlFunctions.addNotification({
-                id: "itemLimits" + token_id,
+                id: "itemLimits" + token_key.id,
                 title: "Item failed to load",
-                body: `The item you selected (token id: ${token_id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
+                body: `The item you selected (token id: ${token_key.id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
                 type: 'danger'
             });
 
@@ -265,12 +265,12 @@ export default class ItemPlacementController extends BaseUserController {
         try {
             this.playerController.gui.setCursor(CursorType.Loading);
 
-            const token_id = -100;
+            const token_key = TokenKey.fromNumber(-100, "" );
 
-            this.tempObject = ItemNode.CreateItemNode(world, new BigNumber(token_id), this.playerController.scene, null);
+            this.tempObject = ItemNode.CreateItemNode(world, token_key, this.playerController.scene, null);
             await this.tempObject.loadFromFile(file);
 
-            this.currentItem = token_id;
+            this.currentItem = token_key;
             this.currentItemQuantity = Infinity;
 
             // Resetting is important for the TempObjectHelper.

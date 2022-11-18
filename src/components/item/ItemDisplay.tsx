@@ -4,12 +4,13 @@ import ModelPreview from '../../forms/ModelPreview';
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import { MetadataUtils, RoyaltiesAndSupply } from '../../utils/MetadataUtils';
+import TokenKey from '../../utils/TokenKey';
 import { truncateAddress } from '../../utils/Utils';
 import { ItemTokenMetadata } from '../../world/Metadata';
 
 
 type ItemDisplayProps = {
-    tokenId: number;
+    tokenKey: TokenKey;
     metadata: ItemTokenMetadata;
     displayModel?: boolean;
     targetBlank?: boolean;
@@ -20,7 +21,7 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
     
     useEffect(() => {
         // Fetch royalties
-        grapphQLUser.getItemSupplyAndRoyalties({id: props.tokenId}).then(res => {
+        grapphQLUser.getItemSupplyAndRoyalties({id: props.tokenKey.id.toNumber()}).then(res => {
             const token = res.itemToken[0];
             setRoyaltiesAndSupply({
                 royalties: token.royalties,
@@ -28,7 +29,7 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
         });
 
         // Fetch other listings
-    }, [props.tokenId]);
+    }, [props.tokenKey]);
 
     let royaltiesElement = undefined;
     if (royaltiesAndSupply !== undefined) {
@@ -44,7 +45,7 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
             by <Link {...extraProps} to={DirectoryUtils.userLink(props.metadata.minter)}>{truncateAddress(props.metadata.minter)}</Link><br/>
 
             {props.displayModel ?
-                <ModelPreview tokenId={props.tokenId} width={640} height={480} modelLoaded={() => {}} /> :
+                <ModelPreview tokenKey={props.tokenKey} width={640} height={480} modelLoaded={() => {}} /> :
             <img src={MetadataUtils.getThumbnailUrl(props.metadata)} width={350} height={350} alt="..." />}
 
             <h5 className="mt-3">Description:</h5>

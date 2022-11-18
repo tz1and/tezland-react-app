@@ -4,6 +4,7 @@ import { OverlayTrigger, Popover } from 'react-bootstrap';
 import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
 import { MetadataUtils } from '../utils/MetadataUtils';
+import TokenKey from '../utils/TokenKey';
 
 
 type InventoryItemProps = {
@@ -42,6 +43,8 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
         else if (totalItemBalance === 0) balanceColor = "bg-warning-light";
     }
 
+    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contract);
+
     return (
         <OverlayTrigger
             placement={"right"}
@@ -56,11 +59,11 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
         >
             <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.tokenId.toString()}>
                 <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
-                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_data.tokenId, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
-                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_data.tokenId, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }
+                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_key, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
+                    { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_key, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }
                 </div>
 
-                <div onClick={() => props.onSelect(token_data.tokenId, item_data.quantity)}>
+                <div onClick={() => props.onSelect(token_key, item_data.quantity)}>
                     <img src={MetadataUtils.getThumbnailUrl(item_metadata)} width={350} height={350} className="card-img-top inventory-item-image" alt="..."/>
                     <div className="card-body">
                         <h6 className="card-title">{name ? truncate(name, 19, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h6>

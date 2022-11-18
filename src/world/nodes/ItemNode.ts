@@ -10,6 +10,7 @@ import { World } from "../World";
 import { triHelper, Trilean } from "../../forms/FormUtils";
 import BasePlaceNode from "./BasePlaceNode";
 import assert from "assert";
+import TokenKey from "../../utils/TokenKey";
 
 
 const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
@@ -56,7 +57,7 @@ export const enum ItemLoadState {
 
 export default class ItemNode extends TransformNode {
     private place_or_world: BasePlaceNode | BaseWorld; // The place the item belongs to
-    readonly tokenId: BigNumber; // The token this item represents
+    readonly tokenKey: TokenKey; // The token this item represents
     public itemId: BigNumber; // The id of the item within the place
     public issuer: string; // The address that placed this item
     public xtzPerItem: number; // The price of the item
@@ -84,12 +85,12 @@ export default class ItemNode extends TransformNode {
         max: Vector3;
     }>;
 
-    constructor(place_or_world: BasePlaceNode | BaseWorld, tokenId: BigNumber,
+    constructor(place_or_world: BasePlaceNode | BaseWorld, tokenKey: TokenKey,
         name: string, scene?: Nullable<Scene>, isPure?: boolean) {
         super(name, scene, isPure);
 
         this.place_or_world = place_or_world;
-        this.tokenId = tokenId;
+        this.tokenKey = tokenKey;
         this.itemId = new BigNumber(-1);
         this.issuer = "";
         this.xtzPerItem = 0;
@@ -210,12 +211,12 @@ export default class ItemNode extends TransformNode {
     public async loadItem() {
         // TODO: check if items been disposed?
         if (this._loadState === ItemLoadState.Loaded) {
-            Logging.WarnDev("Attempted to reload token", this.tokenId.toNumber());
+            Logging.WarnDev("Attempted to reload token", this.tokenKey.id.toNumber());
             return;
         }
 
         try {
-            await ArtifactMemCache.loadArtifact(this.tokenId, this.getWorld().game, this, this._disableCollision);
+            await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, this._disableCollision);
             this._loadState = ItemLoadState.Loaded;
 
             // TODO: see createBoundingBoxHelper
@@ -230,12 +231,13 @@ export default class ItemNode extends TransformNode {
     public async loadFromFile(file: File) {
         // TODO: check if items been disposed?
         if (this._loadState === ItemLoadState.Loaded) {
-            Logging.WarnDev("Attempted to reload token", this.tokenId.toNumber());
+            Logging.WarnDev("Attempted to reload token", this.tokenKey.id.toNumber());
             return;
         }
 
         try {
-            await ArtifactMemCache.loadFromFile(file, this.tokenId, this._scene, this);
+            // TODO: pass token key?
+            await ArtifactMemCache.loadFromFile(file, this.tokenKey.id, this._scene, this);
             this._loadState = ItemLoadState.Loaded;
 
             // TODO: see createBoundingBoxHelper
@@ -259,7 +261,7 @@ export default class ItemNode extends TransformNode {
             LoadItemTask(this, place),
             { priority: priority })
         .catch(reason => {
-            Logging.Warn("Failed to load token", this.tokenId.toNumber(), reason);
+            Logging.Warn("Failed to load token", this.tokenKey.id.toNumber(), reason);
         }); // TODO: handle error somehow
     }
 
@@ -267,11 +269,11 @@ export default class ItemNode extends TransformNode {
      * @returns True if it's a valid item. False if it's a model imported for preview.
      */
     public isValidItem(): boolean {
-        return this.tokenId.gte(0);
+        return this.tokenKey.id.gte(0);
     }
 
-    public static CreateItemNode(place_or_world: BasePlaceNode | BaseWorld, tokenId: BigNumber, scene: Scene, parent: Nullable<Node>): ItemNode {
-        const itemNode = new ItemNode(place_or_world, tokenId, `item${tokenId}`, scene);
+    public static CreateItemNode(place_or_world: BasePlaceNode | BaseWorld, tokenKey: TokenKey, scene: Scene, parent: Nullable<Node>): ItemNode {
+        const itemNode = new ItemNode(place_or_world, tokenKey, `item${tokenKey.id}`, scene);
         itemNode.parent = parent;
 
         return itemNode;

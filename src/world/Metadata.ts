@@ -153,9 +153,9 @@ export default class Metadata {
         return tokenMetadata;
     }
 
-    public static async getItemMetadata(token_id: number): Promise<ItemTokenMetadata | undefined> {
+    public static async getItemMetadata(token_id: number, fa2: string): Promise<ItemTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
-        let tokenMetadata: ItemTokenMetadata | undefined = await Metadata.Storage.loadObject("itemMetadata", token_id);
+        let tokenMetadata: ItemTokenMetadata | undefined = await Metadata.Storage.loadObject("itemMetadata", [token_id, fa2]);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {

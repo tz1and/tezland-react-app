@@ -4,6 +4,8 @@ import { NotificationData } from "../components/Notification";
 import ItemNode from "./nodes/ItemNode";
 import BasePlaceNode, { PlaceKey } from "./nodes/BasePlaceNode";
 import { MapPopoverInfo } from "./map/WorldMap";
+import TokenKey from "../utils/TokenKey";
+
 
 export interface OverlayFormProps {}
 
@@ -13,12 +15,12 @@ export interface PlaceItemFromProps extends OverlayFormProps {
 }
 
 export interface TransferItemFromProps extends OverlayFormProps {
-    tokenId: number;
+    tokenKey: TokenKey;
     maxQuantity: number;
 }
 
 export interface CollectItemFromProps extends OverlayFormProps {
-    tokenId: number;
+    tokenKey: TokenKey;
     placeKey: PlaceKey;
     itemId: number;
     issuer: string;

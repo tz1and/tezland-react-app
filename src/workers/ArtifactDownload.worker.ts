@@ -5,6 +5,7 @@ import BigNumber from 'bignumber.js';
 import { expose } from 'threads/worker';
 import { spawn, Pool } from "threads"
 import { Logging } from '../utils/Logging';
+import TokenKey from '../utils/TokenKey';
 
 
 const pool = Pool(
@@ -16,10 +17,10 @@ const pool = Pool(
     Math.max(2, Math.min(8, getNumLogicalCores())));
 
 const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (
-    token_id: BigNumber, sizeLimit: number, polygonLimit: number, maxTexRes:
+    token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
     number, gatwayType: GatewayType = GatewayType.Native) => {
-    Object.setPrototypeOf(token_id, BigNumber.prototype);
-    return ArtifactDownload.downloadArtifact(token_id, sizeLimit, polygonLimit, maxTexRes, gatwayType, pool);
+    Object.setPrototypeOf(token_key.id, BigNumber.prototype);
+    return ArtifactDownload.downloadArtifact(token_key, sizeLimit, polygonLimit, maxTexRes, gatwayType, pool);
 }
 
 const initialise = async () => {

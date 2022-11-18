@@ -8,6 +8,7 @@ export namespace DirectoryUtils {
             return `/u/${address}`;
     }
 
+    // TODO: should link to fa2/tokenid
     export const itemLink = (tokenId: number) => {
         if(getDirectoryEnabledGlobal())
             return `/directory/i/${tokenId}`;
@@ -15,6 +16,7 @@ export namespace DirectoryUtils {
             return `/i/${tokenId}`;
     }
 
+    // TODO: should link to fa2/tokenid
     export const placeLink = (tokenId: number) => {
         if(getDirectoryEnabledGlobal())
             return `/directory/p/${tokenId}`;

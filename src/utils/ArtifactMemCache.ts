@@ -10,6 +10,7 @@ import assert from "assert";
 import { getFileType } from "./Utils";
 import { ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
+import TokenKey from "./TokenKey";
 //import { Logging } from "./Logging";
 
 
@@ -71,6 +72,7 @@ class ArtifactMemCache {
         });
     }
 
+    // TODO: take TokenKey
     public async loadFromFile(file: File, token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
         const token_id_number = token_id.toNumber();
         // check if we have this item in the scene already.
@@ -127,10 +129,10 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadArtifact(token_id: BigNumber, game: Game, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
+    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
         assert(this.workerThread);
 
-        const token_id_number = token_id.toNumber();
+        const token_id_number = token_key.id.toNumber();
         // check if we have this item in the scene already.
         // Otherwise, download it.
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
@@ -139,7 +141,7 @@ class ArtifactMemCache {
             const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this.workerThread.downloadArtifact(token_id, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene));
+            assetPromise = this.workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
@@ -176,7 +178,7 @@ class ArtifactMemCache {
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
         const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
-        instance.rootNodes[0].name = `item${token_id}_clone`;
+        instance.rootNodes[0].name = `item${token_id_number}_clone`;
         instance.rootNodes[0].parent = parent;
 
         this.itemsLoaded = true;

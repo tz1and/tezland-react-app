@@ -14,6 +14,7 @@ import { SHA3 } from 'sha3';
 import assert from "assert";
 import { ItemDataWriter } from "../utils/ItemData";
 import { grapphQLUser } from "../graphql/user";
+import TokenKey from "../utils/TokenKey";
 
 
 export class Contracts {
@@ -184,17 +185,18 @@ export class Contracts {
         }
     }
 
-    public async burnItem(walletProvider: ITezosWalletProvider, itemId: number, amount: number, callback?: (completed: boolean) => void) {
+    public async burnItem(walletProvider: ITezosWalletProvider, tokenKey: TokenKey, amount: number, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("burnItem: No wallet connected");
 
+        // TODO: get contract from tokenkey
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
         try {
             const burn_item_op = await itemsWallet.methodsObject.burn([{
                 from_: walletProvider.walletPHK(),
                 amount: amount,
-                token_id: itemId
+                token_id: tokenKey.id
             }]).send();
 
             this.handleOperation(walletProvider, burn_item_op, callback);
@@ -205,10 +207,11 @@ export class Contracts {
         }
     }
 
-    public async transferItem(walletProvider: ITezosWalletProvider, itemId: number, amount: number, to: string, callback?: (completed: boolean) => void) {
+    public async transferItem(walletProvider: ITezosWalletProvider, tokenKey: TokenKey, amount: number, to: string, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("transferItem: No wallet connected");
 
+        // TODO: get contract from tokenkey
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
         try {
@@ -217,7 +220,7 @@ export class Contracts {
                 txs: [{
                     to_: to,
                     amount: amount,
-                    token_id: itemId
+                    token_id: tokenKey.id
                 }]
             }]).send();
 
@@ -334,7 +337,7 @@ export class Contracts {
 
         const place_data: PlaceData = { tokenId: place_key.id, placeType: place_key.fa2, storedItems: flattened_item_data, placeProps: place_props, placeSeq: seqHash };
 
-        Metadata.Storage.saveObject("placeItems", place_data);
+        Metadata.Storage.saveObject("placeData", place_data);
 
         return place_data;
     }
@@ -377,15 +380,15 @@ export class Contracts {
         const add_item_list: object[] = [];
         const item_set = new Set<number>();
         add.forEach((item) => {
-            const token_id = item.tokenId;
+            const tokenKey = item.tokenKey;
             const item_amount = item.itemAmount;
             const item_price = tezToMutez(item.xtzPerItem);
 
             const item_data = toHexString(ItemDataWriter.write(item));
 
-            add_item_list.push({ item: { token_id: token_id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });
+            add_item_list.push({ item: { token_id: tokenKey.id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });
 
-            item_set.add(token_id.toNumber());
+            item_set.add(tokenKey.id.toNumber());
         });
 
         // build operator add/remove lists

@@ -9,19 +9,21 @@ import {
 import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { triHelper, Trilean } from './FormUtils';
+import TokenKey from '../utils/TokenKey';
+
 
 interface BurnFormValues {
     /*itemTitle: string;
     itemDescription: string;
     itemTags: string;*/
-    itemId: number;
+    tokenKey: TokenKey;
     itemAmount: number;
     //itemFile: ArrayBuffer;
 }
 
 type BurnFormProps = {
     closeForm(): void;
-    itemId: number;
+    tokenKey: TokenKey;
     maxQuantity: number;
 }
 
@@ -36,7 +38,7 @@ export const BurnForm: React.FC<BurnFormProps> = (props) => {
     const [state, setState] = useState<BurnFormState>({error: "", successState: 0});
     
     const initialValues: BurnFormValues = {
-        itemId: props.itemId,
+        tokenKey: props.tokenKey,
         itemAmount: 1
     };
 
@@ -58,7 +60,7 @@ export const BurnForm: React.FC<BurnFormProps> = (props) => {
                     return errors;
                 }}
                 onSubmit={(values, actions) => {
-                    Contracts.burnItem(context, values.itemId, values.itemAmount, (completed: boolean) => {
+                    Contracts.burnItem(context, values.tokenKey, values.itemAmount, (completed: boolean) => {
                         actions.setSubmitting(false);
     
                         if (completed) {

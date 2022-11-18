@@ -4,7 +4,7 @@ import { openDB, IDBPDatabase, StoreNames, StoreValue, StoreKey } from 'idb';
 import assert from "assert";
 
 
-const databaseVersion = 13;
+const databaseVersion = 14;
 
 export class DatabaseStorage implements IStorageProvider {
     private _db: IDBPDatabase<TezlandDB> | null;
@@ -42,8 +42,8 @@ export class DatabaseStorage implements IStorageProvider {
                             }
 
                             db.createObjectStore("placeMetadata");
-                            db.createObjectStore("placeItems");
-                            db.createObjectStore("itemMetadata");
+                            //db.createObjectStore("placeItems");
+                            //db.createObjectStore("itemMetadata");
                             db.createObjectStore("worldGrid");
                             db.createObjectStore("artifactCache");
 
@@ -55,14 +55,29 @@ export class DatabaseStorage implements IStorageProvider {
                         if (oldVersion < 13) {
                             // Need to clear metadata tables and world grid
                             db.deleteObjectStore("placeMetadata");
-                            db.deleteObjectStore("placeItems");
+                            //db.deleteObjectStore("placeItems");
                             db.deleteObjectStore("itemMetadata");
                             db.deleteObjectStore("worldGrid");
 
-                            db.createObjectStore("placeMetadata", { keyPath: ['tokenId', 'placeType'] });
-                            db.createObjectStore("placeItems", { keyPath: ['tokenId', 'placeType'] });
-                            db.createObjectStore("itemMetadata", { keyPath: 'tokenId' });
+                            //db.createObjectStore("placeMetadata", { keyPath: ['tokenId', 'placeType'] });
+                            //db.createObjectStore("placeItems", { keyPath: ['tokenId', 'placeType'] });
+                            //db.createObjectStore("itemMetadata", { keyPath: 'tokenId' });
                             db.createObjectStore("worldGrid");
+                        }
+
+                        if (oldVersion < 14) {
+                            // Need to clear old metadata and place items tables.
+                            {
+                                const untypedDb = db as unknown as IDBPDatabase;
+                                untypedDb.deleteObjectStore("placeMetadata");
+                                untypedDb.deleteObjectStore("placeItems");
+                                untypedDb.deleteObjectStore("itemMetadata");
+                            }
+
+                            db.createObjectStore("itemMetadata", { keyPath: ['tokenId', 'contract'] });
+                            db.createObjectStore("placeMetadata", { keyPath: ['tokenId', 'contract'] });
+                            db.createObjectStore("placeData", { keyPath: ['tokenId', 'contract'] });
+                            db.createObjectStore("placeChunks", { keyPath: ['tokenId', 'contract', "chunkId"] });
                         }
                     } catch (ex: any) {
                         Logging.Error("Error while creating object stores. Exception: " + ex.message);

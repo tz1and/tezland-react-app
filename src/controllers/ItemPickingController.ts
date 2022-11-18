@@ -13,6 +13,7 @@ import { CursorType } from "./GuiController";
 import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
 import assert from "assert";
+import TokenKey from "../utils/TokenKey";
 
 
 class ItemInfoGui extends Rectangle {
@@ -23,7 +24,7 @@ class ItemInfoGui extends Rectangle {
     private supply_label: TextBlock;
     private label_instructions: TextBlock;
 
-    private current_token_id: number = -1;
+    private current_token_key = TokenKey.fromNumber(-1, "");
     private current_token_supply: number = -1;
 
     constructor() {
@@ -102,17 +103,18 @@ class ItemInfoGui extends Rectangle {
         this.isVisible = false;
     }
 
-    public updateInfo(token_id: number, current_node: TransformNode, current_item: ItemNode) {
+    public updateInfo(token_key: TokenKey, current_node: TransformNode, current_item: ItemNode) {
         const isSaved = current_item.itemId.gte(0);
 
         // If it's a valid token, not a temporarily placed one.
         if (current_item.isValidItem()) {
             // If the item id changed, we need to fetch new metadata to update the title and minter.
-            if (this.current_token_id !== token_id) {
-                this.current_token_id = token_id;
+            // TODO need to compare both id and fa2
+            if (!this.current_token_key.id.eq(token_key.id)) {
+                this.current_token_key = token_key;
                 this.current_token_supply = -1;
 
-                Metadata.getItemMetadata(this.current_token_id).then(itemMetadata => {
+                Metadata.getItemMetadata(this.current_token_key.id.toNumber(), this.current_token_key.fa2).then(itemMetadata => {
                     assert(itemMetadata);
                     this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
                     this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
@@ -120,7 +122,8 @@ class ItemInfoGui extends Rectangle {
                     this.label_name.text = "Failed to load";
                 });
 
-                grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_id }).then(data => {
+                // TODO: use token key
+                grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_key.id.toNumber() }).then(data => {
                     this.current_token_supply = data.itemToken[0].supply;
                     this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply}`;
                 }).catch(() => {});
@@ -225,7 +228,7 @@ export default class ItemPickingController extends BaseUserController {
 
         // If it's an ItemNode, update the info overlay.
         if (instance_root instanceof ItemNode) {
-            this.infoGui.updateInfo(instance_root.tokenId.toNumber(), this.current_node, instance_root);
+            this.infoGui.updateInfo(instance_root.tokenKey, this.current_node, instance_root);
 
             // If it's a teleporter
             if (instance_root.teleporterData) {
@@ -258,7 +261,7 @@ export default class ItemPickingController extends BaseUserController {
 
                                 // track removed items.
                                 // TODO: set issuer on temp items and avoid code duplication.
-                                ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenId.toNumber(), -current_item.itemAmount);
+                                ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey.id.toNumber(), -current_item.itemAmount);
                             }
                             // Otherwise mark it for removal.
                             else {
@@ -268,7 +271,7 @@ export default class ItemPickingController extends BaseUserController {
                                 // track removed items.
                                 // only track items that go to the players wallet.
                                 if (current_item.issuer === this.playerController.game.walletProvider.walletPHK()) {
-                                    ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenId.toNumber(), -current_item.itemAmount);
+                                    ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey.id.toNumber(), -current_item.itemAmount);
                                 }
                             }
                         }
@@ -308,7 +311,7 @@ export default class ItemPickingController extends BaseUserController {
                         document.exitPointerLock();
                         // IMPORTANT! TODO: a bit clumsy, but maybe ok.
                         this.playerController.appControlFunctions.loadForm(OverlayForm.CollectItem, {
-                            tokenId: instanceRoot.tokenId.toNumber(),
+                            tokenKey: instanceRoot.tokenKey,
                             placeKey: instanceRoot.getPlace().placeKey,
                             itemId: instanceRoot.itemId.toNumber(),
                             issuer: instanceRoot.issuer,

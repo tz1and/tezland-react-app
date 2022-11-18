@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import TokenKey from '../utils/TokenKey';
 import { scrollbarVisible } from '../utils/Utils';
+
 
 type FetchDataItemMetadata = {
     name: string;
@@ -17,6 +19,7 @@ type FetchDataItemMetadata = {
 
 export type FetchDataItemToken = {
     tokenId: number;
+    contract: string;
     metadata?: FetchDataItemMetadata | null;
     royalties: number;
     supply: number;
@@ -43,7 +46,7 @@ export type FetchDataResult<T> = {
 export type FetchDataResultArray = FetchDataResult<FetchDataItemToken | FetchDataPlaceToken>[];
 
 export type FetchDataFunc = (dataOffset: number, fetchAmount: number) => Promise<FetchDataResultArray>;
-export type ItemClickedFunc = (item_id: number, quantity?: number) => void;
+export type ItemClickedFunc = (token_key: TokenKey, quantity?: number) => void;
 
 type TokenInfiniteScrollProps = {
     fetchDataFunc: FetchDataFunc;

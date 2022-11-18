@@ -7,6 +7,8 @@ import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFu
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import { Helmet } from 'react-helmet-async';
+import TokenKey from '../../utils/TokenKey';
+
 
 type TagProps = { };
 
@@ -31,8 +33,9 @@ export const Tag: React.FC<TagProps> = (props) => {
         return formatted;
     }
 
-    const handleClick: ItemClickedFunc = (item_id: number, quantity?: number) => {
-        navigate(DirectoryUtils.itemLink(item_id));
+    const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        // TODO: should link to fa2/tokenid
+        navigate(DirectoryUtils.itemLink(token_key.id.toNumber()));
     }
 
     /*const handleBurn: ItemClickedFunc = (item_id: number, quantity?: number) => {
