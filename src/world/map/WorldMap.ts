@@ -345,7 +345,7 @@ export class WorldMap {
         this.loadDistricts();
 
         // fetch the most recent world place count
-        this.worldPlaceCount = (await grapphQLUser.countPlaces({fa2: Conf.place_contract})).placeTokenMetadataAggregate.aggregate!.count;
+        this.worldPlaceCount = (await grapphQLUser.countPlaces({fa2: Conf.place_contract})).placeTokenAggregate.aggregate!.count;
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
         const playerPos = this.orthoCam.getTarget();

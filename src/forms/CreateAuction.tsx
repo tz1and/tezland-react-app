@@ -116,8 +116,8 @@ Place type: {res.placeType}</small>;
             this.setState({ placeInventory: result }, () => {
                 if(this.state.placeInventory.length > 0) {
                     const first = this.state.placeInventory[0];
-                    this.panMapToPlace(first.token.tokenId, first.token.contract);
-                    this.initialValues.placeId = this.serialisePlaceId(first.token.contract, first.token.tokenId);
+                    this.panMapToPlace(first.token.tokenId, first.token.contract.address);
+                    this.initialValues.placeId = this.serialisePlaceId(first.token.contract.address, first.token.tokenId);
                 }
             });
         })
@@ -247,7 +247,8 @@ Place type: {res.placeType}</small>;
                                                     this.state.placeInventory.length === 0 ?
                                                         (<option value={"-1"}>{this.context.isWalletConnected() ? "No places in inventory." : "Wallet not connected."}</option>) :
                                                             this.state.placeInventory.map((key, index) => (
-                                                                <option key={index} value={this.serialisePlaceId(key.token.contract, key.token.tokenId)}>{key.token.contract === Conf.place_contract ? 'Place' : 'Interior'} #{key.token.tokenId}</option>
+                                                                // TODO: add descriptiveNameForPlaceToken function.
+                                                                <option key={index} value={this.serialisePlaceId(key.token.contract.address, key.token.tokenId)}>{key.token.contract.address === Conf.place_contract ? 'Place' : 'Interior'} #{key.token.tokenId}</option>
                                                             ))}
                                         </Field>
                                         <div id="idHelp" className="form-text">The id of the place you want to create an auction for. Must be owned.</div>

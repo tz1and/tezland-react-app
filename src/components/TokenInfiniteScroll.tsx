@@ -19,7 +19,9 @@ type FetchDataItemMetadata = {
 
 export type FetchDataItemToken = {
     tokenId: number;
-    contract: string;
+    contract: {
+        address: string;
+    }
     metadata?: FetchDataItemMetadata | null;
     royalties: number;
     supply: number;
@@ -33,7 +35,9 @@ type FetchDataSwapInfo = {
 
 export type FetchDataPlaceToken = {
     tokenId: number;
-    contract: string;
+    contract: {
+        address: string;
+    }
 }
 
 export type FetchDataResult<T> = {

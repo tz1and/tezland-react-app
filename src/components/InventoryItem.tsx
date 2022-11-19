@@ -43,7 +43,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
         else if (totalItemBalance === 0) balanceColor = "bg-warning-light";
     }
 
-    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contract);
+    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contract.address);
 
     return (
         <OverlayTrigger

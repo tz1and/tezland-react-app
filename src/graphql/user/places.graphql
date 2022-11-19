@@ -11,7 +11,7 @@ query getPlacesWithSwapsByTag($tag: String!, $offset: Int!, $amount: Int!) {
 }
 
 query countPlaces($fa2: String!) {
-    placeTokenMetadataAggregate(where: { contract: { _eq: $fa2 } }) {
+    placeTokenAggregate(where: { contract: { address: { _eq: $fa2 } } }) {
         aggregate {
             count
         }
@@ -19,13 +19,15 @@ query countPlaces($fa2: String!) {
 }
 
 query getWorldGridCell($gridHash: String!, $fa2: String!) {
-    placeTokenMetadata(where: { gridHash: { _eq: $gridHash }, contract: { _eq: $fa2 } }) {
-        tokenId
+    placeTokenMetadata(where: { gridHash: { _eq: $gridHash }, placeToken: { contract: { address: { _eq: $fa2 } } } }) {
+        placeToken {
+            tokenId
+        }
     }
 }
 
 query getPlaceOwner($id: bigint!, $fa2: String!) {
-    placeTokenHolder(limit: 1, where: { token: { tokenId: { _eq: $id }, contract: { _eq: $fa2 } } } ) {
+    placeTokenHolder(limit: 1, where: { token: { tokenId: { _eq: $id }, contract: { address: { _eq: $fa2 } } } } ) {
         holderId
     }
 }

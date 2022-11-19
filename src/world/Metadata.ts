@@ -142,6 +142,8 @@ export default class Metadata {
                 // TODO: this is nasty
                 // TODO: don't modify minter???? use it as it comes in from graphql....
                 const placeMeta: PlaceTokenMetadata = (metadata as any);
+                placeMeta.tokenId = metadata.placeToken[0].tokenId;
+                placeMeta.contract = metadata.placeToken[0].contract.address;
                 placeMeta.minter = metadata.placeToken[0].minterId;
                 delete (metadata as any).placeToken;
 
@@ -161,7 +163,7 @@ export default class Metadata {
         if(!tokenMetadata) {
             Logging.InfoDev("token metadata not known, reading from indexer");
 
-            const data = await grapphQLUser.getItemTokenMetadata({id: token_id});
+            const data = await grapphQLUser.getItemTokenMetadata({id: token_id, fa2: fa2});
 
             const metadata = data.itemTokenMetadata[0];
 
@@ -169,6 +171,8 @@ export default class Metadata {
                 // set minter
                 // TODO: this is nasty
                 const itemMeta: ItemTokenMetadata = (metadata as any);
+                itemMeta.tokenId = metadata.itemToken[0].tokenId;
+                itemMeta.contract = metadata.itemToken[0].contract.address;
                 itemMeta.minter = metadata.itemToken[0].minterId;
                 delete (metadata as any).itemToken;
 
