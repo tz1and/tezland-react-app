@@ -54,10 +54,10 @@ export class DatabaseStorage implements IStorageProvider {
                         
                         if (oldVersion < 13) {
                             // Need to clear metadata tables and world grid
-                            db.deleteObjectStore("placeMetadata");
-                            //db.deleteObjectStore("placeItems");
-                            db.deleteObjectStore("itemMetadata");
-                            db.deleteObjectStore("worldGrid");
+                            if (db.objectStoreNames.contains("placeMetadata")) db.deleteObjectStore("placeMetadata");
+                            //if (db.objectStoreNames.contains("placeItems")) db.deleteObjectStore("placeItems");
+                            if (db.objectStoreNames.contains("itemMetadata")) db.deleteObjectStore("itemMetadata");
+                            if (db.objectStoreNames.contains("worldGrid")) db.deleteObjectStore("worldGrid");
 
                             //db.createObjectStore("placeMetadata", { keyPath: ['tokenId', 'placeType'] });
                             //db.createObjectStore("placeItems", { keyPath: ['tokenId', 'placeType'] });
@@ -69,9 +69,9 @@ export class DatabaseStorage implements IStorageProvider {
                             // Need to clear old metadata and place items tables.
                             {
                                 const untypedDb = db as unknown as IDBPDatabase;
-                                untypedDb.deleteObjectStore("placeMetadata");
-                                untypedDb.deleteObjectStore("placeItems");
-                                untypedDb.deleteObjectStore("itemMetadata");
+                                if (untypedDb.objectStoreNames.contains("placeMetadata")) untypedDb.deleteObjectStore("placeMetadata");
+                                if (untypedDb.objectStoreNames.contains("placeItems")) untypedDb.deleteObjectStore("placeItems");
+                                if (untypedDb.objectStoreNames.contains("itemMetadata")) untypedDb.deleteObjectStore("itemMetadata");
                             }
 
                             db.createObjectStore("itemMetadata", { keyPath: ['tokenId', 'contract'] });
