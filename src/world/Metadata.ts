@@ -109,6 +109,8 @@ export default class Metadata {
                 // set minter
                 // TODO: this is nasty
                 const placeMeta: PlaceTokenMetadata = (metadata as any);
+                placeMeta.tokenId = metadata.placeToken[0].tokenId;
+                placeMeta.contract = metadata.placeToken[0].contract.address;
                 placeMeta.minter = metadata.placeToken[0].minterId;
                 delete (metadata as any).placeToken;
 
