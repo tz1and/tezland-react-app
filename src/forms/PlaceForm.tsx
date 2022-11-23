@@ -119,8 +119,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                         <Form>
                             <div className="mb-3">
                                 <label htmlFor="tokenKey" className="form-label">Token Key</label>
-                                <Field id="tokenKey" name="tokenKey" type="string" className="form-control" aria-describedby="keyHelp" disabled={true} />
-                                <div id="keyHelp" className="form-text">The key of the Item you want to place. Must be owned.</div>
+                                <Field id="tokenKey" name="tokenKey" type="string" className="form-control" aria-describedby="tokenKeyHelp" disabled={true} />
+                                <div id="tokenKeyHelp" className="form-text">The key of the Item you want to place. Must be owned.</div>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>

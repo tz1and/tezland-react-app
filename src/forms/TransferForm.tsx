@@ -17,7 +17,7 @@ interface TransferFormValues {
     /*itemTitle: string;
     itemDescription: string;
     itemTags: string;*/
-    tokenKey: TokenKey;
+    tokenKey: string;
     itemAmount: number;
     transferTo: string;
     //itemFile: ArrayBuffer;
@@ -40,7 +40,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
     const [state, setState] = useState<TransferFormState>({error: "", successState: 0});
     
     const initialValues: TransferFormValues = {
-        tokenKey: props.tokenKey,
+        tokenKey: props.tokenKey.toString(),
         itemAmount: 1,
         transferTo: ""
     };
@@ -67,7 +67,7 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
                     return errors;
                 }}
                 onSubmit={(values, actions) => {
-                    Contracts.transferItem(context, values.tokenKey, values.itemAmount, values.transferTo, (completed: boolean) => {
+                    Contracts.transferItem(context, props.tokenKey, values.itemAmount, values.transferTo, (completed: boolean) => {
                         actions.setSubmitting(false);
     
                         if (completed) {
@@ -88,9 +88,9 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
                     return (
                         <Form>
                             <div className="mb-3">
-                                <label htmlFor="itemId" className="form-label">Item ID</label>
-                                <Field id="itemId" name="itemId" type="number" className="form-control" aria-describedby="idHelp" disabled={true} />
-                                <div id="idHelp" className="form-text">The id of the item you want to transfer. Must be owned.</div>
+                                <label htmlFor="tokenKey" className="form-label">Item ID</label>
+                                <Field id="tokenKey" name="tokenKey" type="number" className="form-control" aria-describedby="tokenKeyHelp" disabled={true} />
+                                <div id="tokenKeyHelp" className="form-text">The id of the item you want to transfer. Must be owned.</div>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
