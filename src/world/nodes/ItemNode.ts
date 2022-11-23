@@ -58,6 +58,7 @@ export const enum ItemLoadState {
 export default class ItemNode extends TransformNode {
     private place_or_world: BasePlaceNode | BaseWorld; // The place the item belongs to
     readonly tokenKey: TokenKey; // The token this item represents
+    public chunkId: BigNumber; // The chunk this item is in
     public itemId: BigNumber; // The id of the item within the place
     public issuer: string; // The address that placed this item
     public xtzPerItem: number; // The price of the item
@@ -91,6 +92,7 @@ export default class ItemNode extends TransformNode {
 
         this.place_or_world = place_or_world;
         this.tokenKey = tokenKey;
+        this.chunkId = new BigNumber(-1);
         this.itemId = new BigNumber(-1);
         this.issuer = "";
         this.xtzPerItem = 0;

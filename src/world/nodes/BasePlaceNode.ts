@@ -23,17 +23,54 @@ export type PlaceKey = {
 };
 
 export type PlaceItemData = {
+    chunk_id: BigNumber;
     item_id: BigNumber;
     issuer: string;
+    fa2: string;
     data: any;
+}
+
+export type ChunkSequenceNumber = {
+    id: number;
+    seq: string;
+}
+
+export class PlaceSequenceNumbers {
+    place_seq: string;
+    chunk_seqs: ChunkSequenceNumber[];
+
+    constructor(place_seq: string, chunk_seqs: ChunkSequenceNumber[]) {
+        this.place_seq = place_seq;
+        this.chunk_seqs = chunk_seqs;
+    }
+
+    // NOTE: very basic comparison.
+    public isEqual(other: PlaceSequenceNumbers): boolean {
+        if (this.place_seq !== other.place_seq) return false;
+
+        // TODO: will fail when chunks in array are in different order of don't have the same number of elements.
+        if (this.chunk_seqs.length !== other.chunk_seqs.length) return false;
+
+        for (let i = 0; i < this.chunk_seqs.length; ++i) {
+            const this_chunk_seq = this.chunk_seqs[i];
+            const other_chunk_seq = other.chunk_seqs[i];
+
+            if (this_chunk_seq.id !== other_chunk_seq.id ||
+                this_chunk_seq.seq !== other_chunk_seq.seq)
+                return false;
+        }
+
+        return true;
+    }
 }
 
 export type PlaceData = {
     tokenId: number;
+    contract: string;
     placeType: string;
     storedItems: PlaceItemData[];
     placeProps: Map<string, string>;
-    placeSeq: string;
+    placeSeq: PlaceSequenceNumbers;
 }
 
 export class PlacePermissions {
@@ -257,8 +294,9 @@ export default abstract class BasePlaceNode extends TransformNode {
                 if (this.isDisposed()) return;
 
                 // Check the sequence number.
-                if (this.placeData.placeSeq === newSeqNum) {
-                    //Logging.InfoDev("sequence number is identical, no update needed", this.placeId);
+                // Note: Call isEqual on the new one since the old is probably a plain object now.
+                if (newSeqNum.isEqual(this.placeData.placeSeq)) {
+                    //Logging.InfoDev("sequence number is identical, no update needed", this.placeKey.id);
                     return;
                 }
             }
@@ -299,25 +337,27 @@ export default abstract class BasePlaceNode extends TransformNode {
 
                 // Set prototype to make sure BigNumbers get recognised.
                 // See here: https://github.com/MikeMcl/bignumber.js/issues/245
+                Object.setPrototypeOf(element.chunk_id, BigNumber.prototype);
                 Object.setPrototypeOf(element.item_id, BigNumber.prototype);
                 Object.setPrototypeOf(element.data.item.token_id, BigNumber.prototype);
-                Object.setPrototypeOf(element.data.item.mutez_per_item, BigNumber.prototype);
-                Object.setPrototypeOf(element.data.item.item_amount, BigNumber.prototype);
+                Object.setPrototypeOf(element.data.item.rate, BigNumber.prototype);
+                Object.setPrototypeOf(element.data.item.amount, BigNumber.prototype);
 
                 const issuer = element.issuer;
+                const chunk_id = new BigNumber(element.chunk_id);
                 const item_id = new BigNumber(element.item_id);
                 const item_id_num = item_id.toNumber();
                 const token_id = new BigNumber(element.data.item.token_id);
-                const item_amount = new BigNumber(element.data.item.item_amount);
-                const xtz_per_item = mutezToTez(element.data.item.mutez_per_item).toNumber();
-                const item_data = element.data.item.item_data;
+                const token_amount = new BigNumber(element.data.item.amount);
+                const xtz_per_token = mutezToTez(element.data.item.rate).toNumber();
+                const item_data = element.data.item.data;
 
                 const existing_item = this.items.get(item_id_num);
                 // TEMP: currently items are disposed if the boundcheck fails.
                 // If they aren't disposed they should be attempted to be loaded again.
                 if (existing_item && !existing_item.isDisposed()) {
                     existing_item.updateFromData(item_data);
-                    existing_item.itemAmount = item_amount;
+                    existing_item.itemAmount = token_amount;
 
                     // TODO: bounds check again.
 
@@ -331,10 +371,11 @@ export default abstract class BasePlaceNode extends TransformNode {
                         itemNode.updateFromData(item_data);
 
                         // Set issuer, etc.
+                        itemNode.chunkId = chunk_id;
                         itemNode.itemId = item_id;
                         itemNode.issuer = issuer;
-                        itemNode.itemAmount = item_amount;
-                        itemNode.xtzPerItem = xtz_per_item;
+                        itemNode.itemAmount = token_amount;
+                        itemNode.xtzPerItem = xtz_per_token;
 
                         newItems.set(item_id_num, itemNode);
                     }
