@@ -30,16 +30,11 @@ export type PlaceItemData = {
     data: any;
 }
 
-export type ChunkSequenceNumber = {
-    id: number;
-    seq: string;
-}
-
 export class PlaceSequenceNumbers {
     place_seq: string;
-    chunk_seqs: ChunkSequenceNumber[];
+    chunk_seqs: Map<number, string>;
 
-    constructor(place_seq: string, chunk_seqs: ChunkSequenceNumber[]) {
+    constructor(place_seq: string, chunk_seqs: Map<number, string>) {
         this.place_seq = place_seq;
         this.chunk_seqs = chunk_seqs;
     }
@@ -49,15 +44,12 @@ export class PlaceSequenceNumbers {
         if (this.place_seq !== other.place_seq) return false;
 
         // TODO: will fail when chunks in array are in different order of don't have the same number of elements.
-        if (this.chunk_seqs.length !== other.chunk_seqs.length) return false;
+        if (this.chunk_seqs.size !== other.chunk_seqs.size) return false;
 
-        for (let i = 0; i < this.chunk_seqs.length; ++i) {
-            const this_chunk_seq = this.chunk_seqs[i];
-            const other_chunk_seq = other.chunk_seqs[i];
-
-            if (this_chunk_seq.id !== other_chunk_seq.id ||
-                this_chunk_seq.seq !== other_chunk_seq.seq)
-                return false;
+        for (const [key, seq] of this.chunk_seqs) {
+            const other_seq = other.chunk_seqs.get(key);
+            //if (!other_seq) return false;
+            if(seq !== other_seq) return false;
         }
 
         return true;
@@ -68,7 +60,7 @@ export type PlaceData = {
     tokenId: number;
     contract: string;
     placeType: string;
-    storedItems: PlaceItemData[];
+    storedItems: PlaceItemData[]; // TODO: could be map item_id => item_data?
     placeProps: Map<string, string>;
     placeSeq: PlaceSequenceNumbers;
 }
