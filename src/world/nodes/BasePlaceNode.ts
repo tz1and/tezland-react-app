@@ -134,7 +134,7 @@ export default abstract class BasePlaceNode extends TransformNode {
     private savePending: boolean = false;
 
     // The items loaded in this place.
-    private items: Map<number, ItemNode> = new Map();
+    private items: Map<string, ItemNode> = new Map();
 
     // Set of out of bounds items in this place.
     public outOfBoundsItems: Set<number> = new Set();
@@ -321,7 +321,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
             // The new item map.
             // We add new additions and move existing items to this one.
-            const newItems: Map<number, ItemNode> = new Map();
+            const newItems: Map<string, ItemNode> = new Map();
 
             //items.forEach(async (element: any) => {
             for (const element of this.placeData.storedItems) {
@@ -337,6 +337,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
                 const issuer = element.issuer;
                 const chunk_id = new BigNumber(element.chunk_id);
+                const chunk_id_num = chunk_id.toNumber();
                 const item_id = new BigNumber(element.item_id);
                 const item_id_num = item_id.toNumber();
                 const token_id = new BigNumber(element.data.item.token_id);
@@ -344,7 +345,8 @@ export default abstract class BasePlaceNode extends TransformNode {
                 const xtz_per_token = mutezToTez(element.data.item.rate).toNumber();
                 const item_data = element.data.item.data;
 
-                const existing_item = this.items.get(item_id_num);
+                const item_map_key = `${chunk_id_num}.${item_id_num}`;
+                const existing_item = this.items.get(item_map_key);
                 // TEMP: currently items are disposed if the boundcheck fails.
                 // If they aren't disposed they should be attempted to be loaded again.
                 if (existing_item && !existing_item.isDisposed()) {
@@ -354,8 +356,8 @@ export default abstract class BasePlaceNode extends TransformNode {
                     // TODO: bounds check again.
 
                     // add to new items, remove from old items.
-                    newItems.set(item_id_num, existing_item);
-                    this.items.delete(item_id_num);
+                    newItems.set(item_map_key, existing_item);
+                    this.items.delete(item_map_key);
                 }
                 else {
                     try {
@@ -369,7 +371,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                         itemNode.itemAmount = token_amount;
                         itemNode.xtzPerItem = xtz_per_token;
 
-                        newItems.set(item_id_num, itemNode);
+                        newItems.set(item_map_key, itemNode);
                     }
                     catch(e) {
                         Logging.InfoDev("Failed to load placed item", this.placeKey.id, token_id.toNumber(), e);
@@ -449,7 +451,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         this.savePending = true;
 
-        Contracts.saveItems(this.world.game.walletProvider, remove_children, add_children, this.placeKey, this.owner, (completed: boolean) => {
+        Contracts.saveItems(this.world.game.walletProvider, remove_children, add_children, this, (completed: boolean) => {
             this.savePending = false;
 
             // Only remove temp items if op completed.
