@@ -210,8 +210,9 @@ export class World extends BaseWorld {
                     const schema = new ParameterSchema(Contracts.worldContract!.entrypoints.entrypoints[ep])
                     const params = schema.Execute(tContent.parameters.value);
 
-                    // Reload place
-                    this.reloadPlace(params.lot_id.toNumber());
+                    // Reload place if it belongs to our current world
+                    if (params.place_key.fa2 === Conf.place_contract)
+                        this.reloadPlace(params.place_key.id.toNumber());
                 }
                 catch (e) {
                     Logging.InfoDev("Failed to parse parameters.");
