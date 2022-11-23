@@ -45,12 +45,13 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
         target: "_blank", rel: "noopener noreferrer"
     } : {}
 
+    // TODO: item.issuerID can be null now!
     const worldInfoItems: JSX.Element[] = []
     if (worldInfo) worldInfo.worldItemPlacement.forEach((item) => {
-        if (!props.onlySwaps || (props.onlySwaps && item.mutezPerToken > 0))
+        if (!props.onlySwaps || (props.onlySwaps && item.rate > 0))
             worldInfoItems.push(
                 <p key={item.transientId}>
-                    {item.tokenAmount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink(item.place.tokenId)}>Place #{item.place.tokenId}</Link> {item.mutezPerToken > 0 && <span>for {mutezToTez(item.mutezPerToken).toNumber()} {"\uA729"}</span>}
+                    {item.amount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId!)}>{truncateAddress(item.issuerId!)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink(item.place.tokenId)}>Place #{item.place.tokenId}</Link> {item.rate > 0 && <span>for {mutezToTez(item.rate).toNumber()} {"\uA729"}</span>}
                 </p>);
     });
 
