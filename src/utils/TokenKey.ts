@@ -13,4 +13,8 @@ export default class TokenKey {
     public static fromNumber(id: number, fa2: string): TokenKey {
         return new TokenKey(new BigNumber(id), fa2);
     }
+
+    public toString(): string {
+        return `${this.fa2}#${this.id.toNumber()}`;
+    }
 }

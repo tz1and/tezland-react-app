@@ -16,7 +16,7 @@ import TokenKey from '../utils/TokenKey';
 
 
 interface PlaceFormValues {
-    tokenKey: TokenKey;
+    tokenKey: string;
     itemAmount: number;
     itemPrice: number;
     disableCollision: boolean;
@@ -32,7 +32,7 @@ type PlaceFormProps = {
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
     const initialValues: PlaceFormValues = {
-        tokenKey: props.placedItem.tokenKey,
+        tokenKey: props.placedItem.tokenKey.toString(),
         itemAmount: 1,
         itemPrice: 0,
         disableCollision: false,
@@ -102,7 +102,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                             }
                         }
 
-                        ItemTracker.trackTempItem(props.placedItem.getPlace().placeKey.id, values.tokenKey.id.toNumber(), values.itemAmount);
+                        ItemTracker.trackTempItem(props.placedItem.getPlace().placeKey.id, props.placedItem.tokenKey.id.toNumber(), values.itemAmount);
                     }
 
                     actions.setSubmitting(false);
@@ -119,9 +119,9 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     return (
                         <Form>
                             <div className="mb-3">
-                                <label htmlFor="tokenId" className="form-label">Token ID</label>
-                                <Field id="tokenId" name="tokenId" type="number" className="form-control" aria-describedby="idHelp" disabled={true} />
-                                <div id="idHelp" className="form-text">The id of the Item you want to place. Must be owned.</div>
+                                <label htmlFor="tokenKey" className="form-label">Token Key</label>
+                                <Field id="tokenKey" name="tokenKey" type="string" className="form-control" aria-describedby="keyHelp" disabled={true} />
+                                <div id="keyHelp" className="form-text">The key of the Item you want to place. Must be owned.</div>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
