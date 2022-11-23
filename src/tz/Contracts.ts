@@ -169,7 +169,8 @@ export class Contracts {
         ];
 
         try {
-            const mint_item_op = await minterWallet.methodsObject.mint_Item({
+            const mint_item_op = await minterWallet.methodsObject.mint_public_v1({
+                collection: Conf.item_contract,
                 to_: walletProvider.walletPHK(),
                 amount: amount,
                 royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
@@ -232,13 +233,13 @@ export class Contracts {
         }
     }
 
-    public async getItem(walletProvider: ITezosWalletProvider, place_key: PlaceKey, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
+    public async getItem(walletProvider: ITezosWalletProvider, place_key: PlaceKey, chunk_id: number, item_id: number, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
         if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
 
         const current_world = await this.get_world_contract_write(walletProvider);
 
         const get_item_op = await current_world.methodsObject.get_item({
-            place_key: place_key, item_id: item_id, issuer: issuer
+            place_key: place_key, chunk_id: chunk_id, item_id: item_id, issuer: issuer
         }).send({ amount: xtz_per_item, mutez: false });
 
         this.handleOperation(walletProvider, get_item_op, callback);

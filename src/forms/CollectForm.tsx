@@ -16,6 +16,7 @@ type CollectFormProps = {
     closeForm(): void;
     tokenKey: TokenKey;
     placeKey: PlaceKey;
+    chunkId: number;
     itemId: number;
     issuer: string;
     xtzPerItem: number;
@@ -33,7 +34,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
     }, [props]);
 
     const collectItem = () => {
-        Contracts.getItem(context, props.placeKey, props.itemId, props.issuer, props.xtzPerItem).then(() => {
+        Contracts.getItem(context, props.placeKey, props.chunkId, props.itemId, props.issuer, props.xtzPerItem).then(() => {
             props.closeForm();
         }).catch((e) => { Logging.Error(e); });
     }

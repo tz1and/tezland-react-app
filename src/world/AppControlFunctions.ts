@@ -22,6 +22,7 @@ export interface TransferItemFromProps extends OverlayFormProps {
 export interface CollectItemFromProps extends OverlayFormProps {
     tokenKey: TokenKey;
     placeKey: PlaceKey;
+    chunkId: number;
     itemId: number;
     issuer: string;
     xtzPerItem: number;

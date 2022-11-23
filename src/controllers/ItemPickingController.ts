@@ -313,6 +313,7 @@ export default class ItemPickingController extends BaseUserController {
                         this.playerController.appControlFunctions.loadForm(OverlayForm.CollectItem, {
                             tokenKey: instanceRoot.tokenKey,
                             placeKey: instanceRoot.getPlace().placeKey,
+                            chunkId: instanceRoot.chunkId.toNumber(),
                             itemId: instanceRoot.itemId.toNumber(),
                             issuer: instanceRoot.issuer,
                             xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps);
