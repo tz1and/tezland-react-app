@@ -8,7 +8,7 @@ import { SkyMaterial, WaterMaterial } from "@babylonjs/materials";
 import { PlaceKey } from "./nodes/BasePlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
-import Contracts from "../tz/Contracts";
+import Contracts, { ALL_WORLD_EP_NAMES } from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
 import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
@@ -205,7 +205,7 @@ export class World extends BaseWorld {
         // NOTE: might break with internal contract calls!
         if (tContent.parameters) {
             const ep = tContent.parameters.entrypoint;
-            if (ep === "get_item" || ep === "place_items" || ep === "set_place_props" || ep === "remove_items" || ep === "set_item_data") {
+            if (ALL_WORLD_EP_NAMES.includes(ep)) {
                 try {
                     const schema = new ParameterSchema(Contracts.worldContract!.entrypoints.entrypoints[ep])
                     const params = schema.Execute(tContent.parameters.value);

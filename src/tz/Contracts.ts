@@ -17,6 +17,9 @@ import { grapphQLUser } from "../graphql/user";
 import TokenKey from "../utils/TokenKey";
 
 
+export const ALL_WORLD_EP_NAMES = ["get_item", "place_items", "update_place_props", "remove_items", "set_item_data"];
+
+
 export class Contracts {
     public worldContract: Contract | null;
     private places: Contract | null;
@@ -385,10 +388,10 @@ export class Contracts {
         const props_map = new MichelsonMap<string, string>();
         props_map.set('00', groundColor);
         props_map.set('01', placeName);
-        let params: any = { place_key: place_node.placeKey, props: props_map };
+        let params: any = { place_key: place_node.placeKey, updates: [{add_props: props_map}] };
 
         try {
-            const save_props_op = await current_world.methodsObject.set_place_props(params).send();
+            const save_props_op = await current_world.methodsObject.update_place_props(params).send();
 
             this.handleOperation(walletProvider, save_props_op, callback);
         }
