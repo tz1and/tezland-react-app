@@ -6,20 +6,20 @@ query getItemHistory($id: bigint!) {
         }
         issuerId
         collectorId
-        mutezPerToken
+        rate
     }
 }
 
 query getItemWorldInfo($id: bigint!) {
-    worldItemPlacement(where: {itemToken: {tokenId: {_eq: $id}}}, order_by: {mutezPerToken: desc}) {
+    worldItemPlacement(where: {itemToken: {tokenId: {_eq: $id}}}, order_by: {rate: desc}) {
         transientId
         place {
             tokenId
         }
         itemId
         issuerId
-        tokenAmount
-        mutezPerToken
+        amount
+        rate
     }
 }
 

@@ -6,11 +6,11 @@ query getNewMints($offset: Int!, $amount: Int!) {
 }
 
 query getNewSwaps($offset: Int!, $amount: Int!) {
-	worldItemPlacement(where: {mutezPerToken: {_gt: 0}}, limit: $amount, offset: $offset, order_by: {level: desc})
+	worldItemPlacement(where: {rate: {_gt: 0}}, limit: $amount, offset: $offset, order_by: {level: desc})
     {
         transientId
-        tokenAmount
-        mutezPerToken
+        amount
+        rate
         itemToken {
             ...ItemTokenSelect
         }
