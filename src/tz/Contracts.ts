@@ -4,7 +4,7 @@ import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
-import { PlacePermissions, PlaceData, PlaceItemData, PlaceKey } from "../world/nodes/BasePlaceNode";
+import BasePlaceNode, { PlacePermissions, PlaceData, PlaceItemData, PlaceKey, PlaceSequenceNumbers } from "../world/nodes/BasePlaceNode";
 import ItemNode from "../world/nodes/ItemNode";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -244,8 +244,8 @@ export class Contracts {
         this.handleOperation(walletProvider, get_item_op, callback);
     }
 
-    // TODO map or array of item_id to item_data.
-    public async setItemData(walletProvider: ITezosWalletProvider, place_key: PlaceKey, item_id: number, item_data: string, callback?: (completed: boolean) => void) {
+    // TODO map or array of item_id to data.
+    public async setItemData(walletProvider: ITezosWalletProvider, place_key: PlaceKey, item_id: number, data: string, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
 
@@ -253,7 +253,7 @@ export class Contracts {
 
         try {
             const get_item_op = await current_world.methodsObject.set_item_data({
-                place_key: place_key, update_list: [{ item_id: item_id, item_data: item_data }]
+                place_key: place_key, update_list: [{ item_id: item_id, data: data }]
             }).send();
 
             this.handleOperation(walletProvider, get_item_op, callback);
@@ -271,41 +271,67 @@ export class Contracts {
         return this.places.contractViews.count_tokens().executeView({ viewCaller: this.places.address });
     }
 
-    public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_key: PlaceKey): Promise<string> {
+    public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_key: PlaceKey): Promise<PlaceSequenceNumbers> {
         const current_world = await this.get_world_contract_read(walletProvider);
 
-        return current_world.contractViews.get_place_seqnum(place_key).executeView({ viewCaller: current_world.address });
+        const result = await current_world.contractViews.get_place_seqnum(place_key).executeView({ viewCaller: current_world.address });
+
+        const chunk_seqs = new Map<number, string>();
+        // Flatten chunk seqence numbers into something serialisable.
+        for (const [chunk_id, seq_num] of result.chunk_seqs.entries()) {
+            chunk_seqs.set(chunk_id.toNumber(), seq_num);
+        }
+
+        return new PlaceSequenceNumbers(result.place_seq, chunk_seqs);
     }
 
-    private async reproduceSeqHash(interaction_counter: BigNumber, next_id: BigNumber): Promise<string> {
+    private async reproduceSeqHash(onchain_place_data: any): Promise<PlaceSequenceNumbers> {
         // reproduce sequence number from interaction_counter and next_id to prevent
         // it getting out of sync catastrophically with onchain.
 
-        // NOTE: BigNumber converting string to exponential could bite us here...
-        const dataMichelson: MichelsonV1Expression = {
-            "prim": "Pair",
-            "args": [
-              {
-                "int": interaction_counter.toString()
-              },
-              {
-                "int": next_id.toString()
-              }
-            ]
-        };
-
-        const storageType: MichelsonV1Expression = {
+        const chunkHashStorageType: MichelsonV1Expression = {
             prim: 'pair',
             args: [
-                { prim: 'nat', annots: [ '%interaction_counter' ] },
+                { prim: 'nat', annots: [ '%counter' ] },
                 { prim: 'nat', annots: [ '%next_id' ] }
             ]
         };
 
-        const packer = new MichelCodecPacker();
-        const packed = await packer.packData({ data: dataMichelson, type: storageType })
+        const placeHashStorageType: MichelsonV1Expression = {
+            prim: 'nat', annots: [ '%counter' ]
+        };
 
-        return new SHA3(256).update(packed.packed, 'hex').digest('hex');
+        const chunk_seqs = new Map<number, string>();
+        const packer = new MichelCodecPacker();
+
+        for (let [chunk_id, value] of onchain_place_data.chunks.entries()) {
+            // NOTE: BigNumber converting string to exponential could bite us here...
+            const chunkDataMichelson: MichelsonV1Expression = {
+                "prim": "Pair",
+                "args": [
+                    {
+                        "int": value.counter.toString()
+                    },
+                    {
+                        "int": value.next_id.toString()
+                    }
+                ]
+            };
+
+            const packedChunkSeq = await packer.packData({ data: chunkDataMichelson, type: chunkHashStorageType })
+            const chunkSeqHash = new SHA3(256).update(packedChunkSeq.packed, 'hex').digest('hex');
+            chunk_seqs.set(chunk_id.toNumber(), chunkSeqHash);
+        }
+
+        // NOTE: BigNumber converting string to exponential could bite us here...
+        const placeDataMichelson: MichelsonV1Expression = {
+            "int": onchain_place_data.place.counter.toString()
+        };
+
+        const packedPlaceSeq = await packer.packData({ data: placeDataMichelson, type: placeHashStorageType })
+        const placeSeqHash = new SHA3(256).update(packedPlaceSeq.packed, 'hex').digest('hex');
+
+        return new PlaceSequenceNumbers(placeSeqHash, chunk_seqs);
     }
 
     // TODO: place_key
@@ -315,42 +341,50 @@ export class Contracts {
 
         Logging.InfoDev("Reading place data from chain", place_key.id);
 
-        const result = await current_world.contractViews.get_place_data(place_key).executeView({ viewCaller: current_world.address });
+        const result = await current_world.contractViews.get_place_data({place_key: place_key}).executeView({ viewCaller: current_world.address });
 
-        const seqHash = await this.reproduceSeqHash(result.interaction_counter, result.next_id);
+        const seqHash = await this.reproduceSeqHash(result);
 
-        // We have to flatten the michelson map into something serialisable.
-        const michelson_map = (result.stored_items as MichelsonMap<string, MichelsonMap<BigNumber, object>>);
+        const chunks_map = (result.chunks as MichelsonMap<BigNumber, any>);
         const flattened_item_data: PlaceItemData[] = [];
-        for (const [issuer, issuer_items] of michelson_map.entries()) {
-            for (const [item_id, item] of issuer_items.entries()) {
-                flattened_item_data.push({ item_id: item_id, issuer: issuer, data: item });
+        // For every chunk in the result
+        for (const [chunk_id, chunk_data] of chunks_map.entries()) {
+            // Get the item storage map
+            const storage_map = (chunk_data.storage as MichelsonMap<string, MichelsonMap<string, MichelsonMap<BigNumber, object>>>);
+
+            // And flatten the item storage michelson map into something serialisable.
+            for (const [issuer, issuer_items] of storage_map.entries()) {
+                for (const [fa2, fa2_items] of issuer_items.entries()) {
+                    for (const [item_id, item] of fa2_items.entries()) {
+                        flattened_item_data.push({ chunk_id: chunk_id, item_id: item_id, issuer: issuer, fa2: fa2, data: item });
+                    }
+                }
             }
         }
 
-        // We have to convert the michelson map into a regular map to be serialisable.
-        const props_michelson_map = (result.place_props as MichelsonMap<string, string>);
+        // We have to convert the place props michelson map into a regular map to be serialisable.
+        const props_michelson_map = (result.place.props as MichelsonMap<string, string>);
         const place_props: Map<string, string> = new Map();
         for (const [key, value] of props_michelson_map.entries()) {
             place_props.set(key, value);
         }
 
-        const place_data: PlaceData = { tokenId: place_key.id, placeType: place_key.fa2, storedItems: flattened_item_data, placeProps: place_props, placeSeq: seqHash };
+        const place_data: PlaceData = { tokenId: place_key.id, contract: place_key.fa2, placeType: place_key.fa2, storedItems: flattened_item_data, placeProps: place_props, placeSeq: seqHash };
 
         Metadata.Storage.saveObject("placeData", place_data);
 
         return place_data;
     }
 
-    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, placeName: string, place_key: PlaceKey, owner: string, callback?: (completed: boolean) => void) {
+    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, placeName: string, place_node: BasePlaceNode, callback?: (completed: boolean) => void) {
+        // TODO: only save props that changed.
         const current_world = await this.get_world_contract_write(walletProvider);
 
         // owner is optional.
         const props_map = new MichelsonMap<string, string>();
         props_map.set('00', groundColor);
         props_map.set('01', placeName);
-        let params: any = { place_key: place_key, props: props_map };
-        if(owner) params.owner = owner;
+        let params: any = { place_key: place_node.placeKey, props: props_map };
 
         try {
             const save_props_op = await current_world.methodsObject.set_place_props(params).send();
@@ -363,30 +397,124 @@ export class Contracts {
         }
     }
 
-    public async saveItems(walletProvider: ITezosWalletProvider, remove: ItemNode[], add: ItemNode[], place_key: PlaceKey, owner: string, callback?: (completed: boolean) => void) {
+    public async saveItems(walletProvider: ITezosWalletProvider, remove: ItemNode[], add: ItemNode[], place_node: BasePlaceNode, callback?: (completed: boolean) => void) {
         const current_world = await this.get_world_contract_write(walletProvider);
         const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
         // build remove item map
-        const remove_item_map: MichelsonMap<string, BigNumber[]> = new MichelsonMap();
+        // Chunk, issuer, fa2, ids
+        const remove_item_map: MichelsonMap<BigNumber, MichelsonMap<string, MichelsonMap<string, BigNumber[]>>> = new MichelsonMap();
         remove.forEach((item) => {
-            if (remove_item_map.has(item.issuer))
-                remove_item_map.get(item.issuer)!.push(item.itemId);
-            else
-                remove_item_map.set(item.issuer, [item.itemId]);
+            let issuer_map: MichelsonMap<string, MichelsonMap<string, BigNumber[]>>;
+            if (remove_item_map.has(item.chunkId))
+                issuer_map = remove_item_map.get(item.chunkId)!;
+            else {
+                issuer_map = new MichelsonMap();
+                remove_item_map.set(item.chunkId, issuer_map)
+            }
+
+            let fa2_map: MichelsonMap<string, BigNumber[]>;
+            if (issuer_map.has(item.issuer))
+                fa2_map = issuer_map.get(item.issuer)!;
+            else {
+                fa2_map = new MichelsonMap();
+                issuer_map.set(item.issuer, fa2_map)
+            }
+
+            let token_id_array: BigNumber[];
+            if (fa2_map.has(item.tokenKey.fa2))
+                token_id_array = fa2_map.get(item.tokenKey.fa2)!;
+            else {
+                token_id_array = [];
+                fa2_map.set(item.tokenKey.fa2, token_id_array)
+            }
+
+            token_id_array.push(item.itemId);
         });
 
+        // Build a map of chunk to item count.
+        const chunk_item_counts = new Map<number, number>();
+        assert(place_node.placeData);
+        for(const item of place_node.placeData.storedItems) {
+            const chunk_id = item.chunk_id.toNumber();
+            chunk_item_counts.set(chunk_id, (() => {
+                const res = chunk_item_counts.get(chunk_id);
+                if (res) return res + 1;
+                return 1;
+            })())
+        }
+
+        // TODO: get limits from contract! Store them in world.
+        const chunk_limit = 2;
+        const chunk_item_limit = 64;
+
+        // TODO: Could be improved by adding preference for finding chunks
+        // that contain tokens of the same type!
+        const getChunkIdForItem = (): BigNumber => {
+            // Iterate over all (allocated) chunks to find a
+            // free spot for the item.
+            for (const [key, value] of chunk_item_counts) {
+                if (value < chunk_item_limit) {
+                    chunk_item_counts.set(key, value + 1);
+                    return new BigNumber(key);
+                }
+            }
+
+            // If we get here, all (allocated) chunks are full.
+            // Find a chunk id that hasn't been allocated and
+            // return it.
+            if (chunk_item_counts.size >= chunk_limit)
+                throw new Error("Place chunk and chunk item limit reached.")
+
+            for (let chunk_id = 0; chunk_id < chunk_limit; ++chunk_id) {
+                if (!chunk_item_counts.has(chunk_id)) {
+                    chunk_item_counts.set(chunk_id, 1);
+                    return new BigNumber(chunk_id);
+                }
+            }
+
+            throw new Error("Something went horribly wrong finding a chunk for the item.")
+        }
+
         // build add item list
-        const add_item_list: object[] = [];
+        // Chunk, send_to_place, fa2, ids
+        const add_item_map: MichelsonMap<BigNumber, MichelsonMap<boolean, MichelsonMap<string, object[]>>> = new MichelsonMap();
         const item_set = new Set<number>();
         add.forEach((item) => {
+            const chunkId = getChunkIdForItem();
+            let send_to_place_map: MichelsonMap<boolean, MichelsonMap<string, object[]>>;
+            if (add_item_map.has(chunkId))
+                send_to_place_map = add_item_map.get(chunkId)!;
+            else {
+                send_to_place_map = new MichelsonMap();
+                add_item_map.set(chunkId, send_to_place_map)
+            }
+
+            let fa2_map: MichelsonMap<string, object[]>;
+            // TODO: item needs "send_to_place" property. Or maybe issuer == null?
+            const send_to_place = false
+            if (send_to_place_map.has(send_to_place))
+                fa2_map = send_to_place_map.get(send_to_place)!;
+            else {
+                fa2_map = new MichelsonMap();
+                send_to_place_map.set(send_to_place, fa2_map)
+            }
+
+            let item_add_array: object[];
+            if (fa2_map.has(item.tokenKey.fa2))
+                item_add_array = fa2_map.get(item.tokenKey.fa2)!;
+            else {
+                item_add_array = [];
+                fa2_map.set(item.tokenKey.fa2, item_add_array)
+            }
+
             const tokenKey = item.tokenKey;
             const item_amount = item.itemAmount;
             const item_price = tezToMutez(item.xtzPerItem);
 
             const item_data = toHexString(ItemDataWriter.write(item));
 
-            add_item_list.push({ item: { token_id: tokenKey.id, token_amount: item_amount, mutez_per_token: item_price, item_data: item_data } });
+            item_add_array.push({ item: { token_id: tokenKey.id, amount: item_amount, rate: item_price, data: item_data } });
 
             item_set.add(tokenKey.id.toNumber());
         });
@@ -413,14 +541,14 @@ export class Contracts {
         if (remove_item_map.size > 0) batch.with([{
             kind: OpKind.TRANSACTION,
             ...current_world.methodsObject.remove_items({
-                place_key: place_key, remove_map: remove_item_map, owner: owner
+                place_key: place_node.placeKey, remove_map: remove_item_map
             }).toTransferParams()
         }]);
 
-        if (add_item_list.length > 0) batch.with([{
+        if (add_item_map.size > 0) batch.with([{
             kind: OpKind.TRANSACTION,
             ...current_world.methodsObject.place_items({
-                place_key: place_key, item_list: add_item_list, owner: owner
+                place_key: place_node.placeKey, place_item_map: add_item_map
             }).toTransferParams()
         }]);
 
