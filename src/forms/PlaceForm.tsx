@@ -12,7 +12,6 @@ import ItemNode from '../world/nodes/ItemNode';
 import ItemTracker from '../controllers/ItemTracker';
 import { TeleporterType } from '../utils/ItemData';
 import { Vector3 } from '@babylonjs/core';
-import TokenKey from '../utils/TokenKey';
 
 
 interface PlaceFormValues {
