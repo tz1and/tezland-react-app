@@ -451,6 +451,8 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         this.savePending = true;
 
+        // NOTE: when saving goes wrong (item limits, whatever),
+        // it still exits pointer lock in PlayerController.
         Contracts.saveItems(this.world.game.walletProvider, remove_children, add_children, this, (completed: boolean) => {
             this.savePending = false;
 
@@ -460,6 +462,12 @@ export default abstract class BasePlaceNode extends TransformNode {
                 ItemTracker.removeTrackedItemsForPlace(this.placeKey.id);
             }
         }).catch(e => {
+            this.world.game.appControlFunctions.addNotification({
+                id: "saveFailed" + this.placeKey.id,
+                title: "Saving items failed!",
+                body: `Saving items in place #${this.placeKey.id} failed:\n\n${e.message}`,
+                type: 'danger'
+            })
             Logging.ErrorDev(e);
             this.savePending = false;
         });
