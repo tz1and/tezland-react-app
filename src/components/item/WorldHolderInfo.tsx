@@ -22,14 +22,14 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
     useEffect(() => {
         if (!props.onlySwaps)
             // TODO: needs fa2
-            grapphQLUser.getItemHolderInfo({id: props.tokenKey.id.toNumber()}).then(res => {
+            grapphQLUser.getItemHolderInfo({id: props.tokenKey.id.toNumber(), fa2: props.tokenKey.fa2}).then(res => {
                 setHolderInfo(res);
             });
     }, [props.tokenKey, props.onlySwaps]);
 
     useEffect(() => {
         // TODO: needs fa2
-        grapphQLUser.getItemWorldInfo({id: props.tokenKey.id.toNumber()}).then(res => {
+        grapphQLUser.getItemWorldInfo({id: props.tokenKey.id.toNumber(), fa2: props.tokenKey.fa2}).then(res => {
             setWorldInfo(res);
         });
 
@@ -51,7 +51,7 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
         if (!props.onlySwaps || (props.onlySwaps && item.rate > 0))
             worldInfoItems.push(
                 <p key={item.transientId}>
-                    {item.amount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId!)}>{truncateAddress(item.issuerId!)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink(item.place.tokenId)}>Place #{item.place.tokenId}</Link> {item.rate > 0 && <span>for {mutezToTez(item.rate).toNumber()} {"\uA729"}</span>}
+                    {item.amount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId!)}>{truncateAddress(item.issuerId!)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink({id: item.place.tokenId, fa2: item.place.contract.address})}>Place #{item.place.tokenId}</Link> {item.rate > 0 && <span>for {mutezToTez(item.rate).toNumber()} {"\uA729"}</span>}
                 </p>);
     });
 

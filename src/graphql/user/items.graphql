@@ -1,8 +1,11 @@
-query getItemHistory($id: bigint!) {
-    itemCollectionHistory(where: {itemToken: {tokenId: {_eq: $id}}}, order_by: {level: desc}) {
+query getItemHistory($id: bigint!, $fa2: String!) {
+    itemCollectionHistory(where: {itemToken: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}, order_by: {level: desc}) {
         transientId
         place {
             tokenId
+            contract {
+                address
+            }
         }
         issuerId
         collectorId
@@ -10,11 +13,14 @@ query getItemHistory($id: bigint!) {
     }
 }
 
-query getItemWorldInfo($id: bigint!) {
-    worldItemPlacement(where: {itemToken: {tokenId: {_eq: $id}}}, order_by: {rate: desc}) {
+query getItemWorldInfo($id: bigint!, $fa2: String!) {
+    worldItemPlacement(where: {itemToken: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}, order_by: {rate: desc}) {
         transientId
         place {
             tokenId
+            contract {
+                address
+            }
         }
         itemId
         issuerId
@@ -23,15 +29,15 @@ query getItemWorldInfo($id: bigint!) {
     }
 }
 
-query getItemHolderInfo($id: bigint!) {
-    itemTokenHolder(where: { token: { tokenId: { _eq: $id } } }, order_by: { quantity: desc }) {
+query getItemHolderInfo($id: bigint!, $fa2: String!) {
+    itemTokenHolder(where: { token: { tokenId: { _eq: $id }, contract: { address: {_eq: $fa2} } } }, order_by: { quantity: desc }) {
         holderId
         quantity
     }
 }
 
-query getItemSupplyAndRoyalties($id: bigint!) {
-    itemToken(where: {tokenId: {_eq: $id}}) {
+query getItemSupplyAndRoyalties($id: bigint!, $fa2: String!) {
+    itemToken(where: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}) {
         royalties
         supply
     }

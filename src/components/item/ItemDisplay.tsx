@@ -21,7 +21,7 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
     
     useEffect(() => {
         // Fetch royalties
-        grapphQLUser.getItemSupplyAndRoyalties({id: props.tokenKey.id.toNumber()}).then(res => {
+        grapphQLUser.getItemSupplyAndRoyalties({id: props.tokenKey.id.toNumber(), fa2: props.tokenKey.fa2}).then(res => {
             const token = res.itemToken[0];
             setRoyaltiesAndSupply({
                 royalties: token.royalties,

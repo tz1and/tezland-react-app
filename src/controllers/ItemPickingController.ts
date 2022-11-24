@@ -123,7 +123,7 @@ class ItemInfoGui extends Rectangle {
                 });
 
                 // TODO: use token key
-                grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_key.id.toNumber() }).then(data => {
+                grapphQLUser.getItemSupplyAndRoyalties({ id: this.current_token_key.id.toNumber(), fa2: this.current_token_key.fa2 }).then(data => {
                     this.current_token_supply = data.itemToken[0].supply;
                     this.supply_label.text = `${current_item.itemAmount} of ${this.current_token_supply}`;
                 }).catch(() => {});
