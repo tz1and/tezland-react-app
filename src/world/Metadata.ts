@@ -122,14 +122,13 @@ export default class Metadata {
         return place_metadatas;
     }
 
-    // TODO: IMPORTANT!!! remove default place_type
     public static async getPlaceMetadata(token_id: number, fa2: string): Promise<PlaceTokenMetadata | undefined> {
         // Try to read the token metadata from storage.
         let tokenMetadata: PlaceTokenMetadata | undefined = await Metadata.Storage.loadObject("placeMetadata", [token_id, fa2]);
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
-            Logging.InfoDev("token metadata not known, reading from indexer");
+            Logging.InfoDev("token metadata not known, reading from indexer", token_id, fa2);
 
             const data = await grapphQLUser.getPlaceTokenMetadata({id: token_id, fa2: fa2});
 
@@ -163,7 +162,7 @@ export default class Metadata {
 
         // load from indexer if it doesn't exist
         if(!tokenMetadata) {
-            Logging.InfoDev("token metadata not known, reading from indexer");
+            Logging.InfoDev("token metadata not known, reading from indexer", token_id, fa2);
 
             const data = await grapphQLUser.getItemTokenMetadata({id: token_id, fa2: fa2});
 
