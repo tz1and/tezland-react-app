@@ -34,7 +34,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
     }, [props]);
 
     const collectItem = () => {
-        Contracts.getItem(context, props.placeKey, props.chunkId, props.itemId, props.issuer, props.xtzPerItem).then(() => {
+        Contracts.getItem(context, props.placeKey, props.chunkId, props.itemId, props.tokenKey.fa2, props.issuer, props.xtzPerItem).then(() => {
             props.closeForm();
         }).catch((e) => { Logging.Error(e); });
     }
