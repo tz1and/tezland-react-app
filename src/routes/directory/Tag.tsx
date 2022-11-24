@@ -35,7 +35,7 @@ export const Tag: React.FC<TagProps> = (props) => {
 
     const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
         // TODO: should link to fa2/tokenid
-        navigate(DirectoryUtils.itemLink(token_key.id.toNumber()));
+        navigate(DirectoryUtils.itemLink(token_key));
     }
 
     /*const handleBurn: ItemClickedFunc = (item_id: number, quantity?: number) => {

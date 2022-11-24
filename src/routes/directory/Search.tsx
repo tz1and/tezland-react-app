@@ -24,7 +24,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 
     const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
         // TODO: should link to fa2/tokenid
-        navigate(DirectoryUtils.itemLink(token_key.id.toNumber()));
+        navigate(DirectoryUtils.itemLink(token_key));
     }
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {

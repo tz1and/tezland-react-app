@@ -43,8 +43,8 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
         <Route path="event/:eventTag/:eventLabel" element={<EventMap />} />
 
         <Route path="u/:address" element={<User />} />
-        <Route path="i/:id" element={<Item />} />
-        <Route path="p/:id" element={<PlacePage />} />
+        <Route path="i/:fa2/:id" element={<Item />} />
+        <Route path="p/:fa2/:id" element={<PlacePage />} />
         <Route path="t/:tag" element={<Tag />} />
 
         <Route path="new">

@@ -29,7 +29,7 @@ export const Collection: React.FC<CollectionProps> = (props) => {
 
     const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
         // TODO: should link to fa2/tokenid
-        navigate(DirectoryUtils.itemLink(token_key.id.toNumber()));
+        navigate(DirectoryUtils.itemLink(token_key));
     }
 
     /*const handleBurn = (item_id: number) => {

@@ -32,7 +32,7 @@ export const Places: React.FC<PlacesProps> = (props) => {
 
     const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
         // TODO: should link to fa2/tokenid
-        navigate(DirectoryUtils.placeLink(token_key.id.toNumber()));
+        navigate(DirectoryUtils.placeLink({ id: token_key.id.toNumber(), fa2: token_key.fa2 }));
     }
 
     /*const handleTransfer = (item_id: number, quantity: number) => {
