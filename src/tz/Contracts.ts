@@ -20,10 +20,18 @@ import TokenKey from "../utils/TokenKey";
 export const ALL_WORLD_EP_NAMES = ["get_item", "place_items", "update_place_props", "remove_items", "set_item_data"];
 
 
+type PlaceLimits = {
+    chunk_limit: number;
+    chunk_item_limit: number
+}
+
+
 export class Contracts {
     public worldContract: Contract | null;
     private places: Contract | null;
     private minter: Contract | null;
+
+    private allowedPlaceTokens = new Map<String, PlaceLimits>()
 
     constructor() {
         this.worldContract = null;
@@ -80,6 +88,20 @@ export class Contracts {
 
       return !balanceRes.isZero();
     }*/
+
+    public async getWorldAllowedPlaceTokens(walletProvider: ITezosWalletProvider) {
+        const current_world = await this.get_world_contract_read(walletProvider);
+
+        const res: MichelsonMap<string, any> = await current_world.contractViews.get_allowed_place_tokens().executeView({ viewCaller: current_world.address });
+
+        this.allowedPlaceTokens.clear();
+        for (const [key, value] of res.entries()) {
+            this.allowedPlaceTokens.set(key, {
+                chunk_limit: value.chunk_limit.toNumber(),
+                chunk_item_limit: value.chunk_item_limit.toNumber()
+            });
+        }
+    }
 
     private async get_world_contract_read(walletProvider: ITezosWalletProvider) {
         if (!this.worldContract)
@@ -449,8 +471,8 @@ export class Contracts {
         }
 
         // TODO: get limits from contract! Store them in world.
-        const chunk_limit = 2;
-        const chunk_item_limit = 64;
+        const placeLimits = this.allowedPlaceTokens.get(place_node.placeKey.fa2);
+        if (!placeLimits) throw new Error(`No place limits for ${place_node.placeKey.fa2}.`);
 
         // TODO: Could be improved by adding preference for finding chunks
         // that contain tokens of the same type!
@@ -458,7 +480,7 @@ export class Contracts {
             // Iterate over all (allocated) chunks to find a
             // free spot for the item.
             for (const [key, value] of chunk_item_counts) {
-                if (value < chunk_item_limit) {
+                if (value < placeLimits.chunk_item_limit) {
                     chunk_item_counts.set(key, value + 1);
                     return new BigNumber(key);
                 }
@@ -467,10 +489,10 @@ export class Contracts {
             // If we get here, all (allocated) chunks are full.
             // Find a chunk id that hasn't been allocated and
             // return it.
-            if (chunk_item_counts.size >= chunk_limit)
+            if (chunk_item_counts.size >= placeLimits.chunk_limit)
                 throw new Error("Place chunk and chunk item limit reached.")
 
-            for (let chunk_id = 0; chunk_id < chunk_limit; ++chunk_id) {
+            for (let chunk_id = 0; chunk_id < placeLimits.chunk_limit; ++chunk_id) {
                 if (!chunk_item_counts.has(chunk_id)) {
                     chunk_item_counts.set(chunk_id, 1);
                     return new BigNumber(chunk_id);

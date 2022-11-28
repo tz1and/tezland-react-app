@@ -8,6 +8,7 @@ import { Vector3 } from '@babylonjs/core';
 import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
 import TokenKey from '../utils/TokenKey';
+import Contracts from '../tz/Contracts';
 
 
 type VirtualSpaceProps = {
@@ -80,8 +81,9 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
             return;
         }
 
-        BabylonUtils.createEngine(this.mount.current).then(engine => {
+        BabylonUtils.createEngine(this.mount.current).then(async (engine) => {
             try {
+                await Contracts.getWorldAllowedPlaceTokens(this.context);
                 this.setState({game: new Game(engine, this.props.appControl, this.context)});
             }
             catch(err: any) {
