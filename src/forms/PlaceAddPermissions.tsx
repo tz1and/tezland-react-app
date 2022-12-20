@@ -19,6 +19,7 @@ interface PlaceAddPermissionsFormValues {
     permissionPlaceItems: boolean;
     permissionModifyAll: boolean;
     permissionProps: boolean;
+    permissionOwnerProps: boolean;
     permissionCanSell: boolean;
     permissionFull: boolean;
 }
@@ -44,6 +45,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
         permissionPlaceItems: false,
         permissionModifyAll: false,
         permissionProps: false,
+        permissionOwnerProps: false,
         permissionCanSell: false,
         permissionFull: false
     };
@@ -55,6 +57,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
             setFieldValue("permissionPlaceItems", true);
             setFieldValue("permissionModifyAll", true);
             setFieldValue("permissionProps", true);
+            setFieldValue("permissionOwnerProps", true);
             setFieldValue("permissionCanSell", true);
         }
     };
@@ -82,10 +85,12 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                     const permPlaceItems = 1;
                     const permModifyAll  = 2;
                     const permProps      = 4;
-                    //const permCanSell    = 8;
+                    const permOwnerProps = 8;
+                    //const permCanSell    = 16;
                     if (values.permissionPlaceItems) permissions |= permPlaceItems;
                     if (values.permissionModifyAll) permissions |= permModifyAll;
                     if (values.permissionProps) permissions |= permProps;
+                    if (values.permissionOwnerProps) permissions |= permOwnerProps;
                     //if (values.permissionCanSell) permissions |= permCanSell;
                 }
                 
@@ -134,6 +139,11 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                             <label htmlFor="permissionProps" className="form-label">Edit Props <div id="permissionPropsHelp" className="form-text">Can edit Place properties.</div></label>
                         </div>
 
+                        <div>
+                            <Field id="permissionOwnerProps" name="permissionOwnerProps" type="checkbox" className="form-check-input me-2" aria-describedby="permissionOwnerPropsHelp" disabled={isSubmitting || values.permissionFull}/>
+                            <label htmlFor="permissionOwnerProps" className="form-label">Edit Owner Props <div id="permissionOwnerPropsHelp" className="form-text">Can edit Place owner properties.<br/><span className='text-danger'>WARNING: Granting this permission is dangerous.</span></div></label>
+                        </div>
+
                         {/*<div>
                             <Field id="permissionCanSell" name="permissionCanSell" type="checkbox" className="form-check-input me-2" aria-describedby="permissionCanSellHelp" disabled={isSubmitting || values.permissionFull}/>
                             <label htmlFor="permissionCanSell" className="form-label">Can Sell <div id="permissionCanSellHelp" className="form-text">Can place for sale items.</div></label>
@@ -142,7 +152,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                         <div>
                             <Field id="permissionFull" name="permissionFull" type="checkbox" className="form-check-input me-2" aria-describedby="permissionFullHelp" disabled={isSubmitting}
                                 onChange={(e: React.ChangeEvent<any>) => { handleChange(e); onFullPermissionsChange(e, setFieldValue); }}/>
-                            <label htmlFor="permissionFull" className="form-label">Full Permissions <div id="permissionFullHelp" className="form-text">All of the other permissions.</div></label>
+                            <label htmlFor="permissionFull" className="form-label">Full Permissions <div id="permissionFullHelp" className="form-text">All of the other permissions.<br/><span className='text-danger'>WARNING: Granting this permission is dangerous.</span></div></label>
                         </div>
                         
                         <button type="submit" className={`btn btn-${triHelper(state.successState, "danger", "primary", "success")}`} disabled={isSubmitting || !isValid}>

@@ -73,8 +73,9 @@ export class PlacePermissions {
     public static permissionPlaceItems: number = 1;
     public static permissionModifyAll: number  = 2;
     public static permissionProps: number      = 4;
-    //public static permissionCanSell: number    = 8;
-    public static permissionFull: number       = 7; // 15 with CanSell
+    public static permissionOwnerProps: number = 8;
+    //public static permissionCanSell: number    = 16;
+    public static permissionFull: number       = 15; // 31 with CanSell
 
     constructor(permissions: number) {
         this._permissions = permissions;
@@ -86,13 +87,14 @@ export class PlacePermissions {
     public hasPlaceItems() { return (this._permissions & PlacePermissions.permissionPlaceItems) === PlacePermissions.permissionPlaceItems; }
     public hasModifyAll() { return (this._permissions & PlacePermissions.permissionModifyAll) === PlacePermissions.permissionModifyAll; }
     public hasProps() { return (this._permissions & PlacePermissions.permissionProps) === PlacePermissions.permissionProps; }
+    public hasOwnerProps() { return (this._permissions & PlacePermissions.permissionOwnerProps) === PlacePermissions.permissionOwnerProps; }
     public hasFull() { return (this._permissions & PlacePermissions.permissionFull) === PlacePermissions.permissionFull; }
 
     public toString(): string {
         if (!this.hasAny()) return "None";
         if (this.hasFull()) return "Full";
 
-        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasModifyAll())}, Props:${yesNo(this.hasProps())}`;
+        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasModifyAll())}, Props:${yesNo(this.hasProps())}, OwnerProps:${yesNo(this.hasOwnerProps())}`;
     }
 };
 
