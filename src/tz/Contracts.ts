@@ -215,8 +215,7 @@ export class Contracts {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("burnItem: No wallet connected");
 
-        // TODO: get contract from tokenkey
-        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
+        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(tokenKey.fa2);
 
         try {
             const burn_item_op = await itemsWallet.methodsObject.burn([{
@@ -237,8 +236,7 @@ export class Contracts {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("transferItem: No wallet connected");
 
-        // TODO: get contract from tokenkey
-        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
+        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(tokenKey.fa2);
 
         try {
             const transfer_item_op = await itemsWallet.methodsObject.transfer([{

@@ -88,9 +88,9 @@ export const TransferForm: React.FC<TransferFormProps> = (props) => {
                     return (
                         <Form>
                             <div className="mb-3">
-                                <label htmlFor="tokenKey" className="form-label">Item ID</label>
-                                <Field id="tokenKey" name="tokenKey" type="number" className="form-control" aria-describedby="tokenKeyHelp" disabled={true} />
-                                <div id="tokenKeyHelp" className="form-text">The id of the item you want to transfer. Must be owned.</div>
+                                <label htmlFor="tokenKey" className="form-label">Token Key</label>
+                                <Field id="tokenKey" name="tokenKey" type="string" className="form-control" aria-describedby="tokenKeyHelp" disabled={true} />
+                                <div id="tokenKeyHelp" className="form-text">The key of the item you want to transfer. Must be owned.</div>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="itemAmount" className="form-label">Amount</label>
