@@ -167,7 +167,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                     </div>}
                                 </div>
                             </div>
-                            <div className="form-text mb-3">There is a 2.5% management fee on successful swaps.</div>
+                            <div className="form-text mb-3">There is a 3.5% platform fee on successful swaps.</div>
                             <button type="submit" className="btn btn-primary mb-3" disabled={isSubmitting || !isValid}>place Item</button><br/>
                             <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>Placed Items are transferred to the World contract, but are<br/>retrievable only by you (the owner) or a potential new owner.</div>
                         </Form>

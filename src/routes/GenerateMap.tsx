@@ -99,7 +99,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                                 royalties: {
                                     decimals: 3,
                                     shares: new Map([
-                                        [Conf.fees_address, 25]
+                                        [Conf.fees_address, 100]
                                     ])
                                 }
                             }));

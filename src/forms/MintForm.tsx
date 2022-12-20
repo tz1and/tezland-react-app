@@ -182,7 +182,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                 decimals: 3,
                 shares: new Map([
                     [this.context.walletPHK(), Math.floor(values.itemRoyalties * 10)],
-                    [Conf.fees_address, 25]
+                    [Conf.fees_address, 35]
                 ])
             }
         });

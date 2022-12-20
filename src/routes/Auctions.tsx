@@ -213,7 +213,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <h1>Place Auctions</h1>
                     <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>
                     <p>Listings are price drop (dutch) auctions, the price lowering continually to an end price. Auctions remain active unless cancelled, they can be cancelled by the creator before a bid.</p>
-                    <p>Price drops once every 60 seconds. There is a 2.5% management fee on successful bids.</p>
+                    <p>Price drops once every 60 seconds. There is a 6% management fee on successful bids.</p>
                     { this.state.whitelist_enabled ? <p><b>For primary actions, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> : null }
                     { this.state.secondary_enabled || DutchAuction.isAdministrator(this.context, this.state.administrator) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
                     <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 60tez. It may be worth waiting.</p>

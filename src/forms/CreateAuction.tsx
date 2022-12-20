@@ -282,7 +282,7 @@ Place type: {res.placeType}</small>;
                                         <div id="endPriceHelp" className="form-text">The end price for the auction. Must be &lt; starting price.</div>
                                         <ErrorMessage name="endPrice" children={this.errorDisplay}/>
                                     </div>
-                                    <div className="form-text mb-3">There is a 2.5% management fee on successful bids.</div>
+                                    <div className="form-text mb-3">There is a 6% platform fee on successful bids.</div>
                                     <button type="submit" className={`btn btn-${triHelper(this.state.successState, "danger", "primary", "success")} mb-3`} disabled={isSubmitting || !isValid}>
                                         {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} Create Auction
                                     </button><br/>
