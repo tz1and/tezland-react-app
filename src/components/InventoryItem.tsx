@@ -72,7 +72,16 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                             Royalties: {token_data.royalties === 0 ? 0 : (token_data.royalties / 10).toFixed(2)}{"\u0025"}<br/>
                             Minter: </p>
                         <p className="card-text small text-muted">{truncateAddress(token_data.minterId)}</p>
-                        <p className="card-text text-end" style={{fontSize: '0.6rem'}}>Token ID: {token_data.tokenId}</p>
+                        <div className="card-text container text-center mx-0 px-0" style={{fontSize: '0.6rem'}}>
+                            <div className="row gx-0">
+                                <div className="col text-start">Collection</div>
+                                <div className="col text-end">{truncateAddress(token_data.contract.address)}</div>
+                            </div>
+                            <div className="row gx-0">
+                                <div className="col text-start">Token ID</div>
+                                <div className="col text-end">{token_data.tokenId}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
