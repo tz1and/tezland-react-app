@@ -1,5 +1,5 @@
 query getNewMints($offset: Int!, $amount: Int!) {
-    itemToken(limit: $amount, offset: $offset, order_by: {tokenId: desc}) 
+    itemToken(limit: $amount, offset: $offset, order_by: {level: desc}) 
     {
         ...ItemTokenSelect
     }

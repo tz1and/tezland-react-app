@@ -57,7 +57,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                 </Popover>
             }
         >
-            <div className={`card m-2 inventory-item ${balanceColor}`} id={token_data.tokenId.toString()}>
+            <div className={`card m-2 inventory-item ${balanceColor}`} id={token_key.toString()}>
                 <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
                     { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_key, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
                     { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_key, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }

@@ -1,5 +1,5 @@
 query getUserCollection($address: String!, $offset: Int!, $amount: Int!) {
-    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {token: {tokenId: desc}}) {
+    itemTokenHolder(where: {holderId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {token: {level: desc}}) {
         quantity
         token {
             ...ItemTokenSelect
@@ -8,7 +8,7 @@ query getUserCollection($address: String!, $offset: Int!, $amount: Int!) {
 }
 
 query getUserCreations($address: String!, $offset: Int!, $amount: Int!) {
-    itemToken(where: {minterId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
+    itemToken(where: {minterId: {_eq: $address}}, limit: $amount, offset: $offset, order_by: {level: desc}) {
         ...ItemTokenSelect
     }
 }
@@ -20,7 +20,7 @@ query getUserPlaces($address: String!, $contracts: [String!]!, $offset: Int!, $a
             token: {
                 contract: { address: {_in: $contracts} }
             }
-        }, limit: $amount, offset: $offset, order_by: {token: {tokenId: desc}}) {
+        }, limit: $amount, offset: $offset, order_by: {token: {level: desc}}) {
         token {
             tokenId
             contract {
