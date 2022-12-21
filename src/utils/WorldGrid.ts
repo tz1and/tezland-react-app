@@ -49,7 +49,7 @@ export default class WorldGrid {
                                 grapphQLUser.getWorldGridCell({gridHash: gridHash, fa2: Conf.place_contract}).then((data) => {
                                         const places_in_cell: number[] = [];
                                         for (const placeToken of data.placeTokenMetadata)
-                                            places_in_cell.push(placeToken.placeToken[0].tokenId);
+                                            places_in_cell.push(placeToken.token[0].tokenId);
 
                                         const cell = { places: places_in_cell, worldPlaceCount: worldPlaceCount };
 

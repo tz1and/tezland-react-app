@@ -77,7 +77,7 @@ export const Search: React.FC<SearchProps> = (props) => {
         // format so it fits the result the format the token components expect.
         const formatted: FetchDataResultArray = []
         for (const res of results.slice(dataOffset, dataOffset + fetchAmount)) {
-            formatted.push({token: res.itemToken[0]});
+            formatted.push({token: res.token[0]});
         }
 
         return formatted;

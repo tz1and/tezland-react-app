@@ -4,7 +4,7 @@ query searchByStrings($regex_terms: String!) {
     }
 
     itemTokenMetadata(where: {name: {_iregex: $regex_terms}, _or: {description: {_iregex: $regex_terms}}}) {
-        itemToken {
+        token {
             ...ItemTokenSelect
         }
     }

@@ -19,8 +19,8 @@ query countPlaces($fa2: String!) {
 }
 
 query getWorldGridCell($gridHash: String!, $fa2: String!) {
-    placeTokenMetadata(where: { gridHash: { _eq: $gridHash }, placeToken: { contract: { address: { _eq: $fa2 } } } }) {
-        placeToken {
+    placeTokenMetadata(where: { gridHash: { _eq: $gridHash }, token: { contract: { address: { _eq: $fa2 } } } }) {
+        token {
             tokenId
         }
     }
