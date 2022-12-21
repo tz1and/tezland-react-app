@@ -15,7 +15,7 @@ import TokenKey from "./TokenKey";
 
 
 class ArtifactMemCache {
-    private artifactCache: Map<number, Promise<AssetContainer>>;
+    private artifactCache: Map<string, Promise<AssetContainer>>;
     private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
 
     /**
@@ -74,14 +74,14 @@ class ArtifactMemCache {
 
     // TODO: take TokenKey
     public async loadFromFile(file: File, token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
-        const token_id_number = token_id.toNumber();
+        const token_key = new TokenKey(token_id, "internalitem");
         // check if we have this item in the scene already.
         // Otherwise, download it.
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
-        let assetPromise = this.artifactCache.get(token_id_number);
+        let assetPromise = this.artifactCache.get(token_key.toString());
         if(assetPromise) {
             (await assetPromise).dispose();
-            this.artifactCache.delete(token_id_number);
+            this.artifactCache.delete(token_key.toString());
         }
 
         var mime_type;
@@ -97,14 +97,14 @@ class ArtifactMemCache {
             baseScale: 1
         } as ItemTokenMetadata}, scene);
 
-        this.artifactCache.set(token_id_number, assetPromise);
+        this.artifactCache.set(token_key.toString(), assetPromise);
 
         let asset;
         try {
             asset = await assetPromise;
         } catch(e: any) {
             // If the asset fails to resolve, remove the promise from cache.
-            this.artifactCache.delete(token_id_number);
+            this.artifactCache.delete(token_key.toString());
             throw e;
         }
 
@@ -132,11 +132,10 @@ class ArtifactMemCache {
     public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
         assert(this.workerThread);
 
-        const token_id_number = token_key.id.toNumber();
         // check if we have this item in the scene already.
         // Otherwise, download it.
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
-        let assetPromise = this.artifactCache.get(token_id_number);
+        let assetPromise = this.artifactCache.get(token_key.toString());
         if(!assetPromise) {
             const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
@@ -147,7 +146,7 @@ class ArtifactMemCache {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
             }*/
 
-            this.artifactCache.set(token_id_number, assetPromise);
+            this.artifactCache.set(token_key.toString(), assetPromise);
         }
         //else Logging.InfoDev("mesh found in cache");
 
@@ -156,7 +155,7 @@ class ArtifactMemCache {
             asset = await assetPromise;
         } catch(e: any) {
             // If the asset fails to resolve, remove the promise from cache.
-            this.artifactCache.delete(token_id_number);
+            this.artifactCache.delete(token_key.toString());
             throw e;
         }
 
@@ -178,7 +177,7 @@ class ArtifactMemCache {
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
         const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
-        instance.rootNodes[0].name = `item${token_id_number}_clone`;
+        instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;
 
         this.itemsLoaded = true;
@@ -187,7 +186,9 @@ class ArtifactMemCache {
     }
 
     public async loadOther(id: number, fileName: string, scene: Scene, parent: TransformNode) {
-        let assetPromise = this.artifactCache.get(id);
+        const token_key = TokenKey.fromNumber(id, "internalitem");
+
+        let assetPromise = this.artifactCache.get(token_key.toString());
         if(!assetPromise) {
             // TODO: make sure glb file is pre-processed!
             assetPromise = SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
@@ -196,7 +197,7 @@ class ArtifactMemCache {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
             }*/
     
-            this.artifactCache.set(id, assetPromise);
+            this.artifactCache.set(token_key.toString(), assetPromise);
         }
         //else Logging.InfoDev("mesh found in cache");
 
@@ -205,7 +206,7 @@ class ArtifactMemCache {
             asset = await assetPromise;
         } catch(e: any) {
             // If the asset fails to resolve, remove the promise from cache.
-            this.artifactCache.delete(id);
+            this.artifactCache.delete(token_key.toString());
             throw e;
         }
 
