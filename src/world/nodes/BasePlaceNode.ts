@@ -337,6 +337,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 Object.setPrototypeOf(element.data.item.rate, BigNumber.prototype);
                 Object.setPrototypeOf(element.data.item.amount, BigNumber.prototype);
 
+                const fa2 = element.fa2;
                 const issuer = element.issuer;
                 const chunk_id = new BigNumber(element.chunk_id);
                 const chunk_id_num = chunk_id.toNumber();
@@ -363,7 +364,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 }
                 else {
                     try {
-                        const itemNode = ItemNode.CreateItemNode(this, new TokenKey(token_id, Conf.item_contract), this.world.game.scene, this._itemsNode);
+                        const itemNode = ItemNode.CreateItemNode(this, new TokenKey(token_id, fa2), this.world.game.scene, this._itemsNode);
                         itemNode.updateFromData(item_data);
 
                         // Set issuer, etc.
