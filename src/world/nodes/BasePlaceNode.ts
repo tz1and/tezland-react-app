@@ -13,7 +13,6 @@ import ItemTracker from "../../controllers/ItemTracker";
 import AppSettings from "../../storage/AppSettings";
 import { SimpleMaterial } from "@babylonjs/materials";
 import assert from "assert";
-import Conf from "../../Config";
 import TokenKey from "../../utils/TokenKey";
 
 
