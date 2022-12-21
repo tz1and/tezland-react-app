@@ -49,8 +49,8 @@ query getItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
     }
 }
 
-query getItemTags($id: bigint!) {
-    tag(where: {tagMap: {itemMetadataId: {_eq: $id}}}) {
+query getItemTags($fa2: String!, $id: bigint!) {
+    tag(where: {tagMap: {itemMetadata: {token: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}}}) {
         name
     }
 }

@@ -18,7 +18,7 @@ export const ItemTags: React.FC<ItemTagsProps> = (props) => {
 
     useEffect(() => {
         // TODO: needs FA2
-        grapphQLUser.getItemTags({id: props.tokenKey.id.toNumber()}).then(res => {
+        grapphQLUser.getItemTags({id: props.tokenKey.id.toNumber(), fa2: props.tokenKey.fa2}).then(res => {
             setItemTags(res);
         })
     }, [props.tokenKey])
