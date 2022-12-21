@@ -33,16 +33,18 @@ query getUserPlaces($address: String!, $contracts: [String!]!, $offset: Int!, $a
     }
 }
 
-query getInventoryTokensWithBalances($address: String!, $ids: [bigint!]!) {
-    itemTokenHolder(where: {token: {tokenId: {_in: $ids}}, holderId: {_eq: $address}}) {
+# These two queries are for item balance tracking.
+# I'm sure it can be done in a simpler way.
+query getInventoryTokensWithBalances($address: String!, $fa2: String!, $ids: [bigint!]!) {
+    itemTokenHolder(where: {token: {tokenId: {_in: $ids}, contract: {address: {_eq: $fa2}}}, holderId: {_eq: $address}}) {
         token {
             tokenId
         }
     }
 }
 
-query getInventoryTokensWithoutBalance($ids: [bigint!]!) {
-    itemToken(where: {tokenId: {_in: $ids}}) {
+query getInventoryTokensWithoutBalance($fa2: String!, $ids: [bigint!]!) {
+    itemToken(where: {tokenId: {_in: $ids}, contract: {address: {_eq: $fa2}}}) {
         ...ItemTokenSelect
     }
 }

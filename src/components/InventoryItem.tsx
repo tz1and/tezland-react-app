@@ -30,10 +30,12 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
     else quantity = item_data.quantity;
 
+    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contract.address);
+
     let itemTrackedBalance = "";
     let balanceColor = "";
     if (props.trackItems) {
-        const trackedItemBalance = -ItemTracker.getTempItemTrack(token_data.tokenId);
+        const trackedItemBalance = -ItemTracker.getTempItemTrack(token_key);
         if (trackedItemBalance !== 0) itemTrackedBalance = `(${numberWithSign(trackedItemBalance)})`;
 
         if (props.isTempItem) balanceColor = "bg-success-light";
@@ -42,8 +44,6 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
         if (totalItemBalance < 0) balanceColor = "bg-danger-light";
         else if (totalItemBalance === 0) balanceColor = "bg-warning-light";
     }
-
-    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contract.address);
 
     return (
         <OverlayTrigger

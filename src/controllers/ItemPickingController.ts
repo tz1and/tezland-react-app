@@ -261,7 +261,7 @@ export default class ItemPickingController extends BaseUserController {
 
                                 // track removed items.
                                 // TODO: set issuer on temp items and avoid code duplication.
-                                ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey.id.toNumber(), -current_item.itemAmount);
+                                ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey, -current_item.itemAmount);
                             }
                             // Otherwise mark it for removal.
                             else {
@@ -271,7 +271,7 @@ export default class ItemPickingController extends BaseUserController {
                                 // track removed items.
                                 // only track items that go to the players wallet.
                                 if (current_item.issuer === this.playerController.game.walletProvider.walletPHK()) {
-                                    ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey.id.toNumber(), -current_item.itemAmount);
+                                    ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey, -current_item.itemAmount);
                                 }
                             }
                         }

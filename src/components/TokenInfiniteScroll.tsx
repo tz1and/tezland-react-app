@@ -41,7 +41,7 @@ export type FetchDataPlaceToken = {
 }
 
 export type FetchDataResult<T> = {
-    key?: number;
+    key?: string | number;
     token: T;
     quantity?: number;
     swapInfo?: FetchDataSwapInfo;

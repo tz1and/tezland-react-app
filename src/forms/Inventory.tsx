@@ -47,7 +47,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
     private static FetchAmount: number = 20;
 
     private trackedRemovals: FetchDataResult<FetchDataItemToken>[] = []; // TODO: array should belong to state!
-    private itemMap: Map<number, FetchDataResult<FetchDataItemToken>> = new Map(); // TODO: map should belong to state!
+    private itemMap: Map<string, FetchDataResult<FetchDataItemToken>> = new Map(); // TODO: map should belong to state!
 
     override componentDidMount() {
         this.fetchAvailableTempRemovals().then((res) => {
@@ -81,32 +81,37 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
         // get tracked ids from ItemTokenTracker
         const trackedIds = ItemTracker.getTrackedTempItems();
 
-        if (trackedIds.length === 0) return [];
+        // NOTE: this code is n² on fa2s and pretty nasty.
+        // Can probably be improved, I just don't know how right now.
+
+        if (trackedIds.size === 0) return [];
 
         try {
-            // Fetch tokens with a balance.
-            const tokensWithBalance = await grapphQLUser.getInventoryTokensWithBalances({
-                address: this.context.walletPHK(), ids: trackedIds });
-
-            // Find all tracked tokens that don't have a balance.
-            const tokensWithoutBalance: number[] = [];
-
-            for (const tracked of trackedIds) {
-                if (!tokensWithBalance.itemTokenHolder.find((e) => e.token.tokenId === tracked))
-                    tokensWithoutBalance.push(tracked);
-            }
-
-            if(tokensWithoutBalance.length === 0) return [];
-
-            // Fetch the metadata for those tokens
-            const data = await grapphQLUser.getInventoryTokensWithoutBalance({ ids: tokensWithoutBalance });
-
-            // trasnform it into the format we expect
             const result: FetchDataResult<FetchDataItemToken>[] = [];
-            for (const item of data.itemToken) {
-                result.push({ quantity: 0, token: item })
+            for (const [fa2, idSet] of trackedIds) {
+                // Fetch tokens with a balance.
+                const tokensWithBalance = await grapphQLUser.getInventoryTokensWithBalances({
+                    address: this.context.walletPHK(), fa2: fa2, ids: [...idSet.values()] });
+
+                // Find all tracked tokens that don't have a balance.
+                const tokensWithoutBalance: number[] = [];
+
+                for (const tracked of idSet) {
+                    if (!tokensWithBalance.itemTokenHolder.find((e) => e.token.tokenId === tracked))
+                        tokensWithoutBalance.push(tracked);
+                }
+
+                if(tokensWithoutBalance.length === 0) continue;
+
+                // Fetch the metadata for those tokens
+                const data = await grapphQLUser.getInventoryTokensWithoutBalance({ fa2: fa2, ids: tokensWithoutBalance });
+
+                // trasnform it into the format we expect
+                for (const item of data.itemToken) {
+                    result.push({ key: TokenKey.fromNumber(item.tokenId, item.contract.address).toString(), quantity: 0, token: item })
+                }
             }
-            
+
             return result;
         } catch(e: any) {
             Logging.InfoDev("failed to fetch tokens without balance: " + e.message);
@@ -116,7 +121,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private fetchData = () => {
         this.fetchInventory().then((res) => {
-            for (const r of res) this.itemMap.set(r.token.tokenId, r);
+            for (const r of res) this.itemMap.set(TokenKey.fromNumber(r.token.tokenId, r.token.contract.address).toString(), r);
             const more_data = res.length === Inventory.FetchAmount;
             this.setState({
                 item_offset: this.state.item_offset + Inventory.FetchAmount,
@@ -149,8 +154,8 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
         const items: JSX.Element[] = []
         if (!error) {
-            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.token.tokenId} onSelect={this.handleClick} item_metadata={item} trackItems={true} isTempItem={true} />))
-            this.itemMap.forEach(item => items.push(<InventoryItem key={item.token.tokenId} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} />))
+            this.trackedRemovals.forEach(item => items.push(<InventoryItem key={item.key} onSelect={this.handleClick} item_metadata={item} trackItems={true} isTempItem={true} />))
+            this.itemMap.forEach((item, key) => items.push(<InventoryItem key={key} onSelect={this.handleClick} onBurn={this.handleBurn} onTransfer={this.handleTransfer} item_metadata={item} trackItems={true} />))
         }
 
         let content = error ? <h5 className='mt-3'>{error}</h5> : items;

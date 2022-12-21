@@ -1,10 +1,12 @@
 import { Logging } from "../utils/Logging";
+import TokenKey from "../utils/TokenKey";
 
 type TempItem = {
+    tokenKey: TokenKey;
     count: number;
 }
 
-type TempItemsMap = Map<number, TempItem>;
+type TempItemsMap = Map<string, TempItem>;
 
 type PlaceMap = Map<number, TempItemsMap>;
 
@@ -22,10 +24,10 @@ class ItemTracker {
      * @param itemId 
      * @param count Can be negative.
      */
-    public trackTempItem(placeId: number, itemId: number, count: number) {
+    public trackTempItem(placeId: number, tokenKey: TokenKey, count: number) {
         const tempItemsMap = this.getOrAddTempItemsMap(placeId);
 
-        this.addItemToTempItemsMap(tempItemsMap, itemId, count);
+        this.addItemToTempItemsMap(tempItemsMap, tokenKey, count);
 
         // Remove place if it tracks no items.
         if (tempItemsMap.size === 0) this.placeMap.delete(placeId);
@@ -35,10 +37,10 @@ class ItemTracker {
      * Returns the count for a certain item in all places.
      * @param itemId 
      */
-    public getTempItemTrack(itemId: number): number {
+    public getTempItemTrack(tokenKey: TokenKey): number {
         let trackedCount = 0;
         for (const p of this.placeMap.values()) {
-            const i = p.get(itemId);
+            const i = p.get(tokenKey.toString());
             if (i) trackedCount += i.count;
         }
 
@@ -46,18 +48,23 @@ class ItemTracker {
     }
 
     /**
-     * returns a list of all tracked items in all places.
+     * returns a map of fa2 to list of ids of all tracked items in all places.
      */
-    public getTrackedTempItems(): number[] {
-        const itemSet = new Set<number>();
+    public getTrackedTempItems(): Map<string, Set<number>> {
+        const fa2ToIdsMap = new Map<string, Set<number>>()
 
         for (const p of this.placeMap.values()) {
-            for (const id of p.keys()) {
-                itemSet.add(id);
+            for (const tempItem of p.values()) {
+                const idSet = fa2ToIdsMap.get(tempItem.tokenKey.fa2);
+                if (idSet !== undefined)
+                    idSet.add(tempItem.tokenKey.id.toNumber());
+                else {
+                    fa2ToIdsMap.set(tempItem.tokenKey.fa2, new Set([tempItem.tokenKey.id.toNumber()]));
+                }
             }
         }
 
-        return [...itemSet.values()];
+        return fa2ToIdsMap;
     }
 
     /**
@@ -72,18 +79,18 @@ class ItemTracker {
         Logging.Info(this.placeMap);
     }
 
-    private addItemToTempItemsMap(tempItemsMap: TempItemsMap, itemId: number, count: number) {
-        let tempItem = tempItemsMap.get(itemId)
+    private addItemToTempItemsMap(tempItemsMap: TempItemsMap, tokenKey: TokenKey, count: number) {
+        let tempItem = tempItemsMap.get(tokenKey.toString())
         if (tempItem) {
             tempItem.count += count;
 
             // remove when it hits 0
-            if (tempItem.count === 0) tempItemsMap.delete(itemId);
+            if (tempItem.count === 0) tempItemsMap.delete(tokenKey.toString());
             return;
         }
 
-        tempItem = { count: count };
-        tempItemsMap.set(itemId, tempItem);
+        tempItem = { tokenKey: tokenKey, count: count };
+        tempItemsMap.set(tokenKey.toString(), tempItem);
     }
 
     private getOrAddTempItemsMap(placeId: number): TempItemsMap {

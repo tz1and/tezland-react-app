@@ -133,7 +133,7 @@ export default class ItemPlacementController extends BaseUserController {
                     this.currentItem !== undefined && this.tempObject && this.tempObject.isEnabled()) {
 
                     // check item balance
-                    const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem.id.toNumber());
+                    const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem);
                     if (currentItemBalance <= 0) {
                         // TODO: notification on insufficient balance.
                         this.playerController.appControlFunctions.addNotification({
