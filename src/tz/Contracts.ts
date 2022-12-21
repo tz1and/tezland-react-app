@@ -189,17 +189,16 @@ export class Contracts {
 
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
-        const contributors = royalties === 0 ? [] : [
-            { address: walletProvider.walletPHK(), relative_royalties: 1000, role: { minter: null } }
-        ];
+        const royalty_shares = MichelsonMap.fromLiteral({
+            [walletProvider.walletPHK()]: Math.floor(royalties * 10) // tz1and item royalties are in permille
+        });
 
         try {
-            const mint_item_op = await minterWallet.methodsObject.mint_public_v1({
+            const mint_item_op = await minterWallet.methodsObject.mint_public({
                 collection: Conf.item_contract,
                 to_: walletProvider.walletPHK(),
                 amount: amount,
-                royalties: Math.floor(royalties * 10), // royalties in the minter contract are in permille
-                contributors: contributors,
+                royalties: royalty_shares,
                 metadata: char2Bytes(item_metadata_url)
             }).send();
 
