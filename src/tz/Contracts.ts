@@ -422,7 +422,6 @@ export class Contracts {
 
     public async saveItems(walletProvider: ITezosWalletProvider, remove: ItemNode[], add: ItemNode[], place_node: BasePlaceNode, callback?: (completed: boolean) => void) {
         const current_world = await this.get_world_contract_write(walletProvider);
-        const itemsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.item_contract);
 
         // build remove item map
         // Chunk, issuer, fa2, ids
@@ -502,7 +501,7 @@ export class Contracts {
         // build add item list
         // Chunk, send_to_place, fa2, ids
         const add_item_map: MichelsonMap<BigNumber, MichelsonMap<boolean, MichelsonMap<string, object[]>>> = new MichelsonMap();
-        const item_set = new Set<number>();
+        const operator_map = new Map<string, Set<number>>();
         add.forEach((item) => {
             const chunkId = getChunkIdForItem();
             let send_to_place_map: MichelsonMap<boolean, MichelsonMap<string, object[]>>;
@@ -523,6 +522,11 @@ export class Contracts {
                 send_to_place_map.set(send_to_place, fa2_map)
             }
 
+            // Add to operator map
+            const token_operator_set = operator_map.get(item.tokenKey.fa2)
+            if (token_operator_set) token_operator_set.add(item.tokenKey.id.toNumber());
+            else operator_map.set(item.tokenKey.fa2, new Set([item.tokenKey.id.toNumber()]));
+
             let item_add_array: object[];
             if (fa2_map.has(item.tokenKey.fa2))
                 item_add_array = fa2_map.get(item.tokenKey.fa2)!;
@@ -538,27 +542,31 @@ export class Contracts {
             const item_data = toHexString(ItemDataWriter.write(item));
 
             item_add_array.push({ item: { token_id: tokenKey.id, amount: item_amount, rate: item_price, data: item_data } });
-
-            item_set.add(tokenKey.id.toNumber());
-        });
-
-        // build operator add/remove lists
-        const operator_adds: object[] = [];
-
-        item_set.forEach((token_id) => {
-            operator_adds.push({
-                operator: current_world.address,
-                token_id: token_id
-            });
         });
 
         // prepare batch
         const batch = walletProvider.tezosToolkit().wallet.batch();
 
-        if (operator_adds.length > 0) batch.with([{
-            kind: OpKind.TRANSACTION,
-            ...itemsWallet.methodsObject.update_adhoc_operators({ add_adhoc_operators: operator_adds }).toTransferParams()
-        }]);
+        for (const [fa2, tokens] of operator_map) {
+            // build operator add/remove lists
+            const operator_adds: object[] = [];
+
+            for (const token_id of tokens) {
+                operator_adds.push({
+                    operator: current_world.address,
+                    token_id: token_id
+                });
+            }
+
+            if (operator_adds.length > 0) {
+                const currentItems = await walletProvider.tezosToolkit().wallet.at(fa2);
+
+                batch.with([{
+                    kind: OpKind.TRANSACTION,
+                    ...currentItems.methodsObject.update_adhoc_operators({ add_adhoc_operators: operator_adds }).toTransferParams()
+                }]);
+            }
+        }
 
         // removals first. because of item limit.
         if (remove_item_map.size > 0) batch.with([{
