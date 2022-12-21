@@ -89,7 +89,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                             const centercoords: number[] = [parseFloat((centroid.x + district.center.x).toFixed(4)), 0, parseFloat((centroid.y + district.center.y).toFixed(4))];
 
                             places.push(createPlaceTokenMetadata({
-                                name: `Place #${lot_counter}`,
+                                name: `tz1and Place #${lot_counter}`,
                                 description: `${lot.area().toFixed(2)} \u33A1`,
                                 minter: walletphk,
                                 centerCoordinates: centercoords,
