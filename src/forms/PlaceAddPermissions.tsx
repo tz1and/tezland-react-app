@@ -71,6 +71,10 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                 if (validateAddress(values.permissionsTo) !== ValidationResult.VALID) {
                     errors.permissionsTo = "Address invalid.";
                 }
+                
+                if (!values.permissionPlaceItems && !values.permissionModifyAll && !values.permissionProps && !values.permissionOwnerProps) {
+                    errors.permissionFull = "Can't give no permissions. See 'Remove Permissions' tab.";
+                }
 
                 // revalidation clears trisate and error
                 setState({error: "", successState: 0});
@@ -79,21 +83,17 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
             }}
             onSubmit={(values, actions) => {
                 let permissions = 0;
-                if (values.permissionFull)
-                    permissions = 7;
-                else {
-                    const permPlaceItems = 1;
-                    const permModifyAll  = 2;
-                    const permProps      = 4;
-                    const permOwnerProps = 8;
-                    //const permCanSell    = 16;
-                    if (values.permissionPlaceItems) permissions |= permPlaceItems;
-                    if (values.permissionModifyAll) permissions |= permModifyAll;
-                    if (values.permissionProps) permissions |= permProps;
-                    if (values.permissionOwnerProps) permissions |= permOwnerProps;
-                    //if (values.permissionCanSell) permissions |= permCanSell;
-                }
-                
+                const permPlaceItems = 1;
+                const permModifyAll  = 2;
+                const permProps      = 4;
+                const permOwnerProps = 8;
+                //const permCanSell    = 16;
+                if (values.permissionPlaceItems) permissions |= permPlaceItems;
+                if (values.permissionModifyAll) permissions |= permModifyAll;
+                if (values.permissionProps) permissions |= permProps;
+                if (values.permissionOwnerProps) permissions |= permOwnerProps;
+                //if (values.permissionCanSell) permissions |= permCanSell;
+
                 Contracts.addPlacePermissions(context, props.place.currentOwner, props.place.placeKey, values.permissionsTo, permissions, (completed: boolean) => {
                     actions.setSubmitting(false);
 

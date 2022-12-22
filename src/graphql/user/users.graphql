@@ -48,3 +48,35 @@ query getInventoryTokensWithoutBalance($fa2: String!, $ids: [bigint!]!) {
         ...ItemTokenSelect
     }
 }
+
+query getHeldPermissions($address: String!, $fa2: String!, $id: bigint!) {
+    holder(where: {address: {_eq: $address}, heldPermissions: {place: {contract: {address: {_eq: $fa2}}, tokenId: {_eq: $id}}}}) {
+        heldPermissions {
+            place {
+                contract {
+                    address
+                }
+                tokenId
+            }
+            ownerId
+            permitteeId
+            premissions
+        }
+    }
+}
+
+query getGivenPermissions($address: String!, $fa2: String!, $id: bigint!) {
+    holder(where: {address: {_eq: $address}, givenPermissions: {place: {contract: {address: {_eq: $fa2}}, tokenId: {_eq: $id}}}}) {
+        givenPermissions {
+            place {
+                contract {
+                    address
+                }
+                tokenId
+            }
+            ownerId
+            permitteeId
+            premissions
+        }
+    }
+}

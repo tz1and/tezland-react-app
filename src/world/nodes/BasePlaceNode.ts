@@ -4,7 +4,7 @@ import earcut from 'earcut';
 import BigNumber from "bignumber.js";
 import Contracts from "../../tz/Contracts";
 import { Logging } from "../../utils/Logging";
-import { mutezToTez, pointIsInside, yesNo } from "../../utils/Utils";
+import { mutezToTez, pointIsInside } from "../../utils/Utils";
 import Metadata, { PlaceTokenMetadata } from "../Metadata";
 import { BaseWorld } from "../BaseWorld";
 import ItemNode, { ItemLoadState } from "./ItemNode";
@@ -93,7 +93,12 @@ export class PlacePermissions {
         if (!this.hasAny()) return "None";
         if (this.hasFull()) return "Full";
 
-        return `PlaceItems:${yesNo(this.hasPlaceItems())}, ModifyAll:${yesNo(this.hasModifyAll())}, Props:${yesNo(this.hasProps())}, OwnerProps:${yesNo(this.hasOwnerProps())}`;
+        const res = [];
+        if (this.hasPlaceItems()) res.push("PlaceItems");
+        if (this.hasModifyAll()) res.push("ModifyAll");
+        if (this.hasProps()) res.push("Props");
+        if (this.hasOwnerProps()) res.push("OwnerProps");
+        return res.join(", ");
     }
 };
 

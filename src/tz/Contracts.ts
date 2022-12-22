@@ -27,16 +27,15 @@ type PlaceLimits = {
 
 
 export class Contracts {
+    // TODO: should be private? use get_world_contract_read!
     public worldContract: Contract | null;
     private places: Contract | null;
-    private minter: Contract | null;
 
     private allowedPlaceTokens = new Map<String, PlaceLimits>()
 
     constructor() {
         this.worldContract = null;
         this.places = null;
-        this.minter = null;
     }
 
     public async subscribeToPlaceChanges(walletProvider: ITezosWalletProvider) {
@@ -103,7 +102,7 @@ export class Contracts {
         }
     }
 
-    private async get_world_contract_read(walletProvider: ITezosWalletProvider) {
+    public async get_world_contract_read(walletProvider: ITezosWalletProvider) {
         if (!this.worldContract)
             this.worldContract = await walletProvider.tezosToolkit().contract.at(Conf.world_contract);
 
@@ -139,13 +138,13 @@ export class Contracts {
 
     public async addPlacePermissions(walletProvider: ITezosWalletProvider, owner: string, place_key: PlaceKey, permittee: string, permissions: number, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-        if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+        if (!walletProvider.isWalletConnected()) throw new Error("addPlacePermissions: No wallet connected");
 
         const current_world = await this.get_world_contract_write(walletProvider);
 
         try {
             const set_permissions_op = await current_world.methodsObject.set_permissions([{
-                add_permission: {
+                add: {
                     owner: owner,
                     permittee: permittee,
                     place_key: place_key,
@@ -163,13 +162,13 @@ export class Contracts {
 
     public async removePlacePermissions(walletProvider: ITezosWalletProvider, owner: string, place_key: PlaceKey, permittee: string, callback?: (completed: boolean) => void) {
         // note: this is also checked in MintForm, probably don't have to recheck, but better safe.
-        if (!walletProvider.isWalletConnected()) throw new Error("getItem: No wallet connected");
+        if (!walletProvider.isWalletConnected()) throw new Error("removePlacePermissions: No wallet connected");
 
         const current_world = await this.get_world_contract_write(walletProvider);
 
         try {
             const set_permissions_op = await current_world.methodsObject.set_permissions([{
-                remove_permission: {
+                remove: {
                     owner: owner,
                     permittee: permittee,
                     place_key: place_key
