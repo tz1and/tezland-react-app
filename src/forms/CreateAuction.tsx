@@ -303,8 +303,13 @@ Place type: {res.placeType}</small>;
                             <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                             <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
                         </MapContainer>
-                        <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The the Place/Interior <i>will not</i> be transferred to the auction contract on creation. Auctions can be cancelled, but please make sure you really intend to create the auction.</div>
-                        <div className='bg-info bg-warning p-3 text-dark rounded small'>If the place you are auctioning has items in it, you will still be able to access them after creating the auction.<br/><b><i>Some Item's ownership will transfer</i> with the place - Items that are added as "place owned".</b></div>
+                        <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>
+                            The the Place/Interior <i>will not</i> be transferred to the auction contract on creation. Auctions can be cancelled, but please make sure you really intend to create the auction.<br/>
+                            Place ownership transfers on successful bid.
+                        </div>
+                        <div className='bg-info bg-warning p-3 text-dark rounded small'>
+                            If the place you are auctioning has items in it, you will still be able to access them after creating the auction.<br/><b><i>Some Item's ownership will transfer</i> with the place - Items that are added as "place owned".</b>
+                        </div>
                     </div>
                     <div className='col-lg-2 col-md-0'></div>
                 </div>
