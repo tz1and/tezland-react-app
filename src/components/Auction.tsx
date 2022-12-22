@@ -23,6 +23,7 @@ type AuctionProps = {
     startTime: number; // in mutez
     endTime: number;
     owner: string;
+    fa2: string;
     tokenId: number;
     isPrimary: boolean;
     userWhitelisted: boolean;
@@ -95,7 +96,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private bidOnAuction = async () => {
-        await DutchAuction.bidOnAuction(this.context, this.props.auctionId, this.calculateCurrentPrice(), (completed: boolean) => {
+        await DutchAuction.bidOnAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner, this.calculateCurrentPrice(), (completed: boolean) => {
             if (completed) {
                 // Wait a little for the indexer to catch up.
                 this.reloadTimeout = setTimeout(() => {
@@ -106,7 +107,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private cancelAuction = async () => {
-        await DutchAuction.cancelAuction(this.context, this.props.auctionId, (completed: boolean) => {
+        await DutchAuction.cancelAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner, (completed: boolean) => {
             if (completed) {
                 // Wait a little for the indexer to catch up.
                 this.reloadTimeout = setTimeout(() => {
@@ -190,7 +191,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
                 <div className='p-3 text-center'>
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
-                    <h4 className="mb-0">Place #{this.props.tokenId}</h4>
+                    <h4 className="mb-0">{DutchAuction.getPlaceType(this.props.fa2)} #{this.props.tokenId}</h4>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
                     <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>

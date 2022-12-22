@@ -1,11 +1,12 @@
 query getAuctions($last: bigint!, $amount: Int!, $finished: Boolean!, $primaryFilter: [Boolean!]!) {
     dutchAuction(limit: $amount, where: {transientId: {_lt: $last}, finished: {_eq: $finished}, isPrimary: {_in: $primaryFilter}}, order_by: {transientId: desc}) {
+        transientId
         endPrice
         endTime
-        transientId
         ownerId
         startPrice
         startTime
+        fa2
         tokenId
         isPrimary
         finished

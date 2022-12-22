@@ -5,6 +5,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
 import Auction, { discordInviteLink } from '../components/Auction'
 import TezosWalletContext from '../components/TezosWalletContext';
+import Conf from '../Config';
 import { grapphQLUser } from '../graphql/user';
 import DutchAuction from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
@@ -19,12 +20,13 @@ type AuctionsState = {
     more_data: boolean;
     firstFetchDone: boolean;
     last_auction_id: number;
-    user_is_whitelisted: boolean;
+    user_is_whitelisted_places: boolean;
+    user_is_whitelisted_interiors: boolean;
 
     // global contract settings
     secondary_enabled: boolean;
-    whitelist_enabled: boolean;
-    administrator: string;
+    whitelist_settings_places: [boolean, string];
+    whitelist_settings_interiors: [boolean, string];
 
     show_finished: boolean;
     type_filter: AuctionTypeFilter;
@@ -41,12 +43,13 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             more_data: true,
             firstFetchDone: false,
             last_auction_id: 10000000,
-            user_is_whitelisted: false,
+            user_is_whitelisted_places: false,
+            user_is_whitelisted_interiors: false,
 
             // defaults from the contract
             secondary_enabled: false,
-            whitelist_enabled: true,
-            administrator: "",
+            whitelist_settings_places: [true, ""],
+            whitelist_settings_interiors: [true, ""],
             show_finished: false,
             type_filter: 'primary'
         };
@@ -77,27 +80,31 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     }
 
     private walletChangeListener = () => {
-        DutchAuction.isWhitelisted(this.context).then((is_whitelisted) => {
-            this.setState({user_is_whitelisted: is_whitelisted});
+        DutchAuction.isWhitelisted(this.context, Conf.place_contract).then((is_whitelisted) => {
+            this.setState({user_is_whitelisted_places: is_whitelisted});
+        });
+
+        DutchAuction.isWhitelisted(this.context, Conf.interior_contract).then((is_whitelisted) => {
+            this.setState({user_is_whitelisted_interiors: is_whitelisted});
         });
     }
 
-    private async getAuctionSettings() {
-        const secondary_enabled = await DutchAuction.isSecondaryMarketEnabled(this.context);
-        const whitelist_enabled = await DutchAuction.isWhitelistEnabled(this.context);
-        const administrator = await DutchAuction.getAdministrator(this.context);
-
-        return [secondary_enabled, whitelist_enabled, administrator]
+    private async getSecondaryEnabled() {
+        return Promise.all([
+            DutchAuction.isSecondaryMarketEnabled(this.context),
+            DutchAuction.getWhitelistSettingsForToken(this.context, Conf.place_contract),
+            DutchAuction.getWhitelistSettingsForToken(this.context, Conf.interior_contract),
+        ]);
     }
 
     override componentDidMount() {
         this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
 
-        this.getAuctionSettings().then(([secondary_enabled, whitelist_enabled, administrator]) => {
+        this.getSecondaryEnabled().then(([secondary_enabled, whitelist_settings_places, whitelist_settings_interiors]) => {
             this.setState({
                 secondary_enabled: secondary_enabled,
-                whitelist_enabled: whitelist_enabled,
-                administrator: administrator
+                whitelist_settings_places: whitelist_settings_places,
+                whitelist_settings_interiors: whitelist_settings_interiors
             });
         });
 
@@ -191,18 +198,50 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.setState({ type_filter: event_value }, () => { this.reloadAuctions() });
     }
 
+    private whitelistEnabledFor(): string[] {
+        const whitelist_enabled_for = [];
+        if (this.state.whitelist_settings_places[0] === true)
+            whitelist_enabled_for.push("Places");
+
+        if (this.state.whitelist_settings_interiors[0] === true)
+            whitelist_enabled_for.push("Interiors");
+
+        return whitelist_enabled_for;
+    }
+
+    private isAnyWhitelistsAdmin(): boolean {
+        if (!this.context.isWalletConnected()) return false;
+
+        if (this.state.whitelist_settings_places[1] === this.context.walletPHK())
+            return true;
+
+        if (this.state.whitelist_settings_interiors[1] === this.context.walletPHK())
+            return true;
+
+        return false;
+    }
+
+    private isWhitelistedFor(fa2: string) {
+        if (fa2 === Conf.place_contract) return !this.state.whitelist_settings_places[0] || this.state.user_is_whitelisted_places;
+        if (fa2 === Conf.interior_contract) return !this.state.whitelist_settings_interiors[0] || this.state.user_is_whitelisted_interiors;
+        Logging.ErrorDev(`Unknown token type in auction: ${fa2}`);
+        return false;
+    }
+
     override render() {
         const rows = [];
         this.state.auctions.forEach((auction) => {
-            rows.push(<Auction key={auction.id} auctionId={auction.id} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
-                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} tokenId={auction.tokenId}
+            rows.push(<Auction key={auction.transientId} auctionId={auction.transientId} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
+                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} fa2={auction.fa2} tokenId={auction.tokenId}
                 finished={auction.finished} finishingBid={auction.finishingBid} bidOpHash={auction.bidOpHash}
-                userWhitelisted={this.state.user_is_whitelisted} removeFromAuctions={this.removeFromAuctions} />);
+                userWhitelisted={this.isWhitelistedFor(auction.fa2)} removeFromAuctions={this.removeFromAuctions} />);
         });
 
         if(rows.length === 0) {
             rows.push(<div key={0} className='mt-5 mb-5'>It looks like there aren't any active auctions. Check back later :)</div>)
         }
+
+        const whitelist_enabled_for = this.whitelistEnabledFor();
 
         return (
             <main>
@@ -214,10 +253,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                     <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>
                     <p>Listings are price drop (dutch) auctions, the price lowering continually to an end price. Auctions remain active unless cancelled, they can be cancelled by the creator before a bid.</p>
                     <p>Price drops once every 60 seconds. There is a 6% management fee on successful bids.</p>
-                    { this.state.whitelist_enabled ? <p><b>For primary actions, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> : null }
-                    { this.state.secondary_enabled || DutchAuction.isAdministrator(this.context, this.state.administrator) ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
-                    <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 60tez. It may be worth waiting.</p>
-                    <p className='bg-warning rounded p-2'>Item ownership <i>does not</i> transfer with the place.</p>
+                    { (whitelist_enabled_for.length > 0) ? <p><b>For primary actions for {whitelist_enabled_for.join(", ")}, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> : null }
+                    { this.state.secondary_enabled || this.isAnyWhitelistsAdmin() ? <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link> : null}
+                    <p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 200tez. It may be worth waiting.</p>
+                    <p className='bg-warning rounded p-2'>Some Item's ownership will transfer with the place - Items that are added as "place owned".</p>
 
                     <ToggleButtonGroup className='me-2' type='radio' name='auctionStateFilter' defaultValue='active' onChange={(v, e) => this.handleActiveFilter(v, e)}>
                         <ToggleButton id='radioStateActive' type="radio" variant='outline-primary' value='active'>Active</ToggleButton>

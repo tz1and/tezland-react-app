@@ -129,6 +129,7 @@ Place type: {res.placeType}</small>;
             this.panMapToPlace(placeTokenId, placeContract);
         }
         catch(e) {}
+
     };
 
     private walletChangeListener = () => {
@@ -150,7 +151,7 @@ Place type: {res.placeType}</small>;
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
     private parsePlaceId(placeId: string): [string, number] {
-        const array = placeId.split(',')
+        const array = placeId.split('#')
         assert(array.length === 2, "PlaceId must be a tuple.");
 
         const placeTokenId = parseInt(array[1]);
@@ -164,7 +165,7 @@ Place type: {res.placeType}</small>;
     }
 
     private serialisePlaceId(type: string, id: number): string {
-        return `${type},${id}`;
+        return `${type}#${id}`;
     }
 
     override render() {
@@ -176,11 +177,13 @@ Place type: {res.placeType}</small>;
                         <h2>Create Auction</h2>
                         <Formik
                             initialValues={this.initialValues}
-                            validate = {(values) => {
+                            validate = {async (values) => {
                                 const errors: FormikErrors<CreateAuctionFormValues> = {};
 
                                 try {
-                                    this.parsePlaceId(values.placeId);
+                                    const [placeContract, placeTokenId] = this.parsePlaceId(values.placeId);
+                                    if (await DutchAuction.auctionExists(this.context, placeContract, placeTokenId))
+                                        errors.placeId = `Auction for ${DutchAuction.getPlaceType(placeContract)} #${placeTokenId} already exists.`;
                                 }
                                 catch(e: any) {
                                     errors.placeId = e.message;
@@ -207,10 +210,10 @@ Place type: {res.placeType}</small>;
                                 assert(values.startPrice);
                                 assert(values.endPrice);
 
-                                const [placeType, placeTokenId] = this.parsePlaceId(values.placeId);
+                                const [placeContact, placeTokenId] = this.parsePlaceId(values.placeId);
 
                                 // TODO: IMPORTANT! auction creation needs token contract type
-                                DutchAuction.createAuction(this.context, new BigNumber(placeTokenId), values.startPrice, values.endPrice, values.duration, (completed: boolean) => {
+                                DutchAuction.createAuction(this.context, placeContact, new BigNumber(placeTokenId), values.startPrice, values.endPrice, values.duration, (completed: boolean) => {
                                     if (completed) {
                                         this.setState({error: "", successState: 1}, () => {
                                             this.navTimeout = setTimeout(() => {
@@ -300,8 +303,8 @@ Place type: {res.placeType}</small>;
                             <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                             <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
                         </MapContainer>
-                        <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The the Place will be transferred to the auction contract. Auctions can be cancelled, but please make sure you really intend to create the auction.</div>
-                        <div className='bg-info bg-warning p-3 text-dark rounded small'>If the place you are auctioning has items in it, you will still be able to access them after creating the auction. <b>Item ownership <i>does not</i> transfer with the place.</b></div>
+                        <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The the Place/Interior <i>will not</i> be transferred to the auction contract on creation. Auctions can be cancelled, but please make sure you really intend to create the auction.</div>
+                        <div className='bg-info bg-warning p-3 text-dark rounded small'>If the place you are auctioning has items in it, you will still be able to access them after creating the auction.<br/><b><i>Some Item's ownership will transfer</i> with the place - Items that are added as "place owned".</b></div>
                     </div>
                     <div className='col-lg-2 col-md-0'></div>
                 </div>
