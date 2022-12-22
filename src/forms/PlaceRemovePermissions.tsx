@@ -3,7 +3,10 @@ import { useTezosWalletContext } from '../components/TezosWalletContext';
 import BasePlaceNode, { PlacePermissions } from '../world/nodes/BasePlaceNode';
 import { grapphQLUser } from '../graphql/user';
 import { GetGivenPermissionsQuery } from '../graphql/generated/user';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
 import Contracts from '../tz/Contracts';
+import { Table } from 'react-bootstrap';
+import { truncateAddress } from '../utils/Utils';
 
 
 type PlaceRemovePermissionsFormProps = {
@@ -15,11 +18,10 @@ export const PlaceRemovePermissionsForm: React.FC<PlaceRemovePermissionsFormProp
     const [givenPermissionsForPlace, setGivenPermissionsForPlace] = useState<GetGivenPermissionsQuery>();
 
     useEffect(() => {
-        // TODO: needs FA2
         grapphQLUser.getGivenPermissions({address: context.walletPHK(), fa2: props.place.placeKey.fa2, id: props.place.placeKey.id }).then(res => {
             setGivenPermissionsForPlace(res);
         })
-    }, [props.place])
+    }, [props.place, context])
 
     const deletePermissions = async (permittee: string) => {
         Contracts.removePlacePermissions(context, props.place.currentOwner, props.place.placeKey, permittee, (completed: boolean) => {
@@ -36,7 +38,7 @@ export const PlaceRemovePermissionsForm: React.FC<PlaceRemovePermissionsFormProp
         givenPermissionsForPlace.holder[0].givenPermissions.forEach((permission) => {
             permissionRows.push(
                 <tr key={permission.permitteeId}>
-                    <td>{permission.permitteeId}</td>
+                    <td><a href={DirectoryUtils.userLink(permission.permitteeId)} target="_blank" rel="noreferrer">{truncateAddress(permission.permitteeId)}</a></td>
                     <td>{new PlacePermissions(permission.premissions).toString()}</td>
                     <td><button className={`btn btn-primary`} onClick={() => deletePermissions(permission.permitteeId)}>Remove</button></td>
                 </tr>
@@ -44,7 +46,7 @@ export const PlaceRemovePermissionsForm: React.FC<PlaceRemovePermissionsFormProp
         });
 
     return (
-        <table className="table align-middle">
+        <Table>
             <thead>
                 <tr>
                     <th scope="col">Permittee</th>
@@ -55,6 +57,6 @@ export const PlaceRemovePermissionsForm: React.FC<PlaceRemovePermissionsFormProp
             <tbody>
                 {permissionRows}
             </tbody>
-        </table>
+        </Table>
     );
 }
