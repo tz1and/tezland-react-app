@@ -1,5 +1,5 @@
 import React from 'react';
-import { ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Col, Container, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
@@ -250,14 +250,22 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 </Helmet>
                 <div className="position-relative container text-start mt-4">
                     <h1>Place Auctions</h1>
-                    <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>
-                    <p>Listings are price drop (dutch) auctions, the price lowering continually to an end price. Auctions remain active unless cancelled, they can be cancelled by the creator before a bid.</p>
-                    <p>Price drops once every 60 seconds. There is a 6% management fee on successful bids.</p>
-                    { (whitelist_enabled_for.length > 0) && <p><b>For primary actions for {whitelist_enabled_for.join(", ")}, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> }
-                    { (this.state.secondary_enabled || this.isAnyWhitelistsAdmin()) && <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link>}
-                    {/*<p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 200tez. It may be worth waiting.</p>*/}
-                    <p className='bg-warning rounded p-2'>Some Item's ownership will transfer with the place - Items that are added as "place owned".</p>
-                    { !this.state.secondary_enabled && <p className='bg-info rounded p-2'>Secondary market is currently <b>disabled</b> because the UI needs some updates to work well wil place-owned Items.</p> }
+                    <Container className='m-0 p-0'>
+                        <Row>
+                            <Col md="7">
+                                <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>
+                                <p>Listings are price drop (dutch) auctions, the price lowering continually to an end price. Auctions remain active unless cancelled, they can be cancelled by the creator before a bid.</p>
+                                <p>Price drops once every 60 seconds. There is a 6% management fee on successful bids.</p>
+                            </Col>
+                            <Col md="5">
+                                { (whitelist_enabled_for.length > 0) && <p><b>For primary actions for {whitelist_enabled_for.join(", ")}, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> }
+                                { (this.state.secondary_enabled || this.isAnyWhitelistsAdmin()) && <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link>}
+                                {/*<p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 200tez. It may be worth waiting.</p>*/}
+                                <p className='bg-warning rounded p-2'>Some Item's ownership will transfer with the place - Items that are added as "place owned".</p>
+                                { !this.state.secondary_enabled && <p className='bg-info rounded p-2'>Secondary market is currently <b>disabled</b> because the UI needs some updates to work well wil place-owned Items.</p> }
+                            </Col>
+                        </Row>
+                    </Container>
 
                     <ToggleButtonGroup className='me-2' type='radio' name='auctionStateFilter' defaultValue='active' onChange={(v, e) => this.handleActiveFilter(v, e)}>
                         <ToggleButton id='radioStateActive' type="radio" variant='outline-primary' value='active'>Active</ToggleButton>
