@@ -116,7 +116,7 @@ export const PlaceAddPermissionsForm: React.FC<PlaceAddPermissionsFormProps> = (
                 setFieldValue
             }) => {
                 return (
-                    <Form>
+                    <Form className='mt-2'>
                         <div className="mb-3">
                             <label htmlFor="permissionsTo" className="form-label">Permittee</label>
                             <Field id="permissionsTo" name="permissionsTo" type="text" className="form-control" aria-describedby="permissionsToHelp" disabled={isSubmitting} />

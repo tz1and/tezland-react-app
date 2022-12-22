@@ -94,7 +94,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                 isValid
             }) => {
                 return (
-                    <Form>
+                    <Form className='mt-2'>
                         <div className="mb-3">
                             <label htmlFor="placeGroundColor" className="form-label">Place ground color</label>
                             <Field id="placeGroundColor" name="placeGroundColor" type="color" className="form-control" aria-describedby="placeGroundColorHelp" style={{height: "3rem"}} disabled={isSubmitting} autoFocus={true} />
