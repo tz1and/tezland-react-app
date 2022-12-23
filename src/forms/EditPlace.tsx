@@ -19,7 +19,7 @@ export const EditPlace: React.FC<EditPlaceProps> = (props) => {
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
             <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm()} />
-            <h2>edit Place</h2>
+            <h2>edit Place #{props.place.placeKey.id}</h2>
 
             <Tabs defaultActiveKey="properties"
                 mountOnEnter={true} unmountOnExit={true}
