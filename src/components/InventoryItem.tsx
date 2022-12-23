@@ -1,6 +1,6 @@
 import './InventoryItem.css';
 import { mutezToTez, numberWithSign, truncate, truncateAddress } from '../utils/Utils';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { Col, Row, Container, OverlayTrigger, Popover } from 'react-bootstrap';
 import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
 import { MetadataUtils } from '../utils/MetadataUtils';
@@ -72,16 +72,16 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                             Royalties: {token_data.royalties === 0 ? 0 : (token_data.royalties / 10).toFixed(2)}{"\u0025"}<br/>
                             Minter: </p>
                         <p className="card-text small text-muted">{truncateAddress(token_data.minterId)}</p>
-                        <div className="card-text container text-center mx-0 px-0" style={{fontSize: '0.6rem'}}>
-                            <div className="row gx-0">
-                                <div className="col text-start">Collection</div>
-                                <div className="col text-end">{truncateAddress(token_data.contract.address)}</div>
-                            </div>
-                            <div className="row gx-0">
-                                <div className="col text-start">Token ID</div>
-                                <div className="col text-end">{token_data.tokenId}</div>
-                            </div>
-                        </div>
+                        <Container className='card-text mx-0 px-0' style={{fontSize: '0.6rem'}}>
+                            <Row className='gx-0'>
+                                <Col sm='4' className='text-start'>Collection</Col>
+                                <Col sm='8' className='text-end'>{truncateAddress(token_data.contract.address)}</Col>
+                            </Row>
+                            <Row className='gx-0'>
+                                <Col sm='4' className='text-start'>Token ID</Col>
+                                <Col sm='8' className='text-end'>{token_data.tokenId}</Col>
+                            </Row>
+                        </Container>
                     </div>
                 </div>
             </div>
