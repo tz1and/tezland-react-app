@@ -10,6 +10,26 @@ import Contracts from "./Contracts";
 import { SHA3 } from 'sha3';
 
 
+export class AuctionKey {
+    readonly token_id: BigNumber;
+    readonly fa2: string;
+    readonly owner: string;
+
+    constructor(token_id: BigNumber, fa2: string, owner: string) {
+        this.token_id = token_id;
+        this.fa2 = fa2;
+        this.owner = owner;
+    }
+
+    public static fromNumber(token_id: number, fa2: string, owner: string): AuctionKey {
+        return new AuctionKey(new BigNumber(token_id), fa2, owner);
+    }
+
+    public toString(): string {
+        return `${this.fa2}#${this.token_id.toNumber()}#${this.owner}`;
+    }
+}
+
 export default class DutchAuction {
     // Duration is in hours.
     static async createAuction(walletProvider: ITezosWalletProvider, fa2: string, tokenId: BigNumber, startPrice: number, endPrice: number, duration: number, callback?: (completed: boolean) => void) {

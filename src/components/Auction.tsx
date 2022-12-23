@@ -30,7 +30,6 @@ type AuctionProps = {
     finished: boolean;
     finishingBid: number;
     bidOpHash?: string;
-    removeFromAuctions(auction_id: number): void;
     // using `interface` is also ok
     //message: string;
 };
@@ -96,25 +95,11 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private bidOnAuction = async () => {
-        await DutchAuction.bidOnAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner, this.calculateCurrentPrice(), (completed: boolean) => {
-            if (completed) {
-                // Wait a little for the indexer to catch up.
-                this.reloadTimeout = setTimeout(() => {
-                    this.props.removeFromAuctions(this.props.auctionId);
-                }, 2000);
-            }
-        });
+        await DutchAuction.bidOnAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner, this.calculateCurrentPrice());
     }
 
     private cancelAuction = async () => {
-        await DutchAuction.cancelAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner, (completed: boolean) => {
-            if (completed) {
-                // Wait a little for the indexer to catch up.
-                this.reloadTimeout = setTimeout(() => {
-                    this.props.removeFromAuctions(this.props.auctionId);
-                }, 2000);
-            }
-        });
+        await DutchAuction.cancelAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner);
     }
 
     private panMapToPlace(place_id: number) {

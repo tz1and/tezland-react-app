@@ -1,22 +1,26 @@
+import { Contract, OperationContent, PollingSubscribeProvider, Subscription } from '@taquito/taquito';
+import { OperationContentsAndResultTransaction } from '@taquito/rpc';
+import { ParameterSchema } from '@taquito/michelson-encoder';
 import React from 'react';
 import { Col, Container, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
-import Auction, { discordInviteLink } from '../components/Auction'
+import Auction, { discordInviteLink } from '../components/Auction';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import { grapphQLUser } from '../graphql/user';
-import DutchAuction from '../tz/DutchAuction';
+import DutchAuction, { AuctionKey } from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
 import { scrollbarVisible } from '../utils/Utils';
+
 
 type AuctionTypeFilter = 'all' | 'primary' | 'secondary';
 
 type AuctionsProps = {}
 
 type AuctionsState = {
-    auctions: Map<number, any>;
+    auctions: Map<string, any>;
     more_data: boolean;
     firstFetchDone: boolean;
     last_auction_id: number;
@@ -30,6 +34,9 @@ type AuctionsState = {
 
     show_finished: boolean;
     type_filter: AuctionTypeFilter;
+
+    operation_subscription: Subscription<OperationContent> | undefined;
+    auctions_contract: Contract | undefined;
 }
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
@@ -51,7 +58,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             whitelist_settings_places: [true, ""],
             whitelist_settings_interiors: [true, ""],
             show_finished: false,
-            type_filter: 'primary'
+            type_filter: 'primary',
+
+            operation_subscription: undefined,
+            auctions_contract: undefined
         };
     }
 
@@ -89,6 +99,65 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         });
     }
 
+    private async subscribeToAuctionBids(auctions_contract: Contract) {
+        this.context.tezosToolkit().setStreamProvider(this.context.tezosToolkit().getFactory(PollingSubscribeProvider)({
+            shouldObservableSubscriptionRetry: true,
+            pollingIntervalMilliseconds: 5000 // NOTE: getting random failures with 20000
+        }));
+
+        try {
+            const auctionsOperation = {
+                and: [{ destination: auctions_contract.address }, { kind: 'transaction' }]
+            }
+
+            const sub = this.context.tezosToolkit().stream.subscribeOperation(auctionsOperation);
+            return sub;
+        }
+        catch (e) {
+            Logging.Error(e);
+        }
+
+        return;
+    }
+
+    private async registerAuctionSubscription() {
+        const auctions_contract = await this.context.tezosToolkit().contract.at(Conf.dutch_auction_contract);
+        const subscription = await this.subscribeToAuctionBids(auctions_contract);
+        this.setState({operation_subscription: subscription, auctions_contract: auctions_contract}, () => {
+            Logging.InfoDev("Registered auction op subscription");
+            this.state.operation_subscription?.on('data', this.operationSubscriptionCallback);
+        });
+    }
+
+    private unregisterAuctionSubscription() {
+        this.state.operation_subscription?.off("data", this.operationSubscriptionCallback);
+        Logging.InfoDev("Unregistered auction op subscription");
+    }
+
+    private operationSubscriptionCallback = (d: OperationContent) => {
+        Logging.InfoDev(d);
+        const tContent = d as OperationContentsAndResultTransaction;
+
+        // NOTE: might break with internal contract calls!
+        if (tContent.parameters) {
+            const ep = tContent.parameters.entrypoint;
+            if (["bid", "cancel"].includes(ep)) {
+                try {
+                    const schema = new ParameterSchema(this.state.auctions_contract!.entrypoints.entrypoints[ep])
+                    const params = schema.Execute(tContent.parameters.value);
+
+                    // remove the auction from the map, if it's visible!
+                    Logging.InfoDev("Removing auction on", ep, params.auction_key.token_id.toNumber(), params.auction_key.fa2, params.auction_key.owner);
+                    this.removeFromAuctions(new AuctionKey(params.auction_key.token_id, params.auction_key.fa2, params.auction_key.owner));
+                }
+                catch (e) {
+                    Logging.InfoDev("Failed to parse parameters.");
+                    Logging.InfoDev(e);
+                }
+            }
+        }
+    }
+
     private async getSecondaryEnabled() {
         return Promise.all([
             DutchAuction.isSecondaryMarketEnabled(this.context),
@@ -108,12 +177,15 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             });
         });
 
+        this.registerAuctionSubscription();
+
         this.walletChangeListener();
 
         this.reloadAuctions();
     }
 
     override componentWillUnmount() {
+        this.unregisterAuctionSubscription();
         this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
     }
 
@@ -123,8 +195,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         }
     }
 
-    private removeFromAuctions = (auction_id: number) => {
-        this.state.auctions.delete(auction_id);
+    private removeFromAuctions = (auction_key: AuctionKey) => {
+        this.state.auctions.delete(auction_key.toString());
         this.setState({auctions: this.state.auctions});
 
         this.walletChangeListener();
@@ -136,9 +208,9 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         this.getAuctions(10000000).then((res) => {
             const more_data = res.length === Auctions.FetchAmount;
             let last_auction_id = 0;
-            const new_auctions = new Map<number, any>();
+            const new_auctions = new Map<string, any>();
             for (const r of res) {
-                new_auctions.set(r.transientId, r);
+                new_auctions.set(AuctionKey.fromNumber(r.tokenId, r.fa2, r.ownerId).toString(), r);
                 last_auction_id = r.transientId;
             }
 
@@ -157,7 +229,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 const more_data = res.length === Auctions.FetchAmount;
                 let last_auction_id = 0;
                 for (const r of res) {
-                    this.state.auctions.set(r.transientId, r);
+                    this.state.auctions.set(AuctionKey.fromNumber(r.tokenId, r.fa2, r.ownerId).toString(), r);
                     last_auction_id = r.transientId;
                 }
 
@@ -234,7 +306,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             rows.push(<Auction key={auction.transientId} auctionId={auction.transientId} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
                 startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} fa2={auction.fa2} tokenId={auction.tokenId}
                 finished={auction.finished} finishingBid={auction.finishingBid} bidOpHash={auction.bidOpHash}
-                userWhitelisted={this.isWhitelistedFor(auction.fa2)} removeFromAuctions={this.removeFromAuctions} />);
+                userWhitelisted={this.isWhitelistedFor(auction.fa2)} />);
         });
 
         if(rows.length === 0) {
@@ -256,13 +328,13 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                                 <p>This is the <i>primary</i> (newly minted Places will end up here) and{!this.state.secondary_enabled && " - when it will be enabled -"} also a secondary (everyone can create auctions) marketplace for Places.</p>
                                 <p>Listings are price drop (dutch) auctions, the price lowering continually to an end price. Auctions remain active unless cancelled, they can be cancelled by the creator before a bid.</p>
                                 <p>Price drops once every 60 seconds. There is a 6% management fee on successful bids.</p>
+                                { (whitelist_enabled_for.length > 0) && <p><b>For primary actions for {whitelist_enabled_for.join(", ")}, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> }
                             </Col>
                             <Col md="5">
-                                { (whitelist_enabled_for.length > 0) && <p><b>For primary actions for {whitelist_enabled_for.join(", ")}, you currently need to be apply. Join the <a href={discordInviteLink} target="_blank" rel="noreferrer">Discord</a> to apply for a primary.</b></p> }
                                 { (this.state.secondary_enabled || this.isAnyWhitelistsAdmin()) && <Link to='/auctions/create' className='position-absolute btn btn-primary top-0 end-0'>Create Auction</Link>}
-                                {/*<p className='bg-info rounded p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 200tez. It may be worth waiting.</p>*/}
-                                <p className='bg-warning rounded p-2'>Some Item's ownership will transfer with the place - Items that are added as "place owned".</p>
-                                { !this.state.secondary_enabled && <p className='bg-info rounded p-2'>Secondary market is currently <b>disabled</b> because the UI needs some updates to work well wil place-owned Items.</p> }
+                                {/*<p className='bg-info rounded px-3 p-2'>Please be aware that the price for <i>primary listings</i> is intended to be below 200tez. It may be worth waiting.</p>*/}
+                                <p className='bg-warning rounded px-3 p-2'>Some Item's ownership will transfer with the place - Items that are added as "place owned".</p>
+                                { !this.state.secondary_enabled && <p className='bg-info rounded px-3 p-2'>Secondary market is currently <b>disabled</b> because the UI needs some updates to work well with place-owned Items.</p> }
                             </Col>
                         </Row>
                     </Container>
