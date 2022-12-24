@@ -23,3 +23,10 @@ src/acknowledgements.json
 !node_modules/p-queue
 node_modules/p-queue/node_modules/
 node_modules/p-queue/.git/
+
+# byte-data
+!node_modules/byte-data
+node_modules/byte-data/docs/
+node_modules/byte-data/test/
+node_modules/byte-data/node_modules/
+node_modules/byte-data/.git/
