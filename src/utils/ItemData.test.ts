@@ -37,12 +37,60 @@ test('float16', () => {
     expect((ItemDataParser as any).parseFloat16(arr, 0)).toStrictEqual([1.5, 2]);
 });
 
+test('float24', () => {
+    const arr = new Uint8Array(3);
+
+    expect((ItemDataWriter as any).writeFloat24(arr, 1.5, 0)).toEqual(3);
+
+    expect((ItemDataParser as any).parseFloat24(arr, 0)).toStrictEqual([1.5, 3]);
+});
+
+test('float32', () => {
+    const arr = new Uint8Array(4);
+
+    expect((ItemDataWriter as any).writeFloat32(arr, 1.5, 0)).toEqual(4);
+
+    expect((ItemDataParser as any).parseFloat32(arr, 0)).toStrictEqual([1.5, 4]);
+});
+
+test('float64', () => {
+    const arr = new Uint8Array(8);
+
+    expect((ItemDataWriter as any).writeFloat64(arr, 1.5, 0)).toEqual(8);
+
+    expect((ItemDataParser as any).parseFloat64(arr, 0)).toStrictEqual([1.5, 8]);
+});
+
 test('Vec3_16', () => {
     const arr = new Uint8Array(6);
 
     expect((ItemDataWriter as any).writeVec3_16(arr, new Vector3(0.0, 1.0, 1.5), 0)).toEqual(6);
 
     expect((ItemDataParser as any).parseVec3_16(arr, 0)).toStrictEqual([new Vector3(0.0, 1.0, 1.5), 6]);
+});
+
+test('Vec3_24', () => {
+    const arr = new Uint8Array(9);
+
+    expect((ItemDataWriter as any).writeVec3_24(arr, new Vector3(0.0, 1.0, 1.5), 0)).toEqual(9);
+
+    expect((ItemDataParser as any).parseVec3_24(arr, 0)).toStrictEqual([new Vector3(0.0, 1.0, 1.5), 9]);
+});
+
+test('Vec3_32', () => {
+    const arr = new Uint8Array(12);
+
+    expect((ItemDataWriter as any).writeVec3_32(arr, new Vector3(0.0, 1.0, 1.5), 0)).toEqual(12);
+
+    expect((ItemDataParser as any).parseVec3_32(arr, 0)).toStrictEqual([new Vector3(0.0, 1.0, 1.5), 12]);
+});
+
+test('Vec3_64', () => {
+    const arr = new Uint8Array(24);
+
+    expect((ItemDataWriter as any).writeVec3_64(arr, new Vector3(0.0, 1.0, 1.5), 0)).toEqual(24);
+
+    expect((ItemDataParser as any).parseVec3_64(arr, 0)).toStrictEqual([new Vector3(0.0, 1.0, 1.5), 24]);
 });
 
 describe('Teleporter', () => {

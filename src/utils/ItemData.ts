@@ -20,6 +20,13 @@ export const enum ItemDataFlags {
     DISABLE_COLLISIONS = 1
 }
 
+type FloatBits = 16 | 24 | 32 | 64;
+type UintBits = 8 | 16 | 32;
+
+function sizeForBits(bits: FloatBits | UintBits): number {
+    return Math.trunc(bits / 8);
+}
+
 export class ItemDataParser {
 
     public static parse(data: string): [Quaternion, Vector3, number, ItemDataFlags, Nullable<TeleporterData>] {
@@ -150,63 +157,58 @@ export class ItemDataParser {
     }
 
     /**
-     * Parses a uint8 from the array.
+     * Parses a uint from the array.
+     * @param bits the number of bits in the uint
      * @param uint8array a Uint8Array 
      * @param startIdx the index to start at
      * @returns a tuble of (parsedValue, nextIdx)
      */
-    private static parseUint8(uint8array: Uint8Array, startIdx: number): [parsedValue: number, nextIdx: number] {
-        const val = unpack(uint8array, { bits: 8, signed: false, be: true }, startIdx);
-        return [val, startIdx+1];
+    private static parseUint(bits: UintBits, uint8array: Uint8Array, startIdx: number): [parsedValue: number, nextIdx: number] {
+        const val = unpack(uint8array, { bits: bits, signed: false, be: true }, startIdx);
+        return [val, startIdx + sizeForBits(bits)];
     }
 
-    /**
-     * Parses a uint16 from the array.
-     * @param uint8array a Uint8Array 
-     * @param startIdx the index to start at
-     * @returns a tuble of (parsedValue, nextIdx)
-     */
-    private static parseUint16(uint8array: Uint8Array, startIdx: number): [parsedValue: number, nextIdx: number] {
-        const val = unpack(uint8array, { bits: 16, signed: false, be: true }, startIdx);
-        return [val, startIdx+2];
-    }
-
-    /**
-     * Parses a uint32 from the array.
-     * @param uint8array a Uint8Array 
-     * @param startIdx the index to start at
-     * @returns a tuble of (parsedValue, nextIdx)
-     */
-    private static parseUint32(uint8array: Uint8Array, startIdx: number): [parsedValue: number, nextIdx: number] {
-        const val = unpack(uint8array, { bits: 32, signed: false, be: true }, startIdx);
-        return [val, startIdx+4];
-    }
+    private static parseUint8(uint8array: Uint8Array, startIdx: number) { return this.parseUint(8, uint8array, startIdx) }
+    private static parseUint16(uint8array: Uint8Array, startIdx: number) { return this.parseUint(16, uint8array, startIdx) }
+    private static parseUint32(uint8array: Uint8Array, startIdx: number) { return this.parseUint(32, uint8array, startIdx) }
 
     /**
      * Parses a float16 from the array.
+     * @param bits the number of bits in the float
      * @param uint8array a Uint8Array 
      * @param startIdx the index to start at
      * @returns a tuble of (parsedValue, nextIdx)
      */
-     private static parseFloat16(uint8array: Uint8Array, startIdx: number): [parsedValue: number, nextIdx: number] {
-        const val = unpack(uint8array, { bits: 16, fp: true, be: true }, startIdx);
-        return [val, startIdx+2];
+    private static parseFloat(bits: FloatBits, uint8array: Uint8Array, startIdx: number): [parsedValue: number, nextIdx: number] {
+        const val = unpack(uint8array, { bits: bits, fp: true, be: true }, startIdx);
+        return [val, startIdx + sizeForBits(bits)];
     }
+
+    private static parseFloat16(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(16, uint8array, startIdx) }
+    private static parseFloat24(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(24, uint8array, startIdx) }
+    private static parseFloat32(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(32, uint8array, startIdx) }
+    private static parseFloat64(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(64, uint8array, startIdx) }
 
     /**
      * Parses a 16 bit Vector3 from the array.
+     * @param bits the number of bits in the vector components
      * @param uint8array a Uint8Array 
      * @param startIdx the index to start at
      * @returns a tuble of (parsedVector, nextIdx)
      */
-     private static parseVec3_16(uint8array: Uint8Array, startIdx: number): [parsedVector: Vector3, nextIdx: number] {
+    private static parseVec3(bits: FloatBits, uint8array: Uint8Array, startIdx: number): [parsedVector: Vector3, nextIdx: number] {
         let nextIdx, x, y, z;
-        [x, nextIdx] = this.parseFloat16(uint8array, startIdx);
-        [y, nextIdx] = this.parseFloat16(uint8array, nextIdx);
-        [z, nextIdx] = this.parseFloat16(uint8array, nextIdx);
+        [x, nextIdx] = this.parseFloat(bits, uint8array, startIdx);
+        [y, nextIdx] = this.parseFloat(bits, uint8array, nextIdx);
+        [z, nextIdx] = this.parseFloat(bits, uint8array, nextIdx);
         
         return [new Vector3(x, y, z), nextIdx];
     }
+
+    private static parseVec3_16(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(16, uint8array, startIdx) }
+    private static parseVec3_24(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(24, uint8array, startIdx) }
+    private static parseVec3_32(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(32, uint8array, startIdx) }
+    private static parseVec3_64(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(64, uint8array, startIdx) }
 }
 
 // TODO: Change to some interface that provieds all the fields
@@ -369,67 +371,58 @@ export class ItemDataWriter {
 
     /**
      * Write a uint8 to the array
+     * @param bits the number of bits in the uint
      * @param uint8array a Uint8Array 
      * @param val the value to write
      * @param startIdx the index to start at
      * @returns nextIdx
      */
-    private static writeUint8(uint8array: Uint8Array, val: number, startIdx: number): number {
+    private static writeUint(bits: UintBits, uint8array: Uint8Array, val: number, startIdx: number): number {
         // TODO: assert integer, assert range
-        packTo(val, { bits: 8, signed: false, be: true }, uint8array, startIdx);
-        return startIdx+1;
+        packTo(val, { bits: bits, signed: false, be: true }, uint8array, startIdx);
+        return startIdx + sizeForBits(bits);
     }
 
-    /**
-     * Write a uint16 to the array
-     * @param uint8array a Uint8Array 
-     * @param val the value to write
-     * @param startIdx the index to start at
-     * @returns nextIdx
-     */
-     private static writeUint16(uint8array: Uint8Array, val: number, startIdx: number): number {
-        // TODO: assert integer, assert range
-        packTo(val, { bits: 16, signed: false, be: true }, uint8array, startIdx);
-        return startIdx+2;
-    }
-
-    /**
-     * Write a uint32 to the array
-     * @param uint8array a Uint8Array 
-     * @param val the value to write
-     * @param startIdx the index to start at
-     * @returns nextIdx
-     */
-     private static writeUint32(uint8array: Uint8Array, val: number, startIdx: number): number {
-        // TODO: assert integer, assert range
-        packTo(val, { bits: 32, signed: false, be: true }, uint8array, startIdx);
-        return startIdx+4;
-    }
+    private static writeUint8(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeUint(8, uint8array, val, startIdx) }
+    private static writeUint16(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeUint(16, uint8array, val, startIdx) }
+    private static writeUint32(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeUint(32, uint8array, val, startIdx) }
 
     /**
      * Write a float16 to the array
+     * @param bits the number of bits in the float
      * @param uint8array a Uint8Array 
      * @param val the value to write
      * @param startIdx the index to start at
      * @returns nextIdx
      */
-     private static writeFloat16(uint8array: Uint8Array, val: number, startIdx: number): number {
+    private static writeFloat(bits: FloatBits, uint8array: Uint8Array, val: number, startIdx: number): number {
         // TODO: assert integer, assert range
-        packTo(val, { bits: 16, fp: true, be: true }, uint8array, startIdx);
-        return startIdx+2;
+        packTo(val, { bits: bits, fp: true, be: true }, uint8array, startIdx);
+        return startIdx + sizeForBits(bits);
     }
+
+    private static writeFloat16(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(16, uint8array, val, startIdx) }
+    private static writeFloat24(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(24, uint8array, val, startIdx) }
+    private static writeFloat32(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(32, uint8array, val, startIdx) }
+    private static writeFloat64(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(64, uint8array, val, startIdx) }
 
     /**
      * Write a float16 to the array
+     * @param bits the number of bits in a component
      * @param uint8array a Uint8Array 
      * @param val the value to write
      * @param startIdx the index to start at
      * @returns nextIdx
      */
-     private static writeVec3_16(uint8array: Uint8Array, val: Vector3, startIdx: number): number {
+    private static writeVec3(bits: FloatBits, uint8array: Uint8Array, val: Vector3, startIdx: number): number {
         // TODO: assert integer, assert range
-        let nextIdx = this.writeFloat16(uint8array, val.x, startIdx);
-        nextIdx = this.writeFloat16(uint8array, val.y, nextIdx);
-        return this.writeFloat16(uint8array, val.z, nextIdx);
+        let nextIdx = this.writeFloat(bits, uint8array, val.x, startIdx);
+        nextIdx = this.writeFloat(bits, uint8array, val.y, nextIdx);
+        return this.writeFloat(bits, uint8array, val.z, nextIdx);
     }
+
+    private static writeVec3_16(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(16, uint8array, val, startIdx) }
+    private static writeVec3_24(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(24, uint8array, val, startIdx) }
+    private static writeVec3_32(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(32, uint8array, val, startIdx) }
+    private static writeVec3_64(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(64, uint8array, val, startIdx) }
 }
