@@ -245,6 +245,47 @@ describe('IItemData without flags', () => {
     });
 });
 
+describe('IItemData that needs float24', () => {
+    const node: IItemData = {
+        position: new Vector3(0.0, 4223.0, -1500.5),
+        scaling: new Vector3(1.5, 1.5, 1.5),
+        rotationQuaternion: Quaternion.Identity(),
+        disableCollisions: false,
+        teleporterData: null
+    };
+
+    it('without teleporter data', () => {
+        const arr = ItemDataWriter.write(node);
+        expect(arr).toHaveLength(18);
+
+        // TODO: parse it.
+        const [quat, pos, scale, flags, tele] = ItemDataParser.parse(toHexString(arr));
+        expect(pos).toStrictEqual(node.position);
+        expect(quat).toStrictEqual(node.rotationQuaternion);
+        expect(scale).toEqual(node.scaling.x);
+        expect(flags).toEqual(ItemDataFlags.NONE);
+        expect(tele).toBeNull();
+    });
+
+    it('with teleporter data', () => {
+        node.teleporterData = {
+            type: TeleporterType.Exterior,
+            placeId: 2345
+        };
+
+        const arr = ItemDataWriter.write(node);
+        expect(arr).toHaveLength(21);
+
+        // TODO: parse it.
+        const [quat, pos, scale, flags, tele] = ItemDataParser.parse(toHexString(arr));
+        expect(pos).toStrictEqual(node.position);
+        expect(quat).toStrictEqual(node.rotationQuaternion);
+        expect(scale).toEqual(node.scaling.x);
+        expect(flags).toEqual(ItemDataFlags.NONE);
+        expect(tele).toStrictEqual(node.teleporterData);
+    });
+});
+
 it('Teleporter to place 0', () => {
     const node: IItemData = {
         position: new Vector3(0.0, 1.0, 1.5),

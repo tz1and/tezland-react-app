@@ -40,6 +40,8 @@ export class ItemDataParser {
             [quat, pos, scale, nextIdx] = this.parseFormat0(uint8array, nextIdx);
         else if (format === 1)
             [quat, pos, scale, nextIdx] = this.parseFormat1(uint8array, nextIdx);
+        else if (format === 2)
+            [quat, pos, scale, nextIdx] = this.parseFormat2(uint8array, nextIdx);
         else throw new Error('Unknown item data format');
         
         let chunk: Nullable<TeleporterData> = null;
@@ -55,7 +57,7 @@ export class ItemDataParser {
 
     /**
      * Parse Item data format 0:
-     * 3 floats pos = 6 bytes (this is also the minimum item data length)
+     * 3 float16 pos = 6 bytes (this is also the minimum item data length)
      * @param uint8array 
      * @param startIdx 
      * @returns 
@@ -71,7 +73,7 @@ export class ItemDataParser {
 
     /**
      * Parse Item data format 1:
-     * 3 floats for euler angles, 3 floats pos, 1 float scale = 14 bytes
+     * 3 float16 for euler angles, 3 float16 pos, 1 float16 scale = 14 bytes
      * @param uint8array 
      * @param startIdx 
      * @returns 
@@ -86,6 +88,30 @@ export class ItemDataParser {
 
         let pos;
         [pos, nextIdx] = this.parseVec3_16(uint8array, nextIdx);
+        
+        let scale;
+        [scale, nextIdx] = this.parseFloat16(uint8array, nextIdx);
+
+        return [quat, pos, scale, nextIdx];
+    }
+
+    /**
+     * Parse Item data format 2:
+     * 3 float16 for euler angles, 3 float24 pos, 1 float16 scale = 17 bytes
+     * @param uint8array 
+     * @param startIdx 
+     * @returns 
+     */
+    private static parseFormat2(uint8array: Uint8Array, startIdx: number): [Quaternion, Vector3, number, number] {
+        // NOTE: check total length including format.
+        assert(uint8array.length >= 18);
+
+        let eulerAngles, nextIdx;
+        [eulerAngles, nextIdx] = this.parseVec3_16(uint8array, startIdx);
+        const quat = Quaternion.FromEulerAngles(eulerAngles.x, eulerAngles.y, eulerAngles.z);
+
+        let pos;
+        [pos, nextIdx] = this.parseVec3_24(uint8array, nextIdx);
         
         let scale;
         [scale, nextIdx] = this.parseFloat16(uint8array, nextIdx);
@@ -240,7 +266,16 @@ export class ItemDataWriter {
         // TODO: if identity scale and rotation
         // return writeFromat0(item);
         // else
-        return this.writeFromat1(item);
+        // TODO: if any pos component >= 128.0
+        // return writeFromat2(item);
+        // else
+        let needs_float24 = false;
+        for (const component of item.position.asArray()) {
+            if (Math.abs(component) >= 128.0) needs_float24 = true;
+        }
+
+        if (needs_float24) return this.writeFromat2(item);
+        else return this.writeFromat1(item);
     }
 
     private static writeFlags(item: IItemData): Uint8Array | null {
@@ -314,7 +349,7 @@ export class ItemDataWriter {
 
     /**
      * Write Item data format 0:
-     * 1 byte format, 3 floats pos = 7 bytes (this is also the minimum item data length)
+     * 1 byte format, 3 float16 pos = 7 bytes (this is also the minimum item data length)
      * @param item
      * @returns 
      */
@@ -331,8 +366,8 @@ export class ItemDataWriter {
     }
 
     /**
-     * Parse Item data format 1:
-     * 1 byte format, 3 floats for euler angles, 3 floats pos, 1 float scale = 15 bytes
+     * Write Item data format 1:
+     * 1 byte format, 3 float16 for euler angles, 3 float16 pos, 1 float16 scale = 15 bytes
      * @param item
      * @returns 
      */
@@ -351,6 +386,29 @@ export class ItemDataWriter {
         this.writeFloat16(itemData1, item.scaling.x, nextIdx);
 
         return itemData1;
+    }
+
+    /**
+     * Write Item data format 1:
+     * 1 byte format, 3 float16 for euler angles, 3 float24 pos, 1 float16 scale = 18 bytes
+     * @param item
+     * @returns 
+     */
+    private static writeFromat2(item: IItemData): Uint8Array {
+        const itemData2 = new Uint8Array(18);
+
+        // Write format
+        let nextIdx = this.writeUint8(itemData2, 2, 0);
+
+        // Write pos, rot, scake
+        const rot = item.rotationQuaternion ? item.rotationQuaternion : Quaternion.Identity();
+        const euler_angles = rot.toEulerAngles();
+
+        nextIdx = this.writeVec3_16(itemData2, euler_angles, nextIdx);
+        nextIdx = this.writeVec3_24(itemData2, item.position, nextIdx);
+        this.writeFloat16(itemData2, item.scaling.x, nextIdx);
+
+        return itemData2;
     }
 
     private static mergeArrays(uint8arrays: Uint8Array[]) {
