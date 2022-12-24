@@ -1,10 +1,11 @@
 # build app
 FROM node:16.13.2-alpine as build
 
-# Copy our modified p-queue
+# Copy our modified p-queue and byte-data
 WORKDIR /dist
 
 COPY node_modules/p-queue ./p-queue
+COPY node_modules/byte-data ./byte-data
 
 # Copy the react app
 WORKDIR /dist/app
