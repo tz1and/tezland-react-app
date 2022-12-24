@@ -98,9 +98,9 @@ export default class DutchAuction {
         const world_contract = await Contracts.get_world_contract_read(walletProvider);
 
         // Get place seq.
-        const place_seq = await world_contract.contractViews.get_place_seqnum(
-            {fa2: fa2, id: token_id}
-        ).executeView({viewCaller: world_contract.address});
+        const place_seq = await world_contract.contractViews.get_place_seqnum({
+            place_key: {fa2: fa2, id: token_id}
+        }).executeView({viewCaller: world_contract.address});
 
         // Encode result as a michelson expression.
         const storageSchema = new Schema(placeSeqStorageType);

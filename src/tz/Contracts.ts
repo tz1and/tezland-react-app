@@ -296,7 +296,7 @@ export class Contracts {
     public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_key: PlaceKey): Promise<PlaceSequenceNumbers> {
         const current_world = await this.get_world_contract_read(walletProvider);
 
-        const result = await current_world.contractViews.get_place_seqnum(place_key).executeView({ viewCaller: current_world.address });
+        const result = await current_world.contractViews.get_place_seqnum({place_key: place_key}).executeView({ viewCaller: current_world.address });
 
         const chunk_seqs = new Map<number, string>();
         // Flatten chunk seqence numbers into something serialisable.
