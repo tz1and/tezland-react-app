@@ -21,6 +21,7 @@ export default class Conf {
     public static multiplayer_url: string = getEnvVar('REACT_APP_MULTIPLAYER');
 
     public static item_contract: string = getEnvVar('REACT_APP_ITEM_CONTRACT');
+    public static place_v1_contract: string = getEnvVar('REACT_APP_PLACE_V1_CONTRACT');
     public static place_contract: string = getEnvVar('REACT_APP_PLACE_CONTRACT');
     public static world_contract: string = getEnvVar('REACT_APP_WORLD_CONTRACT');
     public static minter_contract: string = getEnvVar('REACT_APP_MINTER_CONTRACT');

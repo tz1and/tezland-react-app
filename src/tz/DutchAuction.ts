@@ -242,6 +242,7 @@ export default class DutchAuction {
     static getPlaceType(fa2: string) {
         if (fa2 === Conf.interior_contract) return "Interior";
         if (fa2 === Conf.place_contract) return "Place";
+        if (fa2 === Conf.place_v1_contract) return "Place (v1)";
         Logging.ErrorDev(`Unknown place type: ${fa2}`);
         return "Unknown";
     }

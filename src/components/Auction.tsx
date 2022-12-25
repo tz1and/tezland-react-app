@@ -181,7 +181,7 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
                 <MapContainer className="auction-img" center={[1000, 1000]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                    {(this.props.fa2 === Conf.place_contract) && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
+                    {(this.props.fa2 !== Conf.interior_contract) && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                     <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
