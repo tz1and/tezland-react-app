@@ -1,14 +1,14 @@
 import React from 'react';
 //import { useTezosWalletContext } from './TezosWalletContext';
-import { InventoryItem } from '../components/InventoryItem';
+import { InventoryItem } from './InventoryItem';
 import { useNavigate } from 'react-router-dom';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
 import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from './TokenInfiniteScroll';
 import { grapphQLUser } from '../graphql/user';
-import { DirectoryUtils } from '../utils/DirectoryUtils';
 import TokenKey from '../utils/TokenKey';
 
 
-type CreationsProps = {
+type CollectionProps = {
     //selectItemFromInventory(id: number): void;
     //burnItemFromInventory(id: number): void;
     //transferItemFromInventory(id: number): void;
@@ -17,21 +17,14 @@ type CreationsProps = {
     //message: string;
 };
 
-export const Creations: React.FC<CreationsProps> = (props) => {
+export const Owned: React.FC<CollectionProps> = (props) => {
     //const walletContext = useTezosWalletContext();
     const navigate = useNavigate();
 
     const fetchInventory: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
-        const data = await grapphQLUser.getUserCreations({ address: props.address, amount: fetchAmount, offset: dataOffset });
-        const results = data.itemToken;
-
-        // format the data to fit the data format the item components expect.
-        const formatted: FetchDataResultArray = []
-        for (const res of results) {
-            formatted.push({token: res});
-        }
-
-        return formatted;
+        const res = await grapphQLUser.getUserCollection({ address: props.address, amount: fetchAmount, offset: dataOffset });
+        
+        return res.itemTokenHolder;
     }
 
     const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
