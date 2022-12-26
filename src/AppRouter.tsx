@@ -12,6 +12,7 @@ import Docs from './routes/Docs';
 import Terms from './routes/Terms';
 import Privacy from './routes/Privacy';
 import MintFormWrapper from './forms/MintFormWrapper';
+import MintCollectionFormWrapper from './forms/MintCollectionFormWrapper';
 import PageNotFound from './routes/PageNotFound';
 import { TezosWalletProvider } from './components/TezosWalletContext'
 import User from './routes/directory/User';
@@ -68,7 +69,10 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                         <Route path="/" element={<SiteLayout />}>
                             <Route path="" element={<Frontpage />} />
 
-                            <Route path="mint" element={<MintFormWrapper />}/>
+                            <Route path="mint">
+                                <Route path="item" element={<MintFormWrapper />}/>
+                                <Route path="collection" element={<MintCollectionFormWrapper />}/>
+                            </Route>
 
                             <Route path="auctions">
                                 <Route path="" element={<Auctions />} />

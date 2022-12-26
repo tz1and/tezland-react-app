@@ -19,10 +19,15 @@ export default function Frontpage() {
                         <Nav.Link as={NavLink} to="/explore" className="nav-link">Explore</Nav.Link>
                         <Nav.Link as={NavLink} to="/auctions" className="nav-link">Place Auctions</Nav.Link>
                         <Nav.Link as={NavLink} to="/map" className="nav-link">Map</Nav.Link>
-                        <Nav.Link as={NavLink} to="/mint" className="nav-link">Mint</Nav.Link>
-                        <Nav.Link as={NavLink} to="/tools" className="nav-link">Tools {newBadge}</Nav.Link>
 
-                        <NavDropdown title={<span>Blog {newBadge}</span>} id="blog-nav-dropdown">
+                        <NavDropdown title={<span>Mint {newBadge}</span>} id="blog-nav-dropdown">
+                            <NavDropdown.Item as={Link} to="/mint/item" className="nav-link">Item</NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/mint/collection" className="nav-link">Collection</NavDropdown.Item>
+                        </NavDropdown>
+
+                        <Nav.Link as={NavLink} to="/tools" className="nav-link">Tools</Nav.Link>
+
+                        <NavDropdown title={<span>Blog</span>} id="blog-nav-dropdown">
                             <NavDropdown.Item as={Link} to="/blog">Blog</NavDropdown.Item>
                             <NavDropdown.Item as={Link} to="/blog/featured">Featured</NavDropdown.Item>
                         </NavDropdown>

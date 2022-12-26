@@ -27,6 +27,7 @@ export default class Conf {
     public static minter_contract: string = getEnvVar('REACT_APP_MINTER_CONTRACT');
     public static dutch_auction_contract: string = getEnvVar('REACT_APP_DUTCH_AUCTION_CONTRACT');
     public static interior_contract: string = getEnvVar('REACT_APP_INTERIOR_CONTRACT');
+    public static factory_contract: string = getEnvVar('REACT_APP_FACTORY_CONTRACT');
 
     public static fees_address: string = "tz1UZFB9kGauB6F5c2gfJo4hVcvrD8MeJ3Vf";
 

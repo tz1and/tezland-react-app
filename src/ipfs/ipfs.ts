@@ -163,3 +163,30 @@ export async function upload_places(places: string[]): Promise<string[]> {
 
     return uploaded_place_metadata;
 }
+
+type CollectionMetadata = {
+    name: string;
+    description: string;
+    minter: string;
+    tags: string; // unprocessed tags
+    date: Date;
+}
+
+export function createCollectionMetadata(metadata: CollectionMetadata): string {
+    return JSON.stringify({
+        name: metadata.name,
+        userDescription: metadata.description,
+        minter: metadata.minter,
+        tags: processTags(metadata.tags),
+        date: metadata.date.toISOString(),
+        // Other contract metadata:
+        interfaces: [ "TZIP-012", "TZIP-016" ],
+        description: "A tz1and private Item collection.\n\nBased on the SmartPy FA2 implementation.",
+        version: "1.0.0",
+        authors: [ "852Kerfunkle <https://github.com/852Kerfunkle>", "SmartPy <https://smartpy.io/#contact>" ],
+        homepage: "https://www.tz1and.com",
+        source: { "tools": [ "SmartPy" ], "location": "https://github.com/tz1and" },
+        license: { "name": "MIT" },
+        permissions: { "receiver": "owner-no-hook", "sender": "owner-no-hook", "operator": "pauseable-owner-or-operator-transfer" }
+    });
+}
