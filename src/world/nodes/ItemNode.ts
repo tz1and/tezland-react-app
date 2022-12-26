@@ -60,9 +60,11 @@ export default class ItemNode extends TransformNode {
     readonly tokenKey: TokenKey; // The token this item represents
     public chunkId: BigNumber; // The chunk this item is in
     public itemId: BigNumber; // The id of the item within the place
-    public issuer: string; // The address that placed this item
+    public issuer: string; // Nullable<string>; // The address that placed this item
     public xtzPerItem: number; // The price of the item
     public itemAmount: BigNumber; // The number of items
+    //public placeOwned: boolean; // If the place owns this item.
+    //public primarySwap: boolean; // If this is a primary swap.
     public markForRemoval: boolean; // If the item should be removed
 
     private _loadState: ItemLoadState;
@@ -97,6 +99,8 @@ export default class ItemNode extends TransformNode {
         this.issuer = "";
         this.xtzPerItem = 0;
         this.itemAmount = new BigNumber(0);
+        //this.placeOwned = false;
+        //this.primarySwap = false;
         this.markForRemoval = false;
 
         this._disableCollision = false;

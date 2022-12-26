@@ -4,7 +4,7 @@ import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
-import { Vector3 } from '@babylonjs/core';
+import { Logger, Vector3 } from '@babylonjs/core';
 import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
 import TokenKey from '../utils/TokenKey';
@@ -82,6 +82,8 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         }
 
         BabylonUtils.createEngine(this.mount.current).then(async (engine) => {
+            // Only show babylonjs errors in log.
+            Logger.LogLevels = Logger.ErrorLogLevel;
             try {
                 await Contracts.getWorldAllowedPlaceTokens(this.context);
                 this.setState({game: new Game(engine, this.props.appControl, this.context)});
