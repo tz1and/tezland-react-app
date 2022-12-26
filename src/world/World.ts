@@ -20,7 +20,7 @@ import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
 import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
-import ArtifactMemCache from "../utils/ArtifactMemCache";
+import ArtifactMemCache, { instantiateOptions } from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./nodes/TeleporterBooth";
 import { WorldDefinition } from "../worldgen/WorldGen";
 import { BaseWorld } from "./BaseWorld";
@@ -473,7 +473,7 @@ export class World extends BaseWorld {
                 
                 for (var d = 6.5; d < line_len - 6.5; d = d + 25) {
                     // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-                    const instance = result.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false }).rootNodes[0];
+                    const instance = result.instantiateModelsToScene(undefined, false, instantiateOptions).rootNodes[0];
                     instance.position = to.add(line.scale(d / line_len));
                     instance.parent = roadDecorations;
                     this.shadowGenerator?.addShadowCaster(instance as Mesh);

@@ -14,6 +14,14 @@ import TokenKey from "./TokenKey";
 //import { Logging } from "./Logging";
 
 
+export const instantiateOptions: {
+    doNotInstantiate?: boolean | ((node: TransformNode) => boolean);
+    predicate?: (entity: any) => boolean;
+} = {
+    doNotInstantiate: false
+}
+
+
 class ArtifactMemCache {
     private artifactCache: Map<string, Promise<AssetContainer>>;
     private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
@@ -119,7 +127,7 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
+        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].name = `item${file.name}_clone`;
         instance.rootNodes[0].parent = parent;
@@ -175,7 +183,7 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
+        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
         instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;
@@ -211,7 +219,7 @@ class ArtifactMemCache {
         }
 
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
+        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
 

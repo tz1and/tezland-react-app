@@ -9,6 +9,7 @@ import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';
 import BabylonUtils from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
+import { instantiateOptions } from '../utils/ArtifactMemCache';
 
 
 class PreviewScene {
@@ -163,7 +164,7 @@ class PreviewScene {
             // Don't flip em.
             // NOTE: when an object is supposed to animate, instancing won't work.
             // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-            const instance = asset.instantiateModelsToScene(undefined, false, { doNotInstantiate: () => false });
+            const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
             this.previewObject = instance.rootNodes[0];
 
             const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
