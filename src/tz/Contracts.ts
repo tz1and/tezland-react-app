@@ -183,7 +183,7 @@ export class Contracts {
         }
     }
 
-    public async mintItem(walletProvider: ITezosWalletProvider, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {
+    public async mintItem(walletProvider: ITezosWalletProvider, collection: string, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {
         if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
 
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
@@ -193,13 +193,18 @@ export class Contracts {
         });
 
         try {
-            const mint_item_op = await minterWallet.methodsObject.mint_public({
-                collection: Conf.item_contract,
+            const is_public = collection === Conf.item_contract;
+
+            const mint_params = {
+                collection: collection,
                 to_: walletProvider.walletPHK(),
                 amount: amount,
                 royalties: royalty_shares,
                 metadata: char2Bytes(item_metadata_url)
-            }).send();
+            }
+
+            const mint_item_op = is_public ? await minterWallet.methodsObject.mint_public(mint_params).send()
+                : await minterWallet.methodsObject.mint_private(mint_params).send();
 
             this.handleOperation(walletProvider, mint_item_op, callback);
         }

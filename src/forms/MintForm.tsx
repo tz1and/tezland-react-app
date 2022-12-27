@@ -19,8 +19,13 @@ import { Trilean, triHelper } from './FormUtils';
 import { decode, DecodedPng } from 'fast-png';
 import assert from 'assert';
 import { TagPreview } from '../components/TagPreview';
+import { Col, Container, Row } from 'react-bootstrap';
+import { grapphQLUser } from '../graphql/user';
+import { GetUserCollectionsQuery } from '../graphql/generated/user';
+import { Logging } from '../utils/Logging';
 
 interface MintFormValues {
+    collection: string;
     itemTitle: string;
     itemDescription: string;
     itemTags: string;
@@ -36,6 +41,7 @@ type MintFormProps = {
 
 type MintFormState = {
     error: string,
+    userCollections?: GetUserCollectionsQuery,
     successState: Trilean,
     modelLoadingState: ModelLoadingState;
     modelLimitWarning: string;
@@ -43,7 +49,14 @@ type MintFormState = {
 }
 
 export class MintFrom extends React.Component<MintFormProps, MintFormState> {
-    private initialValues: MintFormValues = { itemTitle: "", itemDescription: "", itemTags: "", itemAmount: 1, itemRoyalties: 10 };
+    private initialValues: MintFormValues = {
+        collection: Conf.item_contract,
+        itemTitle: "",
+        itemDescription: "",
+        itemTags: "",
+        itemAmount: 1,
+        itemRoyalties: 10
+    };
     private modelPreviewRef = React.createRef<ModelPreview>();
     private formikRef = React.createRef<FormikProps<MintFormValues>>();
     private isClosable: boolean;
@@ -66,7 +79,28 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         this.isClosable = this.props.closable === undefined ? true : this.props.closable;
     }
 
+    private updateUserCollections() {
+        // Fetch user collections, if wallet is connected.
+        if (this.context.isWalletConnected()) {
+            grapphQLUser.getUserCollections({address: this.context.walletPHK()}).then(res => {
+                this.setState({userCollections: res});
+            }).catch(reason => Logging.WarnDev("Fetching user collections failed:", reason));
+        }
+    }
+
+    private walletChangeListener = () => {
+        this.updateUserCollections();
+    }
+
+    override componentDidMount() {
+        this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
+
+        this.updateUserCollections();
+    }
+
     override componentWillUnmount() {
+        this.context.walletEvents().removeListener("walletChange", this.walletChangeListener);
+
         if(this.closeTimeout) clearTimeout(this.closeTimeout);
     }
 
@@ -201,7 +235,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         }
         else if (data.metdata_uri && data.cid) {
             // mint item.
-            await Contracts.mintItem(this.context, data.metdata_uri, values.itemRoyalties, values.itemAmount, callback);
+            await Contracts.mintItem(this.context, values.collection, data.metdata_uri, values.itemRoyalties, values.itemAmount, callback);
         }
         else throw new Error("Backend: malformed response");
     }
@@ -237,6 +271,10 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                             assert(this.modelPreviewRef.current);
 
                             const errors: FormikErrors<MintFormValues> = {};
+
+                            if (values.collection.length === 0) {
+                                errors.itemTitle = 'Invalid collection';
+                            }
 
                             if (!values.itemFile) {
                                 errors.itemFile = 'No file selected';
@@ -309,67 +347,83 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                         }) => {
                             return (
                                 <Form>
-                                    <div className='row'>
-                                        <div className='col'>
-                                            <div className="mb-3">
-                                                <label htmlFor="itemFile" className="form-label">3D Model file</label>
-                                                <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
-                                                <div id="fileHelp" className="form-text">
-                                                    Only glb models are supported.<br/>
-                                                    Self-contained gltf files will work, too.<br/>
-                                                    <a href="https://framer.tz1and.com/" target="_blank" rel="noreferrer">3D-framed images are also supported.</a><br/>
-                                                    Current (default, soft) limit: {AppSettings.triangleLimit.defaultValue}/{AppSettings.triangleLimitInterior.defaultValue} triangles, {AppSettings.fileSizeLimit.defaultValue / 1024 / 1024}/{AppSettings.fileSizeLimitInterior.defaultValue / 1024 / 1024} Mb
+                                    <Container className='mx-0 px-0'>
+                                        <Row>
+                                            <Col md='7'>
+                                                <div className="mb-3">
+                                                    <label htmlFor="collection" className="form-label">Collection</label>
+                                                    <Field id="collection" name="collection" as="select" value={values.collection} className="form-select" aria-describedby="collectionHelp" disabled={isSubmitting} >
+                                                    <option key={Conf.item_contract} value={Conf.interior_contract}>Public Items Collection</option>
+                                                        {this.state.userCollections && this.state.userCollections.holder[0].collections.map(val =>
+                                                            <option key={val.address} value={val.address}>{val.metadata!.name}</option>)}
+                                                        {/* TODO: other items */}
+                                                        {/*<option key={"local"} value={"local"}>Local</option>*/}
+                                                    </Field>
+                                                    <div id="collectionHelp" className="form-text">The collection to mint in.</div>
                                                 </div>
-                                                <ErrorMessage name="itemFile" children={this.errorDisplay}/>
-                                                {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1" style={{whiteSpace: "pre"}}>
-                                                    <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
-                                            </div>
-                                            <div className="mb-3">
-                                                <label htmlFor="itemTitle" className="form-label">Title</label>
-                                                <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
-                                                <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
-                                            </div>
-                                            <div className="mb-3">
-                                                <label htmlFor="itemDescription" className="form-label">Description</label>
-                                                <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
-                                                <ErrorMessage name="itemDescription" children={this.errorDisplay}/>
-                                            </div>
-                                            <div className="mb-3">
-                                                <label htmlFor="itemTags" className="form-label">Tags</label>
-                                                <TagPreview tags={values.itemTags}/>
-                                                <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
-                                                <div id="tagsHelp" className="form-text">List of tags, separated by <b>;</b>.</div>
-                                            </div>
-                                            <div className="mb-3">
-                                                <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                                <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
-                                                <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
-                                                <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
-                                            </div>
-                                            <div className="mb-3">
-                                                <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
-                                                <div className="input-group">
-                                                    <span className="input-group-text">%</span>
-                                                    <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
+                                                <div className="mb-3">
+                                                    <label htmlFor="itemFile" className="form-label">3D Model file</label>
+                                                    <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
+                                                    <div id="fileHelp" className="form-text">
+                                                        Only glb models are supported. Self-contained gltf files will work, too.<br/>
+                                                        <a href="https://framer.tz1and.com/" target="_blank" rel="noreferrer">3D-framed images are also supported.</a><br/>
+                                                        Current (default, soft) limit: {AppSettings.triangleLimit.defaultValue}/{AppSettings.triangleLimitInterior.defaultValue} triangles, {AppSettings.fileSizeLimit.defaultValue / 1024 / 1024}/{AppSettings.fileSizeLimitInterior.defaultValue / 1024 / 1024} Mb
+                                                    </div>
+                                                    <ErrorMessage name="itemFile" children={this.errorDisplay}/>
+                                                    {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1" style={{whiteSpace: "pre"}}>
+                                                        <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
                                                 </div>
-                                                <div id="royaltiesHelp" className="form-text">The royalties you earn for this Item. 0 - 25%.</div>
-                                                <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
-                                            </div>
-                                            <button type="submit" className={`btn btn-${triHelper(this.state.successState, "danger", "primary", "success")} mb-3`} disabled={isSubmitting || !isValid}>
-                                                {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} mint Item
-                                            </button><br/>
-                                            {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
-                                        </div>
-                                        <div className='col'>
-                                            <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} width={350} height={350} modelLoaded={this.modelLoaded} bgColorSelection={true} />
-                                            <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
-                                                Use the mouse to control the view.<br/><br/>
-                                                Mouse wheel: zoom<br/>
-                                                Left mouse: rotate<br/>
-                                                Right mouse: pan</div>
-                                            <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)<br/><br/>A good rule of thumb:<br/>If you didn't make it, don't mint it.</div>
-                                        </div>
-                                    </div>
+                                                <div className="mb-3">
+                                                    <label htmlFor="itemTitle" className="form-label">Title</label>
+                                                    <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
+                                                    <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label htmlFor="itemDescription" className="form-label">Description</label>
+                                                    <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
+                                                    <ErrorMessage name="itemDescription" children={this.errorDisplay}/>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label htmlFor="itemTags" className="form-label">Tags</label>
+                                                    <TagPreview tags={values.itemTags}/>
+                                                    <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
+                                                    <div id="tagsHelp" className="form-text">List of tags, separated by <b>;</b>.</div>
+                                                </div>
+                                                <Container className='mx-0 px-0 mb-3'>
+                                                    <Row className='gx-3'>
+                                                        <Col sm='12' md='6'>
+                                                            <label htmlFor="itemAmount" className="form-label">Amount</label>
+                                                            <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
+                                                            <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
+                                                            <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
+                                                        </Col>
+                                                        <Col sm='12' md='6'>
+                                                            <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
+                                                            <div className="input-group">
+                                                                <span className="input-group-text">%</span>
+                                                                <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
+                                                            </div>
+                                                            <div id="royaltiesHelp" className="form-text">The royalties for this Item. 0 - 25%.</div>
+                                                            <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
+                                                        </Col>
+                                                    </Row>
+                                                </Container>
+                                                <button type="submit" className={`btn btn-${triHelper(this.state.successState, "danger", "primary", "success")} mb-3`} disabled={isSubmitting || !isValid}>
+                                                    {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} mint Item
+                                                </button><br/>
+                                                {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
+                                            </Col>
+                                            <Col md='5'>
+                                                <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} width={350} height={350} modelLoaded={this.modelLoaded} bgColorSelection={true} />
+                                                <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
+                                                    Use the mouse to control the view.<br/><br/>
+                                                    Mouse wheel: zoom<br/>
+                                                    Left mouse: rotate<br/>
+                                                    Right mouse: pan</div>
+                                                <div className='bg-info bg-warning p-3 text-dark rounded small mb-2'>Please be respectful of other's property :)<br/><br/>A good rule of thumb:<br/>If you didn't make it, don't mint it.</div>
+                                            </Col>
+                                        </Row>
+                                    </Container>
                                 </Form>
                             )
                         }}

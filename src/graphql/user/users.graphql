@@ -33,6 +33,19 @@ query getUserPlaces($address: String!, $contracts: [String!]!, $offset: Int!, $a
     }
 }
 
+# TODO: owned collections and collections with collaborator permissions
+query getUserCollections($address: String!) {
+    holder(where: {address: {_eq: $address}}) {
+        collections {
+            address
+            metadata {
+                name
+                userDescription
+            }
+        }
+    }
+}
+
 # These two queries are for item balance tracking.
 # I'm sure it can be done in a simpler way.
 query getInventoryTokensWithBalances($address: String!, $fa2: String!, $ids: [bigint!]!) {

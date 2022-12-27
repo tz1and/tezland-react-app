@@ -44,13 +44,13 @@ query getItemSupplyAndRoyalties($id: bigint!, $fa2: String!) {
 }
 
 query getItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
-    itemToken(where: {metadata: {tagMap: {tag: {name: {_eq: $tag}}}}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
+    itemToken(where: {metadata: {tags: {tag: {name: {_eq: $tag}}}}}, limit: $amount, offset: $offset, order_by: {tokenId: desc}) {
         ...ItemTokenSelect
     }
 }
 
 query getItemTags($fa2: String!, $id: bigint!) {
-    tag(where: {tagMap: {itemMetadata: {token: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}}}) {
+    tag(where: {items: {itemMetadata: {token: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}}}) {
         name
     }
 }
