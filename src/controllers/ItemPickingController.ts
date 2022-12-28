@@ -14,6 +14,8 @@ import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
 import assert from "assert";
 import TokenKey from "../utils/TokenKey";
+import TzktAccounts from "../utils/TzktAccounts";
+import { Logging } from "../utils/Logging";
 
 
 class ItemInfoGui extends Rectangle {
@@ -118,6 +120,11 @@ class ItemInfoGui extends Rectangle {
                     assert(itemMetadata);
                     this.label_name.text = (isSaved ? "" : "*") + truncate(itemMetadata.name, 18, '\u2026');
                     this.label_minter.text = `By: ${truncateAddress(itemMetadata.minter)}`;
+                    TzktAccounts.getAccount(itemMetadata.minter).then(res => {
+                        this.label_minter.text = `By: ${res.getNameDisplay()}`;
+                    }).catch((e) => {
+                        Logging.ErrorDev("Failed to load Tzkt Profile", e);
+                    });
                 }).catch(() => {
                     this.label_name.text = "Failed to load";
                 });
