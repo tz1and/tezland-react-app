@@ -47,7 +47,7 @@
     "threads": "^1.7.0",
     "typescript": "^4.1.2",
     "voronoijs": "^1.0.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^3.0.0"
   },
   "devDependencies": {
     "@babylonjs/gui-editor": "^5.16.0",
