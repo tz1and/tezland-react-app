@@ -6,6 +6,7 @@ import { Owned } from '../../components/Owned';
 import { Created } from '../../components/Created';
 import { Places } from '../../components/Places';
 import { truncateAddress } from '../../utils/Utils';
+import { DirectoryUtils } from '../../utils/DirectoryUtils';
 
 type UserProps = {}
 
@@ -20,6 +21,7 @@ const User: React.FC<UserProps> = (props) => {
         <main>
             <div className="position-relative container text-start mt-4">
                 <h1>{truncateAddress(accountAddress)}</h1>
+                <p>tzkt: {DirectoryUtils.tzktAccountLinkElement(params.address)}</p>
 
                 <Tabs defaultActiveKey="owned" activeKey={activeKey!}
                     mountOnEnter={true} unmountOnExit={true}

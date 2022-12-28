@@ -1,0 +1,29 @@
+query getCollectionItems($fa2: String!, $offset: Int!, $amount: Int!) {
+    itemToken(where: {contractId: {_eq: $fa2}}, limit: $amount, offset: $offset, order_by: {level: desc}) {
+        ...ItemTokenSelect
+    }
+}
+
+# TODO: misspelling LOL
+query getCollectionContract($fa2: String!) {
+    contact(where: {address: {_eq: $fa2}}) {
+        address
+        ownerId
+        metadata {
+            name
+            userDescription
+            description
+            tags {
+                tag {
+                    name
+                }
+            }
+        }
+    }
+}
+
+query getCollectionTags($fa2: String!) {
+    tag(where: {contracts: {contractMetadata: {contract: {address: {_eq: $fa2}}}}}) {
+        name
+    }
+}

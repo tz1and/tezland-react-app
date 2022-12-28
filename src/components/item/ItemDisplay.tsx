@@ -43,6 +43,7 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
     return (
         props.metadata ? <div>
             by <Link {...extraProps} to={DirectoryUtils.userLink(props.metadata.minter)}>{truncateAddress(props.metadata.minter)}</Link><br/>
+            Collection: <Link {...extraProps} to={DirectoryUtils.collectionLink(props.tokenKey.fa2)}>{truncateAddress(props.tokenKey.fa2)}</Link><br/>
 
             {props.displayModel ?
                 <ModelPreview tokenKey={props.tokenKey} width={640} height={480} modelLoaded={() => {}} /> :

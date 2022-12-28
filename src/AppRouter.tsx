@@ -22,6 +22,7 @@ import { PlacePage } from './routes/directory/PlacePage';
 import { Search } from './routes/directory/Search';
 import { NewMints } from './routes/directory/NewMints';
 import { NewSwaps } from './routes/directory/NewSwaps';
+import { Collection } from './routes/directory/Collection';
 import { TypedArtBlog } from './routes/blog/TypedArtBlog';
 import { TypedArtBlogPost } from './routes/blog/TypedArtBlogPost';
 import { TypedArtPostType } from './routes/blog/TypedArtUtils';
@@ -45,6 +46,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
 
         <Route path="u/:address" element={<User />} />
         <Route path="i/:fa2/:id" element={<Item />} />
+        <Route path="c/:fa2" element={<Collection />} />
         <Route path="p/:fa2/:id" element={<PlacePage />} />
         <Route path="t/:tag" element={<Tag />} />
 
