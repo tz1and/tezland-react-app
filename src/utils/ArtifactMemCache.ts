@@ -18,7 +18,13 @@ export const instantiateOptions: {
     doNotInstantiate?: boolean | ((node: TransformNode) => boolean);
     predicate?: (entity: any) => boolean;
 } = {
-    doNotInstantiate: false
+    doNotInstantiate: false/*,
+    predicate: (entity) => {
+        if (entity instanceof TransformNode && entity.name === "__root__") return true;
+        if (entity instanceof Mesh && (!entity.geometry || entity.geometry.getTotalVertices() === 0)) return false;
+        if (entity instanceof InstancedMesh && entity.subMeshes.length === 0) return false;
+        return true;
+    }*/
 }
 
 
