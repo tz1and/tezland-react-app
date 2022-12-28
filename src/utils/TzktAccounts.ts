@@ -23,26 +23,29 @@ export class TzktAccount {
 }
 
 class TzktAccounts {
-    private accountCache: Map<string, TzktAccount>;
+    private accountCache: Map<string, Promise<TzktAccount>>;
 
     constructor() {
-        this.accountCache = new Map<string, TzktAccount>();
+        this.accountCache = new Map<string, Promise<any>>();
     }
 
-    public async getAccount(account: string): Promise<TzktAccount> {
+    public getAccount(account: string): Promise<TzktAccount> {
         const cached_account = this.accountCache.get(account);
         if (cached_account) {
             Logging.InfoDev("Used cached TzktAccount for", account);
             return cached_account;
         }
 
+        const promised_account = TzktAccounts.fetchAccount(account);
+        this.accountCache.set(account, promised_account);
+        return promised_account;
+    }
+
+    private static async fetchAccount (account: string) {
         const res = await fetch(`https://api.tzkt.io/v1/accounts/${account}`);
         const parsed = await res.json();
 
-        const tzktAccount = new TzktAccount(parsed.address, parsed.alias);
-        this.accountCache.set(account, tzktAccount);
-
-        return tzktAccount;
+        return new TzktAccount(parsed.address, parsed.alias);
     }
 }
 
