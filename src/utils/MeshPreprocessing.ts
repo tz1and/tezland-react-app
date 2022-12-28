@@ -11,7 +11,7 @@ const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
 
 export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, maxTexRes: number): Promise<Uint8Array> {
     //if (detectInsideWebworker()) Logging.InfoDev("Processing in webworker");
-    
+
     // TODO: preprocess!
     let document: Document;
     const uint8view = new Uint8Array(buffer);
@@ -27,7 +27,7 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
     const transforms: Transform[] = [
         prune(),
         resample(),
-        weld(),
+        weld({ tolerance: 0 }), // NOTE: weld with tolerance > 0 seems broken?
         quantize(),
         dedup(),
     ];
