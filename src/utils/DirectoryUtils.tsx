@@ -44,6 +44,6 @@ export namespace DirectoryUtils {
     }
 
     export const tzktAccountLinkElement = (account: string): JSX.Element => {
-        return <a href={tzktAccountLink(account)} target="_blank">{truncateAddress(account)}</a>;
+        return <a href={tzktAccountLink(account)} target="_blank" rel="noreferrer">{truncateAddress(account)}</a>;
     }
 }
