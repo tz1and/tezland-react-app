@@ -10,7 +10,7 @@
     font-src 'self' https://*.typekit.net;
     base-uri 'self';
     img-src 'self' blob: data: %REACT_APP_IPFS_NATIVE_GATEWAY_CSP% %REACT_APP_IPFS_PUBLIC_GATEWAYS_CSP% https://templewallet.com/logo.png;
-    connect-src 'self' data: %REACT_APP_ALLOWED_TEZOS_NODES% %REACT_APP_BACKEND% %REACT_APP_MULTIPLAYER% %REACT_APP_HASURA_URL% %REACT_APP_IPFS_NATIVE_GATEWAY_CSP% %REACT_APP_IPFS_PUBLIC_GATEWAYS_CSP% https://*.papers.tech:* https://api.typed.art;">
+    connect-src 'self' data: https://api.tzkt.io %REACT_APP_ALLOWED_TEZOS_NODES% %REACT_APP_BACKEND% %REACT_APP_MULTIPLAYER% %REACT_APP_HASURA_URL% %REACT_APP_IPFS_NATIVE_GATEWAY_CSP% %REACT_APP_IPFS_PUBLIC_GATEWAYS_CSP% https://*.papers.tech:* https://api.typed.art;">
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"

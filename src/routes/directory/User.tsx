@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tab, Tabs } from 'react-bootstrap';
 import assert from 'assert';
 import { Owned } from '../../components/Owned';
 import { Created } from '../../components/Created';
 import { Places } from '../../components/Places';
-import { truncateAddress } from '../../utils/Utils';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
+import TzktAccounts, { TzktAccount } from '../../utils/TzktAccounts';
 
 type UserProps = {}
+
+const useTzktAlias = (address: string) => {
+    const [tzktAccount, setTzktAccount] = useState<TzktAccount>(new TzktAccount(address));
+    useEffect(() => {
+        TzktAccounts.getAccount(address).then(res => {
+            setTzktAccount(res);
+        })
+    }, [address]);
+
+    return tzktAccount
+}
 
 const User: React.FC<UserProps> = (props) => {
     const params = useParams();
@@ -17,10 +28,12 @@ const User: React.FC<UserProps> = (props) => {
     const accountAddress = params.address;
     const activeKey = window.location.hash.replace('#', '') || undefined;
 
+    const tzktAccount = useTzktAlias(params.address)
+
     return (
         <main>
             <div className="position-relative container text-start mt-4">
-                <h1>{truncateAddress(accountAddress)}</h1>
+                <h1>{tzktAccount.getNameDisplay()}</h1>
                 <p>tzkt: {DirectoryUtils.tzktAccountLinkElement(params.address)}</p>
 
                 <Tabs defaultActiveKey="owned" activeKey={activeKey!}
