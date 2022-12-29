@@ -67,6 +67,9 @@ class ArtifactMemCache {
         // For all assets in the cache
         this.artifactCache.forEach((v, k) => {
             v.then(res => {
+                // Don't CG asset containers marked to not be GCd.
+                if((res as any).doNotGC === true) return;
+
                 // Figure out if it has instances in the scene.
                 let hasInstances = false;
                 for (const m of res.meshes) {
@@ -143,7 +146,7 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, disableCollisions: boolean): Promise<Nullable<TransformNode>> {
+    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, disableCollisions: boolean, clone: boolean = false): Promise<Nullable<TransformNode>> {
         assert(this.workerThread);
 
         // check if we have this item in the scene already.
@@ -182,6 +185,11 @@ class ArtifactMemCache {
 
         // get the original, untransformed bounding vectors from the asset.
         parent.boundingVectors = asset.meshes[0].getHierarchyBoundingVectors();
+
+        // TEMP: for now, avoid clones artefacts being garbage collected.... yeah I know, it's dumb!
+        // Not sure what do do about it - maybe a custom highlight shader or......
+        // Some things are not instanced so we can highlight teleporters.
+        if (clone) (asset as any).doNotGC = true;
     
         // Instantiate.
         // Getting first root node is probably enough.
@@ -189,7 +197,7 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
+        const instance = asset.instantiateModelsToScene(undefined, false, {doNotInstantiate: clone});
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
         instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;

@@ -1,5 +1,5 @@
 import { DefaultRenderingPipeline, Engine, Scene,
-    TonemappingOperator, Nullable, Color3, Vector3 } from "@babylonjs/core";
+    TonemappingOperator, Nullable, Color3, Vector3, HighlightLayer, Mesh } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -14,12 +14,15 @@ import { InteriorWorld } from "./InteriorWorld";
 import { GridMaterial, SimpleMaterial } from "@babylonjs/materials";
 import { TeleporterData, TeleporterType } from "../utils/ItemData";
 import Conf from "../Config";
+import ItemNode from "./nodes/ItemNode";
 
 
 export class Game {
     readonly walletProvider: ITezosWalletProvider;
     readonly engine: Engine;
     readonly scene: Scene;
+
+    private highlightLayer: HighlightLayer;
 
     readonly appControlFunctions: AppControlFunctions;
 
@@ -58,6 +61,8 @@ export class Game {
 
         // Since we are always inside a skybox, we can turn off autoClear
         this.scene.autoClear = false; // Color buffer
+
+        this.highlightLayer = new HighlightLayer("portalHl", this.scene);
 
         // Enable inspector in dev
         if (process.env.NODE_ENV === 'development') {
@@ -197,6 +202,12 @@ export class Game {
                 }).catch(e => {});
             }
         }
+    }
+
+    public addItemToHighlightLayer(node: ItemNode) {
+        node.getChildMeshes().forEach((mesh) => {
+            if (mesh instanceof Mesh) this.highlightLayer.addMesh(mesh, Color3.FromHexString('#2d81b3'));
+        });
     }
 
     private setupDefaultRenderingPipeline() {

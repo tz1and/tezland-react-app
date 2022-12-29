@@ -222,8 +222,10 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
-            await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, this._disableCollision);
+            await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, this._disableCollision, this.teleporterData !== null);
             this._loadState = ItemLoadState.Loaded;
+
+            if (this.teleporterData) this.getWorld().game.addItemToHighlightLayer(this);
 
             // TODO: see createBoundingBoxHelper
             //this.createBoundingBoxHelper();
