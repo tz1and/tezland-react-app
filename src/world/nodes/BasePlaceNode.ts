@@ -24,7 +24,7 @@ export type PlaceKey = {
 export type PlaceItemData = {
     chunk_id: BigNumber;
     item_id: BigNumber;
-    issuer: string;
+    issuer: string | null;
     fa2: string;
     data: any;
 }
@@ -62,6 +62,8 @@ export type PlaceData = {
     storedItems: PlaceItemData[]; // TODO: could be map item_id => item_data?
     placeProps: Map<string, string>;
     placeSeq: PlaceSequenceNumbers;
+    itemsTo: Nullable<string>;
+    valueTo: Nullable<string>;
 }
 
 export class PlacePermissions {
@@ -351,6 +353,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 const token_amount = new BigNumber(element.data.item.amount);
                 const xtz_per_token = mutezToTez(element.data.item.rate).toNumber();
                 const item_data = element.data.item.data;
+                const is_primary = element.data.item.primary;
 
                 const item_map_key = `${chunk_id_num}.${item_id_num}`;
                 const existing_item = this.items.get(item_map_key);
@@ -375,6 +378,8 @@ export default abstract class BasePlaceNode extends TransformNode {
                         itemNode.chunkId = chunk_id;
                         itemNode.itemId = item_id;
                         itemNode.issuer = issuer;
+                        itemNode.placeOwned = issuer === null;
+                        itemNode.primarySwap = is_primary;
                         itemNode.itemAmount = token_amount;
                         itemNode.xtzPerItem = xtz_per_token;
 

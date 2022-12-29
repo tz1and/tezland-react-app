@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { mutezToTez, truncateAddress } from '../../utils/Utils';
+import { mutezToTez } from '../../utils/Utils';
 import Conf from '../../Config';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemHolderInfoQuery, GetItemWorldInfoQuery } from '../../graphql/generated/user';
@@ -21,14 +20,12 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
 
     useEffect(() => {
         if (!props.onlySwaps)
-            // TODO: needs fa2
             grapphQLUser.getItemHolderInfo({id: props.tokenKey.id.toNumber(), fa2: props.tokenKey.fa2}).then(res => {
                 setHolderInfo(res);
             });
     }, [props.tokenKey, props.onlySwaps]);
 
     useEffect(() => {
-        // TODO: needs fa2
         grapphQLUser.getItemWorldInfo({id: props.tokenKey.id.toNumber(), fa2: props.tokenKey.fa2}).then(res => {
             setWorldInfo(res);
         });
@@ -38,21 +35,29 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
     const holderInfoItems: JSX.Element[] = []
     if (holderInfo) holderInfo.itemTokenHolder.forEach((item) => {
         if (item.holderId !== Conf.world_contract)
-            holderInfoItems.push(<p key={item.holderId}>{item.quantity}x <Link to={DirectoryUtils.userLink(item.holderId)}>{truncateAddress(item.holderId)}</Link></p>);
+            holderInfoItems.push(<p key={item.holderId}>{item.quantity}x {DirectoryUtils.userLinkElement(item.holderId, props.targetBlank)}</p>);
     });
 
-    const extraProps = props.targetBlank ? {
-        target: "_blank", rel: "noopener noreferrer"
-    } : {}
+    const placeLink = (item: GetItemWorldInfoQuery['worldItemPlacement'][number]) => {
+        return DirectoryUtils.placeLinkElement({id: item.place.tokenId, fa2: item.place.contract.address}, props.targetBlank);
+    }
 
-    // TODO: item.issuerID can be null now!
+    const price = (item: GetItemWorldInfoQuery['worldItemPlacement'][number]) => {
+        if (item.rate > 0) return <span>for {mutezToTez(item.rate).toNumber()} {"\uA729"}</span>;
+        return null;
+    }
+
     const worldInfoItems: JSX.Element[] = []
     if (worldInfo) worldInfo.worldItemPlacement.forEach((item) => {
         if (!props.onlySwaps || (props.onlySwaps && item.rate > 0))
             worldInfoItems.push(
-                <p key={item.transientId}>
-                    {item.amount}x <Link {...extraProps} to={DirectoryUtils.userLink(item.issuerId!)}>{truncateAddress(item.issuerId!)}</Link> in <Link {...extraProps} to={DirectoryUtils.placeLink({id: item.place.tokenId, fa2: item.place.contract.address})}>Place #{item.place.tokenId}</Link> {item.rate > 0 && <span>for {mutezToTez(item.rate).toNumber()} {"\uA729"}</span>}
-                </p>);
+                item.issuerId ?
+                    <p key={item.transientId}>
+                        {item.amount}x by {DirectoryUtils.userLinkElement(item.issuerId, props.targetBlank)} in {placeLink(item)} {price(item)}
+                    </p> :
+                    <p key={item.transientId}>
+                        {item.amount}x in {placeLink(item)} {price(item)}
+                    </p>);
     });
 
     return (

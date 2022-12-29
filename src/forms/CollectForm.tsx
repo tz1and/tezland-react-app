@@ -18,7 +18,7 @@ type CollectFormProps = {
     placeKey: PlaceKey;
     chunkId: number;
     itemId: number;
-    issuer: string;
+    issuer: string | null;
     xtzPerItem: number;
 }
 

@@ -12,14 +12,15 @@ import ItemNode from '../world/nodes/ItemNode';
 import ItemTracker from '../controllers/ItemTracker';
 import { TeleporterType } from '../utils/ItemData';
 import { Vector3 } from '@babylonjs/core';
+import { useTezosWalletContext } from '../components/TezosWalletContext';
 
 
 interface PlaceFormValues {
     tokenKey: string;
     itemAmount: number;
     itemPrice: number;
-    //transferToPlace: boolean;
-    //primarySwap: boolean;
+    transferToPlace: boolean;
+    primarySwap: boolean;
     disableCollision: boolean;
     teleporterType: "none" | "exterior" | "interior" | "local";
     teleporterTargetPlace: number;
@@ -36,8 +37,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
         tokenKey: props.placedItem.tokenKey.toString(),
         itemAmount: 1,
         itemPrice: 0,
-        //transferToPlace: false,
-        //primarySwap: false,
+        transferToPlace: false,
+        primarySwap: false,
         disableCollision: false,
         teleporterType: "none",
         teleporterTargetPlace: 0
@@ -49,6 +50,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
         props.placedItem.dispose();
         props.closeForm();
     }
+
+    const is_place_owner = props.placedItem.getPlace().currentOwner === useTezosWalletContext().walletPHK();
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
@@ -80,8 +83,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                         props.placedItem.itemAmount = new BigNumber(values.itemAmount);
                         props.placedItem.xtzPerItem = values.itemPrice;
                         props.placedItem.disableCollisions = values.disableCollision;
-                        //props.placedItem.placeOwned = values.transferToPlace;
-                        //props.placedItem.primarySwap = values.primarySwap;
+                        props.placedItem.placeOwned = values.transferToPlace;
+                        props.placedItem.primarySwap = values.primarySwap;
 
                         if (values.teleporterType !== "none") {
                             switch (values.teleporterType) {
@@ -144,20 +147,28 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                 For <i>freebies</i>, <button type="button" className="btn btn-sm btn-link p-0 m-0 align-baseline" onClick={() => setFieldValue('itemPrice', 0.000001)}>set 0.000001&#42793;</button>.</div>
                                 <ErrorMessage name="itemPrice" children={errorDisplay}/>
                             </div>
-                            {/*TODO <div className="mb-3">
+                            <div className="mb-3">
                                 <Field id="transferToPlace" name="transferToPlace" type="checkbox" className="form-check-input me-2" aria-describedby="transferToPlaceHelp" disabled={isSubmitting}/>
-                                <label htmlFor="transferToPlace" className="form-label mb-0">Transfer to Place<div id="transferToPlaceHelp" className="form-text mb-0 warning">If you are not the place owner, transferring an item to the place will be a gift to the owner.</div></label>
-                            </div>*/}
+                                <label htmlFor="transferToPlace" className="form-label mb-0">Transfer to Place
+                                    <div id="transferToPlaceHelp" style={{padding: "0.25rem", margin: "-0.25rem"}} className={`form-text ${values.transferToPlace && !is_place_owner && "text-danger bg-danger-light rounded"}`}>
+                                        If you are not the place owner, transferring an item to the place will be a gift to the owner.
+                                    </div>
+                                </label>
+                            </div>
                             <div className="mb-3">
                                 <input className="form-check-input" type="checkbox" value="" id="extra-options-check" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" />
                                 <label className="form-check-label" htmlFor="extra-options-check">&nbsp;Show extra options</label>
                             </div>
                             <div className="collapse" id="collapseExample">
                                 <div className="card card-body">
-                                    {/*TODO <div className="mb-3">
+                                    <div className="mb-3">
                                         <Field id="primarySwap" name="primarySwap" type="checkbox" className="form-check-input me-2" aria-describedby="primarySwapHelp" disabled={isSubmitting}/>
-                                        <label htmlFor="primarySwap" className="form-label mb-0">Primary Swap <div id="primarySwapHelp" className="form-text mb-0">If enabled, entire value will be split according to the royalty splits.</div></label>
-                                    </div>*/}
+                                        <label htmlFor="primarySwap" className="form-label mb-0">Primary Swap
+                                            <div id="primarySwapHelp" className="form-text mb-0">
+                                                If enabled, entire value will be split according to the royalty splits.
+                                            </div>
+                                        </label>
+                                    </div>
                                     <div className="mb-3">
                                         <Field id="disableCollision" name="disableCollision" type="checkbox" className="form-check-input me-2" aria-describedby="disableCollisionHelp" disabled={isSubmitting}/>
                                         <label htmlFor="disableCollision" className="form-label mb-0">Disable collision <div id="disableCollisionHelp" className="form-text mb-0">Disable collision on the placed item.</div></label>

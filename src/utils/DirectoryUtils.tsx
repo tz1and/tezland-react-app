@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { getDirectoryEnabledGlobal } from "../forms/DirectoryForm";
 import { PlaceKey } from "../world/nodes/BasePlaceNode";
 import TokenKey from "./TokenKey";
@@ -9,6 +10,11 @@ export namespace DirectoryUtils {
             return `/directory/u/${address}`;
         else
             return `/u/${address}`;
+    }
+
+    export const userLinkElement = (address: string, targetBlank = false): JSX.Element => {
+        const extraProps = targetBlank ? { target: "_blank", rel: "noopener noreferrer" } : { };
+        return <Link {...extraProps} to={DirectoryUtils.userLink(address)}>{truncateAddress(address)}</Link>
     }
 
     export const collectionLink = (fa2: string) => {
@@ -30,6 +36,11 @@ export namespace DirectoryUtils {
             return `/directory/p/${placeKey.fa2}/${placeKey.id}`;
         else
             return `/p/${placeKey.fa2}/${placeKey.id}`;
+    }
+
+    export const placeLinkElement = (placeKey: PlaceKey, targetBlank = false): JSX.Element => {
+        const extraProps = targetBlank ? { target: "_blank", rel: "noopener noreferrer" } : { };
+        return <Link {...extraProps} to={DirectoryUtils.placeLink(placeKey)}>Place #{placeKey.id}</Link>
     }
 
     export const tagLink = (tag: string): string => {

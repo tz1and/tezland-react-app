@@ -261,7 +261,8 @@ export default class ItemPickingController extends BaseUserController {
                     const current_item = this.getCurrentItem();
                     if(current_item) {
                         const place = this.playerController.currentPlace;
-                        if(place && (current_item.issuer === this.playerController.game.walletProvider.walletPHK() || place.getPermissions.hasModifyAll())) {
+                        const player_wallet = this.playerController.game.walletProvider.walletPHK();
+                        if(place && (current_item.getOwner() === player_wallet || place.getPermissions.hasModifyAll())) {
                             // If the item is unsaved, remove it directly.
                             if(current_item.itemId.lt(0)) {
                                 current_item.dispose();
@@ -277,7 +278,7 @@ export default class ItemPickingController extends BaseUserController {
 
                                 // track removed items.
                                 // only track items that go to the players wallet.
-                                if (current_item.issuer === this.playerController.game.walletProvider.walletPHK()) {
+                                if (current_item.getOwner() === player_wallet) {
                                     ItemTracker.trackTempItem(current_item.getPlace().placeKey.id, current_item.tokenKey, -current_item.itemAmount);
                                 }
                             }

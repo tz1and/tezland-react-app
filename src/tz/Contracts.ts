@@ -259,7 +259,7 @@ export class Contracts {
         }
     }
 
-    public async getItem(walletProvider: ITezosWalletProvider, place_key: PlaceKey, chunk_id: number, item_id: number, fa2: string, issuer: string, xtz_per_item: number, callback?: (completed: boolean) => void) {
+    public async getItem(walletProvider: ITezosWalletProvider, place_key: PlaceKey, chunk_id: number, item_id: number, fa2: string, issuer: string | null, xtz_per_item: number, callback?: (completed: boolean) => void) {
         if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
 
         const current_world = await this.get_world_contract_write(walletProvider);
@@ -377,7 +377,8 @@ export class Contracts {
         // For every chunk in the result
         for (const [chunk_id, chunk_data] of chunks_map.entries()) {
             // Get the item storage map
-            const storage_map = (chunk_data.storage as MichelsonMap<string, MichelsonMap<string, MichelsonMap<BigNumber, object>>>);
+            // @ts-expect-error
+            const storage_map = (chunk_data.storage as MichelsonMap<string | null, MichelsonMap<string, MichelsonMap<BigNumber, object>>>);
 
             // And flatten the item storage michelson map into something serialisable.
             for (const [issuer, issuer_items] of storage_map.entries()) {
@@ -396,7 +397,16 @@ export class Contracts {
             place_props.set(key, value);
         }
 
-        const place_data: PlaceData = { tokenId: place_key.id, contract: place_key.fa2, placeType: place_key.fa2, storedItems: flattened_item_data, placeProps: place_props, placeSeq: seqHash };
+        const place_data: PlaceData = {
+            tokenId: place_key.id,
+            contract: place_key.fa2,
+            placeType: place_key.fa2,
+            storedItems: flattened_item_data,
+            placeProps: place_props,
+            placeSeq: seqHash,
+            itemsTo: result.place.items_to,
+            valueTo: result.place.value_to
+        };
 
         Metadata.Storage.saveObject("placeData", place_data);
 
@@ -429,12 +439,15 @@ export class Contracts {
 
         // build remove item map
         // Chunk, issuer, fa2, ids
-        const remove_item_map: MichelsonMap<BigNumber, MichelsonMap<string, MichelsonMap<string, BigNumber[]>>> = new MichelsonMap();
+        // @ts-expect-error
+        const remove_item_map: MichelsonMap<BigNumber, MichelsonMap<string | null, MichelsonMap<string, BigNumber[]>>> = new MichelsonMap();
         remove.forEach((item) => {
-            let issuer_map: MichelsonMap<string, MichelsonMap<string, BigNumber[]>>;
+            // @ts-expect-error
+            let issuer_map: MichelsonMap<string | null, MichelsonMap<string, BigNumber[]>>;
             if (remove_item_map.has(item.chunkId))
                 issuer_map = remove_item_map.get(item.chunkId)!;
             else {
+                // @ts-expect-error
                 issuer_map = new MichelsonMap();
                 remove_item_map.set(item.chunkId, issuer_map)
             }
@@ -518,7 +531,7 @@ export class Contracts {
 
             let fa2_map: MichelsonMap<string, object[]>;
             // TODO: item needs "send_to_place" property. Or maybe issuer == null?
-            const send_to_place = false
+            const send_to_place = item.placeOwned;
             if (send_to_place_map.has(send_to_place))
                 fa2_map = send_to_place_map.get(send_to_place)!;
             else {
@@ -540,12 +553,13 @@ export class Contracts {
             }
 
             const tokenKey = item.tokenKey;
+            const primary = item.primarySwap;
             const item_amount = item.itemAmount;
             const item_price = tezToMutez(item.xtzPerItem);
 
             const item_data = toHexString(ItemDataWriter.write(item));
 
-            item_add_array.push({ item: { token_id: tokenKey.id, amount: item_amount, rate: item_price, data: item_data } });
+            item_add_array.push({ item: { token_id: tokenKey.id, amount: item_amount, rate: item_price, data: item_data, primary: primary } });
         });
 
         // prepare batch
