@@ -89,7 +89,6 @@ class ArtifactMemCache {
         });
     }
 
-    // TODO: take TokenKey
     public async loadFromFile(file: File, token_key: TokenKey, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
         // check if we have this item in the scene already.
         // Otherwise, download it.
@@ -100,18 +99,21 @@ class ArtifactMemCache {
             this.artifactCache.delete(token_key.toString());
         }
 
-        var mime_type;
-        const file_type = await getFileType(file);
-        if(file_type === "glb") mime_type = "model/gltf-binary";
-        else if(file_type === "gltf") mime_type = "model/gltf+json";
-        else throw new Error("Unsupported mimeType");
+        // So we don't directly await anything between.
+        assetPromise = (async () => {
+            var mime_type;
+            const file_type = await getFileType(file);
+            if(file_type === "glb") mime_type = "model/gltf-binary";
+            else if(file_type === "gltf") mime_type = "model/gltf+json";
+            else throw new Error("Unsupported mimeType");
 
-        const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });
+            const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });
 
-        // NOTE: this is kinda nasty...
-        assetPromise = ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
-            baseScale: 1
-        } as ItemTokenMetadata}, scene);
+            // NOTE: this is kinda nasty...
+            return ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
+                baseScale: 1
+            } as ItemTokenMetadata}, scene);
+        })()
 
         this.artifactCache.set(token_key.toString(), assetPromise);
 
