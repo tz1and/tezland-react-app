@@ -11,7 +11,7 @@ import mouse_left from "!file-loader!../img/keys/mouse_left.svg"; // Temp workar
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import mouse_right from "!file-loader!../img/keys/mouse_right.svg"; // Temp workaround for CRA5
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import scale_down from "!file-loader!../img/keys/scale_down.svg"; // Temp workaround for CRA5
+//import scale_down from "!file-loader!../img/keys/scale_down.svg"; // Temp workaround for CRA5
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import scale_up from "!file-loader!../img/keys/scale_up.svg"; // Temp workaround for CRA5
 // eslint-disable-next-line import/no-webpack-loader-syntax
