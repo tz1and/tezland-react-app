@@ -26,6 +26,10 @@ export const ControlsHelp: React.FC<{}> = () => {
         </span>
     }
 
+    const svg_icon = (icon: string): JSX.Element => {
+        return <img src={icon} className='glyphicon m-1 mx-0 me-1' alt=""/>
+    }
+
     return (
         <div>
             <div className='position-absolute bottom-0 start-0'>
@@ -44,59 +48,37 @@ export const ControlsHelp: React.FC<{}> = () => {
                             <i className="bi bi-square-fill glyphicon-stack-1x text-white"></i>
                         </span>
                         {key_icon("W")}<br/>
-                        {key_icon("A")}
-                        {key_icon("S")}
-                        {key_icon("D")}
-                        Move (arrow keys as well)<br/>
-                        <img src={l_shift} className='glyphicon m-1 mx-0 me-1' alt=""/>
-                        Walk (left shift)<br/>
-                        <img src={space_bar} className='glyphicon m-1 mx-0 me-1' alt=""/>
-                        Jump (space bar)<br/>
-                        {key_icon("G")}
-                        Toggle Fly-mode<br/>
-                        <img src={mouse_move} className='glyphicon m-1 mx-0 me-1' alt=""/>
-                        Look<br/>
-                        {key_icon("X")}
-                        Unglitch me
+                        {key_icon("A")} {key_icon("S")} {key_icon("D")} Move (arrow keys as well)<br/>
+                        {svg_icon(l_shift)} Walk (left shift)<br/>
+                        {svg_icon(space_bar)} Jump (space bar)<br/>
+                        {key_icon("G")} Toggle Fly-mode<br/>
+                        {svg_icon(mouse_move)} Look<br/>
+                        {key_icon("X")} Unglitch me
                     </p>
 
                     <p>
-                        {key_icon("I")}
-                        Open inventory<br/>
-                        {key_icon("M")}
-                        Mint item<br/>
-                        {key_icon("P")}
-                        Edit Place properties<br/>
-                        {key_icon("C")}
-                        Clear item selection<br/>
-                        {key_icon("U")}
-                        Save changes
+                        {key_icon("I")} Open inventory<br/>
+                        {key_icon("M")} Mint item<br/>
+                        {key_icon("P")} Edit Place properties<br/>
+                        {key_icon("C")} Clear item selection<br/>
+                        {key_icon("U")} Save changes
                     </p>
 
                     <p>
-                        <img src={mouse_left} className='glyphicon m-1 mx-0 me-1' alt=""/>
-                        Place item (left mouse)<br/>
-                        <img src={mouse_right} className='glyphicon m-1 mx-0 me-1' alt=""/>
-                        Get item (right mouse)<br/>
-                        <img src={mouse_wheel} className='glyphicon m-1 mx-0 me-1' alt=""/>
-                        Adjust height (mouse wheel)<br/>
-                        {key_icon("1")}/{key_icon("2")}
-                        Rotate Item around Y (up)<br/>
-                        {key_icon("3")}/{key_icon("4")}
-                        Rotate Item around Z (forward)<br/>
-                        {key_icon("5")}/{key_icon("6")}
-                        Rotate Item around X (right)<br/>
-                        {key_icon("R")}/{key_icon("F")}
-                        Scale item<br/>
+                        {svg_icon(mouse_left)} Place item (left mouse)<br/>
+                        {svg_icon(mouse_right)} Get item (right mouse)<br/>
+                        {svg_icon(mouse_wheel)} Adjust height (mouse wheel)<br/>
+                        {key_icon("1")}/{key_icon("2")} Rotate Item around Y (up)<br/>
+                        {key_icon("3")}/{key_icon("4")} Rotate Item around Z (forward)<br/>
+                        {key_icon("5")}/{key_icon("6")} Rotate Item around X (right)<br/>
+                        {key_icon("R")}/{key_icon("F")} Scale item {svg_icon(scale_up)}<br/>
                         {key_icon("Del")}
                         Remove item
                     </p>
 
                     <p>
-                        {key_icon("F10")}
-                        Take screenshot<br/>
-                        {key_icon("Esc")}
-                        Exit pointer lock
+                        {key_icon("F10")} Take screenshot<br/>
+                        {key_icon("Esc")} Exit pointer lock
                     </p>
                 </div>
             </div>
