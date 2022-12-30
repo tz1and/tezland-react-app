@@ -1,5 +1,5 @@
 docker-build:
-	docker-compose build
+	docker-compose build --pull
 
 docker-up:
 	docker-compose up -d
