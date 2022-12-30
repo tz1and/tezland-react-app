@@ -34,6 +34,15 @@
   font-size: calc(10px + 2vmin);
 }
 
+.glyphicon {
+  display: inline-block;
+  height: 2em;
+  line-height: 2em;
+  position: relative;
+  vertical-align: middle;
+  width: 2.5em;
+}
+
 .glyphicon-stack {
   display: inline-block;
   height: 2em;

@@ -1,5 +1,22 @@
 import React from 'react';
 
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import l_shift from "!file-loader!../img/keys/l_shift.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import mouse_move from "!file-loader!../img/keys/mouse_move.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import mouse_wheel from "!file-loader!../img/keys/mouse_wheel.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import mouse_left from "!file-loader!../img/keys/mouse_left.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import mouse_right from "!file-loader!../img/keys/mouse_right.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import scale_down from "!file-loader!../img/keys/scale_down.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import scale_up from "!file-loader!../img/keys/scale_up.svg"; // Temp workaround for CRA5
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import space_bar from "!file-loader!../img/keys/space_bar.svg"; // Temp workaround for CRA5
+
 export const ControlsHelp: React.FC<{}> = () => {
 
     const key_icon = (icon: string | JSX.Element) => {
@@ -21,9 +38,9 @@ export const ControlsHelp: React.FC<{}> = () => {
                     <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
                 <div className="offcanvas-body">
-                    <p>Keyboard and mouse controls:</p>
+                    {/*<p>Keyboard and mouse controls:</p>*/}
                     <p>
-                        <span className="glyphicon-stack m-1 mx-0">
+                        <span className="glyphicon-stack m-1 mx-0 me-1">
                             <i className="bi bi-square-fill glyphicon-stack-1x text-white"></i>
                         </span>
                         {key_icon("W")}<br/>
@@ -31,15 +48,13 @@ export const ControlsHelp: React.FC<{}> = () => {
                         {key_icon("S")}
                         {key_icon("D")}
                         Move (arrow keys as well)<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-arrow-up-square-fill glyphicon-stack-1x"></i>
-                        </span>
+                        <img src={l_shift} className='glyphicon m-1 mx-0 me-1' alt=""/>
                         Walk (left shift)<br/>
+                        <img src={space_bar} className='glyphicon m-1 mx-0 me-1' alt=""/>
+                        Jump (space bar)<br/>
                         {key_icon("G")}
                         Toggle Fly-mode<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-mouse-fill glyphicon-stack-1x"></i>
-                        </span>
+                        <img src={mouse_move} className='glyphicon m-1 mx-0 me-1' alt=""/>
                         Look<br/>
                         {key_icon("X")}
                         Unglitch me
@@ -59,18 +74,11 @@ export const ControlsHelp: React.FC<{}> = () => {
                     </p>
 
                     <p>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-half glyphicon-stack-1x" style={{transform: "rotate(180deg)"}}></i>
-                        </span>
+                        <img src={mouse_left} className='glyphicon m-1 mx-0 me-1' alt=""/>
                         Place item (left mouse)<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-half glyphicon-stack-1x"></i>
-                        </span>
+                        <img src={mouse_right} className='glyphicon m-1 mx-0 me-1' alt=""/>
                         Get item (right mouse)<br/>
-                        <span className="glyphicon-stack m-1 mx-0 me-1">
-                            <i className="bi bi-square-fill glyphicon-stack-1x"></i>
-                            <i className="glyphicon-stack-2x bi-arrow-repeat text-white"></i>
-                        </span>
+                        <img src={mouse_wheel} className='glyphicon m-1 mx-0 me-1' alt=""/>
                         Adjust height (mouse wheel)<br/>
                         {key_icon("1")}/{key_icon("2")}
                         Rotate Item around Y (up)<br/>
