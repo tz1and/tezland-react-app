@@ -183,14 +183,14 @@ export class Contracts {
         }
     }
 
-    public async mintItem(walletProvider: ITezosWalletProvider, collection: string, item_metadata_url: string, royalties: number, amount: number, callback?: (completed: boolean) => void) {
+    public async mintItem(walletProvider: ITezosWalletProvider, collection: string, item_metadata_url: string, royalties: [string, number][], amount: number, callback?: (completed: boolean) => void) {
         if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
 
         const minterWallet = await walletProvider.tezosToolkit().wallet.at(Conf.minter_contract);
 
-        const royalty_shares = MichelsonMap.fromLiteral({
-            [walletProvider.walletPHK()]: Math.floor(royalties * 10) // tz1and item royalties are in permille
-        });
+        const royalty_shares = new MichelsonMap<string, number>();
+        // tz1and item royalties are in permille.
+        for (const [k, v] of royalties) royalty_shares.set(k, Math.floor(v * 10));
 
         try {
             const is_public = collection === Conf.item_contract;

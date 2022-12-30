@@ -13,6 +13,7 @@ import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
 import { dataURItoBlob, fileToFileLike, getFileType } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
+import { validateAddress, ValidationResult } from '@taquito/utils';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
 import { Trilean, triHelper } from './FormUtils';
@@ -23,6 +24,7 @@ import { Col, Container, Row } from 'react-bootstrap';
 import { grapphQLUser } from '../graphql/user';
 import { GetUserCollectionsQuery } from '../graphql/generated/user';
 import { Logging } from '../utils/Logging';
+import { Royalties } from '../components/Royalties';
 
 interface MintFormValues {
     collection: string;
@@ -30,7 +32,7 @@ interface MintFormValues {
     itemDescription: string;
     itemTags: string;
     itemAmount: number;
-    itemRoyalties: number;
+    itemRoyalties: [string, number][];
     itemFile?: File | undefined;
 }
 
@@ -55,7 +57,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         itemDescription: "",
         itemTags: "",
         itemAmount: 1,
-        itemRoyalties: 10
+        itemRoyalties: []
     };
     private modelPreviewRef = React.createRef<ModelPreview>();
     private formikRef = React.createRef<FormikProps<MintFormValues>>();
@@ -88,12 +90,22 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         }
     }
 
+    private resetRoyaltiesOnWalletChange() {
+        assert(this.formikRef.current);
+        // reset the form royalties default values
+        this.formikRef.current.values.itemRoyalties = (this.context.isWalletConnected()) ? [[this.context.walletPHK(), 10]] : [];
+    }
+
     private walletChangeListener = () => {
         this.updateUserCollections();
+
+        this.resetRoyaltiesOnWalletChange();
     }
 
     override componentDidMount() {
         this.context.walletEvents().addListener("walletChange", this.walletChangeListener);
+
+        this.resetRoyaltiesOnWalletChange();
 
         this.updateUserCollections();
     }
@@ -175,6 +187,11 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         else if(file_type === "gltf") mime_type = "model/gltf+json";
         else throw new Error("Unsupported mimeType");
 
+        const metadata_royalties = new Map<string, number>();
+        // Metadata royalties are in permille.
+        for (const [k, v] of values.itemRoyalties) metadata_royalties.set(k, Math.floor(v * 10));
+        metadata_royalties.set(Conf.fees_address, 35);
+
         const metadata = createItemTokenMetadata({
             name: values.itemTitle,
             description: values.itemDescription,
@@ -214,21 +231,25 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             polygonCount: this.modelPreviewRef.current.state.polycount,
             royalties: {
                 decimals: 3,
-                shares: new Map([
-                    [this.context.walletPHK(), Math.floor(values.itemRoyalties * 10)],
-                    [Conf.fees_address, 35]
-                ])
+                shares: metadata_royalties
             }
         });
 
-        // Post here and wait for result
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: metadata
-        };
-        const response = await fetch(Conf.backend_url + "/upload", requestOptions)
-        const data = await response.json();
+        let data;
+        try {
+            // Post here and wait for result
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: metadata
+            };
+            const response = await fetch(Conf.backend_url + "/upload", requestOptions);
+            data = await response.json();
+        }
+        catch(e) {
+            Logging.Error("Failed to upload metadata: ", e);
+            throw new Error("Failed to upload metadata");
+        }
 
         if(data.error) {
             throw new Error("Upload failed: " + data.error);
@@ -294,17 +315,37 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                             }
 
                             if (values.itemTitle.length === 0) {
-                                errors.itemTitle = 'Title required';
+                                errors.itemTitle = 'Title required.';
                             } else if (values.itemTitle.length > 100) {
                                 errors.itemTitle = 'Title must be <= 100 characters.';
                             }
-                        
-                            if (values.itemRoyalties < 0 || values.itemRoyalties > 25) {
-                                errors.itemRoyalties = 'Royalties invalid';
+
+                            let total_royalties = 0;
+                            let address_set = new Set<string>()
+                            for (const [address, royalties] of values.itemRoyalties) {
+                                total_royalties += royalties;
+
+                                if (royalties < 0) {
+                                    errors.itemRoyalties = `Royalties invalid: ${royalties}.`;
+                                }
+
+                                if (address_set.has(address)) {
+                                    errors.itemRoyalties = `Adresses in royalties must be unique: '${address}'.`;
+                                }
+
+                                address_set.add(address);
+
+                                if (validateAddress(address) !== ValidationResult.VALID) {
+                                    errors.itemRoyalties = `Address invalid: '${address}'`;
+                                }
+                            }
+
+                            if (total_royalties > 25) {
+                                errors.itemRoyalties = 'Royalties invalid. Total must be less or equal 25%.';
                             }
 
                             if (values.itemAmount < 1 || values.itemAmount > 10000) {
-                                errors.itemAmount = 'Amount invalid';
+                                errors.itemAmount = 'Amount invalid.';
                             }
 
                             // revalidation clears trisate and error
@@ -373,11 +414,22 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                     {touched.itemFile && this.state.modelLimitWarning && <small className="bg-warning text-dark rounded-1 my-1 p-1" style={{whiteSpace: "pre"}}>
                                                         <i className="bi bi-exclamation-triangle-fill"></i> {this.state.modelLimitWarning}</small>}
                                                 </div>
-                                                <div className="mb-3">
-                                                    <label htmlFor="itemTitle" className="form-label">Title</label>
-                                                    <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
-                                                    <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
-                                                </div>
+                                                <Container className='mx-0 px-0 mb-3'>
+                                                    <Row className='gx-3'>
+                                                        <Col sm='12' md='7'>
+                                                            <label htmlFor="itemTitle" className="form-label">Title</label>
+                                                            <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
+                                                            <div id="amountHelp" className="form-text">Name/title of the minted item.</div>
+                                                            <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
+                                                        </Col>
+                                                        <Col sm='12' md='5'>
+                                                            <label htmlFor="itemAmount" className="form-label">Amount</label>
+                                                            <Field id="itemAmount" name="itemAmount" type="number" min={1} max={10000} className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
+                                                            <div id="amountHelp" className="form-text">Number of Items minted.</div>
+                                                            <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
+                                                        </Col>
+                                                    </Row>
+                                                </Container>
                                                 <div className="mb-3">
                                                     <label htmlFor="itemDescription" className="form-label">Description</label>
                                                     <Field id="itemDescription" name="itemDescription" component="textarea" rows={2} className="form-control" disabled={isSubmitting} />
@@ -389,25 +441,12 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                     <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
                                                     <div id="tagsHelp" className="form-text">List of tags, separated by <b>;</b>.</div>
                                                 </div>
-                                                <Container className='mx-0 px-0 mb-3'>
-                                                    <Row className='gx-3'>
-                                                        <Col sm='12' md='6'>
-                                                            <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                                            <Field id="itemAmount" name="itemAmount" type="number" className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
-                                                            <div id="amountHelp" className="form-text">The amount of Items to mint. 1 - 10000.</div>
-                                                            <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
-                                                        </Col>
-                                                        <Col sm='12' md='6'>
-                                                            <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
-                                                            <div className="input-group">
-                                                                <span className="input-group-text">%</span>
-                                                                <Field id="itemRoyalties" name="itemRoyalties" type="number" className="form-control" aria-describedby="royaltiesHelp" disabled={isSubmitting} />
-                                                            </div>
-                                                            <div id="royaltiesHelp" className="form-text">The royalties for this Item. 0 - 25%.</div>
-                                                            <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
-                                                        </Col>
-                                                    </Row>
-                                                </Container>
+                                                <div className="mb-3">
+                                                    <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
+                                                    <Field id="itemRoyalties" name="itemRoyalties" component={Royalties} rows={2} className="form-control" disabled={isSubmitting} />
+                                                    {/*<div id="royaltiesHelp" className="form-text">The royalties for this Item. 0 - 25%.</div>*/}
+                                                    <ErrorMessage name="itemRoyalties" children={this.errorDisplay}/>
+                                                </div>
                                                 <button type="submit" className={`btn btn-${triHelper(this.state.successState, "danger", "primary", "success")} mb-3`} disabled={isSubmitting || !isValid}>
                                                     {isSubmitting && <span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>} mint Item
                                                 </button><br/>
