@@ -265,7 +265,7 @@ export default class ItemPlacementController extends BaseUserController {
         try {
             this.playerController.gui.setCursor(CursorType.Loading);
 
-            const token_key = TokenKey.fromNumber(-100, "" );
+            const token_key = TokenKey.fromNumber(-100, "internalitem");
 
             this.tempObject = ItemNode.CreateItemNode(world, token_key, this.playerController.scene, null);
             await this.tempObject.loadFromFile(file);

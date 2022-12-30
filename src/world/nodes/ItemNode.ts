@@ -255,7 +255,7 @@ export default class ItemNode extends TransformNode {
 
         try {
             // TODO: pass token key?
-            await ArtifactMemCache.loadFromFile(file, this.tokenKey.id, this._scene, this);
+            await ArtifactMemCache.loadFromFile(file, this.tokenKey, this._scene, this);
             this._loadState = ItemLoadState.Loaded;
 
             // TODO: see createBoundingBoxHelper

@@ -90,8 +90,7 @@ class ArtifactMemCache {
     }
 
     // TODO: take TokenKey
-    public async loadFromFile(file: File, token_id: BigNumber, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
-        const token_key = new TokenKey(token_id, "internalitem");
+    public async loadFromFile(file: File, token_key: TokenKey, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
         // check if we have this item in the scene already.
         // Otherwise, download it.
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
