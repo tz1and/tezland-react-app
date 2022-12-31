@@ -12,6 +12,8 @@ import PlayerController from "./PlayerController";
 import TempObjectHelper from "./TempObjectHelper";
 import { BaseWorld } from "../world/BaseWorld";
 import TokenKey from "../utils/TokenKey";
+import { ItemDataParser, ItemDataWriter } from "../utils/ItemData";
+import { toHexString } from "../utils/Utils";
 
 
 export default class ItemPlacementController extends BaseUserController {
@@ -56,6 +58,10 @@ export default class ItemPlacementController extends BaseUserController {
             if(hit && hit.pickedPoint) {
                 const point = hit.pickedPoint;
                 this.tempObjectPos.set(point.x, point.y + this.tempObjectOffsetY, point.z);
+
+                const new_pos = this.toExpectedPrecision().pos;
+                this.tempObjectPos.copyFrom(new_pos);
+
                 this.tempObjectHelper.posUpdate(this.tempObjectPos);
             }
 
@@ -72,6 +78,14 @@ export default class ItemPlacementController extends BaseUserController {
         }
     }
 
+    private toExpectedPrecision(): {rot: Quaternion, pos: Vector3, scale: number} {
+        assert(this.tempObject);
+        // serialise and deserialsie, to try make sure the value is what it would we after saving.
+        const res = ItemDataWriter.write(this.tempObject);
+        const [quat_out, pos_out, scale_out] = ItemDataParser.parse(toHexString(res));
+        return {rot: quat_out, pos: pos_out, scale: scale_out};
+    }
+
     // Keyboard controls.
     private keyboardInput = (kbInfo: KeyboardInfo) => {
         if(kbInfo.type === KeyboardEventTypes.KEYDOWN) {
@@ -82,7 +96,11 @@ export default class ItemPlacementController extends BaseUserController {
                     if (this.tempObject && this.tempObjectHelper) {
                         const scale = new Vector3(1.1, 1.1, 1.1);
                         this.tempObject.scaling.multiplyInPlace(scale);
-                        this.tempObjectHelper.scaleUpdate(scale);
+
+                        const new_scale = this.toExpectedPrecision().scale;
+                        this.tempObject.scaling.setAll(new_scale);
+
+                        this.tempObjectHelper.scaleUpdate(new_scale);
                     }
                     break;
                 
@@ -90,7 +108,11 @@ export default class ItemPlacementController extends BaseUserController {
                     if (this.tempObject && this.tempObjectHelper) {
                         const scale = new Vector3(0.9, 0.9, 0.9);
                         this.tempObject.scaling.multiplyInPlace(scale);
-                        this.tempObjectHelper.scaleUpdate(scale);
+
+                        const new_scale = this.toExpectedPrecision().scale;
+                        this.tempObject.scaling.setAll(new_scale);
+
+                        this.tempObjectHelper.scaleUpdate(new_scale);
                     }
                     break;
                 

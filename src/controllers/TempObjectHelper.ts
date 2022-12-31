@@ -1,4 +1,4 @@
-import { Color3, Mesh, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
+import { Color3, DeepImmutable, Mesh, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials";
 import ItemNode from "../world/nodes/ItemNode";
 
@@ -40,15 +40,17 @@ export default class TempObjectHelper {
         const extent = max.subtract(min);
         this.cube.scaling = extent;
 
+        // TODO: what does this do?
         this.cube.position = min.add(extent.multiplyByFloats(0.5, 0.5, 0.5)).subtract(mesh.position);
     }
 
-    public scaleUpdate(scale: Vector3) {
-        this.node.scaling.multiplyInPlace(scale);
+    public scaleUpdate(scale: number) {
+        // TODO: why does this need to be 0.5.
+        this.node.scaling.setAll(scale*0.5);
     }
 
-    public posUpdate(pos: Vector3) {
-        this.node.position.set(pos.x, pos.y, pos.z);
+    public posUpdate(pos: DeepImmutable<Vector3>) {
+        this.node.position.copyFrom(pos);
     }
 
     public setValid(isValid: boolean) {
