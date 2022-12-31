@@ -1,5 +1,5 @@
 query getPlaceTokenMetadataBatch($ids: [bigint!]!, $fa2: String!) {
-    placeTokenMetadata(where: { token: { tokenId: { _in: $ids }, contract: { address: { _eq: $fa2 } } } }) {
+    placeTokenMetadata(where: { token: { tokenId: { _in: $ids }, contractId: { _eq: $fa2 } } }) {
         name
         description
         borderCoordinates
@@ -18,7 +18,7 @@ query getPlaceTokenMetadataBatch($ids: [bigint!]!, $fa2: String!) {
 }
 
 query getPlaceTokenMetadata($id: bigint!, $fa2: String!) {
-    placeTokenMetadata(where: { token: { tokenId: { _eq: $id }, contract: { address: { _eq: $fa2 } } } }) {
+    placeTokenMetadata(where: { token: { tokenId: { _eq: $id }, contractId: { _eq: $fa2 } } }) {
         name
         description
         borderCoordinates
@@ -37,7 +37,7 @@ query getPlaceTokenMetadata($id: bigint!, $fa2: String!) {
 }
 
 query getItemTokenMetadata($id: bigint!, $fa2: String!) {
-    itemTokenMetadata(where: { token: { tokenId: { _eq: $id }, contract: { address: { _eq: $fa2 } } } }) {
+    itemTokenMetadata(where: { token: { tokenId: { _eq: $id }, contractId: { _eq: $fa2 } } }) {
         name
         description
         artifactUri

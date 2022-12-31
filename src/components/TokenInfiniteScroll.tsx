@@ -19,9 +19,7 @@ type FetchDataItemMetadata = {
 
 export type FetchDataItemToken = {
     tokenId: number;
-    contract: {
-        address: string;
-    }
+    contractId: string;
     metadata?: FetchDataItemMetadata | null;
     royalties: number;
     supply: number;
@@ -35,9 +33,7 @@ type FetchDataSwapInfo = {
 
 export type FetchDataPlaceToken = {
     tokenId: number;
-    contract: {
-        address: string;
-    }
+    contractId: string;
 }
 
 export type FetchDataResult<T> = {
@@ -82,7 +78,7 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
     const fetchData = useCallback(() => {
         props.fetchDataFunc(state.itemOffset, props.fetchAmount).then((res) => {
             for (const r of res) {
-                const key = r.key !== undefined ? r.key : TokenKey.fromNumber(r.token.tokenId, r.token.contract.address).toString();
+                const key = r.key !== undefined ? r.key : TokenKey.fromNumber(r.token.tokenId, r.token.contractId).toString();
                 state.itemMap.set(key, r);
             }
             const more_data = res.length === props.fetchAmount;

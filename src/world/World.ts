@@ -5,7 +5,6 @@ import { Vector3, Color3, Vector2,
     Nullable, Ray, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
 import { SkyMaterial, WaterMaterial } from "@babylonjs/materials";
-import { PlaceKey } from "./nodes/BasePlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts, { ALL_WORLD_EP_NAMES } from "../tz/Contracts";
@@ -29,6 +28,7 @@ import { Game } from "./Game";
 import world_definition from "../models/districts.json";
 import PlaceNode from "./nodes/PlaceNode";
 import Conf from "../Config";
+import PlaceKey from "../utils/PlaceKey";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -212,7 +212,7 @@ export class World extends BaseWorld {
 
                     // Reload place if it belongs to our current world
                     if (params.place_key.fa2 === Conf.place_contract)
-                        this.reloadPlace({ id: params.place_key.id.toNumber(), fa2: params.place_key.fa2 });
+                        this.reloadPlace(params.place_key);
                 }
                 catch (e) {
                     Logging.InfoDev("Failed to parse parameters.");
@@ -297,7 +297,7 @@ export class World extends BaseWorld {
 
         // Finally, load places.
         place_metadatas.forEach((metadata) => {
-            placeLoadPromises.push(this.loadPlace({ id: metadata.tokenId, fa2: metadata.contract }, metadata));
+            placeLoadPromises.push(this.loadPlace(new PlaceKey(metadata.tokenId, metadata.contract), metadata));
         })
 
         await Promise.allSettled(placeLoadPromises);
@@ -646,7 +646,7 @@ export class World extends BaseWorld {
                     });
 
                     (await Metadata.getPlaceMetadataBatch(places_to_fetch, Conf.place_contract)).forEach((m) => {
-                        this.loadPlace({ id: m.tokenId, fa2: m.contract }, m);
+                        this.loadPlace(new PlaceKey(m.tokenId, m.contract), m);
                     });
 
                     //const elapsed_total = performance.now() - start_time;

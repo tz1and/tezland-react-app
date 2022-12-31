@@ -108,7 +108,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
                 // trasnform it into the format we expect
                 for (const item of data.itemToken) {
-                    result.push({ key: TokenKey.fromNumber(item.tokenId, item.contract.address).toString(), quantity: 0, token: item })
+                    result.push({ key: TokenKey.fromNumber(item.tokenId, item.contractId).toString(), quantity: 0, token: item })
                 }
             }
 
@@ -121,7 +121,7 @@ export class Inventory extends React.Component<InventoryProps, InventoryState> {
 
     private fetchData = () => {
         this.fetchInventory().then((res) => {
-            for (const r of res) this.itemMap.set(TokenKey.fromNumber(r.token.tokenId, r.token.contract.address).toString(), r);
+            for (const r of res) this.itemMap.set(TokenKey.fromNumber(r.token.tokenId, r.token.contractId).toString(), r);
             const more_data = res.length === Inventory.FetchAmount;
             this.setState({
                 item_offset: this.state.item_offset + Inventory.FetchAmount,

@@ -6,9 +6,11 @@ import AppSettings from "../storage/AppSettings";
 import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
 import assert from "assert";
 import Conf from "../Config";
+import PlaceKey from "../utils/PlaceKey";
+
 
 type SpawnSelectProps = {
-    teleportToLocation(location: string): void;
+    teleportToLocation(place_key: PlaceKey): void;
 };
 
 type SpawnSelectState = {
@@ -35,7 +37,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
         fetchUserPlaces(this.context, Conf.place_contract).then((res) => {
             this.setState({userPlaces: res}, () => {
                 assert(this.selectRef.current);
-                this.selectRef.current.value = AppSettings.defaultSpawn.value;
+                this.selectRef.current.value = AppSettings.defaultSpawn.value.toJson();
             });
         });
     }
@@ -53,7 +55,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     private setDefaultSpawn = () => {
         assert(this.selectRef.current);
 
-        AppSettings.defaultSpawn.value = this.selectRef.current.value;
+        AppSettings.defaultSpawn.value = PlaceKey.fromJson(this.selectRef.current.value);
 
         this.setState({currentIsDefault: true});
     }
@@ -61,37 +63,37 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     private teleportTo = () => {
         assert(this.selectRef.current);
 
-        this.props.teleportToLocation(this.selectRef.current.value);
+        this.props.teleportToLocation(PlaceKey.fromJson(this.selectRef.current.value));
     }
 
     private changeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selected = e.target.value;
 
-        this.setState({ currentIsDefault: selected === AppSettings.defaultSpawn.value });
+        this.setState({ currentIsDefault: selected === AppSettings.defaultSpawn.value.toJson() });
     }
 
     override render(): React.ReactNode {
         const listElements: JSX.Element[] = []
         for (var place of this.state.userPlaces) {
-            listElements.push(<option key={place.token.tokenId} value={"place" + place.token.tokenId}>Place #{place.token.tokenId}</option>);
+            listElements.push(<option key={place.token.tokenId} value={new PlaceKey(place.token.tokenId, place.token.contractId).toJson()}>Place #{place.token.tokenId}</option>);
         }
 
         // TODO: don't hardcode number of districts, load them from DistrictDefinition.
         return (
             <div className="btn-group" role="group" aria-label="Basic example">
                 <button className="btn btn-dark mb-auto ms-3 px-2"><i className="bi bi-bullseye"></i></button>
-                <select className="form-select rounded-0" aria-label="Default select example" ref={this.selectRef} defaultValue={AppSettings.defaultSpawn.value} onChange={this.changeSelect}>
+                <select className="form-select rounded-0" aria-label="Default select example" ref={this.selectRef} defaultValue={AppSettings.defaultSpawn.value.toJson()} onChange={this.changeSelect}>
                     {listElements}
-                    <option key="d1" value="district1">District #1</option>
-                    <option key="d2" value="district2">District #2</option>
-                    <option key="d3" value="district3">District #3</option>
-                    <option key="d4" value="district4">District #4</option>
-                    <option key="d5" value="district5">District #5</option>
-                    <option key="d6" value="district6">District #6</option>
-                    <option key="d7" value="district7">District #7</option>
-                    <option key="d8" value="district8">District #8</option>
-                    <option key="d9" value="district9">District #9</option>
-                    <option key="d10" value="district10">District #10</option>
+                    <option key="d1" value={new PlaceKey(1, "district").toJson()}>District #1</option>
+                    <option key="d2" value={new PlaceKey(2, "district").toJson()}>District #2</option>
+                    <option key="d3" value={new PlaceKey(3, "district").toJson()}>District #3</option>
+                    <option key="d4" value={new PlaceKey(4, "district").toJson()}>District #4</option>
+                    <option key="d5" value={new PlaceKey(5, "district").toJson()}>District #5</option>
+                    <option key="d6" value={new PlaceKey(6, "district").toJson()}>District #6</option>
+                    <option key="d7" value={new PlaceKey(7, "district").toJson()}>District #7</option>
+                    <option key="d8" value={new PlaceKey(8, "district").toJson()}>District #8</option>
+                    <option key="d9" value={new PlaceKey(9, "district").toJson()}>District #9</option>
+                    <option key="d10" value={new PlaceKey(1, "district").toJson()}>District #10</option>
                 </select>
                 <OverlayTrigger
                     placement={"bottom"}

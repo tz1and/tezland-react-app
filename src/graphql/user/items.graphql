@@ -1,11 +1,9 @@
 query getItemHistory($id: bigint!, $fa2: String!) {
-    itemCollectionHistory(where: {itemToken: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}, order_by: {level: desc}) {
+    itemCollectionHistory(where: {itemToken: {tokenId: {_eq: $id}, contractId: {_eq: $fa2}}}, order_by: {level: desc}) {
         transientId
         place {
             tokenId
-            contract {
-                address
-            }
+            contractId
         }
         issuerId
         collectorId
@@ -14,13 +12,11 @@ query getItemHistory($id: bigint!, $fa2: String!) {
 }
 
 query getItemWorldInfo($id: bigint!, $fa2: String!) {
-    worldItemPlacement(where: {itemToken: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}, order_by: {rate: desc}) {
+    worldItemPlacement(where: {itemToken: {tokenId: {_eq: $id}, contractId: {_eq: $fa2}}}, order_by: {rate: desc}) {
         transientId
         place {
             tokenId
-            contract {
-                address
-            }
+            contractId
         }
         itemId
         issuerId
@@ -30,14 +26,14 @@ query getItemWorldInfo($id: bigint!, $fa2: String!) {
 }
 
 query getItemHolderInfo($id: bigint!, $fa2: String!) {
-    itemTokenHolder(where: { token: { tokenId: { _eq: $id }, contract: { address: {_eq: $fa2} } } }, order_by: { quantity: desc }) {
+    itemTokenHolder(where: { token: { tokenId: { _eq: $id }, contractId: {_eq: $fa2} } }, order_by: { quantity: desc }) {
         holderId
         quantity
     }
 }
 
 query getItemSupplyAndRoyalties($id: bigint!, $fa2: String!) {
-    itemToken(where: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}) {
+    itemToken(where: {tokenId: {_eq: $id}, contractId: {_eq: $fa2}}) {
         royalties
         supply
     }
@@ -50,7 +46,7 @@ query getItemsByTag($tag: String!, $offset: Int!, $amount: Int!) {
 }
 
 query getItemTags($fa2: String!, $id: bigint!) {
-    tag(where: {items: {itemMetadata: {token: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}}}) {
+    tag(where: {items: {itemMetadata: {token: {tokenId: {_eq: $id}, contractId: {_eq: $fa2}}}}}) {
         name
     }
 }

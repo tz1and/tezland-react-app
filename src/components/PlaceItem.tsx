@@ -24,10 +24,10 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
 
     useEffect(() => {
         if(!metadata)
-            Metadata.getPlaceMetadata(props.item_metadata.token.tokenId, props.item_metadata.token.contract.address).then((res) => {
+            Metadata.getPlaceMetadata(props.item_metadata.token.tokenId, props.item_metadata.token.contractId).then((res) => {
                 setMetadata(res)
             });
-    }, [metadata, props.item_metadata.token.tokenId, props.item_metadata.token.contract]);
+    }, [metadata, props.item_metadata.token.tokenId, props.item_metadata.token.contractId]);
 
     let name = null;
     let description = "None.";
@@ -49,7 +49,7 @@ export const PlaceItem: React.FC<PlaceItemProps> = (props) => {
     }
 
     // TODO: use PlaceKey
-    const token_key = TokenKey.fromNumber(props.item_metadata.token.tokenId, props.item_metadata.token.contract.address);
+    const token_key = TokenKey.fromNumber(props.item_metadata.token.tokenId, props.item_metadata.token.contractId);
 
     return (
         <div className="card m-2 inventory-item" id={props.item_metadata.token.tokenId.toString()}>

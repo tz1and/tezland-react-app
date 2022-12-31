@@ -14,12 +14,8 @@ import AppSettings from "../../storage/AppSettings";
 import { SimpleMaterial } from "@babylonjs/materials";
 import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
+import PlaceKey from "../../utils/PlaceKey";
 
-
-export type PlaceKey = {
-    fa2: string;
-    id: number;
-};
 
 export type PlaceItemData = {
     chunk_id: BigNumber;

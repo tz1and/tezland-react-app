@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { getDirectoryEnabledGlobal } from "../forms/DirectoryForm";
-import { PlaceKey } from "../world/nodes/BasePlaceNode";
+import PlaceKey from "./PlaceKey";
 import TokenKey from "./TokenKey";
 import { truncateAddress } from "./Utils";
 

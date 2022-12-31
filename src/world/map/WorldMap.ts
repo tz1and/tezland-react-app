@@ -17,6 +17,8 @@ import { OrthoCameraMouseInput } from "../input/OrthoCameraMouseInput";
 import { grapphQLUser } from "../../graphql/user";
 //import MultiplayerClient from "./MultiplayerClient";
 import { truncateAddress } from "../../utils/Utils";
+import PlaceKey from "../../utils/PlaceKey";
+import Conf from "../../Config";
 import assert from "assert";
 
 import markerIconBlue from '../../img/map/mapmarker-blue.png'
@@ -28,7 +30,6 @@ import markerIconRed from '../../img/map/mapmarker-red.png'
 
 import { WorldDefinition } from "../../worldgen/WorldGen";
 import world_definition from "../../models/districts.json";
-import Conf from "../../Config";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -52,8 +53,9 @@ const markerIconsByColor: Map<MarkerColor, string> = new Map([
 type MapMarkerInfo = {
     description: string;
     mapPosition: [number, number];
-    location: string; // either district#, place# or teleporter#
-    id: number;
+    // NOTE: misusing place key here:
+    // fa2 is either "district", "teleporter" or an actual FA2 address.
+    location: PlaceKey;
 }
 
 export type MapPopoverInfo = {
@@ -269,7 +271,7 @@ export class WorldMap {
                     const parent = pickResult.pickedMesh.parent;
                     parent.updateOwner(false, 3600).catch(e => {});
                     
-                    this.underMouseInfo.text = "Place #" + parent.placeId + "\nOwner: " + (parent.currentOwner ? truncateAddress(parent.currentOwner) : "Fetching ...");
+                    this.underMouseInfo.text = "Place #" + parent.placeKey.id + "\nOwner: " + (parent.currentOwner ? truncateAddress(parent.currentOwner) : "Fetching ...");
                 }
                 else {
                     this.underMouseInfo.text = "";
@@ -437,8 +439,7 @@ export class WorldMap {
         markerImage.metadata = {
             description: description,
             mapPosition: [pos.x, pos.z],
-            location: type + id,
-            id: id
+            location: {fa2: (type === "place" ? Conf.place_contract : type), id: id}
         } as MapMarkerInfo;
 
         // Mouse interaction stuff.

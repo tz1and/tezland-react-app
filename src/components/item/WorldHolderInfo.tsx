@@ -5,6 +5,7 @@ import { grapphQLUser } from '../../graphql/user';
 import { GetItemHolderInfoQuery, GetItemWorldInfoQuery } from '../../graphql/generated/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import TokenKey from '../../utils/TokenKey';
+import PlaceKey from '../../utils/PlaceKey';
 
 
 type WorldHolderInfoProps = {
@@ -39,7 +40,7 @@ export const WorldHolderInfo: React.FC<WorldHolderInfoProps> = (props) => {
     });
 
     const placeLink = (item: GetItemWorldInfoQuery['worldItemPlacement'][number]) => {
-        return DirectoryUtils.placeLinkElement({id: item.place.tokenId, fa2: item.place.contract.address}, props.targetBlank);
+        return DirectoryUtils.placeLinkElement(new PlaceKey(item.place.tokenId, item.place.contractId), props.targetBlank);
     }
 
     const price = (item: GetItemWorldInfoQuery['worldItemPlacement'][number]) => {

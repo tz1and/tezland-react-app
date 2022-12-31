@@ -4,7 +4,7 @@ import Conf from "../Config";
 import { tezToMutez, toHexString } from "../utils/Utils";
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
-import BasePlaceNode, { PlacePermissions, PlaceData, PlaceItemData, PlaceKey, PlaceSequenceNumbers } from "../world/nodes/BasePlaceNode";
+import BasePlaceNode, { PlacePermissions, PlaceData, PlaceItemData, PlaceSequenceNumbers } from "../world/nodes/BasePlaceNode";
 import ItemNode from "../world/nodes/ItemNode";
 import BigNumber from "bignumber.js";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
@@ -15,6 +15,7 @@ import assert from "assert";
 import { ItemDataWriter } from "../utils/ItemData";
 import { grapphQLUser } from "../graphql/user";
 import TokenKey from "../utils/TokenKey";
+import PlaceKey from "../utils/PlaceKey";
 
 
 export const ALL_WORLD_EP_NAMES = ["get_item", "place_items", "update_place", "remove_items", "set_item_data"];

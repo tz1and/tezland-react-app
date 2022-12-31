@@ -2,9 +2,10 @@
 
 import { NotificationData } from "../components/Notification";
 import ItemNode from "./nodes/ItemNode";
-import BasePlaceNode, { PlaceKey } from "./nodes/BasePlaceNode";
+import BasePlaceNode from "./nodes/BasePlaceNode";
 import { MapPopoverInfo } from "./map/WorldMap";
 import TokenKey from "../utils/TokenKey";
+import PlaceKey from "../utils/PlaceKey";
 
 
 export interface OverlayFormProps {}
@@ -60,6 +61,6 @@ export type MapControlFunctions = {
 
 export type iFrameControlFunctions = {
     teleportToWorldPos(pos: [number, number]): void;
-    teleportToLocation(location: string): void;
+    teleportToLocation(place_key: PlaceKey): void;
     closeForm(): void;
 }

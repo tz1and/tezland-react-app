@@ -7,6 +7,7 @@ import { grapphQLUser } from '../graphql/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 import Conf from '../Config';
 import TokenKey from '../utils/TokenKey';
+import PlaceKey from '../utils/PlaceKey';
 
 
 // TODO: should be using PlaceKey
@@ -32,7 +33,7 @@ export const Places: React.FC<PlacesProps> = (props) => {
 
     const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
         // TODO: should link to fa2/tokenid
-        navigate(DirectoryUtils.placeLink({ id: token_key.id.toNumber(), fa2: token_key.fa2 }));
+        navigate(DirectoryUtils.placeLink(new PlaceKey(token_key.id.toNumber(), token_key.fa2)));
     }
 
     /*const handleTransfer = (item_id: number, quantity: number) => {

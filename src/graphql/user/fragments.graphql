@@ -1,8 +1,6 @@
 fragment ItemTokenSelect on item_token {
     tokenId
-    contract {
-        address
-    }
+    contractId
     metadata {
         name
         description

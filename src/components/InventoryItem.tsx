@@ -30,7 +30,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
     if (item_data.swapInfo) quantity = item_data.swapInfo.amount;
     else quantity = item_data.quantity;
 
-    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contract.address);
+    const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contractId);
 
     let itemTrackedBalance = "";
     let balanceColor = "";
@@ -75,7 +75,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                         <Container className='card-text mx-0 px-0' style={{fontSize: '0.6rem'}}>
                             <Row className='gx-0'>
                                 <Col sm='4' className='text-start'>Collection</Col>
-                                <Col sm='8' className='text-end'>{truncateAddress(token_data.contract.address)}</Col>
+                                <Col sm='8' className='text-end'>{truncateAddress(token_data.contractId)}</Col>
                             </Row>
                             <Row className='gx-0'>
                                 <Col sm='4' className='text-start'>Token ID</Col>

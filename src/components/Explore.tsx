@@ -24,6 +24,7 @@ import assert from 'assert';
 import { Helmet } from 'react-helmet-async';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
+import PlaceKey from '../utils/PlaceKey';
 
 
 type ExploreProps = {
@@ -120,9 +121,9 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         return [0, 0, 0];
     }
 
-    teleportToLocation = (location: string): void => {
+    teleportToLocation = (place_key: PlaceKey): void => {
         const curVS = this.virtualSpaceRef.current;
-        if (curVS) curVS.teleportToLocation(location);
+        if (curVS) curVS.teleportToLocation(place_key);
     };
 
     teleportToWorldPos = (pos: [number, number]): void => {

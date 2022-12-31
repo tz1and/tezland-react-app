@@ -394,11 +394,9 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                 <div className="mb-3">
                                                     <label htmlFor="collection" className="form-label">Collection</label>
                                                     <Field id="collection" name="collection" as="select" value={values.collection} className="form-select" aria-describedby="collectionHelp" disabled={isSubmitting} >
-                                                    <option key={Conf.item_contract} value={Conf.interior_contract}>Public Items Collection</option>
+                                                        <option key={Conf.item_contract} value={Conf.item_contract}>Public Items Collection</option>
                                                         {this.state.userCollections && this.state.userCollections.holder[0].collections.map(val =>
                                                             <option key={val.address} value={val.address}>{val.metadata!.name}</option>)}
-                                                        {/* TODO: other items */}
-                                                        {/*<option key={"local"} value={"local"}>Local</option>*/}
                                                     </Field>
                                                     <div id="collectionHelp" className="form-text">The collection to mint in.</div>
                                                 </div>

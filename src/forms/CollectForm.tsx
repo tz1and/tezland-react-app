@@ -8,8 +8,8 @@ import { ItemTags } from '../components/item/ItemTags';
 import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
 import { ItemDisplay } from '../components/item/ItemDisplay';
 import { Logging } from '../utils/Logging';
-import { PlaceKey } from '../world/nodes/BasePlaceNode';
 import TokenKey from '../utils/TokenKey';
+import PlaceKey from '../utils/PlaceKey';
 
 
 type CollectFormProps = {

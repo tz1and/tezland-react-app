@@ -18,14 +18,12 @@ query getUserPlaces($address: String!, $contracts: [String!]!, $offset: Int!, $a
         where: {
             holderId: {_eq: $address},
             token: {
-                contract: { address: {_in: $contracts} }
+                contractId: {_in: $contracts}
             }
         }, limit: $amount, offset: $offset, order_by: {token: {level: desc}}) {
         token {
             tokenId
-            contract {
-                address
-            }
+            contractId
             metadata {
                 placeType
             }
@@ -49,7 +47,7 @@ query getUserCollections($address: String!) {
 # These two queries are for item balance tracking.
 # I'm sure it can be done in a simpler way.
 query getInventoryTokensWithBalances($address: String!, $fa2: String!, $ids: [bigint!]!) {
-    itemTokenHolder(where: {token: {tokenId: {_in: $ids}, contract: {address: {_eq: $fa2}}}, holderId: {_eq: $address}}) {
+    itemTokenHolder(where: {token: {tokenId: {_in: $ids}, contractId: {_eq: $fa2}}, holderId: {_eq: $address}}) {
         token {
             tokenId
         }
@@ -57,18 +55,16 @@ query getInventoryTokensWithBalances($address: String!, $fa2: String!, $ids: [bi
 }
 
 query getInventoryTokensWithoutBalance($fa2: String!, $ids: [bigint!]!) {
-    itemToken(where: {tokenId: {_in: $ids}, contract: {address: {_eq: $fa2}}}) {
+    itemToken(where: {tokenId: {_in: $ids}, contractId: {_eq: $fa2}}) {
         ...ItemTokenSelect
     }
 }
 
 query getHeldPermissions($address: String!, $fa2: String!, $id: bigint!) {
-    holder(where: {address: {_eq: $address}, heldPermissions: {place: {contract: {address: {_eq: $fa2}}, tokenId: {_eq: $id}}}}) {
+    holder(where: {address: {_eq: $address}, heldPermissions: {place: {contractId: {_eq: $fa2}, tokenId: {_eq: $id}}}}) {
         heldPermissions {
             place {
-                contract {
-                    address
-                }
+                contractId
                 tokenId
             }
             ownerId
@@ -79,12 +75,10 @@ query getHeldPermissions($address: String!, $fa2: String!, $id: bigint!) {
 }
 
 query getGivenPermissions($address: String!, $fa2: String!, $id: bigint!) {
-    holder(where: {address: {_eq: $address}, givenPermissions: {place: {contract: {address: {_eq: $fa2}}, tokenId: {_eq: $id}}}}) {
+    holder(where: {address: {_eq: $address}, givenPermissions: {place: {contractId: {_eq: $fa2}, tokenId: {_eq: $id}}}}) {
         givenPermissions {
             place {
-                contract {
-                    address
-                }
+                contractId
                 tokenId
             }
             ownerId

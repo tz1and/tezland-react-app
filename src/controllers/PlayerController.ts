@@ -17,6 +17,7 @@ import ItemPlacementController from "./ItemPlacementController";
 import world_definition from "../models/districts.json";
 import Conf from "../Config";
 import TokenKey from "../utils/TokenKey";
+import PlaceKey from "../utils/PlaceKey";
 Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
@@ -246,8 +247,8 @@ export default class PlayerController {
         }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
     }
 
-    private async teleportToPlace(place_id: number) {
-        const metadata = await Metadata.getPlaceMetadata(place_id, Conf.place_contract);
+    private async teleportToPlace(place_key: PlaceKey) {
+        const metadata = await Metadata.getPlaceMetadata(place_key.id, place_key.fa2);
         assert(metadata);
 
         const origin = Vector3.FromArray(metadata.centerCoordinates);
@@ -269,20 +270,20 @@ export default class PlayerController {
         this.playerTrigger.position.copyFrom(pos);
     }
 
-    public async teleportToLocation(location: string) {
-        if (location.startsWith("district")) {
-            const district_id = parseInt(location.replace("district", ""));
+    public async teleportToLocation(place_key: PlaceKey) {
+        if (place_key.fa2 === "district") {
             const world_def = world_definition;
 
-            const district = world_def.districts[district_id - 1];
+            const district = world_def.districts[place_key.id - 1];
             const spawn = new Vector2(district.spawn.x, district.spawn.y)
             const center = new Vector2(district.center.x, district.center.y)
             const spawn_point = spawn.add(center);
 
             this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
-        } else if (location.startsWith("place")) {
-            const place_id = parseInt(location.replace("place", ""));
-            await this.teleportToPlace(place_id);
+        }
+        // Regular place teleportation
+        else {
+            await this.teleportToPlace(place_key);
         }
     }
 
@@ -299,7 +300,11 @@ export default class PlayerController {
                 parseFloat(urlParams.get('coordz')!))
             );
         } else if (urlParams.has('placeid')) {
-            await this.teleportToPlace(parseInt(urlParams.get('placeid')!));
+            await this.teleportToPlace(new PlaceKey(parseInt(urlParams.get('placeid')!), Conf.place_contract));
+        } else if (urlParams.has('placekey')) {
+            const place_key = urlParams.get('placekey')!.split(',');
+            console.log(place_key);
+            await this.teleportToPlace(new PlaceKey(parseInt(place_key[1]), place_key[0]));
         } else {
             await this.teleportToLocation(AppSettings.defaultSpawn.value);
         }

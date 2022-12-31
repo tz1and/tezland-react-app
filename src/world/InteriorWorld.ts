@@ -3,7 +3,6 @@ import { Vector3, Color3, HemisphericLight,
     AbstractMesh, Nullable, ReflectionProbe,
     RenderTargetTexture, TransformNode } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
-import { PlaceKey } from "./nodes/BasePlaceNode";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
@@ -19,6 +18,7 @@ import ArtifactMemCache from "../utils/ArtifactMemCache";
 import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
 import { Game } from "./Game";
+import PlaceKey from "../utils/PlaceKey";
 
 
 const worldUpdateDistance = 10; // in m

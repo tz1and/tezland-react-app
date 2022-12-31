@@ -19,9 +19,9 @@ const InteractiveMapPopup: React.FC<InteractiveMapPopupProps> = (props) => {
 
     const teleportToMapLocation = () => {
         if (getDirectoryEnabledGlobal()) {
-            const isLocation = markerMetadata.location.includes("place") || markerMetadata.location.includes("district");
+            const isTeleporter = markerMetadata.location.fa2 === "teleporter";
 
-            if (isLocation)
+            if (!isTeleporter)
                 window.parent.postMessage({
                     tz1andEvent: true,
                     teleportToLocation: markerMetadata.location
@@ -33,9 +33,9 @@ const InteractiveMapPopup: React.FC<InteractiveMapPopupProps> = (props) => {
                 } as iFrameControlEvent, "*");
         }
         else {
-            const isPlace = markerMetadata.location.includes("place");
+            const isPlace = !["district", "teleporter"].includes(markerMetadata.location.fa2);
 
-            if (isPlace) navigate(`/explore?placeid=${markerMetadata.id}`);
+            if (isPlace) navigate(`/explore?placekey=${markerMetadata.location.fa2},${markerMetadata.location.id}`);
             else navigate(`/explore?coordx=${markerMetadata.mapPosition[0]}&coordz=${markerMetadata.mapPosition[1]}`);
         }
     }

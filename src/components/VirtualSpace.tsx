@@ -9,6 +9,7 @@ import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
 import TokenKey from '../utils/TokenKey';
 import Contracts from '../tz/Contracts';
+import PlaceKey from '../utils/PlaceKey';
 
 
 type VirtualSpaceProps = {
@@ -42,9 +43,9 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         return [pos.x, pos.y, pos.z];
     }
 
-    teleportToLocation(location: string) {
+    teleportToLocation(place_key: PlaceKey) {
         assert(this.state.game);
-        this.state.game.playerController.teleportToLocation(location);
+        this.state.game.playerController.teleportToLocation(place_key);
     }
 
     teleportToWorldPos(pos: [number, number]) {

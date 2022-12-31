@@ -1,5 +1,6 @@
 import React from 'react';
 import TezosWalletContext from '../components/TezosWalletContext';
+import PlaceKey from '../utils/PlaceKey';
 import { iFrameControlFunctions } from '../world/AppControlFunctions';
 
 
@@ -21,7 +22,7 @@ export function getDirectoryEnabledGlobal(): DirectoryEnabledGlobalState | undef
 export type iFrameControlEvent = {
     tz1andEvent: boolean; // Doesn't matter if true or false, just needs to not be undefined.
     teleportToWorldPos?: [number, number];
-    teleportToLocation?: string;
+    teleportToLocation?: PlaceKey;
 }
 
 type DirectoryFormProps = {

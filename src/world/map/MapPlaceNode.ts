@@ -7,10 +7,11 @@ import { PlaceTokenMetadata } from "../Metadata";
 import { Logging } from "../../utils/Logging";
 import Contracts from "../../tz/Contracts";
 import Conf from "../../Config";
+import PlaceKey from "../../utils/PlaceKey";
 
 
 export default class MapPlaceNode extends TransformNode {
-    readonly placeId: number;
+    readonly placeKey: PlaceKey;
     readonly placeMetadata: PlaceTokenMetadata;
     protected worldMap: WorldMap;
 
@@ -31,7 +32,7 @@ export default class MapPlaceNode extends TransformNode {
 
         this.worldMap = worldMap;
 
-        this.placeId = placeId;
+        this.placeKey = new PlaceKey(placeId, Conf.place_contract);
         this.placeMetadata = placeMetadata;
 
         this._origin = Vector3.FromArray(this.placeMetadata.centerCoordinates);
@@ -59,7 +60,7 @@ export default class MapPlaceNode extends TransformNode {
 
         this.position.copyFrom(this._origin); // TODO: move to base constructor?
 
-        const isPublic = PublicPlaces.has(this.placeId);
+        const isPublic = PublicPlaces.has(this.placeKey.id);
 
         // create bounds
         this.placeBounds = MeshUtils.extrudeMeshFromShape(shape, this._buildHeight - 0.1, new Vector3(0, this._buildHeight, 0),
@@ -89,14 +90,14 @@ export default class MapPlaceNode extends TransformNode {
         // Maybe reset last_owner_and_permission_update on failiure?
         if(force || (Date.now() - (validity * 1000)) > this.last_owner_update) {
             const prev_update = this.last_owner_update;
-            Logging.InfoDev("Updating owner for place " + this.placeId);
+            Logging.InfoDev("Updating owner for place " + this.placeKey.id);
             try {
                 this.last_owner_update = Date.now();
-                this.owner = await Contracts.getPlaceOwner({id: this.placeId, fa2: Conf.place_contract});
+                this.owner = await Contracts.getPlaceOwner(this.placeKey);
             }
             catch(reason: any) {
                 this.last_owner_update = prev_update;
-                Logging.InfoDev("Failed to load ownership for place " + this.placeId);
+                Logging.InfoDev("Failed to load ownership for place " + this.placeKey.id);
                 Logging.InfoDev(reason);
             }
         }

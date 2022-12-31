@@ -15,6 +15,7 @@ import { GridMaterial, SimpleMaterial } from "@babylonjs/materials";
 import { TeleporterData, TeleporterType } from "../utils/ItemData";
 import Conf from "../Config";
 import ItemNode from "./nodes/ItemNode";
+import PlaceKey from "../utils/PlaceKey";
 
 
 export class Game {
@@ -167,12 +168,13 @@ export class Game {
         if (teleporterData.type === TeleporterType.Exterior) {
             this.switchWorld(World, () => {
                 assert(teleporterData.placeId !== undefined, "placeId is undefined");
-                this.playerController.teleportToLocation("place" + teleporterData.placeId)
+                this.playerController.teleportToLocation(new PlaceKey(teleporterData.placeId, Conf.place_contract));
             });
         }
         else if (teleporterData.type === TeleporterType.Interior) {
             this.switchWorld(InteriorWorld, () => {
                 assert(teleporterData.placeId !== undefined, "placeId is undefined");
+                //this.playerController.teleportToLocation({fa2: Conf.interior_contract, id: teleporterData.placeId})
                 this.playerController.teleportToWorldPos(new Vector3(0, 0, 0));
             }, teleporterData.placeId);
         }
@@ -192,7 +194,7 @@ export class Game {
 
             if (this.world instanceof InteriorWorld) {
                 assert(placeId !== undefined, "placeId is undefined");
-                this.world.loadWorld({id: placeId, fa2: Conf.interior_contract}).then(() => {
+                this.world.loadWorld(new PlaceKey(placeId, Conf.interior_contract)).then(() => {
                     afterSwitch();
                 }).catch(e => {});
             }
