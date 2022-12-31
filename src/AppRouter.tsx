@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Auctions from './routes/Auctions';
 import { CreateAuctionFormW } from './forms/CreateAuction';
 //import ComingSoon from './routes/ComingSoon';
@@ -29,6 +29,7 @@ import { TypedArtPostType } from './routes/blog/TypedArtUtils';
 import EnterDirectory from './routes/EnterDirectory';
 import Loading from './components/util/Loading';
 import Tools from './routes/Tools';
+import Conf from './Config';
 
 
 const Map = React.lazy(() => import('./routes/Map'));
@@ -36,6 +37,16 @@ const EventMap = React.lazy(() => import('./routes/EventMap'));
 const DirectoryMap = React.lazy(() => import('./routes/DirectoryMap'));
 const Explore = React.lazy(() => import('./components/Explore'));
 const Acknowledgements = React.lazy(() => import('./routes/Acknowledgements'));
+
+const RedirectToV1Item: React.FC<{directoryEnabled: boolean}> = (props) => {
+    const params = useParams();
+    return <Navigate replace to={`${props.directoryEnabled ? '/directory' : ''}/i/${Conf.item_v1_contract}/${params.id!}`} />
+}
+
+const RedirectToV2Place: React.FC<{directoryEnabled: boolean}> = (props) => {
+    const params = useParams();
+    return <Navigate replace to={`${props.directoryEnabled ? '/directory' : ''}/p/${Conf.place_contract}/${params.id!}`} />
+}
 
 function AppRouter(props: React.PropsWithChildren<{}>) {
     const [directoryEnabled, setDirectoryEnabled] = useState(false);
@@ -49,6 +60,10 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
         <Route path="c/:fa2" element={<Collection />} />
         <Route path="p/:fa2/:id" element={<PlacePage />} />
         <Route path="t/:tag" element={<Tag />} />
+
+        {/* Also handle old routes to places and items. */}
+        <Route path="i/:id" element={<RedirectToV1Item directoryEnabled={directoryEnabled} />} />
+        <Route path="p/:id" element={<RedirectToV2Place directoryEnabled={directoryEnabled} />} />
 
         <Route path="new">
             <Route path="mints" element={<NewMints />} />

@@ -20,6 +20,7 @@ export default class Conf {
     public static backend_url: string = getEnvVar('REACT_APP_BACKEND');
     public static multiplayer_url: string = getEnvVar('REACT_APP_MULTIPLAYER');
 
+    public static item_v1_contract: string = getEnvVar('REACT_APP_ITEM_V1_CONTRACT');
     public static item_contract: string = getEnvVar('REACT_APP_ITEM_CONTRACT');
     public static place_v1_contract: string = getEnvVar('REACT_APP_PLACE_V1_CONTRACT');
     public static place_contract: string = getEnvVar('REACT_APP_PLACE_CONTRACT');
