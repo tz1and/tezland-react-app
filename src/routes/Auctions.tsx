@@ -6,13 +6,14 @@ import { Col, Container, Row, ToggleButton, ToggleButtonGroup } from 'react-boot
 import { Helmet } from 'react-helmet-async';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Link } from 'react-router-dom';
-import Auction, { discordInviteLink } from '../components/Auction';
+import AuctionCard, { discordInviteLink } from '../components/AuctionCard';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import { grapphQLUser } from '../graphql/user';
 import DutchAuction, { AuctionKey } from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
 import { scrollbarVisible } from '../utils/Utils';
+import PlaceKey from '../utils/PlaceKey';
 
 
 type AuctionTypeFilter = 'all' | 'primary' | 'secondary';
@@ -303,8 +304,8 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     override render() {
         const rows = [];
         this.state.auctions.forEach((auction) => {
-            rows.push(<Auction key={auction.transientId} auctionId={auction.transientId} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
-                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} fa2={auction.fa2} tokenId={auction.tokenId}
+            rows.push(<AuctionCard key={auction.transientId} auctionId={auction.transientId} startPrice={auction.startPrice} endPrice={auction.endPrice} isPrimary={auction.isPrimary}
+                startTime={this.parseTimestamp(auction.startTime)} endTime={this.parseTimestamp(auction.endTime)} owner={auction.ownerId} placeKey={new PlaceKey(auction.tokenId, auction.fa2)}
                 finished={auction.finished} finishingBid={auction.finishingBid} bidOpHash={auction.bidOpHash}
                 userWhitelisted={this.isWhitelistedFor(auction.fa2)} />);
         });

@@ -14,17 +14,18 @@ import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
 import assert from 'assert';
 import Conf from '../Config';
+import AuctionDetails from './AuctionDetails';
+import PlaceKey from '../utils/PlaceKey';
 
 
-type AuctionProps = {
+type AuctionCardProps = {
+    placeKey: PlaceKey;
     auctionId: number;
     startPrice: number;
     endPrice: number; // im mutez
     startTime: number; // in mutez
     endTime: number;
     owner: string;
-    fa2: string;
-    tokenId: number;
     isPrimary: boolean;
     userWhitelisted: boolean;
     finished: boolean;
@@ -34,22 +35,23 @@ type AuctionProps = {
     //message: string;
 };
 
-type AuctionState = {
+type AuctionCardState = {
     updateCount: number,
     mapLocation: [number, number],
     placePoly: [number, number][],
     placeCoords: [number, number],
     placeArea: number,
-    buildHeight: number
+    buildHeight: number,
+    showAuctionDetails: boolean,
 }
 
 export const discordInviteLink = "https://discord.gg/AAwpbStzZf";
 
-export default class Auction extends React.Component<AuctionProps, AuctionState> {
+export default class AuctionCard extends React.Component<AuctionCardProps, AuctionCardState> {
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
-    
-    constructor(props: AuctionProps) {
+
+    constructor(props: AuctionCardProps) {
         super(props);
         this.state = {
             updateCount: 0,
@@ -57,8 +59,10 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
             placePoly: [],
             placeCoords: [0, 0],
             placeArea: 0,
-            buildHeight: 0
+            buildHeight: 0,
+            showAuctionDetails: false
         };
+
         this.updateTimeVars();
     }
 
@@ -94,17 +98,17 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
         return current_price;
     }
 
-    private bidOnAuction = async () => {
-        await DutchAuction.bidOnAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner, this.calculateCurrentPrice());
+    private openAuctionDetails = () => {
+        this.setState({showAuctionDetails: true});
     }
 
     private cancelAuction = async () => {
-        await DutchAuction.cancelAuction(this.context, this.props.fa2, this.props.tokenId, this.props.owner);
+        await DutchAuction.cancelAuction(this.context, this.props.placeKey, this.props.owner);
     }
 
-    private panMapToPlace(place_id: number) {
+    private panMapToPlace() {
         // Note: To match leaflet coords, both x and y are flipped and mirrored.
-        Metadata.getPlaceMetadata(place_id, this.props.fa2).then((res) => {
+        Metadata.getPlaceMetadata(this.props.placeKey.id, this.props.placeKey.fa2).then((res) => {
             assert(res);
             const coords = res.centerCoordinates;
             const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
@@ -129,11 +133,11 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
     }
 
     private placeLink(): string {
-        return `/explore?placeid=${this.props.tokenId}`
+        return `/explore?placekey=${this.props.placeKey.fa2},${this.props.placeKey.id}`
     }
 
     override componentDidMount() {
-        this.panMapToPlace(this.props.tokenId);
+        this.panMapToPlace();
 
         if (!this.props.finished) {
             // set Interval
@@ -176,12 +180,12 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
 
                 <div className='p-3 text-center'>
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
-                    <h4 className="mb-0">{DutchAuction.getPlaceType(this.props.fa2)} #{this.props.tokenId}</h4>
+                    <h4 className="mb-0">{DutchAuction.getPlaceType(this.props.placeKey.fa2)} #{this.props.placeKey.id}</h4>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
                     <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
                 <MapContainer className="auction-img" center={[1000, 1000]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                    {(this.props.fa2 !== Conf.interior_contract) && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
+                    {(this.props.placeKey.fa2 !== Conf.interior_contract) && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
                     <MapSetCenter center={this.state.mapLocation} animate={false} />
                     <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                     <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
@@ -221,9 +225,12 @@ export default class Auction extends React.Component<AuctionProps, AuctionState>
                     {this.props.finished ? <a className="btn btn-success btn-md w-100" href={`https://tzkt.io/${this.props.bidOpHash}`} target='_blank' rel='noreferrer'>Finished</a> :
                         !this.context.isWalletConnected() ? <Button className="mb-1 w-100" variant="secondary" disabled={true}>No wallet connected</Button> :
                             (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Apply for Primary</a> :
-                            <Button onClick={this.bidOnAuction} className="mb-1 w-100" variant="primary" disabled={!this.started}>
-                                {!this.started ? "Not started" : "Get for " + price_str}</Button>}
+                            <Button onClick={this.openAuctionDetails} className="mb-1 w-100" variant="primary">Open Auction</Button>}
+
+                    {/*<Button onClick={this.bidOnAuction} className="mb-1 w-100" variant="primary" disabled={!this.started}>
+                        {!this.started ? "Not started" : "Get for " + price_str}</Button>*/}
                 </div>
+                {this.state.showAuctionDetails && <AuctionDetails {...this.props} onHide={() => {this.setState({showAuctionDetails: false})}} />}
             </div>
         );
     }

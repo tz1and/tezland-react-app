@@ -8,6 +8,15 @@ import { Logging } from "../utils/Logging";
 import { tezToMutez } from "../utils/Utils";
 import Contracts from "./Contracts";
 import { SHA3 } from 'sha3';
+import PlaceKey from "../utils/PlaceKey";
+
+
+export enum PlaceType {
+    Interior = "Interior",
+    Place = "Place",
+    PlaceV1 = "Place (v1)",
+    Unknown = "Unknown"
+}
 
 
 export class AuctionKey {
@@ -82,7 +91,7 @@ export default class DutchAuction {
         }
     }
 
-    private static async getHashedPlaceSeq(walletProvider: ITezosWalletProvider, fa2: string, token_id: number) {
+    public static async getHashedPlaceSeq(walletProvider: ITezosWalletProvider, place_key: PlaceKey) {
         // Place seq type type:
         // (pair (bytes %place_seq) (map %chunk_seqs nat bytes))
 
@@ -99,7 +108,7 @@ export default class DutchAuction {
 
         // Get place seq.
         const place_seq = await world_contract.contractViews.get_place_seqnum({
-            place_key: {fa2: fa2, id: token_id}
+            place_key: place_key
         }).executeView({viewCaller: world_contract.address});
 
         // Encode result as a michelson expression.
@@ -114,18 +123,16 @@ export default class DutchAuction {
         return new SHA3(256).update(packedPlaceSeq.packed, 'hex').digest('hex');
     }
 
-    static async bidOnAuction(walletProvider: ITezosWalletProvider, fa2: string, token_id: number, owner: string, price_mutez: number, callback?: (completed: boolean) => void) {
+    static async bidOnAuction(walletProvider: ITezosWalletProvider, place_key: PlaceKey, owner: string, price_mutez: number, seq_hash: string, callback?: (completed: boolean) => void) {
         if (!walletProvider.isWalletConnected()) await walletProvider.connectWallet();
 
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
 
-        const seq_hash = await this.getHashedPlaceSeq(walletProvider, fa2, token_id);
-
         try {
             const bid_op = await auctionsWallet.methodsObject.bid({
                 auction_key: {
-                    fa2: fa2,
-                    token_id: token_id,
+                    fa2: place_key.fa2,
+                    token_id: place_key.id,
                     owner: owner
                 },
                 seq_hash: seq_hash
@@ -199,12 +206,12 @@ export default class DutchAuction {
         return auctions.contractViews.get_administrator().executeView({ viewCaller: auctions.address });
     }*/
 
-    static async cancelAuction(walletProvider: ITezosWalletProvider, fa2: string, token_id: number, owner: string, callback?: (completed: boolean) => void) {
+    static async cancelAuction(walletProvider: ITezosWalletProvider, place_key: PlaceKey, owner: string, callback?: (completed: boolean) => void) {
         // note: this is also checked in Auction, probably don't have to recheck, but better safe.
         if (!walletProvider.isWalletConnected()) throw new Error("bidOnAuction: No wallet connected");
 
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
-        const placesWallet = await walletProvider.tezosToolkit().wallet.at(fa2);
+        const placesWallet = await walletProvider.tezosToolkit().wallet.at(place_key.fa2);
 
         const batch = walletProvider.tezosToolkit().wallet.batch([
             {
@@ -212,7 +219,7 @@ export default class DutchAuction {
                 ...placesWallet.methodsObject.update_operators([{ remove_operator: {
                         owner: walletProvider.walletPHK(),
                         operator: auctionsWallet.address,
-                        token_id: token_id
+                        token_id: place_key.id
                     }
                 }]).toTransferParams()
             },
@@ -220,8 +227,8 @@ export default class DutchAuction {
                 kind: OpKind.TRANSACTION,
                 ...auctionsWallet.methodsObject.cancel({
                     auction_key: {
-                        fa2: fa2,
-                        token_id: token_id,
+                        fa2: place_key.fa2,
+                        token_id: place_key.id,
                         owner: owner
                     }
                 }).toTransferParams()
@@ -240,10 +247,10 @@ export default class DutchAuction {
     }
 
     static getPlaceType(fa2: string) {
-        if (fa2 === Conf.interior_contract) return "Interior";
-        if (fa2 === Conf.place_contract) return "Place";
-        if (fa2 === Conf.place_v1_contract) return "Place (v1)";
+        if (fa2 === Conf.interior_contract) return PlaceType.Interior;
+        if (fa2 === Conf.place_contract) return PlaceType.Place;
+        if (fa2 === Conf.place_v1_contract) return PlaceType.PlaceV1;
         Logging.ErrorDev(`Unknown place type: ${fa2}`);
-        return "Unknown";
+        return PlaceType.Unknown;
     }
 }
