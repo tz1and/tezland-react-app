@@ -2,6 +2,7 @@ import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, 
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import PQueue from "p-queue";
 import { Logging } from "./Logging";
+import RefCounted from "./RefCounted";
 import { FileWithMetadata } from "./Utils";
 
 GLTFFileLoader.IncrementalLoading = false;
@@ -43,12 +44,12 @@ class ArtifactProcessingQueue {
         this.isSlow = false;
     }
 
-    public queueProcessArtifact(download: FileWithMetadata, scene: Scene): Promise<AssetContainer> {
+    public queueProcessArtifact(download: FileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
         const parsePromiseTask = () => this.processArtifact(download, scene);
         return this.processArtifactTasks.add(parsePromiseTask);
     }
     
-    private async processArtifact(download: FileWithMetadata, scene: Scene): Promise<AssetContainer> {
+    private async processArtifact(download: FileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
         let plugin_ext;
         if (download.file.type === "model/gltf-binary")
             plugin_ext = ".glb";
@@ -89,7 +90,7 @@ class ArtifactProcessingQueue {
         const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
         result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
     
-        return result;
+        return new RefCounted(result);
     }
 
     static removeRefraction(materials: Nullable<Material>[]) {

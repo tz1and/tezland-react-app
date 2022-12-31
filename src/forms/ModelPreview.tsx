@@ -164,7 +164,7 @@ class PreviewScene {
             // Don't flip em.
             // NOTE: when an object is supposed to animate, instancing won't work.
             // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-            const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
+            const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions);
             this.previewObject = instance.rootNodes[0];
 
             const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
@@ -178,7 +178,7 @@ class PreviewScene {
 
             this.previewObject.position.y = -extent.y * new_scale / 2;
 
-            const polycount = countPolygons(asset.meshes);
+            const polycount = countPolygons(asset.object.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.

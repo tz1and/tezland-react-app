@@ -40,12 +40,12 @@ export default class MapPlaceNode extends TransformNode {
         this.initialisePlace();
     }
 
-    public override dispose() {
+    public override dispose(doNotRecurse?: boolean | undefined, disposeMaterialAndTextures?: boolean | undefined): void {
         // TODO: have some flag if it's loading right now or something.
         this.placeBounds?.dispose();
         this.placeBounds = null;
 
-        super.dispose();
+        super.dispose(doNotRecurse, disposeMaterialAndTextures);
     }
 
     private initialisePlace() {

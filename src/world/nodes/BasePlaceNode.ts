@@ -161,7 +161,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         this.initialisePlace();
     }
 
-    public override dispose() {
+    public override dispose(doNotRecurse?: boolean | undefined, disposeMaterialAndTextures?: boolean | undefined): void {
         this.items.clear();
         this.outOfBoundsItems.clear();
 
@@ -180,7 +180,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         ItemTracker.removeTrackedItemsForPlace(this.placeKey.id);
 
-        super.dispose();
+        super.dispose(doNotRecurse, disposeMaterialAndTextures);
     }
 
     // TODO: use MeshUtils.extrudeMeshFromShape

@@ -10,6 +10,7 @@ import { getFileType } from "./Utils";
 import { ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
+import RefCounted from "./RefCounted";
 //import { Logging } from "./Logging";
 
 
@@ -28,7 +29,7 @@ export const instantiateOptions: {
 
 
 class ArtifactMemCache {
-    private artifactCache: Map<string, Promise<AssetContainer>>;
+    private artifactCache: Map<string, Promise<RefCounted<AssetContainer>>>;
     private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
 
     /**
@@ -49,7 +50,7 @@ class ArtifactMemCache {
         ArtifactProcessingQueue.dispose();
 
         this.artifactCache.forEach(v => {
-            v.then(res => res.dispose());
+            v.then(res => res.object.dispose());
         })
         this.artifactCache.clear();
 
@@ -66,25 +67,27 @@ class ArtifactMemCache {
         // For all assets in the cache
         this.artifactCache.forEach((v, k) => {
             v.then(res => {
-                // Don't CG asset containers marked to not be GCd.
-                if((res as any).doNotGC === true) return;
-
                 // Figure out if it has instances in the scene.
-                let hasInstances = false;
-                for (const m of res.meshes) {
-                    if (m.hasInstances) {
-                        hasInstances = true;
-                        break;
-                    }
-                }
+                let isReferenced = res.refcount > 0;
 
                 // If it doesn't, delete asset and cache entry.
-                if (!hasInstances) {
+                if (!isReferenced) {
                     Logging.InfoDev("Grabage collecting", k);
-                    res.dispose();
+                    res.object.dispose();
                     this.artifactCache.delete(k);
                 }
             });
+        });
+    }
+
+    /**
+     * Really only needed because ItemNode does not reference the loaded asset.
+     * Could make ItemNode hang on tho the asset container and remove this function.
+     * @param token_key the asset key.
+     */
+    public decAssetRefCount(token_key: TokenKey) {
+        this.artifactCache.get(token_key.toString())?.then(res => {
+            res.decRefCount();
         });
     }
 
@@ -94,7 +97,7 @@ class ArtifactMemCache {
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
         let assetPromise = this.artifactCache.get(token_key.toString());
         if(assetPromise) {
-            (await assetPromise).dispose();
+            (await assetPromise).object.dispose();
             this.artifactCache.delete(token_key.toString());
         }
 
@@ -128,7 +131,7 @@ class ArtifactMemCache {
         if (parent.isDisposed()) return null;
 
         // get the original, untransformed bounding vectors from the asset.
-        parent.boundingVectors = asset.meshes[0].getHierarchyBoundingVectors();
+        parent.boundingVectors = asset?.object.meshes[0].getHierarchyBoundingVectors();
     
         // Instantiate.
         // Getting first root node is probably enough.
@@ -136,10 +139,13 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
+        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions);
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].name = `item${file.name}_clone`;
         instance.rootNodes[0].parent = parent;
+
+        // Increase refcount.
+        asset.incRefCount();
 
         this.itemsLoaded = true;
     
@@ -184,12 +190,7 @@ class ArtifactMemCache {
         if (parent.isDisposed()) return null;
 
         // get the original, untransformed bounding vectors from the asset.
-        parent.boundingVectors = asset.meshes[0].getHierarchyBoundingVectors();
-
-        // TEMP: for now, avoid clones artefacts being garbage collected.... yeah I know, it's dumb!
-        // Not sure what do do about it - maybe a custom highlight shader or......
-        // Some things are not instanced so we can highlight teleporters.
-        if (clone) (asset as any).doNotGC = true;
+        parent.boundingVectors = asset.object.meshes[0].getHierarchyBoundingVectors();
     
         // Instantiate.
         // Getting first root node is probably enough.
@@ -197,10 +198,13 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, {doNotInstantiate: clone});
+        const instance = asset.object.instantiateModelsToScene(undefined, false, {doNotInstantiate: clone});
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
         instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;
+
+        // Increase refcount.
+        asset.incRefCount();
 
         this.itemsLoaded = true;
     
@@ -213,7 +217,10 @@ class ArtifactMemCache {
         let assetPromise = this.artifactCache.get(token_key.toString());
         if(!assetPromise) {
             // TODO: make sure glb file is pre-processed!
-            assetPromise = SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
+            assetPromise = (async () => {
+                const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
+                return new RefCounted(res);
+            })()
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
@@ -233,9 +240,12 @@ class ArtifactMemCache {
         }
 
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions);
+        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions);
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
+
+        // Increase refcount.
+        asset.incRefCount();
 
         this.itemsLoaded = true;
 

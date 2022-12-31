@@ -174,7 +174,7 @@ export default class ItemPickingController extends BaseUserController {
         this.keyboardObserver = this.playerController.scene.onKeyboardObservable.add(this.keyboardInput, KeyboardEventTypes.KEYDOWN, true)!;
     }
 
-    public override dispose() {
+    public override dispose(): void {
         this.playerController.scene.onPointerObservable.remove(this.mouseObserver);
         this.playerController.scene.onKeyboardObservable.remove(this.keyboardObserver);
 

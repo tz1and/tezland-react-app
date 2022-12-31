@@ -116,6 +116,15 @@ export default class ItemNode extends TransformNode {
         return "ItemNode";
     }*/
 
+    public override dispose(doNotRecurse?: boolean | undefined, disposeMaterialAndTextures?: boolean | undefined): void {
+        if (!this.isDisposed()) {
+            // Only decrease refcount if item wasn't already disposed.
+            if (this._loadState === ItemLoadState.Loaded) ArtifactMemCache.decAssetRefCount(this.tokenKey);
+        }
+
+        super.dispose(doNotRecurse, disposeMaterialAndTextures);
+    }
+
     public getOwner(): string {
         if (this.issuer) return this.issuer;
 
