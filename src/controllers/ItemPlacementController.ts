@@ -59,8 +59,9 @@ export default class ItemPlacementController extends BaseUserController {
                 const point = hit.pickedPoint;
                 this.tempObjectPos.set(point.x, point.y + this.tempObjectOffsetY, point.z);
 
-                const new_pos = this.toExpectedPrecision().pos;
-                this.tempObjectPos.copyFrom(new_pos);
+                const res = this.toExpectedPrecision();
+                this.tempObjectPos.copyFrom(res.pos);
+                this.tempObjectRot.copyFrom(res.rot);
 
                 this.tempObjectHelper.posUpdate(this.tempObjectPos);
             }
@@ -80,7 +81,7 @@ export default class ItemPlacementController extends BaseUserController {
 
     private toExpectedPrecision(): {rot: Quaternion, pos: Vector3, scale: number} {
         assert(this.tempObject);
-        // serialise and deserialsie, to try make sure the value is what it would we after saving.
+        // serialise and deserialsie, to quantize transform to expected precision.
         const res = ItemDataWriter.write(this.tempObject);
         const [quat_out, pos_out, scale_out] = ItemDataParser.parse(toHexString(res));
         return {rot: quat_out, pos: pos_out, scale: scale_out};
