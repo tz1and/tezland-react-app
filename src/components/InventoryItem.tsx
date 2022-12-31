@@ -67,7 +67,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
                     <img src={MetadataUtils.getThumbnailUrl(item_metadata)} width={350} height={350} className="card-img-top inventory-item-image" alt="..."/>
                     <div className="card-body">
                         <h6 className="card-title">{name ? truncate(name, 19, '\u2026') : <span className='text-danger'>Metadata missing</span>}</h6>
-                        <p className="card-text">x{quantity}{itemTrackedBalance}<small>/{token_data.supply}</small>{item_data.swapInfo && ` for ${mutezToTez(item_data.swapInfo.price).toNumber().toFixed(2)} \uA729`}</p>
+                        <p className="card-text">x{quantity}{itemTrackedBalance}<small>/{token_data.supply}</small>{item_data.swapInfo && item_data.swapInfo.price !== 0 && ` for ${mutezToTez(item_data.swapInfo.price).toNumber().toFixed(2)} \uA729`}</p>
                         <p className="card-text small m-0">
                             Royalties: {token_data.royalties === 0 ? 0 : (token_data.royalties / 10).toFixed(2)}{"\u0025"}<br/>
                             Minter: </p>
