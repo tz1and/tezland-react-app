@@ -4,9 +4,8 @@ query getCollectionItems($fa2: String!, $offset: Int!, $amount: Int!) {
     }
 }
 
-# TODO: misspelling LOL
 query getCollectionContract($fa2: String!) {
-    contact(where: {address: {_eq: $fa2}}) {
+    tokenContract(where: {address: {_eq: $fa2}}) {
         address
         ownerId
         metadata {

@@ -31,3 +31,16 @@ query getPlaceOwner($id: bigint!, $fa2: String!) {
         holderId
     }
 }
+
+query getItemsInPlace($fa2: String!, $id: bigint!, $offset: Int!, $amount: Int!) {
+    worldItemPlacement(where: {place: {tokenId: {_eq: $id}, contract: {address: {_eq: $fa2}}}}, limit: $amount, offset: $offset, order_by: {level: desc})
+    {
+        transientId
+        amount
+        rate
+        issuerId
+        itemToken {
+            ...ItemTokenSelect
+        }
+    }
+}

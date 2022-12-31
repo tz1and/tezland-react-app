@@ -55,7 +55,7 @@ export const Collection: React.FC<CollectionProps> = (props) => {
         //this.props.transferItemFromInventory(item_id, quantity);
     }*/
 
-    const contractDetails = contractQueryRes && contractQueryRes.contact.length > 0 ? contractQueryRes.contact[0] : undefined;
+    const contractDetails = contractQueryRes && contractQueryRes.tokenContract.length > 0 ? contractQueryRes.tokenContract[0] : undefined;
 
     return (
         <main>

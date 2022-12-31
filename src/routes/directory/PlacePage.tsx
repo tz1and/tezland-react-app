@@ -10,9 +10,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
 import { PlaceKey } from "../../world/nodes/BasePlaceNode";
 import Conf from "../../Config";
+import { FetchDataFunc, FetchDataResultArray, ItemClickedFunc, TokenInfiniteScroll } from "../../components/TokenInfiniteScroll";
+import { grapphQLUser } from "../../graphql/user";
+import TokenKey from "../../utils/TokenKey";
+import { DirectoryUtils } from "../../utils/DirectoryUtils";
+import { InventoryItem } from "../../components/InventoryItem";
 
 
-type PlacePageProps = { };
+type PlacePageProps = {
+    onlyPlaceOwnedItems?: boolean;
+};
 
 export const PlacePage: React.FC<PlacePageProps> = (props) => {
     const navigate = useNavigate();
@@ -65,7 +72,7 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
         content = <div>
             <h1>{name}</h1>
             <Container>
-                <Row>
+                <Row className="gx-0">
                     <Col>
                         <MapContainer style={{width: "640px", height: "480px"}} center={center_pos} zoom={2} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
                             <MapSetCenter center={center_pos} animate={false}/>
@@ -73,11 +80,10 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
                             <Circle center={center_pos} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
                             <Polygon positions={placePoly} color='#d58195' weight={10} lineCap='square'/>
                         </MapContainer>
-
-                        <h5 className="mt-3">Description:</h5>
-                        <p>{description}</p>
                     </Col>
-                    <Col xs="4" lg="3">
+                    <Col md="5">
+                        <h5>Description:</h5>
+                        <p>{description}</p>
                         <Button onClick={teleportToPlace}>Visit Place</Button>
                     </Col>
                 </Row>
@@ -85,11 +91,44 @@ export const PlacePage: React.FC<PlacePageProps> = (props) => {
         </div>;
     }
 
+    const fetchInventory: FetchDataFunc = async (dataOffset: number, fetchAmount: number): Promise<FetchDataResultArray> => {
+        const res = await grapphQLUser.getItemsInPlace({ fa2: placeKey.fa2, id: placeKey.id, amount: fetchAmount, offset: dataOffset });
+        const results = res.worldItemPlacement;
+        
+        // format the data to fit the data format the item components expect.
+        const formatted: FetchDataResultArray = []
+        for (const res of results) {
+            if (props.onlyPlaceOwnedItems && res.issuerId === null) continue;
+            formatted.push({key: res.transientId, token: res.itemToken, swapInfo: { amount: res.amount, price: res.rate }});
+        }
+
+        return formatted;
+    }
+
+    const handleClick: ItemClickedFunc = (token_key: TokenKey, quantity?: number) => {
+        // TODO: should link to fa2/tokenid
+        navigate(DirectoryUtils.itemLink(token_key));
+    }
+
+    /*const handleBurn = (item_id: number) => {
+        // TODO: modal version of transfer dialog
+        //this.props.burnItemFromInventory(item_id);
+    }
+
+    const handleTransfer = (item_id: number) => {
+        // TODO: modal version of burn dialog
+        //this.props.transferItemFromInventory(item_id);
+    }*/
+
     return (
         <main>
-            <div className="position-relative container text-start mt-4">
+            <Container className="position-relative text-start mt-4">
                 {content}
-            </div>
+                <div className="mt-3">
+                    {props.onlyPlaceOwnedItems ? <h2>Items owned by this Place</h2> : <h2>Items in this Place</h2>}
+                    <TokenInfiniteScroll fetchDataFunc={fetchInventory} handleClick={handleClick} fetchAmount={20} component={InventoryItem}/>
+                </div>
+            </Container>
         </main>
         
     );
