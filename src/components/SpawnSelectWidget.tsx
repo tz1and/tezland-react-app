@@ -64,7 +64,10 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     private teleportTo = () => {
         assert(this.selectRef.current);
 
-        this.props.teleportToLocation(new WorldLocation({placeKey: PlaceKey.fromJson(this.selectRef.current.value)}));
+        const placeKey = PlaceKey.fromJson(this.selectRef.current.value);
+
+        if (placeKey.fa2 === "district") this.props.teleportToLocation(new WorldLocation({district: placeKey.id}));
+        else this.props.teleportToLocation(new WorldLocation({placeKey: placeKey}));
     }
 
     private changeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
