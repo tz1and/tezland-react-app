@@ -210,7 +210,7 @@ export class World extends BaseWorld {
 
                     // Reload place if it belongs to our current world
                     if (params.place_key.fa2 === Conf.place_contract)
-                        this.reloadPlace(params.place_key);
+                        this.reloadPlace(new PlaceKey(params.place_key.id.toNumber(), params.place_key.fa2));
                 }
                 catch (e) {
                     Logging.InfoDev("Failed to parse parameters.");
