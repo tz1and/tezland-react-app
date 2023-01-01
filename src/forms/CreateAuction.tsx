@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+
 import React, { useEffect } from 'react';
 import {
     Formik,
@@ -18,8 +21,6 @@ import TezosWalletContext from '../components/TezosWalletContext';
 import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
 import { FetchDataPlaceToken, FetchDataResult } from '../components/TokenInfiniteScroll';
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
 import Conf from '../Config';
 
 

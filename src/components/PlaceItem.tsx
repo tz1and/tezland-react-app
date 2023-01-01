@@ -1,7 +1,8 @@
-import './InventoryItem.css';
-import { truncate } from '../utils/Utils';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+
+import './InventoryItem.css';
+import { truncate } from '../utils/Utils';
 import L from 'leaflet';
 import { Circle, ImageOverlay, MapContainer, Polygon } from 'react-leaflet';
 import './PlaceItem.css'

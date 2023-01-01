@@ -4,12 +4,12 @@ import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
-import { Logger, Vector3 } from '@babylonjs/core';
+import { Logger } from '@babylonjs/core';
 import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
 import TokenKey from '../utils/TokenKey';
 import Contracts from '../tz/Contracts';
-import PlaceKey from '../utils/PlaceKey';
+import WorldLocation from '../utils/WorldLocation';
 
 
 type VirtualSpaceProps = {
@@ -43,14 +43,9 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         return [pos.x, pos.y, pos.z];
     }
 
-    teleportToLocation(place_key: PlaceKey) {
+    teleportToLocation(location: WorldLocation) {
         assert(this.state.game);
-        this.state.game.playerController.teleportToLocation(place_key);
-    }
-
-    teleportToWorldPos(pos: [number, number]) {
-        assert(this.state.game);
-        this.state.game.playerController.teleportToWorldPos(new Vector3(pos[0], 0, pos[1]));
+        this.state.game.playerController.teleportToLocation(location);
     }
 
     handleDroppedFile(file: File) {

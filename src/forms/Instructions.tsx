@@ -3,7 +3,7 @@ import { OverlayTrigger, Popover } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import SpawnSelectWidget from '../components/SpawnSelectWidget';
 import WalletWidget from '../components/WalletWidget';
-import PlaceKey from '../utils/PlaceKey';
+import WorldLocation from '../utils/WorldLocation';
 import { OverlayForm } from '../world/AppControlFunctions';
 
 
@@ -11,7 +11,7 @@ type InstructionsProps = {
     closeForm: () => void;
     loadForm: (form_type: OverlayForm) => void;
     getCurrentLocation: () => [number, number, number];
-    teleportToLocation: (place_key: PlaceKey) => void;
+    teleportToLocation: (location: WorldLocation) => void;
     handleFileDrop?: (files: FileList) => void | undefined;
 }
 

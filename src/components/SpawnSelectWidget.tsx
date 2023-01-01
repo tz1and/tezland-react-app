@@ -7,10 +7,11 @@ import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
 import assert from "assert";
 import Conf from "../Config";
 import PlaceKey from "../utils/PlaceKey";
+import WorldLocation from "../utils/WorldLocation";
 
 
 type SpawnSelectProps = {
-    teleportToLocation(place_key: PlaceKey): void;
+    teleportToLocation(location: WorldLocation): void;
 };
 
 type SpawnSelectState = {
@@ -63,7 +64,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     private teleportTo = () => {
         assert(this.selectRef.current);
 
-        this.props.teleportToLocation(PlaceKey.fromJson(this.selectRef.current.value));
+        this.props.teleportToLocation(new WorldLocation({placeKey: PlaceKey.fromJson(this.selectRef.current.value)}));
     }
 
     private changeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {

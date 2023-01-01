@@ -16,6 +16,7 @@ import { TeleporterData, TeleporterType } from "../utils/ItemData";
 import Conf from "../Config";
 import ItemNode from "./nodes/ItemNode";
 import PlaceKey from "../utils/PlaceKey";
+import WorldLocation from "../utils/WorldLocation";
 
 
 export class Game {
@@ -168,14 +169,20 @@ export class Game {
         if (teleporterData.type === TeleporterType.Exterior) {
             this.switchWorld(World, () => {
                 assert(teleporterData.placeId !== undefined, "placeId is undefined");
-                this.playerController.teleportToLocation(new PlaceKey(teleporterData.placeId, Conf.place_contract));
+                this.playerController.teleportToLocation(new WorldLocation({
+                    placeKey: new PlaceKey(teleporterData.placeId, Conf.place_contract)
+                }));
             });
         }
         else if (teleporterData.type === TeleporterType.Interior) {
             this.switchWorld(InteriorWorld, () => {
                 assert(teleporterData.placeId !== undefined, "placeId is undefined");
-                //this.playerController.teleportToLocation({fa2: Conf.interior_contract, id: teleporterData.placeId})
-                this.playerController.teleportToWorldPos(new Vector3(0, 0, 0));
+                /*this.playerController.teleportToLocation(new WorldLocation({
+                    placeKey: new PlaceKey(teleporterData.placeId, Conf.interior_contract)
+                }));*/
+                this.playerController.teleportToLocation(new WorldLocation({
+                    pos: new Vector3(0, 0, 0)
+                }));
             }, teleporterData.placeId);
         }
         else { //if (teleporterData.type === TeleporterType.Local)

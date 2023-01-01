@@ -1,5 +1,3 @@
-import React from 'react';
-
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import l_shift from "!file-loader!../img/keys/l_shift.svg"; // Temp workaround for CRA5
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -16,6 +14,9 @@ import mouse_right from "!file-loader!../img/keys/mouse_right.svg"; // Temp work
 import scale_up from "!file-loader!../img/keys/scale_up.svg"; // Temp workaround for CRA5
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import space_bar from "!file-loader!../img/keys/space_bar.svg"; // Temp workaround for CRA5
+
+import React from 'react';
+
 
 export const ControlsHelp: React.FC<{}> = () => {
 

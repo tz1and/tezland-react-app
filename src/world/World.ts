@@ -21,15 +21,13 @@ import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
 import ArtifactMemCache, { instantiateOptions } from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./nodes/TeleporterBooth";
-import { WorldDefinition } from "../worldgen/WorldGen";
 import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
 import { Game } from "./Game";
-import world_definition from "../models/districts.json";
 import PlaceNode from "./nodes/PlaceNode";
 import Conf from "../Config";
 import PlaceKey from "../utils/PlaceKey";
-Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
+import { ImportedWorldDef } from "./ImportWorldDef";
 
 
 const worldUpdateDistance = 10; // in m
@@ -311,10 +309,8 @@ export class World extends BaseWorld {
     };
 
     private loadDistricts() {
-        const world_def = world_definition;
-
         let counter = 0;
-        for (const district of world_def.districts) {
+        for (const district of ImportedWorldDef.districts) {
             const center = new Vector3(district.center.x, 0, district.center.y);
             let vertices: Vector3[] = [];
 
@@ -349,7 +345,7 @@ export class World extends BaseWorld {
         }
 
         counter = 0;
-        for (const bridge of world_def.bridges) {
+        for (const bridge of ImportedWorldDef.bridges) {
             let points: Vector3[] = [];
 
             bridge.bridge_path.forEach((vertex) => {

@@ -15,6 +15,7 @@ import TokenKey from "../../utils/TokenKey";
 import { DirectoryUtils } from "../../utils/DirectoryUtils";
 import { InventoryItem } from "../../components/InventoryItem";
 import PlaceKey from "../../utils/PlaceKey";
+import WorldLocation from "../../utils/WorldLocation";
 
 
 type PlaceProps = {
@@ -41,7 +42,7 @@ export const Place: React.FC<PlaceProps> = (props) => {
         if(getDirectoryEnabledGlobal()) {
             window.parent.postMessage({
                 tz1andEvent: true,
-                teleportToLocation: {fa2: Conf.place_contract, id: props.placeKey.id}
+                teleportToLocation: new WorldLocation({placeKey: new PlaceKey(props.placeKey.id, props.placeKey.fa2)})
             } as iFrameControlEvent, "*");
         }
         else

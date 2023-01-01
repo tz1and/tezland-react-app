@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+
 import { Link } from 'react-router-dom';
 import { MapContainer, ImageOverlay, Circle, Polygon } from 'react-leaflet'
 import L from 'leaflet';
@@ -10,8 +13,6 @@ import Metadata from '../world/Metadata';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
 import assert from 'assert';
 import Conf from '../Config';
 import AuctionDetails from './AuctionDetails';

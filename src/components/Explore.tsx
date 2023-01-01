@@ -24,7 +24,7 @@ import assert from 'assert';
 import { Helmet } from 'react-helmet-async';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
-import PlaceKey from '../utils/PlaceKey';
+import WorldLocation from '../utils/WorldLocation';
 
 
 type ExploreProps = {
@@ -121,14 +121,9 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         return [0, 0, 0];
     }
 
-    teleportToLocation = (place_key: PlaceKey): void => {
+    teleportToLocation = (location: WorldLocation): void => {
         const curVS = this.virtualSpaceRef.current;
-        if (curVS) curVS.teleportToLocation(place_key);
-    };
-
-    teleportToWorldPos = (pos: [number, number]): void => {
-        const curVS = this.virtualSpaceRef.current;
-        if (curVS) curVS.teleportToWorldPos(pos);
+        if (curVS) curVS.teleportToLocation(location);
     };
 
     handleFileDrop = (fileList: FileList) => {
@@ -195,7 +190,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 assert(this.state.form_props);
                 const directoryFormProps = this.state.form_props as DirectoryFormProps;
                 return <DirectoryForm iFrameControl={{
-                    teleportToWorldPos: this.teleportToWorldPos,
                     teleportToLocation: this.teleportToLocation,
                     closeForm: this.closeForm
                 }} {...directoryFormProps} />;

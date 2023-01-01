@@ -6,6 +6,7 @@ import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/DirectoryForm';
 import { useNavigate } from 'react-router-dom';
 import BabylonUtils from '../world/BabylonUtils';
+import { Logging } from '../utils/Logging';
 
 
 type InteractiveMapPopupProps = {
@@ -19,24 +20,20 @@ const InteractiveMapPopup: React.FC<InteractiveMapPopupProps> = (props) => {
 
     const teleportToMapLocation = () => {
         if (getDirectoryEnabledGlobal()) {
-            const isTeleporter = markerMetadata.location.fa2 === "teleporter";
 
-            if (!isTeleporter)
-                window.parent.postMessage({
-                    tz1andEvent: true,
-                    teleportToLocation: markerMetadata.location
-                } as iFrameControlEvent, "*");
-            else
-                window.parent.postMessage({
-                    tz1andEvent: true,
-                    teleportToWorldPos: markerMetadata.mapPosition
-                } as iFrameControlEvent, "*");
+            window.parent.postMessage({
+                tz1andEvent: true,
+                teleportToLocation: markerMetadata.location
+            } as iFrameControlEvent, "*");
         }
         else {
-            const isPlace = !["district", "teleporter"].includes(markerMetadata.location.fa2);
-
-            if (isPlace) navigate(`/explore?placekey=${markerMetadata.location.fa2},${markerMetadata.location.id}`);
-            else navigate(`/explore?coordx=${markerMetadata.mapPosition[0]}&coordz=${markerMetadata.mapPosition[1]}`);
+            if (markerMetadata.location.placeKey)
+                navigate(`/explore?placekey=${markerMetadata.location.placeKey.fa2},${markerMetadata.location.placeKey.id}`);
+            else if (markerMetadata.location.pos)
+                navigate(`/explore?coordx=${markerMetadata.location.pos.x}&coordz=${markerMetadata.location.pos.z}`);
+            else {
+                Logging.Error("Unhandled teleportation location on map", markerMetadata);
+            }
         }
     }
 

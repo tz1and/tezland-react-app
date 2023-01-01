@@ -1,3 +1,10 @@
+import markerIconBlue from '../../img/map/mapmarker-blue.png'
+import markerIconCyan from '../../img/map/mapmarker-cyan.png'
+import markerIconOrange from '../../img/map/mapmarker-orange.png'
+import markerIconPink from '../../img/map/mapmarker-pink.png'
+import markerIconPurple from '../../img/map/mapmarker-purple.png'
+import markerIconRed from '../../img/map/mapmarker-red.png'
+
 import { Engine, Scene, Vector3, Color3,
     Matrix, Vector4, Quaternion, HemisphericLight, Mesh,
     EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
@@ -18,19 +25,10 @@ import { grapphQLUser } from "../../graphql/user";
 //import MultiplayerClient from "./MultiplayerClient";
 import { truncateAddress } from "../../utils/Utils";
 import PlaceKey from "../../utils/PlaceKey";
+import WorldLocation from "../../utils/WorldLocation";
+import { ImportedWorldDef } from "../ImportWorldDef";
 import Conf from "../../Config";
 import assert from "assert";
-
-import markerIconBlue from '../../img/map/mapmarker-blue.png'
-import markerIconCyan from '../../img/map/mapmarker-cyan.png'
-import markerIconOrange from '../../img/map/mapmarker-orange.png'
-import markerIconPink from '../../img/map/mapmarker-pink.png'
-import markerIconPurple from '../../img/map/mapmarker-purple.png'
-import markerIconRed from '../../img/map/mapmarker-red.png'
-
-import { WorldDefinition } from "../../worldgen/WorldGen";
-import world_definition from "../../models/districts.json";
-Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
 
 
 export const enum MarkerMode {
@@ -53,9 +51,7 @@ const markerIconsByColor: Map<MarkerColor, string> = new Map([
 type MapMarkerInfo = {
     description: string;
     mapPosition: [number, number];
-    // NOTE: misusing place key here:
-    // fa2 is either "district", "teleporter" or an actual FA2 address.
-    location: PlaceKey;
+    location: WorldLocation;
 }
 
 export type MapPopoverInfo = {
@@ -436,10 +432,28 @@ export class WorldMap {
         markerImage.linkOffsetY = -19.5;
         markerImage.zIndex = pos.z;
 
+        let location = undefined;
+        switch(type) {
+            case "district":
+                location = new WorldLocation({district: id});
+                break;
+
+            case "place":
+                location = new WorldLocation({placeKey: new PlaceKey(id, Conf.place_contract)});
+                break;
+
+            case "teleporter":
+                location = new WorldLocation({pos: pos});
+                break;
+
+            default:
+                throw new Error("Unhandled case for marker type", type);
+        }
+
         markerImage.metadata = {
             description: description,
             mapPosition: [pos.x, pos.z],
-            location: {fa2: (type === "place" ? Conf.place_contract : type), id: id}
+            location: location
         } as MapMarkerInfo;
 
         // Mouse interaction stuff.
@@ -456,10 +470,8 @@ export class WorldMap {
     }
 
     private loadDistricts() {
-        const world_def = world_definition;
-
         let counter = 0;
-        for (const district of world_def.districts) {
+        for (const district of ImportedWorldDef.districts) {
             const center = new Vector3(district.center.x, 0, district.center.y);
             let vertices: Vector3[] = [];
 
@@ -502,7 +514,7 @@ export class WorldMap {
         }
 
         counter = 0;
-        for (const bridge of world_def.bridges) {
+        for (const bridge of ImportedWorldDef.bridges) {
             let points: Vector3[] = [];
 
             bridge.bridge_path.forEach((vertex) => {

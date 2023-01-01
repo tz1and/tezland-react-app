@@ -6,6 +6,7 @@ import BasePlaceNode from "./nodes/BasePlaceNode";
 import { MapPopoverInfo } from "./map/WorldMap";
 import TokenKey from "../utils/TokenKey";
 import PlaceKey from "../utils/PlaceKey";
+import WorldLocation from "../utils/WorldLocation";
 
 
 export interface OverlayFormProps {}
@@ -60,7 +61,6 @@ export type MapControlFunctions = {
 };
 
 export type iFrameControlFunctions = {
-    teleportToWorldPos(pos: [number, number]): void;
-    teleportToLocation(place_key: PlaceKey): void;
+    teleportToLocation(location: WorldLocation): void;
     closeForm(): void;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import TezosWalletContext from '../components/TezosWalletContext';
-import PlaceKey from '../utils/PlaceKey';
+import WorldLocation from '../utils/WorldLocation';
 import { iFrameControlFunctions } from '../world/AppControlFunctions';
 
 
@@ -21,8 +21,7 @@ export function getDirectoryEnabledGlobal(): DirectoryEnabledGlobalState | undef
 
 export type iFrameControlEvent = {
     tz1andEvent: boolean; // Doesn't matter if true or false, just needs to not be undefined.
-    teleportToWorldPos?: [number, number];
-    teleportToLocation?: PlaceKey;
+    teleportToLocation: WorldLocation;
 }
 
 type DirectoryFormProps = {
@@ -47,11 +46,9 @@ export class DirectoryForm extends React.Component<DirectoryFormProps, Directory
         const eventData = event.data;
         if (eventData.tz1andEvent !== undefined) {
             const tz1andEvent = eventData as iFrameControlEvent;
+            Object.setPrototypeOf(tz1andEvent.teleportToLocation, WorldLocation.prototype);
 
-            if (tz1andEvent.teleportToLocation)
-                this.props.iFrameControl.teleportToLocation(tz1andEvent.teleportToLocation);
-            else if (tz1andEvent.teleportToWorldPos)
-                this.props.iFrameControl.teleportToWorldPos(tz1andEvent.teleportToWorldPos);
+            this.props.iFrameControl.teleportToLocation(tz1andEvent.teleportToLocation);
 
             this.props.iFrameControl.closeForm();
         }

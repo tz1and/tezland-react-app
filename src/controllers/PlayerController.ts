@@ -9,16 +9,15 @@ import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "../world/A
 import Metadata from "../world/Metadata";
 import BasePlaceNode from "../world/nodes/BasePlaceNode";
 import { Game } from "../world/Game";
-import { WorldDefinition } from "../worldgen/WorldGen";
 import GuiController, { CursorType } from "./GuiController";
 import { PlayerKeyboardInput } from "./PlayerInput";
 import UserControllerManager from "./UserControllerManager";
 import ItemPlacementController from "./ItemPlacementController";
-import world_definition from "../models/districts.json";
-import Conf from "../Config";
 import TokenKey from "../utils/TokenKey";
 import PlaceKey from "../utils/PlaceKey";
-Object.setPrototypeOf(world_definition, WorldDefinition.prototype);
+import { UrlLocationParser } from "../utils/UrlLocationParser";
+import WorldLocation from "../utils/WorldLocation";
+import { ImportedWorldDef } from "../world/ImportWorldDef";
 
 
 const PlayerWalkSpeed = 2; // m/s
@@ -265,49 +264,42 @@ export default class PlayerController {
             .add(new Vector3(0,(PlayerController.BODY_HEIGHT + PlayerController.LEGS_HEIGHT),0)));
     }
 
-    public teleportToWorldPos(pos: Vector3) {
+    private teleportToWorldPos(pos: Vector3) {
         if (this._flyMode) this.toggleFlyMode();
         this.playerTrigger.position.copyFrom(pos);
     }
 
-    public async teleportToLocation(place_key: PlaceKey) {
-        if (place_key.fa2 === "district") {
-            const world_def = world_definition;
+    private teleportToDistrict(district: number) {
+        const district_def = ImportedWorldDef.districts[district - 1];
+        const spawn = new Vector2(district_def.spawn.x, district_def.spawn.y)
+        const center = new Vector2(district_def.center.x, district_def.center.y)
+        const spawn_point = spawn.add(center);
 
-            const district = world_def.districts[place_key.id - 1];
-            const spawn = new Vector2(district.spawn.x, district.spawn.y)
-            const center = new Vector2(district.center.x, district.center.y)
-            const spawn_point = spawn.add(center);
+        this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
+    }
 
-            this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
+    public async teleportToLocation(location: WorldLocation) {
+        if (!location.isValid()) {
+            Logging.Error("Invalid teleport location");
+            return;
         }
-        // Regular place teleportation
-        else {
-            await this.teleportToPlace(place_key);
-        }
+
+        if (location.pos) this.teleportToWorldPos(location.pos);
+        else if (location.district) this.teleportToDistrict(location.district);
+        else if (location.placeKey) await this.teleportToPlace(location.placeKey);
     }
 
     public async teleportToSpawn() {
-        // TEMP-ish: get coordinates from url.
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (urlParams.has('coordx') && urlParams.has('coordz')) {
-            const yParam = urlParams.get('coordy');
-
-            this.teleportToWorldPos(new Vector3(
-                parseFloat(urlParams.get('coordx')!),
-                yParam ? parseFloat(yParam) : 0,
-                parseFloat(urlParams.get('coordz')!))
-            );
-        } else if (urlParams.has('placeid')) {
-            await this.teleportToPlace(new PlaceKey(parseInt(urlParams.get('placeid')!), Conf.place_contract));
-        } else if (urlParams.has('placekey')) {
-            const place_key = urlParams.get('placekey')!.split(',');
-            console.log(place_key);
-            await this.teleportToPlace(new PlaceKey(parseInt(place_key[1]), place_key[0]));
-        } else {
-            await this.teleportToLocation(AppSettings.defaultSpawn.value);
+        let location: WorldLocation | undefined;
+        try {
+            location = UrlLocationParser.parseLocationFromUrl();
+        } catch(e) {
+            Logging.Error("Failed to parse location from URL:", e);
         }
+
+        if (!location) location = new WorldLocation({placeKey: AppSettings.defaultSpawn.value});
+
+        await this.teleportToLocation(location);
     }
 
     private initCamera(): FreeCamera {
