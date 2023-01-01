@@ -141,12 +141,6 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
         if (activeAccount) {
             this.setState({ walletAddress: activeAccount.address });
         } else {
-            let rpc_node_idx = AppSettings.rpcNode.value;
-            if (AppSettings.rpcNode.value > Config.allowed_tezos_nodes.length) {
-                Logging.Warn("Invalid RPC node set - using default.");
-                rpc_node_idx = 0;
-            }
-
             await this.state.beaconWallet.requestPermissions({ network: {
                 type: TezosWalletProvider.getNetworkType(),
                 name: Conf.tezos_network,
