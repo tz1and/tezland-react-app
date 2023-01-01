@@ -52,7 +52,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
     constructor(props: TezosWalletProviderProps) {
         super(props);
         this.state = {
-            tezos: new TezosToolkit(new RpcClientCache(new RpcClient(Config.allowed_tezos_nodes[AppSettings.rpcNode.value]))),
+            tezos: new TezosToolkit(new RpcClientCache(new RpcClient(TezosWalletProvider.getRpcNode()))),
             pendingOps: [],
             walletEventEmitter: new EventEmitter()
         };
@@ -64,6 +64,16 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
 
     override componentWillUnmount() {
         this.state.walletEventEmitter.removeAllListeners();
+    }
+
+    private static getRpcNode() {
+        let rpc_node_idx = AppSettings.rpcNode.value;
+        if (AppSettings.rpcNode.value > Config.allowed_tezos_nodes.length) {
+            Logging.Warn("Invalid RPC node set - using default.");
+            rpc_node_idx = 0;
+        }
+
+        return Config.allowed_tezos_nodes[rpc_node_idx];
     }
 
     // A convenience function to check if a wallet (or signer) is set up/connected.
@@ -140,7 +150,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
             await this.state.beaconWallet.requestPermissions({ network: {
                 type: TezosWalletProvider.getNetworkType(),
                 name: Conf.tezos_network,
-                rpcUrl: Config.allowed_tezos_nodes[rpc_node_idx] } });
+                rpcUrl: TezosWalletProvider.getRpcNode() } });
 
             const address = await this.state.beaconWallet.getPKH();
             this.setState({ walletAddress: address }, () => this.state.walletEventEmitter.emit("walletChange"));
