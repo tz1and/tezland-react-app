@@ -297,7 +297,12 @@ export default class PlayerController {
             Logging.Error("Failed to parse location from URL:", e);
         }
 
-        if (!location) location = new WorldLocation({placeKey: AppSettings.defaultSpawn.value});
+        if (!location) {
+            if (AppSettings.defaultSpawn.value.fa2 === "district")
+                location = new WorldLocation({district: AppSettings.defaultSpawn.value.id});
+            else
+                location = new WorldLocation({placeKey: AppSettings.defaultSpawn.value});
+        }
 
         await this.teleportToLocation(location);
     }
