@@ -30,13 +30,11 @@ type PlaceLimits = {
 export class Contracts {
     // TODO: should be private? use get_world_contract_read!
     public worldContract: Contract | null;
-    private places: Contract | null;
 
     private allowedPlaceTokens = new Map<String, PlaceLimits>()
 
     constructor() {
         this.worldContract = null;
-        this.places = null;
     }
 
     public async subscribeToPlaceChanges(walletProvider: ITezosWalletProvider) {
@@ -293,10 +291,15 @@ export class Contracts {
     }
 
     public async countExteriorPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
-        if (!this.places)
-            this.places = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
+        const placeTokens = await walletProvider.tezosToolkit().contract.at(Conf.place_contract);
 
-        return this.places.contractViews.count_tokens().executeView({ viewCaller: this.places.address });
+        return placeTokens.contractViews.count_tokens().executeView({ viewCaller: placeTokens.address });
+    }
+
+    public async countInteriorPlacesView(walletProvider: ITezosWalletProvider): Promise<BigNumber> {
+        const interiorTokens = await walletProvider.tezosToolkit().contract.at(Conf.interior_contract);
+
+        return interiorTokens.contractViews.count_tokens().executeView({ viewCaller: interiorTokens.address });
     }
 
     public async getPlaceSeqNum(walletProvider: ITezosWalletProvider, place_key: PlaceKey): Promise<PlaceSequenceNumbers> {

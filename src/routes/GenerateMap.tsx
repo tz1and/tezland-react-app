@@ -15,6 +15,8 @@ import Config from "../Config";
 import Contracts from "../tz/Contracts";
 import Metadata from "../world/Metadata";
 import BigNumber from "bignumber.js";
+import Lot from "../worldgen/Lot";
+import Prando from "prando";
 
 const prodAdminAddress = "tz1Ly2nrAF7p4dYGHYfuDNTX6M3Ly8tDZ7Pn";
 
@@ -59,6 +61,116 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const downloadLink = window.URL.createObjectURL(data);
 
         downloadFile(downloadLink, "districts.json");
+    }
+
+    private mintInteriors = async () => {
+        const interiorPlaces = await this.context.tezosToolkit().wallet.at(Conf.interior_contract);
+        const walletphk = this.context.walletPHK();
+        assert(walletphk === prodAdminAddress, "Not admin!");
+
+        const next_minted_place_id = (await Contracts.countInteriorPlacesView(this.context)).toNumber();
+
+        const num_places = 50, min_size = 20, max_size = 20;
+
+        const prando = new Prando(next_minted_place_id);
+
+        throw new Error("fix winding order!");
+
+        let total_price = new BigNumber(0);
+        const places = []
+
+        for (let i = 0; i < num_places; ++i) {
+            const lot_id = next_minted_place_id + i;
+
+            console.log("interior id", lot_id)
+
+            const w = prando.next(min_size, max_size), h = prando.next(min_size, max_size);
+            const w_half = w / 2, h_half = h / 2;
+
+            // TODO: winding order!
+            const lot = new Lot(new Vector2(0, 0), [
+                new Vector2(w_half, h_half),
+                new Vector2(-w_half, h_half),
+                new Vector2(-w_half, -h_half),
+                new Vector2(w_half, -h_half),
+            ]);
+            lot.buildHeight = prando.next(25, Math.min(w, h));
+
+            const centroid = lot.centroid();
+            const pointsrel: number[][] = [];
+            lot.verticesRelative(centroid).forEach((p) => {
+                pointsrel.push([parseFloat(p.x.toFixed(4)), 0, parseFloat(p.y.toFixed(4))])
+            });
+
+            const centercoords: number[] = [parseFloat((centroid.x).toFixed(4)), 0, parseFloat((centroid.y).toFixed(4))];
+
+            places.push(createPlaceTokenMetadata({
+                name: `tz1and Interior #${lot_id}`,
+                description: `${lot.area().toFixed(2)} \u33A1`,
+                minter: walletphk,
+                centerCoordinates: centercoords,
+                borderCoordinates: pointsrel,
+                buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
+                placeType: "interior",
+                royalties: {
+                    decimals: 3,
+                    shares: new Map([
+                        [Conf.fees_address, 100]
+                    ])
+                }
+            }));
+
+            const priceMult = 4;
+            const pricePerAreaFactor = 1 / (40 / priceMult);
+            const pricePerVolumeFactor = 1 / (1000 / priceMult);
+
+            const areaPoly: number[] = [];
+            for(const pos of pointsrel) areaPoly.push(pos[0], pos[2]);
+
+            const placeArea = Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2));
+            const placePrice = tezToMutez(parseFloat((
+                10 * priceMult
+                + placeArea * pricePerAreaFactor
+                + placeArea * lot.buildHeight * pricePerVolumeFactor
+            ).toFixed(1)));
+
+            console.log("place pice", mutezToTez(placePrice).toNumber());
+            console.log("place area and dims", mutezToTez(placePrice).toNumber(), placeArea, [w, h, lot.buildHeight]);
+
+            total_price = total_price.plus(placePrice);
+        }
+
+        console.log("total price", mutezToTez(total_price).toNumber());
+
+        // Upload all places metadata
+        // eslint-disable-next-line no-unreachable
+        const place_meta_files = await upload_places(places);
+
+        console.log("upload places done");
+
+        let batch = [];
+
+        for(const meta of place_meta_files) {
+            console.log(meta);
+
+            const metadata_map = new MichelsonMap<string,string>({ prim: "map", args: [{prim: "string"}, {prim: "bytes"}]});
+            metadata_map.set('', char2Bytes(meta));
+            batch.push({
+                to_: walletphk,
+                metadata: metadata_map
+            });
+        }
+
+        console.log(`minting ${num_places} new places`);
+
+        const batch_op = await interiorPlaces.methodsObject.mint(batch).send();
+
+        await new Promise<void>((resolve, reject) => {
+            Contracts.handleOperation(this.context, batch_op, (completed) => {
+                if (completed) resolve();
+                else reject();
+            }, 3);
+        })
     }
 
     private mintPlaces = async () => {
@@ -1062,7 +1174,8 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     override render(): React.ReactNode {
         return (
             <main className="container">
-                <button className="btn btn-warning me-2" onClick={() => this.mintPlaces()}>Mint</button>
+                <button className="btn btn-warning me-2" onClick={() => this.mintInteriors()}>Mint Interiors</button>
+                <button className="btn btn-warning me-2" onClick={() => this.mintPlaces()}>Mint Places</button>
                 <button className="btn btn-warning me-2" onClick={() => this.createAuctions()}>Create Auctions</button>
                 <button className="btn btn-warning me-2" onClick={() => this.batchWhitelist()}>Whitelist</button>
                 <button className="btn btn-warning me-2" onClick={() => this.batchPermissions()}>Permissions</button>
