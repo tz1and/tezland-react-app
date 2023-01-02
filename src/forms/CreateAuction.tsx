@@ -1,7 +1,4 @@
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
     Formik,
     Form,
@@ -9,9 +6,6 @@ import {
     FormikErrors,
     ErrorMessage
 } from 'formik';
-import { MapContainer, ImageOverlay, useMap, Circle, Polygon } from 'react-leaflet'
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import BigNumber from 'bignumber.js';
 import DutchAuction from '../tz/DutchAuction';
 import Metadata from '../world/Metadata';
@@ -22,26 +16,9 @@ import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
 import { FetchDataPlaceToken, FetchDataResult } from '../components/TokenInfiniteScroll';
 import Conf from '../Config';
+import { getPlaceType } from "../utils/PlaceKey";
+import { WorldMap2D } from '../components/WorldMap2D';
 
-
-type MapSetCenterProps = {
-    center: [number, number],
-    animate?: boolean
-}
-
-// Because react-leaflet is the height of retardation,
-// we make a function component that can pan the map.
-export const MapSetCenter: React.FC<MapSetCenterProps> = (props) => {
-    const parentMap = useMap();
-
-    useEffect(() => {
-        parentMap.panTo(props.center, { animate: props.animate });
-    }, [parentMap, props]);
-
-    return (
-        <div></div>
-    )
-}
 
 interface CreateAuctionFormValues {
     /*itemTitle: string;
@@ -184,7 +161,7 @@ Place type: {res.placeType}</small>;
                                 try {
                                     const [placeContract, placeTokenId] = this.parsePlaceId(values.placeId);
                                     if (await DutchAuction.auctionExists(this.context, placeContract, placeTokenId))
-                                        errors.placeId = `Auction for ${DutchAuction.getPlaceType(placeContract)} #${placeTokenId} already exists.`;
+                                        errors.placeId = `Auction for ${getPlaceType(placeContract)} #${placeTokenId} already exists.`;
                                 }
                                 catch(e: any) {
                                     errors.placeId = e.message;
@@ -298,12 +275,8 @@ Place type: {res.placeType}</small>;
 
                     <div className='col-lg-4 col-md-6'>
                         <h2>Map Preview</h2>
-                        <MapContainer className="mb-2" style={{height: "20rem", backgroundColor: 'white'}} center={[1000, 1000]} zoom={2} attributionControl={false} dragging={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                            {this.state.isExteriorPlace && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
-                            <MapSetCenter center={this.state.mapLocation}/>
-                            <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
-                            <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
-                        </MapContainer>
+                        <WorldMap2D mapClass='mb-2' isExteriorPlace={this.state.isExteriorPlace} style={{height: "20rem", backgroundColor: 'white'}}
+                            location={this.state.mapLocation} placePoly={this.state.placePoly} zoomControl={true} scrollWheelZoom={true} dragging={true} />
                         <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>
                             The the Place/Interior <i>will not</i> be transferred to the auction contract on creation. Auctions can be cancelled, but please make sure you really intend to create the auction.<br/>
                             Place ownership transfers on successful bid.

@@ -32,6 +32,8 @@ export default class Conf {
 
     public static fees_address: string = "tz1UZFB9kGauB6F5c2gfJo4hVcvrD8MeJ3Vf";
 
+    public static discordInviteLink: string = "https://discord.gg/AAwpbStzZf";
+
     public static randomPublicIpfsGateway(): string {
         return this.ipfs_public_gateways[Math.floor(Math.random() * this.ipfs_public_gateways.length)];
     }

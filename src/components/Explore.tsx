@@ -25,6 +25,7 @@ import { Helmet } from 'react-helmet-async';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
+import { Logging } from '../utils/Logging';
 
 
 type ExploreProps = {
@@ -132,6 +133,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     };
 
     virtualSpaceFailed = (e: any) => {
+        Logging.Error("Failed to load:", e);
         this.setState({virtualSpaceFailed: true});
     }
 

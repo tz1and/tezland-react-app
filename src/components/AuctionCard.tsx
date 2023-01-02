@@ -1,58 +1,29 @@
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
-
 import { Link } from 'react-router-dom';
-import { MapContainer, ImageOverlay, Circle, Polygon } from 'react-leaflet'
-import L from 'leaflet';
 import './Auction.css'
-import 'leaflet/dist/leaflet.css';
-import { mutezToTez, signedArea } from '../utils/Utils';
-import { MapSetCenter } from '../forms/CreateAuction';
+import { mutezToTez } from '../utils/Utils';
 import React from 'react';
-import Metadata from '../world/Metadata';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
-import assert from 'assert';
-import Conf from '../Config';
 import AuctionDetails from './AuctionDetails';
-import PlaceKey from '../utils/PlaceKey';
+import { getPlaceType, PlaceType } from '../utils/PlaceKey';
+import { WorldMap2D } from "./WorldMap2D";
+import { DirectoryUtils } from '../utils/DirectoryUtils';
+import { BaseAuction, BaseAuctionProps, BaseAuctionState } from './BaseAuction';
 
 
-type AuctionCardProps = {
-    placeKey: PlaceKey;
-    auctionId: number;
-    startPrice: number;
-    endPrice: number; // im mutez
-    startTime: number; // in mutez
-    endTime: number;
-    owner: string;
-    isPrimary: boolean;
-    userWhitelisted: boolean;
-    finished: boolean;
-    finishingBid: number;
-    bidOpHash?: string;
-    // using `interface` is also ok
-    //message: string;
-};
+type AuctionCardProps = { };
 
 type AuctionCardState = {
     updateCount: number,
-    mapLocation: [number, number],
-    placePoly: [number, number][],
-    placeCoords: [number, number],
-    placeArea: number,
-    buildHeight: number,
-    showAuctionDetails: boolean,
-}
+    showAuctionDetails: boolean
+} & BaseAuctionState
 
-export const discordInviteLink = "https://discord.gg/AAwpbStzZf";
-
-export default class AuctionCard extends React.Component<AuctionCardProps, AuctionCardState> {
+export default class AuctionCard extends BaseAuction<AuctionCardProps, AuctionCardState> {
     static override contextType = TezosWalletContext;
     override context!: React.ContextType<typeof TezosWalletContext>;
 
-    constructor(props: AuctionCardProps) {
+    constructor(props: AuctionCardProps & BaseAuctionProps) {
         super(props);
         this.state = {
             updateCount: 0,
@@ -63,41 +34,10 @@ export default class AuctionCard extends React.Component<AuctionCardProps, Aucti
             buildHeight: 0,
             showAuctionDetails: false
         };
-
-        this.updateTimeVars();
     }
-
-    private duration: number = this.props.endTime - this.props.startTime;
-    private current_time: number = 0;
-    private started: boolean = false;
-    private since_start: number = 0;
-    private progress: number = 0;
 
     private refreshInterval: NodeJS.Timeout | null = null;
     private reloadTimeout: NodeJS.Timeout | null = null;
-
-    private updateTimeVars() {
-        this.current_time = Math.floor(Date.now() / 1000);
-        this.started = this.current_time >= this.props.startTime;
-        this.since_start = Math.min(this.current_time, this.props.endTime) - this.props.startTime;
-        this.progress = Math.min(100 - this.since_start / this.duration * 100, 100);
-    }
-
-    // returns current price in mutez
-    private calculateCurrentPrice(): number {
-        if(this.current_time >= this.props.endTime) return this.props.endPrice;
-
-        const granularity = 60; // seconds
-        // From the auction contract code.
-        // Always to simulate integer division.
-        const duration_g = Math.floor(this.duration / granularity);
-        const time_since_start_g = Math.floor(this.since_start / granularity);
-        const mutez_per_interval = Math.floor((this.props.startPrice - this.props.endPrice) / duration_g);
-        const time_deduction = mutez_per_interval * time_since_start_g;
-
-        const current_price = this.props.startPrice - time_deduction;
-        return current_price;
-    }
 
     private openAuctionDetails = () => {
         this.setState({showAuctionDetails: true});
@@ -108,29 +48,9 @@ export default class AuctionCard extends React.Component<AuctionCardProps, Aucti
     }
 
     private panMapToPlace() {
-        // Note: To match leaflet coords, both x and y are flipped and mirrored.
-        Metadata.getPlaceMetadata(this.props.placeKey.id, this.props.placeKey.fa2).then((res) => {
-            assert(res);
-            const coords = res.centerCoordinates;
-            const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
-
-            const polygon = res.borderCoordinates;
-            const placePoly: [number, number][] = [];
-            const areaPoly: number[] = [];
-            for(const pos of polygon)
-            {
-                placePoly.push([center_pos[0] + -pos[2], center_pos[1] + -pos[0]]);
-                areaPoly.push(pos[0], pos[2]);
-            }
-
-            this.setState({
-                mapLocation: center_pos,
-                placePoly: placePoly,
-                placeCoords: [coords[0], coords[2]],
-                placeArea: Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2)),
-                buildHeight: res.buildHeight
-            });
-        })
+        this.getPlaceState().then(res => {
+            this.setState(res);
+        });
     }
 
     private placeLink(): string {
@@ -171,26 +91,22 @@ export default class AuctionCard extends React.Component<AuctionCardProps, Aucti
         // TODO: fix this to update dynamically.
         const time_left = (this.props.endTime - Math.floor(Date.now() / 1000)) / 3600;
 
+        const placeType = getPlaceType(this.props.placeKey.fa2);
+
         return (
             <div className="m-3 Auction position-relative">
                 {!this.props.finished && (this.context.isWalletConnected() && this.props.owner === this.context.walletPHK()) &&
                     <Button onClick={this.cancelAuction} className="position-absolute mt-3 me-3 end-0" size="sm" variant="outline-danger">Cancel</Button>}
 
-                {this.props.isPrimary ? <Button className="position-absolute mt-3 ms-3" variant="outline-success" size="sm" disabled={true}>Primary</Button> :
-                    <Button className="position-absolute mt-3 ms-3" variant="outline-secondary" size="sm" disabled={true}>Secondary</Button>}
+                {this.auctionTypeLabel("position-absolute mt-3 ms-3")}
 
                 <div className='p-3 text-center'>
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
-                    <h4 className="mb-0">{DutchAuction.getPlaceType(this.props.placeKey.fa2)} #{this.props.placeKey.id}</h4>
+                    <h4 className="mb-0">{placeType} #{this.props.placeKey.id}</h4>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
                     <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
-                <MapContainer className="auction-img" center={[1000, 1000]} zoom={1} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                    {(this.props.placeKey.fa2 !== Conf.interior_contract) && <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />}
-                    <MapSetCenter center={this.state.mapLocation} animate={false} />
-                    <Circle center={this.state.mapLocation} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
-                    <Polygon positions={this.state.placePoly} color='#d58195' weight={10} lineCap='square'/>
-                </MapContainer>
+                <WorldMap2D mapClass="auction-img" isExteriorPlace={placeType !== PlaceType.Interior} style={{}} location={this.state.mapLocation} placePoly={this.state.placePoly} zoom={1} zoomControl={true} animate={false} />
                 <div className='p-3'>
                     <OverlayTrigger
                         placement={"top"}
@@ -215,7 +131,7 @@ export default class AuctionCard extends React.Component<AuctionCardProps, Aucti
                     <p className='small mb-2'>
                         Place area: {this.state.placeArea.toFixed(2)} m<sup>2</sup><br/>
                         Build height: {this.state.buildHeight.toFixed(2)} m<br/>
-                        Auction owner: <a href={`https://tzkt.io/${this.props.owner}`} target='_blank' rel='noreferrer'>{this.props.owner.substring(0,12)}...</a><br/>
+                        Auction owner: {DirectoryUtils.userLinkElement(this.props.owner, true)}<br/>
                         Start price: {mutezToTez(this.props.startPrice).toNumber()} &#42793;<br/>
                         End price: {mutezToTez(this.props.endPrice).toNumber()} &#42793;<br/>
                         Duration: {this.duration / 3600}h
@@ -224,12 +140,7 @@ export default class AuctionCard extends React.Component<AuctionCardProps, Aucti
                     <h6 className='text-center'>{(this.props.finished ? "Final bid: " : "Current bid: ") + price_str}</h6>
 
                     {this.props.finished ? <a className="btn btn-success btn-md w-100" href={`https://tzkt.io/${this.props.bidOpHash}`} target='_blank' rel='noreferrer'>Finished</a> :
-                        !this.context.isWalletConnected() ? <Button className="mb-1 w-100" variant="secondary" disabled={true}>No wallet connected</Button> :
-                            (this.props.isPrimary && !this.props.userWhitelisted) ? <a href={discordInviteLink} target="_blank" rel="noreferrer" className="btn btn-warning btn-md mb-1 w-100">Apply for Primary</a> :
-                            <Button onClick={this.openAuctionDetails} className="mb-1 w-100" variant="primary">Open Auction</Button>}
-
-                    {/*<Button onClick={this.bidOnAuction} className="mb-1 w-100" variant="primary" disabled={!this.started}>
-                        {!this.started ? "Not started" : "Get for " + price_str}</Button>*/}
+                        <Button onClick={this.openAuctionDetails} className="mb-1 w-100" variant="primary">Details</Button>}
                 </div>
                 {this.state.showAuctionDetails && <AuctionDetails {...this.props} onHide={() => {this.setState({showAuctionDetails: false})}} />}
             </div>

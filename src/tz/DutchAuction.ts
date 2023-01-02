@@ -11,14 +11,6 @@ import { SHA3 } from 'sha3';
 import PlaceKey from "../utils/PlaceKey";
 
 
-export enum PlaceType {
-    Interior = "Interior",
-    Place = "Place",
-    PlaceV1 = "Place (v1)",
-    Unknown = "Unknown"
-}
-
-
 export class AuctionKey {
     readonly token_id: BigNumber;
     readonly fa2: string;
@@ -244,13 +236,5 @@ export default class DutchAuction {
             Logging.Error(e);
             if(callback) callback(false);
         }
-    }
-
-    static getPlaceType(fa2: string) {
-        if (fa2 === Conf.interior_contract) return PlaceType.Interior;
-        if (fa2 === Conf.place_contract) return PlaceType.Place;
-        if (fa2 === Conf.place_v1_contract) return PlaceType.PlaceV1;
-        Logging.ErrorDev(`Unknown place type: ${fa2}`);
-        return PlaceType.Unknown;
     }
 }

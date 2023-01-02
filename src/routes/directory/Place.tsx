@@ -1,12 +1,7 @@
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import map from "!file-loader!../../img/map.svg"; // Temp workaround for CRA5
-import L from 'leaflet';
-import { Circle, ImageOverlay, MapContainer, Polygon } from 'react-leaflet';
 import { useEffect, useState } from 'react';
 import Metadata, { PlaceTokenMetadata } from '../../world/Metadata';
-import { MapSetCenter } from '../../forms/CreateAuction';
 import { Button, Col, Container, Row } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
 import Conf from "../../Config";
 import { FetchDataFunc, FetchDataResultArray, ItemClickedFunc, TokenInfiniteScroll } from "../../components/TokenInfiniteScroll";
@@ -14,8 +9,9 @@ import { grapphQLUser } from "../../graphql/user";
 import TokenKey from "../../utils/TokenKey";
 import { DirectoryUtils } from "../../utils/DirectoryUtils";
 import { InventoryItem } from "../../components/InventoryItem";
-import PlaceKey from "../../utils/PlaceKey";
+import PlaceKey, { getPlaceType, PlaceType } from "../../utils/PlaceKey";
 import WorldLocation from "../../utils/WorldLocation";
+import { WorldMap2D } from '../../components/WorldMap2D';
 
 
 type PlaceProps = {
@@ -23,6 +19,7 @@ type PlaceProps = {
     detailOverride?: JSX.Element;
     mapSize?: [string, string];
     placeKey: PlaceKey;
+    openLinksInNewTab?: boolean | undefined;
 };
 
 export const Place: React.FC<PlaceProps> = (props) => {
@@ -67,24 +64,25 @@ export const Place: React.FC<PlaceProps> = (props) => {
         for(const pos of polygon) {
             placePoly.push([center_pos[0] + -pos[2], center_pos[1] + -pos[0]]);
         }
-        
+
+        const placeType = getPlaceType(props.placeKey.fa2);
+
         content = <div>
             <h1>{name}</h1>
             <Container>
                 <Row className="gx-0">
                     <Col xl="7" lg="12" className="mb-3">
-                        <MapContainer style={{width: mapSize[0], height: mapSize[1]}} center={center_pos} zoom={2} minZoom={-2} maxZoom={2} attributionControl={false} dragging={false} zoomControl={true} scrollWheelZoom={false} crs={L.CRS.Simple}>
-                            <MapSetCenter center={center_pos} animate={false}/>
-                            <ImageOverlay bounds={[[0, 0], [2000, 2000]]} url={map} />
-                            <Circle center={center_pos} radius={1.5} color='#d58195' fillColor='#d58195' fill={true} fillOpacity={1} />
-                            <Polygon positions={placePoly} color='#d58195' weight={10} lineCap='square'/>
-                        </MapContainer>
+                        <WorldMap2D mapClass='' isExteriorPlace={placeType !== PlaceType.Interior} style={{width: mapSize[0], height: mapSize[1]}} location={center_pos} placePoly={placePoly} zoomControl={true} animate={false} />
                     </Col>
                     <Col xl="5" lg="12">
                         {props.detailOverride ? props.detailOverride : <div>
                             <h5>Description:</h5>
                             <p>{description}</p>
-                            <Button onClick={teleportToPlace}>Visit Place</Button>
+                            {props.openLinksInNewTab ?
+                                <Link to={`/explore?placekey=${props.placeKey.fa2},${props.placeKey.id}`} target="_blank">
+                                    <Button>Visit Place</Button>
+                                </Link> :
+                                <Button onClick={teleportToPlace}>Visit Place</Button>}
                         </div>}
                     </Col>
                 </Row>
@@ -99,7 +97,7 @@ export const Place: React.FC<PlaceProps> = (props) => {
         // format the data to fit the data format the item components expect.
         const formatted: FetchDataResultArray = []
         for (const res of results) {
-            if (props.onlyPlaceOwnedItems && res.issuerId === null) continue;
+            if (props.onlyPlaceOwnedItems && res.issuerId !== null) continue;
             formatted.push({key: res.transientId, token: res.itemToken, swapInfo: { amount: res.amount, price: res.rate }});
         }
 
