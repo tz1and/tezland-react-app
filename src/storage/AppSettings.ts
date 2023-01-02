@@ -86,10 +86,10 @@ export default class AppSettings {
     static triangleLimitInterior = new AppSetting<number>("triangleLimitInterior", 30720, parseNumber, serialiseToString);
     static fileSizeLimitInterior = new AppSetting<number>("fileSizeLimitInterior", 25165824, parseNumber, serialiseToString); // MiB default.
 
-    static drawDistance = new AppSetting<number>("drawDistance", 125, parseNumber, serialiseToString);
-
     static displayPlaceBounds = new AppSetting<boolean>("displayPlaceBounds", false, parseBool, serialiseToString);
     static showFps = new AppSetting<boolean>("showFps", true, parseBool, serialiseToString);
+
+    static transferToPlaceIfOwner = new AppSetting<boolean>("transferToPlaceIfOwner", true, parseBool, serialiseToString);
 
     // controls
     static mouseSensitivity = new AppSetting<number>("mouseSensitivity", 1, parseNumber, serialiseToString);
@@ -104,6 +104,8 @@ export default class AppSettings {
 
     static enableFxaa = new AppSetting<boolean>("enableFxaa", true, parseBool, serialiseToString);
     static highPrecisionShaders = new AppSetting<boolean>("highPrecisionShaders", true, parseBool, serialiseToString);
+
+    static drawDistance = new AppSetting<number>("drawDistance", 125, parseNumber, serialiseToString);
 
     // postprocessing
     static enableBloom = new AppSetting<boolean>("enableBloom", true, parseBool, serialiseToString);

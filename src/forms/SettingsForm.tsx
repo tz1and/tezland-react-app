@@ -17,8 +17,9 @@ interface SettingsFormValues {
     modelFileSizeLimitInterior: number; // in MB
 
     displayPlaceBounds: boolean;
-    drawDistance: number;
     showFps: boolean;
+
+    transferToPlaceIfOwner: boolean;
 
     // controls
     mouseSensitivity: number;
@@ -30,6 +31,8 @@ interface SettingsFormValues {
     shadowMapRes: TextureRes;
     textureRes: TextureRes;
     fovHorizontal: number;
+
+    drawDistance: number;
 
     // rpc etc
     rpcNode: number;
@@ -53,8 +56,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         modelFileSizeLimitInterior: AppSettings.fileSizeLimitInterior.value / 1024 / 1024, // should be in MB
 
         displayPlaceBounds: AppSettings.displayPlaceBounds.value,
-        drawDistance: AppSettings.drawDistance.value,
         showFps: AppSettings.showFps.value,
+
+        transferToPlaceIfOwner: AppSettings.transferToPlaceIfOwner.value,
 
         // controls
         mouseSensitivity: AppSettings.mouseSensitivity.value,
@@ -66,6 +70,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         shadowMapRes: AppSettings.shadowMapRes.value,
         textureRes: AppSettings.textureRes.value,
         fovHorizontal: AppSettings.fovHorizontal.value,
+
+        drawDistance: AppSettings.drawDistance.value,
 
         // rpc etc
         rpcNode: AppSettings.rpcNode.value
@@ -105,8 +111,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         AppSettings.fileSizeLimitInterior.value = parseInt((values.modelFileSizeLimitInterior * 1024 * 1024).toFixed(0));
 
                         AppSettings.displayPlaceBounds.value = values.displayPlaceBounds;
-                        AppSettings.drawDistance.value = values.drawDistance;
                         AppSettings.showFps.value = values.showFps;
+
+                        AppSettings.transferToPlaceIfOwner.value = values.transferToPlaceIfOwner;
 
                         // controls
                         AppSettings.mouseSensitivity.value = values.mouseSensitivity;
@@ -118,6 +125,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                         AppSettings.shadowMapRes.value = values.shadowMapRes;
                         AppSettings.textureRes.value = values.textureRes;
                         AppSettings.fovHorizontal.value = values.fovHorizontal;
+
+                        AppSettings.drawDistance.value = values.drawDistance;
 
                         // rpc etc
                         AppSettings.rpcNode.value = values.rpcNode;
@@ -166,10 +175,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                         <ErrorMessage name="modelFileSizeLimit" children={errorDisplay}/>
                                     </div>
                                     <div className="mb-3">
-                                        <label htmlFor="drawDistance" className="form-label">Draw distance</label>
-                                        <Field id="drawDistance" name="drawDistance" type="number" className="form-control" aria-describedby="drawDistanceHelp" disabled={isSubmitting} />
-                                        <div id="drawDistanceHelp" className="form-text">The draw distance, you know.</div>
-                                        <ErrorMessage name="drawDistance" children={errorDisplay}/>
+                                        <Field id="transferToPlaceIfOwner" name="transferToPlaceIfOwner" type="checkbox" className="form-check-input me-2" aria-describedby="transferToPlaceIfOwnerHelp" disabled={isSubmitting}/>
+                                        <label htmlFor="transferToPlaceIfOwner" className="form-label">Transfer to Place if owner</label>
+                                        <div id="transferToPlaceIfOwnerHelp" className="form-text">Whether Items should be transferred to Place by default, if the Place is owned.</div>
                                     </div>
                                     <div className="mb-3">
                                         <Field id="displayPlaceBounds" name="displayPlaceBounds" type="checkbox" className="form-check-input me-2" aria-describedby="displayPlaceBoundsHelp" disabled={isSubmitting}/>
@@ -204,6 +212,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                     </div>
                                 </div>
                                 <div className="tab-pane fade" id="graphics" role="tabpanel" aria-labelledby="graphics-tab">
+                                    <div className="mb-3">
+                                        <label htmlFor="drawDistance" className="form-label">Draw distance</label>
+                                        <Field id="drawDistance" name="drawDistance" type="number" className="form-control" aria-describedby="drawDistanceHelp" disabled={isSubmitting} />
+                                        <div id="drawDistanceHelp" className="form-text">The draw distance, you know.</div>
+                                        <ErrorMessage name="drawDistance" children={errorDisplay}/>
+                                    </div>
                                     <div className="mb-3">
                                         <label htmlFor="fovHorizontal" className="form-label">Horizontal FOV</label>
                                         <Field id="fovHorizontal" name="fovHorizontal" type="number" min={85} max={125} step={1} className="form-control" aria-describedby="fovHorizontalHelp" disabled={isSubmitting} autoFocus={true} />

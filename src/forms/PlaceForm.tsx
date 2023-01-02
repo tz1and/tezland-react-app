@@ -13,6 +13,7 @@ import ItemTracker from '../controllers/ItemTracker';
 import { TeleporterType } from '../utils/ItemData';
 import { Vector3 } from '@babylonjs/core';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
+import AppSettings from '../storage/AppSettings';
 
 
 interface PlaceFormValues {
@@ -33,11 +34,13 @@ type PlaceFormProps = {
 }
 
 export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
+    const is_place_owner = props.placedItem.getPlace().currentOwner === useTezosWalletContext().walletPHK();
+
     const initialValues: PlaceFormValues = {
         tokenKey: props.placedItem.tokenKey.toString(),
         itemAmount: 1,
         itemPrice: 0,
-        transferToPlace: false,
+        transferToPlace: is_place_owner && AppSettings.transferToPlaceIfOwner.value,
         primarySwap: false,
         disableCollision: false,
         teleporterType: "none",
@@ -50,8 +53,6 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
         props.placedItem.dispose();
         props.closeForm();
     }
-
-    const is_place_owner = props.placedItem.getPlace().currentOwner === useTezosWalletContext().walletPHK();
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
