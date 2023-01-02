@@ -26,6 +26,7 @@ export const Place: React.FC<PlaceProps> = (props) => {
     const navigate = useNavigate();
 
     const [metadata, setMetadata] = useState<PlaceTokenMetadata>();
+    const [owner, setOwner] = useState<string>();
 
     const mapSize = props.mapSize ? props.mapSize : ["640px", "480px"];
 
@@ -33,6 +34,12 @@ export const Place: React.FC<PlaceProps> = (props) => {
         Metadata.getPlaceMetadata(props.placeKey.id, props.placeKey.fa2).then(res => {
             setMetadata(res);
         });
+    }, [props.placeKey]);
+
+    useEffect(() => {
+        grapphQLUser.getPlaceOwner({id: props.placeKey.id, fa2: props.placeKey.fa2}).then((res) => {
+            setOwner(res.placeTokenHolder[0].holderId);
+        })
     }, [props.placeKey]);
 
     const teleportToPlace = () => {
@@ -78,6 +85,7 @@ export const Place: React.FC<PlaceProps> = (props) => {
                         {props.detailOverride ? props.detailOverride : <div>
                             <h5>Description:</h5>
                             <p>{description}</p>
+                            {owner && <p>Owner: {DirectoryUtils.userLinkElement(owner, props.openLinksInNewTab)}</p>}
                             {props.openLinksInNewTab ?
                                 <Link to={`/explore?placekey=${props.placeKey.fa2},${props.placeKey.id}`} target="_blank">
                                     <Button>Visit Place</Button>
