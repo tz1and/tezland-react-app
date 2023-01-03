@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "target": "es6",
-    "module": "esnext",
+    "target": "ES6",
+    "module": "ESNext",
     "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
+      "DOM",
+      "DOM.Iterable",
+      "WebWorker",
+      "ESNext"
     ],
     "allowJs": false,
     "skipLibCheck": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noImplicitAny": true,
