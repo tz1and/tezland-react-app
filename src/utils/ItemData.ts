@@ -21,11 +21,11 @@ export type TeleporterData = {
 export function toWorldLoaction(teleporter_data: TeleporterData): WorldLocation {
     switch(teleporter_data.type){
         case TeleporterType.Exterior:
-            assert(teleporter_data.placeId);
+            assert(teleporter_data.placeId !== undefined, "placeId is undefined");
             return new WorldLocation({placeKey: new PlaceKey(teleporter_data.placeId, Conf.place_contract)})
 
         case TeleporterType.Interior:
-            assert(teleporter_data.placeId);
+            assert(teleporter_data.placeId !== undefined, "placeId is undefined");
             return new WorldLocation({placeKey: new PlaceKey(teleporter_data.placeId, Conf.interior_contract)})
 
         default:
