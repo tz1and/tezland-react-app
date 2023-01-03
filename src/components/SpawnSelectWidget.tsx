@@ -6,7 +6,7 @@ import AppSettings from "../storage/AppSettings";
 import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
 import assert from "assert";
 import Conf from "../Config";
-import PlaceKey from "../utils/PlaceKey";
+import PlaceKey, { getPlaceType } from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 
 
@@ -35,7 +35,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
 
     private walletChangeListener = () => {
         // TODO: allow Browser to cache this by setting some max age or something
-        fetchUserPlaces(this.context, Conf.place_contract).then((res) => {
+        fetchUserPlaces(this.context, [Conf.place_contract, Conf.interior_contract]).then((res) => {
             this.setState({userPlaces: res}, () => {
                 assert(this.selectRef.current);
                 this.selectRef.current.value = AppSettings.defaultSpawn.value.toJson();
@@ -79,7 +79,8 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     override render(): React.ReactNode {
         const listElements: JSX.Element[] = []
         for (var place of this.state.userPlaces) {
-            listElements.push(<option key={place.token.tokenId} value={new PlaceKey(place.token.tokenId, place.token.contractId).toJson()}>Place #{place.token.tokenId}</option>);
+            const place_type = getPlaceType(place.token.contractId)
+            listElements.push(<option key={place.token.tokenId} value={new PlaceKey(place.token.tokenId, place.token.contractId).toJson()}>{place_type} #{place.token.tokenId}</option>);
         }
 
         // TODO: don't hardcode number of districts, load them from DistrictDefinition.

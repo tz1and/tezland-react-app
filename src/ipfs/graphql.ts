@@ -37,7 +37,7 @@ export async function fetchUserPlaces(walletProvider: ITezosWalletProvider, plac
 
     try {
         const data = await grapphQLUser.getUserPlaces({ address: walletProvider.walletPHK(), contracts: placeContracts, offset: 0, amount: 100 });
-        
+
         return data.placeTokenHolder;
     } catch(e: any) {
         Logging.InfoDev("failed to token holder: " + e.message);
