@@ -59,7 +59,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             whitelist_settings_places: [true, ""],
             whitelist_settings_interiors: [true, ""],
             show_finished: false,
-            type_filter: 'primary',
+            type_filter: 'all',
 
             operation_subscription: undefined,
             auctions_contract: undefined
