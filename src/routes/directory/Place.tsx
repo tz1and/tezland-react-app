@@ -77,7 +77,7 @@ export const Place: React.FC<PlaceProps> = (props) => {
                 <Row className="gx-3">
                     <Col xl="7" lg="12" className="mb-3">
                         {/*<InteractiveMap className='me-2' markerMode={MarkerMode.Places} threeD={false} zoom={100} location={center_pos} markedPlaces={[props.placeKey.id]} />*/}
-                        <WorldMap2D mapClass='rounded' isExteriorPlace={placeType !== PlaceType.Interior} style={{width: "100%", aspectRatio: 4/3}} location={center_pos} placePoly={placePoly} zoomControl={true} animate={false} />
+                        <WorldMap2D mapClass='rounded' isExteriorPlace={placeType !== PlaceType.Interior} style={{width: "100%", aspectRatio: 3/2}} location={center_pos} placePoly={placePoly} zoomControl={true} animate={false} />
                     </Col>
                     <Col xl="5" lg="12">
                         {props.detailOverride ? props.detailOverride : <div>
