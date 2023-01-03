@@ -17,7 +17,6 @@ import { WorldMap2D } from '../../components/WorldMap2D';
 type PlaceProps = {
     onlyPlaceOwnedItems?: boolean;
     detailOverride?: JSX.Element;
-    mapSize?: [string, string];
     placeKey: PlaceKey;
     openLinksInNewTab?: boolean | undefined;
 };
@@ -27,8 +26,6 @@ export const Place: React.FC<PlaceProps> = (props) => {
 
     const [metadata, setMetadata] = useState<PlaceTokenMetadata>();
     const [owner, setOwner] = useState<string>();
-
-    const mapSize = props.mapSize ? props.mapSize : ["640px", "480px"];
 
     useEffect(() => {
         Metadata.getPlaceMetadata(props.placeKey.id, props.placeKey.fa2).then(res => {
@@ -77,9 +74,10 @@ export const Place: React.FC<PlaceProps> = (props) => {
         content = <div>
             <h1>{name}</h1>
             <Container>
-                <Row className="gx-0">
+                <Row className="gx-3">
                     <Col xl="7" lg="12" className="mb-3">
-                        <WorldMap2D mapClass='' isExteriorPlace={placeType !== PlaceType.Interior} style={{width: mapSize[0], height: mapSize[1]}} location={center_pos} placePoly={placePoly} zoomControl={true} animate={false} />
+                        {/*<InteractiveMap className='me-2' markerMode={MarkerMode.Places} threeD={false} zoom={100} location={center_pos} markedPlaces={[props.placeKey.id]} />*/}
+                        <WorldMap2D mapClass='rounded' isExteriorPlace={placeType !== PlaceType.Interior} style={{width: "100%", aspectRatio: 4/3}} location={center_pos} placePoly={placePoly} zoomControl={true} animate={false} />
                     </Col>
                     <Col xl="5" lg="12">
                         {props.detailOverride ? props.detailOverride : <div>

@@ -275,7 +275,7 @@ Place type: {res.placeType}</small>;
 
                     <div className='col-lg-4 col-md-6'>
                         <h2>Map Preview</h2>
-                        <WorldMap2D mapClass='mb-2' isExteriorPlace={this.state.isExteriorPlace} style={{height: "20rem", backgroundColor: 'white'}}
+                        <WorldMap2D mapClass='rounded mb-2' isExteriorPlace={this.state.isExteriorPlace} style={{height: "20rem", backgroundColor: 'white'}}
                             location={this.state.mapLocation} placePoly={this.state.placePoly} zoomControl={true} scrollWheelZoom={true} dragging={true} />
                         <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>
                             The the Place/Interior <i>will not</i> be transferred to the auction contract on creation. Auctions can be cancelled, but please make sure you really intend to create the auction.<br/>

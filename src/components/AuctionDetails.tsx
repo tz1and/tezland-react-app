@@ -190,7 +190,7 @@ export default class AuctionDetails extends BaseAuction<AuctionDetailsProps, Auc
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Place placeKey={this.props.placeKey} onlyPlaceOwnedItems={true} detailOverride={detail_override} mapSize={["480px", "360px"]} openLinksInNewTab={true} />
+                    <Place placeKey={this.props.placeKey} onlyPlaceOwnedItems={true} detailOverride={detail_override} openLinksInNewTab={true} />
                 </Modal.Body>
                 <Modal.Footer>
                     {footer_buttons}
