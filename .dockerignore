@@ -17,7 +17,7 @@ src/acknowledgements.json
 
 # env files
 .env*
-!.env.production.local
+!.env.production
 
 # p-queue
 !node_modules/p-queue
