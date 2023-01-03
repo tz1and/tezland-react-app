@@ -327,7 +327,7 @@ export class WorldMap {
             const place = this.places.get(id);
             if (place) {
                 this.createMarker(`Place #${id}`,
-                    new Vector3(place.metadata.centerCoordinates[0], place.metadata.centerCoordinates[1], place.metadata.centerCoordinates[2]),
+                    new Vector3(place.placeMetadata.centerCoordinates[0], place.placeMetadata.centerCoordinates[1], place.placeMetadata.centerCoordinates[2]),
                     "purple", "place", id);
             }
         });
