@@ -16,6 +16,7 @@ import assert from "assert";
 import TokenKey from "../utils/TokenKey";
 import TzktAccounts from "../utils/TzktAccounts";
 import { Logging } from "../utils/Logging";
+import { toWorldLoaction } from "../utils/ItemData";
 
 
 class ItemInfoGui extends Rectangle {
@@ -306,7 +307,7 @@ export default class ItemPickingController extends BaseUserController {
                 }
                 else if(instanceRoot && instanceRoot instanceof ItemNode) {
                     if (instanceRoot.teleporterData)
-                        this.playerController.game.teleportTo(instanceRoot.teleporterData);
+                        this.playerController.game.teleportTo(toWorldLoaction(instanceRoot.teleporterData));
                 }
             }
             // button 2 is right click.

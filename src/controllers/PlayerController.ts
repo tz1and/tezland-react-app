@@ -15,7 +15,6 @@ import UserControllerManager from "./UserControllerManager";
 import ItemPlacementController from "./ItemPlacementController";
 import TokenKey from "../utils/TokenKey";
 import PlaceKey from "../utils/PlaceKey";
-import { UrlLocationParser } from "../utils/UrlLocationParser";
 import WorldLocation from "../utils/WorldLocation";
 import { ImportedWorldDef } from "../world/ImportWorldDef";
 
@@ -278,7 +277,12 @@ export default class PlayerController {
         this.teleportToWorldPos(new Vector3(spawn_point.x, 0, spawn_point.y));
     }
 
-    public async teleportToLocation(location: WorldLocation) {
+    /**
+     * Teleports player to location, assumed to be in the the current World.
+     * @param location The location, in the current World.
+     * @returns 
+     */
+    public async teleportToLocal(location: WorldLocation) {
         if (!location.isValid()) {
             Logging.Error("Invalid teleport location");
             return;
@@ -287,24 +291,6 @@ export default class PlayerController {
         if (location.pos) this.teleportToWorldPos(location.pos);
         else if (location.district) this.teleportToDistrict(location.district);
         else if (location.placeKey) await this.teleportToPlace(location.placeKey);
-    }
-
-    public async teleportToSpawn() {
-        let location: WorldLocation | undefined;
-        try {
-            location = UrlLocationParser.parseLocationFromUrl();
-        } catch(e) {
-            Logging.Error("Failed to parse location from URL:", e);
-        }
-
-        if (!location) {
-            if (AppSettings.defaultSpawn.value.fa2 === "district")
-                location = new WorldLocation({district: AppSettings.defaultSpawn.value.id});
-            else
-                location = new WorldLocation({placeKey: AppSettings.defaultSpawn.value});
-        }
-
-        await this.teleportToLocation(location);
     }
 
     private initCamera(): FreeCamera {

@@ -257,9 +257,6 @@ export class World extends BaseWorld {
         this.worldPlaceCount = (await Contracts.countExteriorPlacesView(this.game.walletProvider)).toNumber();
         Logging.InfoDev("world has " + this.worldPlaceCount + " places.");
 
-        // Teleport player to his starting position
-        await this.game.playerController.teleportToSpawn();
-
         const playerPos = this.game.playerController.getPosition();
         // Make sure updateWorld() doesn't immediately run again
         this.lastUpdatePosition = playerPos.clone();

@@ -1,7 +1,10 @@
 import { Nullable, Quaternion, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import { packTo, unpack } from "byte-data";
+import Conf from "../Config";
+import PlaceKey from "./PlaceKey";
 import { fromHexString } from "./Utils";
+import WorldLocation from "./WorldLocation";
 
 export const enum TeleporterType {
     Exterior = 0,
@@ -13,6 +16,21 @@ export type TeleporterData = {
     type: TeleporterType;
     placeId?: number;
     position?: Vector3;
+}
+
+export function toWorldLoaction(teleporter_data: TeleporterData): WorldLocation {
+    switch(teleporter_data.type){
+        case TeleporterType.Exterior:
+            assert(teleporter_data.placeId);
+            return new WorldLocation({placeKey: new PlaceKey(teleporter_data.placeId, Conf.place_contract)})
+
+        case TeleporterType.Interior:
+            assert(teleporter_data.placeId);
+            return new WorldLocation({placeKey: new PlaceKey(teleporter_data.placeId, Conf.interior_contract)})
+
+        default:
+            throw new Error(`Unsupported teleporter type: ${teleporter_data.type}`);
+    }
 }
 
 export const enum ItemDataFlags {

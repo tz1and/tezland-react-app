@@ -1,5 +1,5 @@
 import { DefaultRenderingPipeline, Engine, Scene,
-    TonemappingOperator, Nullable, Color3, Vector3, HighlightLayer, Mesh } from "@babylonjs/core";
+    TonemappingOperator, Nullable, Color3, HighlightLayer, Mesh, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -12,11 +12,11 @@ import { BaseWorld } from "./BaseWorld";
 import PQueue from "p-queue";
 import { InteriorWorld } from "./InteriorWorld";
 import { GridMaterial, SimpleMaterial } from "@babylonjs/materials";
-import { TeleporterData, TeleporterType } from "../utils/ItemData";
 import Conf from "../Config";
 import ItemNode from "./nodes/ItemNode";
 import PlaceKey from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
+import { UrlLocationParser } from "../utils/UrlLocationParser";
 
 
 export class Game {
@@ -110,11 +110,9 @@ export class Game {
             this.scene.cleanCachedTextureBuffer();
         }, 60000);
 
-        this.world = new World(this);
-
         ArtifactMemCache.initialise().then(() => {
-            assert(this.world instanceof World);
-            this.world.loadWorld().catch(e => {});
+            const location = this.getSpwanLocation();
+            this.teleportTo(location);
         });
     }
 
@@ -164,53 +162,71 @@ export class Game {
         return this.world;
     }
 
-    public teleportTo(teleporterData: TeleporterData) {
-        // Figure out if we need to load another world.
-        if (teleporterData.type === TeleporterType.Exterior) {
-            this.switchWorld(World, () => {
-                assert(teleporterData.placeId !== undefined, "placeId is undefined");
-                this.playerController.teleportToLocation(new WorldLocation({
-                    placeKey: new PlaceKey(teleporterData.placeId, Conf.place_contract)
-                }));
-            });
+    public teleportTo(location: WorldLocation) {
+        assert(location.isValid(), "Invalid location");
+
+        if (location.pos || location.district) {
+            this.switchWorld(World, location);
         }
-        else if (teleporterData.type === TeleporterType.Interior) {
-            this.switchWorld(InteriorWorld, () => {
-                assert(teleporterData.placeId !== undefined, "placeId is undefined");
-                /*this.playerController.teleportToLocation(new WorldLocation({
-                    placeKey: new PlaceKey(teleporterData.placeId, Conf.interior_contract)
-                }));*/
-                this.playerController.teleportToLocation(new WorldLocation({
-                    pos: new Vector3(0, 0, 0)
-                }));
-            }, teleporterData.placeId);
-        }
-        else { //if (teleporterData.type === TeleporterType.Local)
-            Logging.ErrorDev("Local teleporter not implemented");
+
+        if (location.placeKey) {
+            if (location.placeKey.fa2 === Conf.interior_contract) {
+                this.switchWorld(InteriorWorld, undefined, location.placeKey.id);
+            }
+            else { //if (location.placeKey.fa2 === Conf.place_contract) {
+                this.switchWorld(World, location);
+            }
         }
     }
 
-    private switchWorld(toWorldType: new(game: Game) => World | InteriorWorld, afterSwitch: () => void, placeId?: number) {
+    private switchWorld(toWorldType: new(game: Game) => World | InteriorWorld, location?: WorldLocation, placeId?: number) {
         // If teleport from exterior to exterior, don't destroy world.
-        if (this.world instanceof World && toWorldType === World) {
-            afterSwitch();
+        if (this.world && this.world instanceof World && toWorldType === World) {
+            // TODO: await teleportToLocal?
+            if(location) this.playerController.teleportToLocal(location);
         }
         else {
             this.world?.dispose();
             this.world = new toWorldType(this);
 
+            // TODO: await teleportToLocal?
+            if (location) {
+                this.playerController.teleportToLocal(location);
+            }
+            else {
+                this.playerController.teleportToLocal(new WorldLocation({
+                    pos: new Vector3(0, 0, 0)
+                }));
+            }
+
             if (this.world instanceof InteriorWorld) {
+                Logging.InfoDev("Switching world to InteriorWorld");
                 assert(placeId !== undefined, "placeId is undefined");
-                this.world.loadWorld(new PlaceKey(placeId, Conf.interior_contract)).then(() => {
-                    afterSwitch();
-                }).catch(e => {});
+                this.world.loadWorld(new PlaceKey(placeId, Conf.interior_contract)).catch(e => {});
             }
             else if (this.world instanceof World) {
-                this.world.loadWorld().then(() => {
-                    afterSwitch();
-                }).catch(e => {});
+                Logging.InfoDev("Switching world to World");
+                this.world.loadWorld().catch(e => {});
             }
         }
+    }
+
+    public getSpwanLocation(): WorldLocation {
+        let location: WorldLocation | undefined;
+        try {
+            location = UrlLocationParser.parseLocationFromUrl();
+        } catch(e) {
+            Logging.Error("Failed to parse location from URL:", e);
+        }
+
+        if (!location) {
+            if (AppSettings.defaultSpawn.value.fa2 === "district")
+                location = new WorldLocation({district: AppSettings.defaultSpawn.value.id});
+            else
+                location = new WorldLocation({placeKey: AppSettings.defaultSpawn.value});
+        }
+
+        return location;
     }
 
     public addItemToHighlightLayer(node: ItemNode) {

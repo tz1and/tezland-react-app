@@ -45,7 +45,7 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
 
     teleportToLocation(location: WorldLocation) {
         assert(this.state.game);
-        this.state.game.playerController.teleportToLocation(location);
+        this.state.game.teleportTo(location);
     }
 
     handleDroppedFile(file: File) {
