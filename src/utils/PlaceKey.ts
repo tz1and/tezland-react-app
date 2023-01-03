@@ -20,6 +20,10 @@ export default class PlaceKey {
         const res = JSON.parse(json);
         return new PlaceKey(res.id, res.fa2);
     }
+
+    public toString(): string {
+        return `${this.fa2}#${this.id}`;
+    }
 };
 
 export enum PlaceType {

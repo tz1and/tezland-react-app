@@ -80,7 +80,8 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
         const listElements: JSX.Element[] = []
         for (var place of this.state.userPlaces) {
             const place_type = getPlaceType(place.token.contractId)
-            listElements.push(<option key={place.token.tokenId} value={new PlaceKey(place.token.tokenId, place.token.contractId).toJson()}>{place_type} #{place.token.tokenId}</option>);
+            const token_key = new PlaceKey(place.token.tokenId, place.token.contractId);
+            listElements.push(<option key={token_key.toString()} value={token_key.toJson()}>{place_type} #{place.token.tokenId}</option>);
         }
 
         // TODO: don't hardcode number of districts, load them from DistrictDefinition.
