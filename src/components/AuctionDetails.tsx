@@ -97,49 +97,54 @@ export default class AuctionDetails extends BaseAuction<AuctionDetailsProps, Auc
         const time_left = (this.props.endTime - Math.floor(Date.now() / 1000)) / 3600;
 
         const detail_override = <div>
-            <div className='mb-2'>
-                <h4>Auction Details</h4>
-                {this.auctionTypeLabel("mb-2 me-1")} <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mb-2">Visit place</Link><br/>
-                <Table>
-                    <tbody>
-                        <tr>
-                            <td>Place Area</td>
-                            <td>{this.state.placeArea.toFixed(2)} m<sup>2</sup></td>
-                        </tr>
-                        <tr>
-                            <td>Build Height</td>
-                            <td>{this.state.buildHeight.toFixed(2)} m</td>
-                        </tr>
-                        <tr>
-                            <td>Auction Owner</td>
-                            <td>{DirectoryUtils.userLinkElement(this.props.owner, true)}</td>
-                        </tr>
-                        <tr>
-                            <td>Start/End Price</td>
-                            <td>{mutezToTez(this.props.startPrice).toNumber()} &#42793; / {mutezToTez(this.props.endPrice).toNumber()} &#42793;</td>
-                        </tr>
-                        <tr>
-                            <td>Duration</td>
-                            <td>{this.duration / 3600}h</td>
-                        </tr>
-                    </tbody>
-                </Table>
-                Progress:
-                <OverlayTrigger
-                    placement={"top"}
-                    overlay={
-                        <Popover>
-                            <Popover.Body>
-                                {`Time left: ${time_left > 0 ? time_left.toFixed(1) : "0"}h`}
-                            </Popover.Body>
-                        </Popover>
-                    }
-                >
-                    <div className="progress mt-3 mb-3">
-                        <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: `${this.progress}%` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={this.progress}></div>
-                    </div>
-                </OverlayTrigger>
-            </div>
+            <h4>Auction Details</h4>
+            {this.auctionTypeLabel("mb-2 me-1")}
+            <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mb-2">Visit place</Link><br/>
+            <Table className='mb-3 align-middle'>
+                <tbody>
+                    <tr>
+                        <td>Place Area</td>
+                        <td>{this.state.placeArea.toFixed(2)} m<sup>2</sup></td>
+                    </tr>
+                    <tr>
+                        <td>Build Height</td>
+                        <td>{this.state.buildHeight.toFixed(2)} m</td>
+                    </tr>
+                    <tr>
+                        <td>Auction Owner</td>
+                        <td>{DirectoryUtils.userLinkElement(this.props.owner, true)}</td>
+                    </tr>
+                    <tr>
+                        <td>Start/End Price</td>
+                        <td>{mutezToTez(this.props.startPrice).toNumber()} &#42793; / {mutezToTez(this.props.endPrice).toNumber()} &#42793;</td>
+                    </tr>
+                    <tr>
+                        <td>Duration</td>
+                        <td>{this.duration / 3600}h</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Progress
+                        </td>
+                        <td>
+                            <OverlayTrigger
+                                placement={"top"}
+                                overlay={
+                                    <Popover>
+                                        <Popover.Body>
+                                            {`Time left: ${time_left > 0 ? time_left.toFixed(1) : "0"}h`}
+                                        </Popover.Body>
+                                    </Popover>
+                                }
+                            >
+                                <div className="progress">
+                                    <div id="auctionProgress" className="progress-bar bg-primary" role="progressbar" style={{ width: `${this.progress}%` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={this.progress}></div>
+                                </div>
+                            </OverlayTrigger>
+                        </td>
+                    </tr>
+                </tbody>
+            </Table>
 
             <h5>{"Current bid: " + price_str}</h5>
 
