@@ -166,6 +166,9 @@ export class World extends BaseWorld {
             }
         }
 
+        // Load districts, ie: ground meshes, bridges, etc.
+        this.loadDistricts();
+
         this.game.scene.registerBeforeRender(this.updateShadowRenderList);
         this.game.scene.registerAfterRender(this.updateWorld);
 
@@ -249,9 +252,6 @@ export class World extends BaseWorld {
     public async loadWorld() {
         // TODO: assert that the world can only be loaded once!
         this.worldUpdatePending = true;
-
-        // Load districts, ie: ground meshes, bridges, etc.
-        this.loadDistricts();
 
         // fetch the most recent world place count
         this.worldPlaceCount = (await Contracts.countExteriorPlacesView(this.game.walletProvider)).toNumber();
