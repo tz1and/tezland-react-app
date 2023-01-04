@@ -5,6 +5,7 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 //import rollupPolyfillNode from 'rollup-plugin-polyfill-node'
 
 export default defineConfig(({mode}) => {
+    // We define our own plugin of making env var replacements in index.html.
     // Ref: https://github.com/Taiwan-Ebook-Lover/Taiwan-Ebook-Lover.github.io/pull/62/commits/cf27dd66280e8c21daaf3b51c594c1eea9065fdd#r886052909
     const env = loadEnv(mode, '');
     const htmlPlugin = () => ({
@@ -41,6 +42,8 @@ export default defineConfig(({mode}) => {
                         buffer: true,
                         process: true
                     }),
+                    // This is a workaround for an upstream bug in some package.
+                    // Occasionally try to remove it...
                     {
                         name: 'fix-node-globals-polyfill',
                         setup(build) {
