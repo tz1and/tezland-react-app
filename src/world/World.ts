@@ -535,8 +535,7 @@ export class World extends BaseWorld {
         }
     }
 
-    // NOTE: For BabylonJs > 5.16.0
-    /*private updateCurrentPlace(pos: DeepImmutable<Vector3>) {
+    private updateCurrentPlace(pos: DeepImmutable<Vector3>) {
         const pickResult = this.game.scene.pickWithRay(new Ray(pos, Vector3.Up()), (mesh) => {
             return mesh.parent instanceof PlaceNode;
         });
@@ -546,20 +545,6 @@ export class World extends BaseWorld {
 
             // TODO: use normal to determine whether we are inside our out.
             if (Vector3.Dot(pickResult.getNormal()!, pickResult.ray!.direction) < 0)
-                this.game.playerController.currentPlace = pickResult.pickedMesh.parent;
-        }
-    }*/
-
-    private updateCurrentPlace(pos: DeepImmutable<Vector3>) {
-        const pickResult = this.game.scene.pickWithRay(new Ray(pos, Vector3.Forward()), (mesh) => {
-            return mesh.parent instanceof PlaceNode;
-        });
-
-        if (pickResult && pickResult.hit && pickResult.pickedMesh) {
-            assert(pickResult.pickedMesh.parent instanceof PlaceNode);
-
-            // TODO: use normal to determine whether we are inside our out.
-            if (Vector3.Dot(pickResult.getNormal()!, pickResult.ray!.direction) > 0)
                 this.game.playerController.currentPlace = pickResult.pickedMesh.parent;
         }
     }
