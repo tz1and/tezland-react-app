@@ -2,26 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval';
-    style-src 'self' 'unsafe-inline' https://*.typekit.net;
-    font-src 'self' https://*.typekit.net;
-    base-uri 'self';
-    img-src 'self' blob: data: %REACT_APP_IPFS_NATIVE_GATEWAY_CSP% %REACT_APP_IPFS_PUBLIC_GATEWAYS_CSP% https://templewallet.com/logo.png;
-    connect-src 'self' data: https://api.tzkt.io %REACT_APP_ALLOWED_TEZOS_NODES% %REACT_APP_BACKEND% %REACT_APP_MULTIPLAYER% %REACT_APP_HASURA_URL% %REACT_APP_IPFS_NATIVE_GATEWAY_CSP% %REACT_APP_IPFS_PUBLIC_GATEWAYS_CSP% https://*.papers.tech:* https://api.typed.art;">
     <meta name="theme-color" content="#000000" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://*.typekit.net;
+      font-src 'self' https://*.typekit.net;
+      base-uri 'self';
+      img-src 'self' blob: data: <%=VITE_IPFS_NATIVE_GATEWAY_CSP%> <%=VITE_IPFS_PUBLIC_GATEWAYS_CSP%> https://templewallet.com/logo.png;
+      connect-src 'self' data: https://api.tzkt.io <%=VITE_ALLOWED_TEZOS_NODES%> <%=VITE_BACKEND%> <%=VITE_MULTIPLAYER%> <%=VITE_HASURA_URL%> <%=VITE_IPFS_NATIVE_GATEWAY_CSP%> <%=VITE_IPFS_PUBLIC_GATEWAYS_CSP%> https://*.papers.tech:* https://api.typed.art;" />
     <meta
       name="description"
       content="A Virtual World and NFT Marketplace"
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Workarund for: 'ReferenceError: Buffer is not defined'. -->
+    <script type="module">
+      import {Buffer} from "buffer";
+      window.Buffer = Buffer;
+    </script>
     <title>tz1and</title>
   </head>
   <body>
@@ -104,5 +105,6 @@
       </div>
     </div>
     <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
