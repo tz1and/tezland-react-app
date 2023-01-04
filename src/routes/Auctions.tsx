@@ -17,6 +17,7 @@ import PlaceKey from '../utils/PlaceKey';
 
 
 type AuctionTypeFilter = 'all' | 'primary' | 'secondary';
+const defaultAuctionTypeFilter: AuctionTypeFilter = 'all';
 
 type AuctionsProps = {}
 
@@ -59,7 +60,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             whitelist_settings_places: [true, ""],
             whitelist_settings_interiors: [true, ""],
             show_finished: false,
-            type_filter: 'all',
+            type_filter: defaultAuctionTypeFilter,
 
             operation_subscription: undefined,
             auctions_contract: undefined
@@ -345,7 +346,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                         <ToggleButton id='radioStateFinished' type="radio" variant='outline-primary' value='finished'>Finished</ToggleButton>
                     </ToggleButtonGroup>
 
-                    <ToggleButtonGroup type='radio' name='auctionTypeFilter' defaultValue='primary' onChange={(v, e) => this.handleSecondaryFilter(v, e)}>
+                    <ToggleButtonGroup type='radio' name='auctionTypeFilter' defaultValue={defaultAuctionTypeFilter} onChange={(v, e) => this.handleSecondaryFilter(v, e)}>
                         <ToggleButton id='radioFilterAll' type="radio" variant='outline-primary' value='all'>All</ToggleButton>
                         <ToggleButton id='radioFilterPrimary' type="radio" variant='outline-primary' value='primary'>Primary</ToggleButton>
                         <ToggleButton id='radioFilterSecondary' type="radio" variant='outline-primary' value='secondary'>Secondary</ToggleButton>
