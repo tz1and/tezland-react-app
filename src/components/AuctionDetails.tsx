@@ -22,7 +22,7 @@ type AuctionDetailsState = {
 
 export default class AuctionDetails extends BaseAuction<AuctionDetailsProps, AuctionDetailsState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: BaseAuctionProps & AuctionDetailsProps) {
         super(props);

@@ -23,7 +23,7 @@ type VirtualSpaceState = {
 
 class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
 
     private mount = React.createRef<HTMLCanvasElement>();
 

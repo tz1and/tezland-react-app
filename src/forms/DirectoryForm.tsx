@@ -35,7 +35,7 @@ type DirectoryFormState = {
 
 export class DirectoryForm extends React.Component<DirectoryFormProps, DirectoryFormState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: DirectoryFormProps) {
         super(props);

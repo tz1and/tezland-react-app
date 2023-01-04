@@ -21,7 +21,7 @@ type SpawnSelectState = {
 
 export default class SpawnSelectWidget extends React.Component<SpawnSelectProps, SpawnSelectState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
 
     private selectRef = React.createRef<HTMLSelectElement>();
 

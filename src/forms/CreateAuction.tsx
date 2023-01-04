@@ -47,8 +47,7 @@ class CreateAuctionForm extends React.Component<CreateAuctionFormProps, CreateAu
     private initialValues: CreateAuctionFormValues = { placeId: "-1", duration: 48, startPrice: 2, endPrice: 1 };
 
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
-    //declare context: React.ContextType<typeof TezosWalletContext>
+    declare context: React.ContextType<typeof TezosWalletContext>;
 
     private navTimeout: NodeJS.Timeout | null = null;
 

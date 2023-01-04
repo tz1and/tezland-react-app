@@ -32,7 +32,7 @@ type InventoryState = {
 // TODO: could we use TokenInfiniteScroll here?
 export class Inventory extends React.Component<InventoryProps, InventoryState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: InventoryProps) {
         super(props);

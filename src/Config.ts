@@ -1,7 +1,7 @@
 import { Logging } from "./utils/Logging";
 
 function getEnvVar(key: string): string {
-    const val = process.env[key];
+    const val = import.meta.env[key];
     if (val !== undefined) return val;
 
     Logging.WarnDev('Env var not set: ', key);
@@ -9,26 +9,26 @@ function getEnvVar(key: string): string {
 }
 
 export default class Conf {
-    public static public_url: string = getEnvVar('PUBLIC_URL');
-    public static app_version: string = getEnvVar('REACT_APP_VERSION');
+    public static public_url: string = getEnvVar('VITE_PUBLIC_URL');
+    public static app_version: string = getEnvVar('VITE_VERSION');
 
-    public static allowed_tezos_nodes: string[] = getEnvVar('REACT_APP_ALLOWED_TEZOS_NODES').split(' ');
-    public static tezos_network: string = getEnvVar('REACT_APP_TEZOS_NETWORK');
-    public static ipfs_native_gateway: string = getEnvVar('REACT_APP_IPFS_NATIVE_GATEWAY');
-    public static ipfs_public_gateways: string[] = getEnvVar('REACT_APP_IPFS_PUBLIC_GATEWAYS').split(' ');
-    public static hasura_url: string = getEnvVar('REACT_APP_HASURA_URL');
-    public static backend_url: string = getEnvVar('REACT_APP_BACKEND');
-    public static multiplayer_url: string = getEnvVar('REACT_APP_MULTIPLAYER');
+    public static allowed_tezos_nodes: string[] = getEnvVar('VITE_ALLOWED_TEZOS_NODES').split(' ');
+    public static tezos_network: string = getEnvVar('VITE_TEZOS_NETWORK');
+    public static ipfs_native_gateway: string = getEnvVar('VITE_IPFS_NATIVE_GATEWAY');
+    public static ipfs_public_gateways: string[] = getEnvVar('VITE_IPFS_PUBLIC_GATEWAYS').split(' ');
+    public static hasura_url: string = getEnvVar('VITE_HASURA_URL');
+    public static backend_url: string = getEnvVar('VITE_BACKEND');
+    public static multiplayer_url: string = getEnvVar('VITE_MULTIPLAYER');
 
-    public static item_v1_contract: string = getEnvVar('REACT_APP_ITEM_V1_CONTRACT');
-    public static item_contract: string = getEnvVar('REACT_APP_ITEM_CONTRACT');
-    public static place_v1_contract: string = getEnvVar('REACT_APP_PLACE_V1_CONTRACT');
-    public static place_contract: string = getEnvVar('REACT_APP_PLACE_CONTRACT');
-    public static world_contract: string = getEnvVar('REACT_APP_WORLD_CONTRACT');
-    public static minter_contract: string = getEnvVar('REACT_APP_MINTER_CONTRACT');
-    public static dutch_auction_contract: string = getEnvVar('REACT_APP_DUTCH_AUCTION_CONTRACT');
-    public static interior_contract: string = getEnvVar('REACT_APP_INTERIOR_CONTRACT');
-    public static factory_contract: string = getEnvVar('REACT_APP_FACTORY_CONTRACT');
+    public static item_v1_contract: string = getEnvVar('VITE_ITEM_V1_CONTRACT');
+    public static item_contract: string = getEnvVar('VITE_ITEM_CONTRACT');
+    public static place_v1_contract: string = getEnvVar('VITE_PLACE_V1_CONTRACT');
+    public static place_contract: string = getEnvVar('VITE_PLACE_CONTRACT');
+    public static world_contract: string = getEnvVar('VITE_WORLD_CONTRACT');
+    public static minter_contract: string = getEnvVar('VITE_MINTER_CONTRACT');
+    public static dutch_auction_contract: string = getEnvVar('VITE_DUTCH_AUCTION_CONTRACT');
+    public static interior_contract: string = getEnvVar('VITE_INTERIOR_CONTRACT');
+    public static factory_contract: string = getEnvVar('VITE_FACTORY_CONTRACT');
 
     public static fees_address: string = "tz1UZFB9kGauB6F5c2gfJo4hVcvrD8MeJ3Vf";
 

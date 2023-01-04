@@ -32,7 +32,7 @@ type GenerateMapProps = {
 
 export default class GenerateMap extends React.Component<GenerateMapProps, GenerateMapState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: GenerateMapProps) {
         super(props);

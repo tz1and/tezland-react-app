@@ -104,12 +104,11 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
     }
 
     public setupBeaconWallet() {
-        const appUrl = isDev() ? "http://localhost:3006" : Conf.public_url;
         const options: DAppClientOptions = {
             name: isDev() ? 'tz1and-dev' : 'tz1and',
             preferredNetwork: TezosWalletProvider.getNetworkType(),
-            appUrl: appUrl,
-            iconUrl: appUrl + "/logo192.png",
+            appUrl: Conf.public_url,
+            iconUrl: Conf.public_url + "/logo192.png",
             /*eventHandlers: {
               PERMISSION_REQUEST_SUCCESS: {
                 handler: async (data: any) => {
@@ -164,7 +163,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
 
     private setupWallet() {
         // Who knows if this will strip the in-memory signer from the package...
-        if(process.env.NODE_ENV === 'development' && useInMemorySigner) {
+        if(import.meta.env.DEV && useInMemorySigner) {
             // NOTE: these are KNOWN account keys.
             // alice: edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq
             // bob: edsk3RFfvaFaxbHx8BMtEW1rKQcPtDML3LXjNqMNLCzC3wLC1bWbAt

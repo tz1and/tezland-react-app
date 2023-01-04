@@ -1,5 +1,4 @@
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import map from "!file-loader!../img/map.svg"; // Temp workaround for CRA5
+import map from "../img/map.svg";
 
 import React, { useEffect } from 'react';
 import { Circle, ImageOverlay, MapContainer, Polygon, PolygonProps, useMap } from 'react-leaflet';

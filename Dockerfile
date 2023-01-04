@@ -15,9 +15,11 @@ COPY yarn.lock ./
 
 RUN yarn install
 
+COPY index.html ./
 COPY tsconfig.json ./
+COPY vite.config.ts ./
+COPY .env ./
 COPY .env.production ./
-COPY craco.config.js ./
 COPY src ./src
 COPY scripts ./scripts
 COPY public ./public
@@ -30,7 +32,7 @@ RUN yarn build
 # build prod
 FROM nginx:stable-alpine
 
-COPY --from=build /dist/app/build /usr/share/nginx/html
+COPY --from=build /dist/app/dist /usr/share/nginx/html
 
 EXPOSE 80
 EXPOSE 443

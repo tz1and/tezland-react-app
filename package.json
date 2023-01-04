@@ -1,13 +1,12 @@
 {
   "name": "tezland-react-app",
-  "version": "0.7.9",
   "private": true,
   "license": "Apache-2.0",
   "dependencies": {
-    "@babylonjs/core": "5.16.0",
-    "@babylonjs/gui": "5.16.0",
-    "@babylonjs/loaders": "5.16.0",
-    "@babylonjs/materials": "5.16.0",
+    "@babylonjs/core": "^5.16.0",
+    "@babylonjs/gui": "^5.16.0",
+    "@babylonjs/loaders": "^5.16.0",
+    "@babylonjs/materials": "^5.16.0",
     "@gltf-transform/core": "^2.1.7",
     "@gltf-transform/extensions": "^2.1.7",
     "@gltf-transform/functions": "^2.1.7",
@@ -42,7 +41,6 @@
     "react-leaflet": "^4.0.0",
     "react-markdown": "^8.0.3",
     "react-router-dom": "^6.2.1",
-    "react-scripts": "5.0.1",
     "sha3": "^2.1.4",
     "threads": "^1.7.0",
     "typescript": "^4.1.2",
@@ -50,10 +48,10 @@
     "web-vitals": "^3.0.0"
   },
   "devDependencies": {
-    "@babylonjs/gui-editor": "5.16.0",
-    "@babylonjs/inspector": "5.16.0",
-    "@babylonjs/serializers": "5.16.0",
-    "@craco/craco": "^7.0.0",
+    "@babylonjs/gui-editor": "^5.16.0",
+    "@babylonjs/inspector": "^5.16.0",
+    "@babylonjs/serializers": "^5.16.0",
+    "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
     "@graphql-codegen/cli": "^2.6.2",
     "@graphql-codegen/typescript": "^2.5.1",
     "@graphql-codegen/typescript-graphql-request": "^4.4.10",
@@ -68,35 +66,34 @@
     "@types/node": "^16",
     "@types/react": "^18.0.6",
     "@types/react-dom": "^18.0.2",
+    "@vitejs/plugin-react": "^3.0.0",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
     "env-cmd": "^10.1.0",
+    "events": "^3.3.0",
     "get-graphql-schema": "^2.1.2",
     "graphql": "^16.5.0",
+    "jsdom": "^20.0.3",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
     "source-map-explorer": "^2.5.2",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5",
+    "vite": "^4.0.4",
+    "vitest": "^0.26.3"
   },
   "scripts": {
-    "start": "BROWSER=none PORT=3006 craco start",
-    "start:staging": "env-cmd -f .env.staging npm run start",
-    "build": "craco build",
-    "build:dev": "env-cmd -f .env.development.local npm run build",
-    "build:staging": "env-cmd -f .env.staging npm run build",
-    "serve": "serve -s build -l 3006",
-    "test": "craco test --transformIgnorePatterns \"/node_modules/(?!@babylonjs)(.*)\"",
-    "eject": "react-scripts eject",
-    "analyze": "source-map-explorer 'build/static/js/*.js'",
+    "start": "vite --mode development --port 3006 --cors true",
+    "start:staging": "vite --mode staging --port 3006 --cors true",
+    "build": "vite build --mode production --sourcemap false",
+    "build:dev": "NODE_OPTIONS=--max-old-space-size=32768 vite build --mode development --sourcemap true",
+    "build:staging": "NODE_OPTIONS=--max-old-space-size=32768 vite build --mode staging --sourcemap true",
+    "preview": "vite preview --port 3006",
+    "test": "vitest --mode development",
+    "analyze": "source-map-explorer 'dist/static/js/*.js'",
     "generate-licenses": "node scripts/generate-licenses.js",
     "generate-gql-schema": "graphql-codegen && get-graphql-schema -h 'X-API-KEY=changeme' http://localhost:42000/v1/graphql > src/graphql/generated/schema.graphql"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

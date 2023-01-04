@@ -39,7 +39,7 @@ export class MintCollectionForm extends React.Component<MintCollectionFormProps,
     private closeTimeout: NodeJS.Timeout | null = null;
 
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
     
     constructor(props: MintCollectionFormProps) {
         super(props);

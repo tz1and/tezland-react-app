@@ -1,4 +1,3 @@
-import 'jest';
 import { Vector3 } from '@babylonjs/core';
 import WorldGrid from './WorldGrid';
 

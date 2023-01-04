@@ -43,7 +43,7 @@ type AuctionsState = {
 
 class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     static override contextType = TezosWalletContext;
-    override context!: React.ContextType<typeof TezosWalletContext>;
+    declare context: React.ContextType<typeof TezosWalletContext>;
 
     constructor(props: AuctionsProps) {
         super(props);

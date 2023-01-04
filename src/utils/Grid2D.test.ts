@@ -1,5 +1,4 @@
 import { AssertionError } from 'assert';
-import 'jest';
 import Grid2D, { Grid1D, GridBenchmark, Tuple, WorldGridAccessor } from './Grid2D';
 
 test('contruction', () => {

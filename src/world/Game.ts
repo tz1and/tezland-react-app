@@ -67,7 +67,7 @@ export class Game {
         this.highlightLayer = new HighlightLayer("portalHl", this.scene);
 
         // Enable inspector in dev
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
             import("@babylonjs/inspector").then( () => {
                 const inspector_root = document.getElementById("inspector-host");
                 assert(inspector_root);
@@ -118,7 +118,7 @@ export class Game {
 
     public dispose() {
         // Hide inspector in dev
-        if(process.env.NODE_ENV === 'development') this.scene.debugLayer.hide();
+        if(import.meta.env.DEV) this.scene.debugLayer.hide();
 
         //this.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
         window.removeEventListener('resize', this.onResize);

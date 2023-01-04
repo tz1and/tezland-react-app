@@ -72,7 +72,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
     </>;
 
     let devRoutes;
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
         const GenerateMap = React.lazy(() => import('./routes/GenerateMap'));
         devRoutes = <Route path="genmap" element={<GenerateMap />} />;
     }

@@ -1,5 +1,4 @@
 import { Quaternion, Vector3 } from '@babylonjs/core';
-import 'jest';
 import { IItemData, ItemDataFlags, ItemDataParser, ItemDataWriter, TeleporterData, TeleporterType } from './ItemData';
 import { toHexString } from './Utils';
 

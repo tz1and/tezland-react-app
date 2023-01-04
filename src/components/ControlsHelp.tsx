@@ -1,19 +1,11 @@
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import l_shift from "!file-loader!../img/keys/l_shift.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import mouse_move from "!file-loader!../img/keys/mouse_move.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import mouse_wheel from "!file-loader!../img/keys/mouse_wheel.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import mouse_left from "!file-loader!../img/keys/mouse_left.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import mouse_right from "!file-loader!../img/keys/mouse_right.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-//import scale_down from "!file-loader!../img/keys/scale_down.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import scale_up from "!file-loader!../img/keys/scale_up.svg"; // Temp workaround for CRA5
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import space_bar from "!file-loader!../img/keys/space_bar.svg"; // Temp workaround for CRA5
+import l_shift from "../img/keys/l_shift.svg";
+import mouse_move from "../img/keys/mouse_move.svg";
+import mouse_wheel from "../img/keys/mouse_wheel.svg";
+import mouse_left from "../img/keys/mouse_left.svg";
+import mouse_right from "../img/keys/mouse_right.svg";
+//import scale_down from "../img/keys/scale_down.svg";
+import scale_up from "../img/keys/scale_up.svg";
+import space_bar from "../img/keys/space_bar.svg";
 
 import React from 'react';
 
