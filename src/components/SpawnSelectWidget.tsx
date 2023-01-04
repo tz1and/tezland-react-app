@@ -99,7 +99,7 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
                     <option key="d7" value={new PlaceKey(7, "district").toJson()}>District #7</option>
                     <option key="d8" value={new PlaceKey(8, "district").toJson()}>District #8</option>
                     <option key="d9" value={new PlaceKey(9, "district").toJson()}>District #9</option>
-                    <option key="d10" value={new PlaceKey(1, "district").toJson()}>District #10</option>
+                    <option key="d10" value={new PlaceKey(10, "district").toJson()}>District #10</option>
                 </select>
                 <OverlayTrigger
                     placement={"bottom"}
