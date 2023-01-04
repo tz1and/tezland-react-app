@@ -10,7 +10,7 @@ Makefile
 
 # ignore project specific
 node_modules/
-build/
+dist/
 assets/
 TODO.txt
 src/acknowledgements.json
