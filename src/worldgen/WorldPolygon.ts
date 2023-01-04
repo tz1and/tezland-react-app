@@ -1,6 +1,7 @@
 import { Vector2 } from "@babylonjs/core";
 import { Matrix2D } from "@babylonjs/gui";
-import { intersection, Polygon, Ring } from 'polygon-clipping';
+import { Polygon, Ring } from 'polygon-clipping';
+import polygonClipping from "polygon-clipping";
 import { IDeepEquals } from "../utils/Sets";
 
 
@@ -244,7 +245,7 @@ export default class WorldPolygon {
         return nl;*/
 
         try{
-            const res = intersection(land.verticesToPolygon(), poly)
+            const res = polygonClipping.intersection(land.verticesToPolygon(), poly)
 
             const landArr: TOut[] = [];
             for (const resP of res) {
