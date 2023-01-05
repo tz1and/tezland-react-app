@@ -42,6 +42,13 @@ const RenderCallback = () => {
     });
 }
 
+const envLabel = () => {
+    const mode_upper = import.meta.env.MODE.toUpperCase();
+    return <div className={`${import.meta.env.MODE === "development" ? "bg-danger" : "bg-primary" } text-light text-center align-middle py-2 fixed-bottom`}>
+        <b>{mode_upper} - {mode_upper} - {mode_upper} - {mode_upper}</b>
+    </div>;
+}
+
 function RunApp(dbInitSuccess: boolean = true) {
     // TODO: react 18 style. Can't do it now because it does silly stuff like
     // mounting components twice in development and that breaks some stuff...
@@ -73,7 +80,7 @@ function RunApp(dbInitSuccess: boolean = true) {
             <HelmetProvider>
                 <AppRouter>
                     {dbFailedNotify}
-                    { isDev() ? <div className='bg-danger text-light text-center align-middle py-2 fixed-bottom'><b>DEVELOPMENT - DEVELOPMENT - DEVELOPMENT - DEVELOPMENT</b></div> : null }
+                    {!import.meta.env.PROD && envLabel()}
                     {testnetNotify}
                 </AppRouter>
             </HelmetProvider>

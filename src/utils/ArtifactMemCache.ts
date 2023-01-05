@@ -14,17 +14,25 @@ import RefCounted from "./RefCounted";
 //import { Logging } from "./Logging";
 
 
-export const instantiateOptions: {
+export const instantiateOptions = (clone: boolean = false): {
     doNotInstantiate?: boolean | ((node: TransformNode) => boolean);
     predicate?: (entity: any) => boolean;
-} = {
-    doNotInstantiate: false/*,
-    predicate: (entity) => {
-        if (entity instanceof TransformNode && entity.name === "__root__") return true;
-        if (entity instanceof Mesh && (!entity.geometry || entity.geometry.getTotalVertices() === 0)) return false;
-        if (entity instanceof InstancedMesh && entity.subMeshes.length === 0) return false;
-        return true;
-    }*/
+} => {
+    return {
+        /**
+         * Note that by default instantiateModelsToScene will always clone
+         * meshes if they have a skeleton, even if you set doNotInstantiate = false.
+         * If you want to force instanciation in this case, you should pass
+         * () => false for doNotInstantiate.
+         */
+        doNotInstantiate: clone ? true : () => false
+        /*predicate: (entity) => {
+            if (entity instanceof TransformNode && entity.name === "__root__") return true;
+            if (entity instanceof Mesh && (!entity.geometry || entity.geometry.getTotalVertices() === 0)) return false;
+            if (entity instanceof InstancedMesh && entity.subMeshes.length === 0) return false;
+            return true;
+        }*/
+    }
 }
 
 
@@ -141,7 +149,7 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions);
+        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].name = `item${file.name}_clone`;
         instance.rootNodes[0].parent = parent;
@@ -200,7 +208,7 @@ class ArtifactMemCache {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.object.instantiateModelsToScene(undefined, false, {doNotInstantiate: clone});
+        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
         instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;
@@ -242,7 +250,7 @@ class ArtifactMemCache {
         }
 
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions);
+        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
 
