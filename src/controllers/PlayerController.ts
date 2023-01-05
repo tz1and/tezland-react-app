@@ -14,7 +14,7 @@ import { PlayerKeyboardInput } from "./PlayerInput";
 import UserControllerManager from "./UserControllerManager";
 import ItemPlacementController from "./ItemPlacementController";
 import TokenKey from "../utils/TokenKey";
-import PlaceKey from "../utils/PlaceKey";
+import PlaceKey, { getPlaceType, PlaceType } from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 import { ImportedWorldDef } from "../world/ImportWorldDef";
 
@@ -246,6 +246,8 @@ export default class PlayerController {
     }
 
     private async teleportToPlace(place_key: PlaceKey) {
+        assert(getPlaceType(place_key.fa2) !== PlaceType.Unknown, "Teleportation to unknown place type");
+
         const metadata = await Metadata.getPlaceMetadata(place_key.id, place_key.fa2);
         assert(metadata);
 
@@ -282,7 +284,7 @@ export default class PlayerController {
      * @param location The location, in the current World.
      * @returns 
      */
-    public async teleportToLocal(location: WorldLocation) {
+    public teleportToLocal(location: WorldLocation) {
         if (!location.isValid()) {
             Logging.Error("Invalid teleport location");
             return;
@@ -290,7 +292,9 @@ export default class PlayerController {
 
         if (location.pos) this.teleportToWorldPos(location.pos);
         else if (location.district) this.teleportToDistrict(location.district);
-        else if (location.placeKey) await this.teleportToPlace(location.placeKey);
+        else if (location.placeKey) this.teleportToPlace(location.placeKey).catch(() => {
+            this.teleportToWorldPos(new Vector3(0, 0, 0));
+        });
     }
 
     private initCamera(): FreeCamera {
