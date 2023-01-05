@@ -1,3 +1,5 @@
+import assert from "assert";
+import Conf from "../Config";
 import { Logging } from "../utils/Logging";
 import PlaceKey from "../utils/PlaceKey";
 
@@ -66,7 +68,12 @@ const parseShadowOptions: ParseFunc<ShadowOptions> = (value: string) => value as
 const parseTextureRes: ParseFunc<TextureRes> = (value: string) => Number(value) as TextureRes;
 const parsePlaceKey: ParseFunc<PlaceKey> = (value: string) => {
     try {
-        return PlaceKey.fromJson(value);
+        // Try parse place key.
+        const place_key = PlaceKey.fromJson(value);
+        if (place_key.id !== undefined && place_key.fa2 !== undefined)
+            return place_key;
+        // Else, parse value as int.
+        else return new PlaceKey(parseInt(value), Conf.place_contract);
     } catch(e) {
         return placeKeyDefault;
     }
