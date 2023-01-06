@@ -1,5 +1,8 @@
 import BasePlaceNode from "./BasePlaceNode";
 import { bytes2Char } from "@taquito/utils";
+import { InteriorWorld } from "../InteriorWorld";
+import assert from "assert";
+import PlaceProperties from "../../utils/PlaceProperties";
 
 
 export default class InteriorPlaceNode extends BasePlaceNode {
@@ -10,5 +13,14 @@ export default class InteriorPlaceNode extends BasePlaceNode {
         }
 
         return `Interior #${this.placeKey.id}`;
+    }
+
+    protected override updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void {
+        assert(this.placeGround);
+        this.placeGround.setEnabled(!(props.interiorDisableFloor || false));
+
+        assert(this.world instanceof InteriorWorld);
+        const interior_world = this.world as InteriorWorld;
+        interior_world.updateOnPlacePropChange(props, first_load);
     }
 }

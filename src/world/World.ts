@@ -92,6 +92,9 @@ export class World extends BaseWorld {
         this.skybox.material = skyMaterial;
         this.skybox.parent = this.worldNode;
 
+        // Since we are always inside a skybox, we can turn off autoClear
+        this.game.scene.autoClear = false; // Color buffer
+
         // reflection probe
         this.reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
         assert(this.reflectionProbe.renderList);

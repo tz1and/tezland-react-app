@@ -15,6 +15,7 @@ import { SimpleMaterial } from "@babylonjs/materials";
 import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
 import PlaceKey from "../../utils/PlaceKey";
+import PlaceProperties from "../../utils/PlaceProperties";
 
 
 export type PlaceItemData = {
@@ -121,7 +122,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     protected _placeBounds: Nullable<Mesh> = null;
     get placeBounds() { return this._placeBounds; }
-    private placeGround: Nullable<Mesh> = null;
+    protected placeGround: Nullable<Mesh> = null;
 
     //private executionAction: Nullable<ExecuteCodeAction> = null;
 
@@ -272,7 +273,10 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         // If we have place data, load the items.
         // TODO: maybe have another queue for this. loadingQueue.
-        if (this.placeData) this.loadItems();
+        if (this.placeData) {
+            this.updateOnPlacePropChange(new PlaceProperties(this.placeData.placeProps), true);
+            this.loadItems();
+        }
 
         // Queue and update - checking the seq number and possbily fetching updated items
         this.world.game.onchainQueue.add(() => this.update());
@@ -283,6 +287,8 @@ export default abstract class BasePlaceNode extends TransformNode {
             Logging.Warn("Too many failed attempts updating place. Giving up. Place id:", this.placeKey.id);
             return;
         }
+
+        const first_load = this.placeData === undefined;
 
         try {
             // If not forced and we have place data...
@@ -312,6 +318,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         // If successful, load Items. Don't await, this should run outside the queue.
         // TODO: maybe have another queue for this. loadingQueue.
+        this.updateOnPlacePropChange(new PlaceProperties(this.placeData!.placeProps), first_load);
         this.loadItems();
     }
 
@@ -542,4 +549,6 @@ export default abstract class BasePlaceNode extends TransformNode {
             }
         }
     }
+
+    protected abstract updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void;
 }

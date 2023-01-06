@@ -61,9 +61,6 @@ export class Game {
         this.scene.collisionsEnabled = true;
         this.scene.blockMaterialDirtyMechanism = true;
 
-        // Since we are always inside a skybox, we can turn off autoClear
-        this.scene.autoClear = false; // Color buffer
-
         this.highlightLayer = new HighlightLayer("portalHl", this.scene);
 
         // Enable inspector in dev

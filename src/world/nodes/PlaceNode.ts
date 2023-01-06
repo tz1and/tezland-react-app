@@ -1,5 +1,6 @@
 import BasePlaceNode from "./BasePlaceNode";
 import { bytes2Char } from "@taquito/utils";
+import PlaceProperties from "../../utils/PlaceProperties";
 
 
 export default class PlaceNode extends BasePlaceNode {
@@ -10,5 +11,9 @@ export default class PlaceNode extends BasePlaceNode {
         }
 
         return `Place #${this.placeKey.id}`;
+    }
+
+    protected override updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void {
+        // Do nothing for PlaceNode.
     }
 }

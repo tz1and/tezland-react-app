@@ -1,7 +1,7 @@
 import { Vector3, Color3, HemisphericLight,
     ShadowGenerator, CascadedShadowGenerator, Mesh,
     AbstractMesh, Nullable, ReflectionProbe,
-    RenderTargetTexture, TransformNode } from "@babylonjs/core";
+    RenderTargetTexture, TransformNode, BackgroundMaterial, Color4 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
@@ -19,10 +19,14 @@ import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
 import { Game } from "./Game";
 import PlaceKey from "../utils/PlaceKey";
+import PlaceProperties from "../utils/PlaceProperties";
+import WorldLocation from "../utils/WorldLocation";
 
 
 const worldUpdateDistance = 10; // in m
 const shadowListUpdateInterval = 2000; // in ms
+
+const defaultLightDir = new Vector3(50, 100, -50).normalize();
 
 
 export class InteriorWorld extends BaseWorld {
@@ -43,6 +47,8 @@ export class InteriorWorld extends BaseWorld {
 
     private place: Nullable<InteriorPlaceNode> = null;
 
+    private ground: Mesh;
+
     constructor(game: Game) {
         super(game);
 
@@ -51,7 +57,7 @@ export class InteriorWorld extends BaseWorld {
         this.worldNode = new TransformNode("worldNode", this.game.scene);
         
         // Create sun and skybox
-        const sun_direction = new Vector3(-50, -100, 50).normalize();
+        const sun_direction = defaultLightDir.negate();
         this.sunLight = new SunLight("sunLight", sun_direction, this.game.scene);
         this.sunLight.parent = this.worldNode;
 
@@ -71,9 +77,12 @@ export class InteriorWorld extends BaseWorld {
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
 
-        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.game.scene);
+        this.skybox = Mesh.CreateBox('skyBox', 1000, this.game.scene, false, Mesh.BACKSIDE);
         this.skybox.material = skyMaterial;
         this.skybox.parent = this.worldNode;
+
+        // Since we are always inside a skybox, we can turn off autoClear
+        this.game.scene.autoClear = false; // Color buffer
 
         // reflection probe
         this.reflectionProbe = new ReflectionProbe('reflectionProbe', 256, this.game.scene);
@@ -82,13 +91,13 @@ export class InteriorWorld extends BaseWorld {
         this.reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
         this.game.scene.environmentTexture = this.reflectionProbe.cubeTexture;
 
-        const ground = Mesh.CreateGround("water", 2000, 2000, 4, this.game.scene);
-        ground.material = this.game.defaultMaterial;
-        ground.isPickable = true;
-        ground.checkCollisions = true;
-        ground.receiveShadows = true;
-        ground.position.y = -0.01;
-        ground.parent = this.worldNode;
+        this.ground = Mesh.CreateGround("water", 2000, 2000, 4, this.game.scene);
+        this.ground.material = this.game.defaultMaterial;
+        this.ground.isPickable = true;
+        this.ground.checkCollisions = true;
+        this.ground.receiveShadows = true;
+        this.ground.position.y = -0.01;
+        this.ground.parent = this.worldNode;
 
         // After, camera, lights, etc, the shadow generator
         // TODO: shadow generator should be BaseWorld!
@@ -125,7 +134,8 @@ export class InteriorWorld extends BaseWorld {
 
         // NOTE: add a dummy shadow caster, otherwise shadows won't work.
         if (this.shadowGenerator) {
-            const shadowDummy = Mesh.CreateBox("skyBox", 1.0, this.game.scene);
+            const shadowDummy = Mesh.CreateBox("dummyShadowCaster", 1.0, this.game.scene);
+            shadowDummy.isVisible = false;
             shadowDummy.position.y = -10;
             shadowDummy.parent = this.worldNode;
             this.shadowGenerator.addShadowCaster(shadowDummy);
@@ -355,6 +365,36 @@ export class InteriorWorld extends BaseWorld {
         if (ArtifactMemCache.itemsLoaded) {
             ArtifactMemCache.itemsLoaded = false;
             this.game.scene.cleanCachedTextureBuffer();
+        }
+    }
+
+    public updateOnPlacePropChange(props: PlaceProperties, first_load: boolean) {
+        assert(this.place);
+        assert(this.place.itemsNode);
+        if (first_load && props.spawnPosition) {
+            this.game.playerController.teleportToLocal(new WorldLocation({pos: props.spawnPosition.add(this.place.itemsNode.position)}));
+        }
+
+        // Update world floor
+        this.ground.setEnabled(!(props.interiorDisableFloor || false));
+
+        // Update light direction.
+        const lightDir = props.interiorLightDirection ? props.interiorLightDirection : defaultLightDir;
+        const normalised_light_dir = lightDir.normalizeToNew().negateInPlace();
+        this.sunLight.light.direction = normalised_light_dir;
+        
+        if (props.interiorBackgroundColor) {
+            this.game.scene.clearColor = Color4.FromHexString(props.interiorBackgroundColor);
+            this.skybox.setEnabled(false);
+            this.game.scene.autoClear = true;
+        }
+        else {
+            /*const normalised_light_dir = lightDir.normalizeToNew().negateInPlace();
+            this.sunLight.light.direction = normalised_light_dir;*/
+            const skyMaterial = this.skybox.material as SkyMaterial;
+            skyMaterial.sunPosition = normalised_light_dir.negate();
+            this.skybox.setEnabled(true);
+            this.game.scene.autoClear = false;
         }
     }
 }
