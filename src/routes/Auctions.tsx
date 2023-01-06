@@ -298,6 +298,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
     private isWhitelistedFor(fa2: string) {
         if (fa2 === Conf.place_contract) return !this.state.whitelist_settings_places[0] || this.state.user_is_whitelisted_places;
         if (fa2 === Conf.interior_contract) return !this.state.whitelist_settings_interiors[0] || this.state.user_is_whitelisted_interiors;
+        if (fa2 === Conf.place_v1_contract) return false;
         Logging.ErrorDev(`Unknown token type in auction: ${fa2}`);
         return false;
     }
