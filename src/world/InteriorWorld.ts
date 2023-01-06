@@ -91,7 +91,7 @@ export class InteriorWorld extends BaseWorld {
         this.reflectionProbe.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
         this.game.scene.environmentTexture = this.reflectionProbe.cubeTexture;
 
-        this.ground = Mesh.CreateGround("water", 2000, 2000, 4, this.game.scene);
+        this.ground = Mesh.CreateGround("interiorGround", 2000, 2000, 4, this.game.scene);
         this.ground.material = this.game.defaultMaterial;
         this.ground.isPickable = true;
         this.ground.checkCollisions = true;

@@ -563,12 +563,16 @@ export default class PlayerController {
 
         const maxPickDistance = 50; // in m
 
-        // cast a ray for picking guy and item placing
+        // cast a ray for picking gui and item placing
         const hit = this.scene.pickWithRay(this.camera.getForwardRay(
             maxPickDistance,
             this.camera.getWorldMatrix(),
             this.camera.globalPosition
-        ));
+        ), (mesh) => {
+            // This predicate is to make sure the ground in interiors
+            // is pickable even if it's disabled.
+            return mesh.isPickable && (mesh.isEnabled() || mesh.name === "interiorGround");
+        });
 
         this.controllerManager.updateController(hit);
     }
