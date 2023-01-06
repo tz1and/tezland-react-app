@@ -119,7 +119,8 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     public placeData: PlaceData | undefined;
 
-    protected placeBounds: Nullable<Mesh> = null;
+    protected _placeBounds: Nullable<Mesh> = null;
+    get placeBounds() { return this._placeBounds; }
     private placeGround: Nullable<Mesh> = null;
 
     //private executionAction: Nullable<ExecuteCodeAction> = null;
@@ -162,8 +163,8 @@ export default abstract class BasePlaceNode extends TransformNode {
         this.outOfBoundsItems.clear();
 
         // TODO: have some flag if it's loading right now or something.
-        this.placeBounds?.dispose();
-        this.placeBounds = null;
+        this._placeBounds?.dispose();
+        this._placeBounds = null;
 
         this.placeGround?.dispose();
         this.placeGround = null;
@@ -218,15 +219,15 @@ export default abstract class BasePlaceNode extends TransformNode {
 
         // create bounds
         // TODO: use MeshUtils.extrudeMeshFromShape
-        this.placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(0, this._buildHeight, 0),
+        this._placeBounds = this.extrudeMeshFromShape(shape, this._buildHeight + 1, new Vector3(0, this._buildHeight, 0),
             this.world.game.transparentGridMat);
 
-        this.placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
-        this.placeBounds.parent = this;
+        this._placeBounds.visibility = +AppSettings.displayPlaceBounds.value;
+        this._placeBounds.parent = this;
         // Call getHierarchyBoundingVectors to force updating the bounding info!
         // TODO: figure out if still needed.
-        this.placeBounds.getHierarchyBoundingVectors();
-        this.placeBounds.freezeWorldMatrix();
+        this._placeBounds.getHierarchyBoundingVectors();
+        this._placeBounds.freezeWorldMatrix();
 
         // create ground
         this.placeGround = this.polygonMeshFromShape(shape, new Vector3(0, 0, 0),
@@ -263,7 +264,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     // TODO: make sure it doesn't throw exception is potentially not caught.
     public async load() {
-        assert(this.placeBounds && this.placeGround, "Place not initialised.");
+        assert(this._placeBounds && this.placeGround, "Place not initialised.");
 
         // First, load the palce data from disk.
         if (!this.placeData) this.placeData = await Metadata.Storage.loadObject("placeData", [this.placeKey.id, this.placeKey.fa2]);
@@ -484,7 +485,7 @@ export default abstract class BasePlaceNode extends TransformNode {
     }
 
     public isInBounds(object: ItemNode) {
-        if(!this.placeBounds) return false;
+        if(!this._placeBounds) return false;
         if(!object.boundingVectors) return false;
 
         const {min, max} = object.boundingVectors;
@@ -495,7 +496,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         for(var i = 0; i < bbox.vectorsWorld.length; ++i) {
             const p = bbox.vectorsWorld[i];
 
-            if(!pointIsInside(p, this.placeBounds))
+            if(!pointIsInside(p, this._placeBounds))
                 return false;
         }
 

@@ -13,7 +13,7 @@ import { Notification } from './components/Notification';
 import { upgradeSettings } from './storage/AppSettings';
 import Metadata from './world/Metadata';
 import { Logging } from './utils/Logging';
-import { isDev, sleep } from './utils/Utils';
+import { sleep } from './utils/Utils';
 import Conf from './Config';
 import { HelmetProvider } from 'react-helmet-async';
 

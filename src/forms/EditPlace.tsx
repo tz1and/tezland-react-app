@@ -1,10 +1,12 @@
 import React from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
+import { getPlaceType } from '../utils/PlaceKey';
 import BasePlaceNode from '../world/nodes/BasePlaceNode';
 import { PlaceAddPermissionsForm } from './PlaceAddPermissions';
 import { PlacePropertiesForm } from './PlaceProperties';
 import { PlaceRemovePermissionsForm } from './PlaceRemovePermissions';
+
 
 type EditPlaceProps = {
     closeForm(): void;
@@ -15,11 +17,12 @@ export const EditPlace: React.FC<EditPlaceProps> = (props) => {
     const context = useTezosWalletContext();
 
     const is_owner = context.walletPHK() === props.place.currentOwner;
+    const place_type = getPlaceType(props.place.placeKey.fa2);
 
     return (
         <div className='p-4 m-4 bg-light bg-gradient border-0 rounded-3 text-dark position-relative'>
             <button type="button" className="p-3 btn-close position-absolute top-0 end-0" aria-label="Close" onClick={() => props.closeForm()} />
-            <h2>edit Place #{props.place.placeKey.id}</h2>
+            <h2>edit {place_type} #{props.place.placeKey.id}</h2>
 
             <Tabs defaultActiveKey="properties"
                 mountOnEnter={true} unmountOnExit={true}

@@ -418,17 +418,29 @@ export class Contracts {
         return place_data;
     }
 
-    public async savePlaceProps(walletProvider: ITezosWalletProvider, groundColor: string, placeName: string, place_node: BasePlaceNode, callback?: (completed: boolean) => void) {
+    public async savePlaceProps(walletProvider: ITezosWalletProvider, changes: Map<string, string>, removals: string[], place_node: BasePlaceNode, callback?: (completed: boolean) => void) {
         // TODO: only save props that changed.
         const current_world = await this.get_world_contract_write(walletProvider);
 
         // owner is optional.
-        const props_map = new MichelsonMap<string, string>();
-        props_map.set('00', groundColor);
-        props_map.set('01', placeName);
-        let params: any = { place_key: place_node.placeKey, update: { props: [{add_props: props_map}] } };
+        const prop_updates = [];
+
+        if (changes.size > 0) {
+            const props_map = new MichelsonMap<string, string>();
+            for (const [key, value] of changes) {
+                props_map.set(key, value);
+            }
+            prop_updates.push({add_props: props_map});
+        }
+
+        if (removals.length > 0) {
+            prop_updates.push({del_props: removals});
+        }
+
+        if (prop_updates.length === 0) throw new Error("No place prop updates required.");
 
         try {
+            const params: any = { place_key: place_node.placeKey, update: { props: prop_updates } };
             const save_props_op = await current_world.methodsObject.update_place(params).send();
 
             this.handleOperation(walletProvider, save_props_op, callback);

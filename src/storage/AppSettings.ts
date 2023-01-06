@@ -1,4 +1,3 @@
-import assert from "assert";
 import Conf from "../Config";
 import { Logging } from "../utils/Logging";
 import PlaceKey from "../utils/PlaceKey";

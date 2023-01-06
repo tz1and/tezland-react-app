@@ -1,4 +1,4 @@
-import { Nullable, Quaternion, Vector3 } from "@babylonjs/core";
+import { DeepImmutable, Nullable, Quaternion, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import { packTo, unpack } from "byte-data";
 import Conf from "../Config";
@@ -249,8 +249,8 @@ export class ItemDataParser {
         return [new Vector3(x, y, z), nextIdx];
     }
 
-    private static parseVec3_16(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(16, uint8array, startIdx) }
-    private static parseVec3_24(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(24, uint8array, startIdx) }
+    public static parseVec3_16(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(16, uint8array, startIdx) }
+    public static parseVec3_24(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(24, uint8array, startIdx) }
     private static parseVec3_32(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(32, uint8array, startIdx) }
     private static parseVec3_64(uint8array: Uint8Array, startIdx: number) { return this.parseVec3(64, uint8array, startIdx) }
 }
@@ -265,6 +265,14 @@ export interface IItemData {
 }
 
 export class ItemDataWriter {
+    public static needsFloat24(vec: DeepImmutable<Vector3>): boolean {
+        let needs_float24 = false;
+        for (const component of vec.asArray()) {
+            if (Math.abs(component) >= 128.0) needs_float24 = true;
+        }
+        return needs_float24;
+    }
+
     public static write(item: IItemData): Uint8Array {
         const chunks: Uint8Array[] = [];
         
@@ -287,10 +295,7 @@ export class ItemDataWriter {
         // TODO: if any pos component >= 128.0
         // return writeFromat2(item);
         // else
-        let needs_float24 = false;
-        for (const component of item.position.asArray()) {
-            if (Math.abs(component) >= 128.0) needs_float24 = true;
-        }
+        const needs_float24 = this.needsFloat24(item.position);
 
         if (needs_float24) return this.writeFromat2(item);
         else return this.writeFromat1(item);
@@ -497,8 +502,8 @@ export class ItemDataWriter {
         return this.writeFloat(bits, uint8array, val.z, nextIdx);
     }
 
-    private static writeVec3_16(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(16, uint8array, val, startIdx) }
-    private static writeVec3_24(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(24, uint8array, val, startIdx) }
+    public static writeVec3_16(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(16, uint8array, val, startIdx) }
+    public static writeVec3_24(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(24, uint8array, val, startIdx) }
     private static writeVec3_32(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(32, uint8array, val, startIdx) }
     private static writeVec3_64(uint8array: Uint8Array, val: Vector3, startIdx: number) { return this.writeVec3(64, uint8array, val, startIdx) }
 }
