@@ -71,6 +71,8 @@
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
     "env-cmd": "^10.1.0",
+    "eslint": "^8.31.0",
+    "eslint-config-react-app": "^7.0.1",
     "events": "^3.3.0",
     "get-graphql-schema": "^2.1.2",
     "graphql": "^16.5.0",
@@ -81,6 +83,7 @@
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
     "vite": "^4.0.4",
+    "vite-plugin-eslint": "^1.8.1",
     "vitest": "^0.26.3"
   },
   "scripts": {
@@ -94,6 +97,11 @@
     "analyze": "source-map-explorer 'dist/static/js/*.js'",
     "generate-licenses": "node scripts/generate-licenses.js",
     "generate-gql-schema": "graphql-codegen && get-graphql-schema -h 'X-API-KEY=changeme' http://localhost:42000/v1/graphql > src/graphql/generated/schema.graphql"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
   },
   "browserslist": {
     "production": [
