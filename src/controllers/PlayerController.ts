@@ -41,6 +41,8 @@ export default class PlayerController {
     private gravity: Vector3 = new Vector3();
     private walk: boolean = false;
 
+    public freeze: boolean = true;
+
     private static readonly GRAVITY = 0.225;
     private static readonly BODY_HEIGHT = 1.5;
     private static readonly LEGS_HEIGHT = 0.3;
@@ -465,8 +467,16 @@ export default class PlayerController {
         const moveRight = this.input.right; //right, x
         const moveUp = this.input.up; // up, y
 
-        // Update user input if there was any.
-        if (moveFwd !== 0 || moveRight !== 0 || moveUp !== 0) this.updateLastUserInput();
+        // If there was input.
+        if (moveFwd !== 0 || moveRight !== 0 || moveUp !== 0) {
+            // Un-freeze player.
+            this.freeze = false;
+            // Update last user input.
+            this.updateLastUserInput();
+        }
+
+        // If player is frozen, no need to process physics.
+        if (this.freeze) return;
 
         // Figure out directions.
         const cam_dir = this.camera.getDirection(Axis.Z);

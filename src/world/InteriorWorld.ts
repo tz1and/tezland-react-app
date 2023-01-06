@@ -1,7 +1,7 @@
 import { Vector3, Color3, HemisphericLight,
     ShadowGenerator, CascadedShadowGenerator, Mesh,
     AbstractMesh, Nullable, ReflectionProbe,
-    RenderTargetTexture, TransformNode, BackgroundMaterial, Color4 } from "@babylonjs/core";
+    RenderTargetTexture, TransformNode, Color4 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
@@ -373,6 +373,7 @@ export class InteriorWorld extends BaseWorld {
         assert(this.place.itemsNode);
         if (first_load && props.spawnPosition) {
             this.game.playerController.teleportToLocal(new WorldLocation({pos: props.spawnPosition.add(this.place.itemsNode.position)}));
+            this.game.playerController.freeze = true;
         }
 
         // Update world floor
