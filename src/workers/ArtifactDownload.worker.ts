@@ -29,7 +29,9 @@ const initialise = async () => {
 
 const shutdown = async () => {
     Logging.InfoDev("Terminating pool: MeshPreprocessing.worker");
-    return pool.terminate(true);
+    // Note: Don't force shutdown threads.
+    // There apprears to be some bug terminating the thread pool with force = true.
+    return pool.terminate(false);
 }
 
 export const ArtifactDownloadWorkerApi = {
