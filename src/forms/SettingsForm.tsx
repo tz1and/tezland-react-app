@@ -154,6 +154,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                     <button className="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
                                 </li>
                                 <li className="nav-item" role="presentation">
+                                    <button className="nav-link" id="limits-tab" data-bs-toggle="tab" data-bs-target="#limits" type="button" role="tab" aria-controls="limits" aria-selected="true">Limits</button>
+                                </li>
+                                <li className="nav-item" role="presentation">
                                     <button className="nav-link" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" type="button" role="tab" aria-controls="controls" aria-selected="false">Controls</button>
                                 </li>
                                 <li className="nav-item" role="presentation">
@@ -162,18 +165,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                             </ul>
                             <div className="tab-content" id="myTabContent">
                                 <div className="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                                    <div className="mb-3">
-                                        <label htmlFor="triangleLimit" className="form-label">Triangle limit</label>
-                                        <Field id="triangleLimit" name="triangleLimit" type="number" className="form-control" aria-describedby="triangleLimitHelp" disabled={isSubmitting} autoFocus={true} />
-                                        <div id="triangleLimitHelp" className="form-text">Items with more triangles than the limit will not be displayed.</div>
-                                        <ErrorMessage name="triangleLimit" children={errorDisplay}/>
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="modelFileSizeLimit" className="form-label">Model file size limit (in MiB)</label>
-                                        <Field id="modelFileSizeLimit" name="modelFileSizeLimit" type="number" className="form-control" aria-describedby="modelFileSizeLimitHelp" disabled={isSubmitting} autoFocus={true} />
-                                        <div id="modelFileSizeLimitHelp" className="form-text">Items larger than this won't be displayed.</div>
-                                        <ErrorMessage name="modelFileSizeLimit" children={errorDisplay}/>
-                                    </div>
                                     <div className="mb-3">
                                         <Field id="transferToPlaceIfOwner" name="transferToPlaceIfOwner" type="checkbox" className="form-check-input me-2" aria-describedby="transferToPlaceIfOwnerHelp" disabled={isSubmitting}/>
                                         <label htmlFor="transferToPlaceIfOwner" className="form-label">Transfer to Place if owner</label>
@@ -197,8 +188,39 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                         <div id="shadowMapResHelp" className="form-text">Your preferred RPC node.</div>
                                     </div>
                                 </div>
+                                <div className="tab-pane fade" id="limits" role="tabpanel" aria-labelledby="limits-tab">
+                                    <h5>Hub</h5>
+                                    <p>Limits that apply to Places the "city" or "hub".</p>
+                                    <div className="mb-3">
+                                        <label htmlFor="triangleLimit" className="form-label">Triangle limit</label>
+                                        <Field id="triangleLimit" name="triangleLimit" type="number" className="form-control" aria-describedby="triangleLimitHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="triangleLimitHelp" className="form-text">Items with more triangles than the limit will not be displayed.</div>
+                                        <ErrorMessage name="triangleLimit" children={errorDisplay}/>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="modelFileSizeLimit" className="form-label">Model file size limit (in MiB)</label>
+                                        <Field id="modelFileSizeLimit" name="modelFileSizeLimit" type="number" className="form-control" aria-describedby="modelFileSizeLimitHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="modelFileSizeLimitHelp" className="form-text">Items larger than this won't be displayed.</div>
+                                        <ErrorMessage name="modelFileSizeLimit" children={errorDisplay}/>
+                                    </div>
+                                    <hr/>
+                                    <h5>Interiors</h5>
+                                    <p>Limits that apply to Interiors.</p>
+                                    <div className="mb-3">
+                                        <label htmlFor="triangleLimitInterior" className="form-label">Triangle limit</label>
+                                        <Field id="triangleLimitInterior" name="triangleLimitInterior" type="number" className="form-control" aria-describedby="triangleLimitInteriorHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="triangleLimitInteriorHelp" className="form-text">Items with more triangles than the limit will not be displayed.</div>
+                                        <ErrorMessage name="triangleLimitInterior" children={errorDisplay}/>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="modelFileSizeLimitInterior" className="form-label">Model file size limit (in MiB)</label>
+                                        <Field id="modelFileSizeLimitInterior" name="modelFileSizeLimitInterior" type="number" className="form-control" aria-describedby="modelFileSizeLimitInteriorHelp" disabled={isSubmitting} autoFocus={true} />
+                                        <div id="modelFileSizeLimitInteriorHelp" className="form-text">Items larger than this won't be displayed.</div>
+                                        <ErrorMessage name="modelFileSizeLimitInterior" children={errorDisplay}/>
+                                    </div>
+                                </div>
                                 <div className="tab-pane fade" id="controls" role="tabpanel" aria-labelledby="controls-tab">
-                                <div className="mb-3">
+                                    <div className="mb-3">
                                         <label htmlFor="mouseSensitivity" className="form-label">Mouse Sensitivity</label>
                                         <Field id="mouseSensitivity" name="mouseSensitivity" type="number" step={0.1} className="form-control" aria-describedby="mouseSensitivityHelp" disabled={isSubmitting} autoFocus={true} />
                                         <div id="mouseSensitivityHelp" className="form-text">How sensitive mouse look is.</div>
