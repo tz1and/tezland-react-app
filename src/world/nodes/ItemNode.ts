@@ -259,7 +259,7 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
-            const clone = this.teleporterData !== null || this.recieveShadows;
+            const clone = this.teleporterData !== null || this._recieveShadows;
             await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, clone);
             this._loadState = ItemLoadState.Loaded;
 
@@ -269,7 +269,7 @@ export default class ItemNode extends TransformNode {
                 m.checkCollisions = !this._disableCollision;
             })
 
-            this.getChildMeshes().forEach((m) => {
+            if (this._recieveShadows) this.getChildMeshes().forEach((m) => {
                 // Instanced meshes don't have a setter, but no idea how to figure out if an object
                 // has a setter? see recieveShadows setter, maybe?
                 m.receiveShadows = this._recieveShadows;
