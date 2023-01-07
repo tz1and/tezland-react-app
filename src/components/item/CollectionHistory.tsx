@@ -25,8 +25,11 @@ export const CollectionHistory: React.FC<CollectionHistoryProps> = (props) => {
     const itemHistoryItems: JSX.Element[] = []
     if (itemHistory) itemHistory.itemCollectionHistory.forEach((item) => {
         itemHistoryItems.push(
+            item.issuerId ?
             <p key={item.transientId}>
                 From <Link to={DirectoryUtils.userLink(item.issuerId)}>{truncateAddress(item.issuerId)}</Link> to <Link to={DirectoryUtils.userLink(item.collectorId)}>{truncateAddress(item.collectorId)}</Link> through <Link to={DirectoryUtils.placeLink(new PlaceKey(item.place.tokenId, item.place.contractId))}>Place #{item.place.tokenId}</Link> for {mutezToTez(item.rate).toNumber()} {"\uA729"}
+            </p> : <p key={item.transientId}>
+                From <Link to={DirectoryUtils.placeLink(new PlaceKey(item.place.tokenId, item.place.contractId))}>Place #{item.place.tokenId}</Link> to <Link to={DirectoryUtils.userLink(item.collectorId)}>{truncateAddress(item.collectorId)}</Link> for {mutezToTez(item.rate).toNumber()} {"\uA729"}
             </p>);
     });
 
