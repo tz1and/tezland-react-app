@@ -31,14 +31,12 @@ function InitialiseApp() {
 }
 
 const RenderCallback = () => {
-    sleep(500).then(() => {
-        const loader = document.getElementById('loader-container')
-        if(!loader) return;
+    const loader = document.getElementById('loader-container')
+    if(!loader) return;
 
-        loader.classList.add("pre-hidden");
-        sleep(500).then(() => {
-            loader.remove();
-        });
+    loader.classList.add("pre-hidden");
+    sleep(500).then(() => {
+        loader.remove();
     });
 }
 
