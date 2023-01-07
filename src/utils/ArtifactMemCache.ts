@@ -162,7 +162,7 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, disableCollisions: boolean, clone: boolean = false): Promise<Nullable<TransformNode>> {
+    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, clone: boolean = false): Promise<Nullable<TransformNode>> {
         assert(this.workerThread);
 
         // check if we have this item in the scene already.
@@ -209,7 +209,6 @@ class ArtifactMemCache {
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
         const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
-        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = !disableCollisions; })
         instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;
 

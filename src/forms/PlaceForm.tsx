@@ -14,6 +14,7 @@ import { TeleporterType } from '../utils/ItemData';
 import { Vector3 } from '@babylonjs/core';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import AppSettings from '../storage/AppSettings';
+import { getPlaceType, PlaceType } from '../utils/PlaceKey';
 
 
 interface PlaceFormValues {
@@ -23,6 +24,7 @@ interface PlaceFormValues {
     transferToPlace: boolean;
     primarySwap: boolean;
     disableCollision: boolean;
+    recieveShadows: boolean;
     teleporterType: "none" | "exterior" | "interior" | "local";
     teleporterTargetPlace: number;
 }
@@ -43,9 +45,12 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
         transferToPlace: is_place_owner && AppSettings.transferToPlaceIfOwner.value,
         primarySwap: false,
         disableCollision: false,
+        recieveShadows: false,
         teleporterType: "none",
         teleporterTargetPlace: 0
     };
+
+    const place_type = getPlaceType(props.placedItem.getPlace().placeKey.fa2);
 
     const errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
@@ -83,7 +88,8 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                     if (props.placedItem) {
                         props.placedItem.itemAmount = new BigNumber(values.itemAmount);
                         props.placedItem.xtzPerItem = values.itemPrice;
-                        props.placedItem.disableCollisions = values.disableCollision;
+                        props.placedItem.disableCollision = values.disableCollision;
+                        props.placedItem.recieveShadows = values.recieveShadows;
                         props.placedItem.placeOwned = values.transferToPlace;
                         props.placedItem.primarySwap = values.primarySwap;
 
@@ -172,8 +178,20 @@ export const PlaceForm: React.FC<PlaceFormProps> = (props) => {
                                     </div>
                                     <div className="mb-3">
                                         <Field id="disableCollision" name="disableCollision" type="checkbox" className="form-check-input me-2" aria-describedby="disableCollisionHelp" disabled={isSubmitting}/>
-                                        <label htmlFor="disableCollision" className="form-label mb-0">Disable collision <div id="disableCollisionHelp" className="form-text mb-0">Disable collision on the placed item.</div></label>
+                                        <label htmlFor="disableCollision" className="form-label mb-0">Disable collision
+                                            <div id="disableCollisionHelp" className="form-text mb-0">
+                                                Disable collision on the placed item.
+                                            </div>
+                                        </label>
                                     </div>
+                                    {place_type === PlaceType.Interior && <div className="mb-3">
+                                        <Field id="recieveShadows" name="recieveShadows" type="checkbox" className="form-check-input me-2" aria-describedby="recieveShadowsHelp" disabled={isSubmitting}/>
+                                        <label htmlFor="recieveShadows" className="form-label mb-0">Recieve shadows
+                                            <div id="recieveShadowsHelp" className="form-text mb-0">
+                                                Items recieving shadows can't cast shadows.
+                                            </div>
+                                        </label>
+                                    </div>}
                                     <div>
                                         <label htmlFor="teleporterType" className="form-label">Teleporter</label>
                                         <Field id="teleporterType" name="teleporterType" as="select" value={values.teleporterType} className="form-select" aria-describedby="teleporterTypeHelp" disabled={isSubmitting} >

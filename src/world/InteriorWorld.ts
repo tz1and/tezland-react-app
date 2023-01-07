@@ -317,7 +317,8 @@ export class InteriorWorld extends BaseWorld {
             if (this.place) {
                 if (Vector3.Distance(this.place.origin, playerPos) < 75) // TODO: don't hardcode this value.
                     this.place.itemsNode?.getChildMeshes().forEach(m => {
-                        this.shadowRenderList.push(m);
+                        // NOTE: objects recieving shadows can't cast shadows for now.
+                        if (!m.receiveShadows) this.shadowRenderList.push(m);
                     });
             }
 

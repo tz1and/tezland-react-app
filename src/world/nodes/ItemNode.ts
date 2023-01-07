@@ -3,7 +3,7 @@ import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3,
 import { SimpleMaterial } from "@babylonjs/materials";
 import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../../utils/ArtifactMemCache";
-import { ItemDataFlags, ItemDataParser, TeleporterData } from "../../utils/ItemData";
+import { hasFlag, ItemDataFlags, ItemDataParser, TeleporterData } from "../../utils/ItemData";
 import { Logging } from "../../utils/Logging";
 import { BaseWorld } from "../BaseWorld";
 import { World } from "../World";
@@ -70,13 +70,29 @@ export default class ItemNode extends TransformNode {
     private _loadState: ItemLoadState;
     public get loadState(): ItemLoadState { return this._loadState; }
 
+    private _recieveShadows: boolean;
+    public get recieveShadows() { return this._recieveShadows; }
+    public set recieveShadows(val: boolean) {
+        // if changed, disable/enable collisions
+        if (this._recieveShadows !== val) {
+            this._recieveShadows = val;
+            /*// disable/enabled recieve shadows on all sub-meshes
+            this.getChildMeshes().forEach((m) => {
+                // Instanced meshes don't have a setter.
+                const descriptor = Object.getOwnPropertyDescriptor(m, 'receiveShadows');
+                if (descriptor && descriptor.writable)
+                    m.receiveShadows = this._recieveShadows;
+            })*/
+        }
+    }
+
     private _disableCollision: boolean;
-    public get disableCollisions() { return this._disableCollision; }
-    public set disableCollisions(val: boolean) {
+    public get disableCollision() { return this._disableCollision; }
+    public set disableCollision(val: boolean) {
         // if changed, disable/enable collisions
         if (this._disableCollision !== val) {
             this._disableCollision = val;
-            // TODO: disable/enabled collision on all sub-meshes
+            // disable/enabled collision on all sub-meshes
             this.getChildMeshes().forEach((m) => { m.checkCollisions = !this._disableCollision; })
         }
     }
@@ -104,6 +120,7 @@ export default class ItemNode extends TransformNode {
         this.markForRemoval = false;
 
         this._disableCollision = false;
+        this._recieveShadows = false;
         this.teleporterData = null;
 
         this._loadState = ItemLoadState.NotLoaded;
@@ -153,7 +170,8 @@ export default class ItemNode extends TransformNode {
         this.rotationQuaternion = quat;
         this.position = pos;
         this.scaling.set(scale, scale, scale);
-        this.disableCollisions = (flags & ItemDataFlags.DISABLE_COLLISIONS) === ItemDataFlags.DISABLE_COLLISIONS;
+        this.disableCollision = hasFlag(flags, ItemDataFlags.DISABLE_COLLISIONS);
+        this.recieveShadows = hasFlag(flags, ItemDataFlags.RECIEVE_SHADOWS);
         this.teleporterData = tele;
         //this.scaling.multiplyInPlace(new Vector3(scale, scale, scale));
     }
@@ -241,10 +259,21 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
-            await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, this._disableCollision, this.teleporterData !== null);
+            const clone = this.teleporterData !== null || this.recieveShadows;
+            await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, clone);
             this._loadState = ItemLoadState.Loaded;
 
             if (this.teleporterData) this.getWorld().game.addItemToHighlightLayer(this);
+
+            this.getChildMeshes().forEach((m) => {
+                m.checkCollisions = !this._disableCollision;
+            })
+
+            this.getChildMeshes().forEach((m) => {
+                // Instanced meshes don't have a setter, but no idea how to figure out if an object
+                // has a setter? see recieveShadows setter, maybe?
+                m.receiveShadows = this._recieveShadows;
+            });
 
             // TODO: see createBoundingBoxHelper
             //this.createBoundingBoxHelper();

@@ -35,7 +35,12 @@ export function toWorldLoaction(teleporter_data: TeleporterData): WorldLocation 
 
 export const enum ItemDataFlags {
     NONE = 0,
-    DISABLE_COLLISIONS = 1
+    DISABLE_COLLISIONS = 1,
+    RECIEVE_SHADOWS = 2
+}
+
+export function hasFlag(flags: ItemDataFlags, flag: ItemDataFlags) {
+    return (flags & flag) === flag;
 }
 
 type FloatBits = 16 | 24 | 32 | 64;
@@ -261,6 +266,7 @@ export interface IItemData {
     scaling: Vector3;
     rotationQuaternion: Nullable<Quaternion>;
     disableCollisions: boolean;
+    recieveShadows: boolean;
     teleporterData: Nullable<TeleporterData>;
 }
 
@@ -305,6 +311,8 @@ export class ItemDataWriter {
         let flags = ItemDataFlags.NONE;
         if (item.disableCollisions)
             flags |= ItemDataFlags.DISABLE_COLLISIONS;
+        if (item.recieveShadows)
+            flags |= ItemDataFlags.RECIEVE_SHADOWS;
 
         if (flags !== ItemDataFlags.NONE) {
             const arr = new Uint8Array(1);
