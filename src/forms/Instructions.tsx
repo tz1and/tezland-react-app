@@ -86,8 +86,6 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
 
     const place_type = props.currentPlace ? getPlaceType(props.currentPlace.placeKey.fa2) : undefined;
 
-    console.log("Instructions updated")
-
     return (
         <div className="text-center" onDrop={handleDrop} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver}>
             <div className='position-fixed top-0 start-0 text-white mt-3 ms-3'>
