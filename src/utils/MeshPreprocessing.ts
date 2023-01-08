@@ -29,7 +29,7 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         resample(),
         weld({ tolerance: 0 }), // NOTE: weld with tolerance > 0 seems broken?
         quantize(),
-        dedup(),
+        //dedup(), // NOTE: dedup broken in latest?
     ];
 
     // If meshoptimizer is supported.
