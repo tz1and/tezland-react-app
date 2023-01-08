@@ -7,6 +7,7 @@ import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../forms/Director
 import { useNavigate } from 'react-router-dom';
 import BabylonUtils from '../world/BabylonUtils';
 import { Logging } from '../utils/Logging';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
 
 
 type InteractiveMapPopupProps = {
@@ -28,7 +29,7 @@ const InteractiveMapPopup: React.FC<InteractiveMapPopupProps> = (props) => {
         }
         else {
             if (markerMetadata.location.placeKey)
-                navigate(`/explore?placekey=${markerMetadata.location.placeKey.fa2},${markerMetadata.location.placeKey.id}`);
+                navigate(DirectoryUtils.placeExploreLink(markerMetadata.location.placeKey));
             else if (markerMetadata.location.pos)
                 navigate(`/explore?coordx=${markerMetadata.location.pos.x}&coordz=${markerMetadata.location.pos.z}`);
             else {

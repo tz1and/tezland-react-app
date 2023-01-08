@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { getDirectoryEnabledGlobal } from "../forms/DirectoryForm";
-import PlaceKey from "./PlaceKey";
+import PlaceKey, { getPlaceType, PlaceType } from "./PlaceKey";
 import TokenKey from "./TokenKey";
 import { truncateAddress } from "./Utils";
 
@@ -36,6 +36,13 @@ export namespace DirectoryUtils {
             return `/directory/p/${placeKey.fa2}/${placeKey.id}`;
         else
             return `/p/${placeKey.fa2}/${placeKey.id}`;
+    }
+
+    export const placeExploreLink = (placeKey: PlaceKey): string => {
+        if (getPlaceType(placeKey.fa2) === PlaceType.Interior)
+            return `/explore?interiorid=${placeKey.id}`;
+        else
+            return `/explore?placeid=${placeKey.id}`;
     }
 
     export const placeLinkElement = (placeKey: PlaceKey, targetBlank = false): JSX.Element => {

@@ -54,10 +54,6 @@ export default class AuctionDetails extends BaseAuction<AuctionDetailsProps, Auc
         });
     }
 
-    private placeLink(): string {
-        return `/explore?placekey=${this.props.placeKey.fa2},${this.props.placeKey.id}`;
-    }
-
     override componentDidMount() {
         this.panMapToPlace();
 
@@ -99,7 +95,7 @@ export default class AuctionDetails extends BaseAuction<AuctionDetailsProps, Auc
         const detail_override = <div>
             <h4>Auction Details</h4>
             {this.auctionTypeLabel("mb-2 me-1")}
-            <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mb-2">Visit place</Link><br/>
+            <Link to={DirectoryUtils.placeExploreLink(this.props.placeKey)} target='_blank' className="btn btn-outline-secondary btn-sm mb-2">Visit place</Link><br/>
             <Table className='mb-3 align-middle'>
                 <tbody>
                     <tr>

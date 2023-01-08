@@ -53,10 +53,6 @@ export default class AuctionCard extends BaseAuction<AuctionCardProps, AuctionCa
         });
     }
 
-    private placeLink(): string {
-        return `/explore?placekey=${this.props.placeKey.fa2},${this.props.placeKey.id}`
-    }
-
     override componentDidMount() {
         this.panMapToPlace();
 
@@ -104,7 +100,7 @@ export default class AuctionCard extends BaseAuction<AuctionCardProps, AuctionCa
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
                     <h4 className="mb-0">{placeType} #{this.props.placeKey.id}</h4>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
-                    <Link to={this.placeLink()} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
+                    <Link to={DirectoryUtils.placeExploreLink(this.props.placeKey)} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
                 <WorldMap2D mapClass="auction-img" isExteriorPlace={placeType !== PlaceType.Interior} style={{}} location={this.state.mapLocation} placePoly={this.state.placePoly} zoom={1} zoomControl={true} animate={false} />
                 <div className='p-3'>

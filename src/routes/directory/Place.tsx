@@ -46,8 +46,9 @@ export const Place: React.FC<PlaceProps> = (props) => {
                 teleportToLocation: new WorldLocation({placeKey: new PlaceKey(props.placeKey.id, props.placeKey.fa2)})
             } as iFrameControlEvent, "*");
         }
-        else
-            navigate(`/explore?placekey=${props.placeKey.fa2},${props.placeKey.id}`);
+        else {
+            navigate(DirectoryUtils.placeExploreLink(props.placeKey));
+        }
     }
 
     let name = null;
@@ -85,7 +86,7 @@ export const Place: React.FC<PlaceProps> = (props) => {
                             <p>{description}</p>
                             {owner && <p>Owner: {DirectoryUtils.userLinkElement(owner, props.openLinksInNewTab)}</p>}
                             {props.openLinksInNewTab ?
-                                <Link to={`/explore?placekey=${props.placeKey.fa2},${props.placeKey.id}`} target="_blank">
+                                <Link to={DirectoryUtils.placeExploreLink(props.placeKey)} target="_blank">
                                     <Button>Visit Place</Button>
                                 </Link> :
                                 <Button onClick={teleportToPlace}>Visit Place</Button>}

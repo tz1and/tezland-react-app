@@ -6,7 +6,7 @@ export default class WorldLocation {
     readonly placeKey?: PlaceKey | undefined;
     readonly district?: number | undefined;
 
-    constructor(args: {pos?: Vector3, placeKey?: PlaceKey, district?: number}) {
+    constructor(args: {pos?: Vector3 | undefined, placeKey?: PlaceKey | undefined, district?: number | undefined}) {
         this.pos = args.pos;
         this.placeKey = args.placeKey;
         this.district = args.district;
