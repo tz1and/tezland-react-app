@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { ButtonGroup, Dropdown, DropdownButton } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import SpawnSelectWidget from '../components/SpawnSelectWidget';
 import WalletWidget from '../components/WalletWidget';
+import { DirectoryUtils } from '../utils/DirectoryUtils';
+import { getPlaceType, PlaceType } from '../utils/PlaceKey';
 import WorldLocation from '../utils/WorldLocation';
 import { OverlayForm } from '../world/AppControlFunctions';
+import BasePlaceNode from '../world/nodes/BasePlaceNode';
 
 
 type InstructionsProps = {
+    currentPlace: BasePlaceNode | null;
     closeForm: () => void;
     loadForm: (form_type: OverlayForm) => void;
     getCurrentLocation: () => [number, number, number];
@@ -15,15 +19,40 @@ type InstructionsProps = {
     handleFileDrop?: (files: FileList) => void | undefined;
 }
 
+enum LinkType {
+    PLACE = 0,
+    PLACE_POS = 1,
+    WORLD_POS = 2
+}
+
 export const Instructions: React.FC<InstructionsProps> = (props) => {
     const nav = useNavigate()
 
     const [dragging, setDragging] = useState(false);
 
-    const copyLocationAddress = () => {
+    const copyLocationAddress = (linkType: LinkType) => {
         const pos = props.getCurrentLocation();
         const loc = window.location;
-        const address = loc.protocol + '//' + loc.host + loc.pathname + "?coordx=" + pos[0].toFixed(2) + "&coordz=" + pos[2].toFixed(2);
+
+        let explore_url;
+        switch(linkType) {
+            case LinkType.PLACE:
+                explore_url = DirectoryUtils.placeExploreLink(props.currentPlace!.placeKey);
+                break;
+
+            case LinkType.PLACE_POS:
+                explore_url = DirectoryUtils.placeExploreLink(props.currentPlace!.placeKey) + "&coordx=" + pos[0].toFixed(2) + "&coordy=" + pos[1].toFixed(2) + "&coordz=" + pos[2].toFixed(2);
+                break;
+
+            case LinkType.WORLD_POS:
+                explore_url = "/explore?coordx=" + pos[0].toFixed(2) + "&coordz=" + pos[2].toFixed(2);
+                break;
+
+            default:
+                throw new Error(`Unhandled LinkType case: ${linkType}`);
+        }
+
+        const address = loc.protocol + '//' + loc.host + explore_url;
         navigator.clipboard.writeText(address);
     }
 
@@ -55,25 +84,23 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
         }
     };
 
+    const place_type = props.currentPlace ? getPlaceType(props.currentPlace.placeKey.fa2) : undefined;
+
+    console.log("Instructions updated")
+
     return (
         <div className="text-center" onDrop={handleDrop} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver}>
             <div className='position-fixed top-0 start-0 text-white mt-3 ms-3'>
                 <button className='btn btn-outline-light fs-4' onClick={() => { nav("/"); } }><i className="bi bi-house"></i></button>
                 <button className='btn btn-light ms-3 fs-4' onClick={() => { props.loadForm(OverlayForm.Settings) } }><i className="bi bi-gear-fill"></i></button>
 
-                <OverlayTrigger
-                    placement={"bottom"}
-                    trigger={"focus"}
-                    overlay={
-                        <Popover>
-                            <Popover.Body>
-                                Copied current location to clipboard!
-                            </Popover.Body>
-                        </Popover>
-                    }
-                >
-                    <button className='btn btn-light ms-3 fs-4' onClick={() => { copyLocationAddress(); } }><i className="bi bi-share-fill"></i></button>
-                </OverlayTrigger>
+                <ButtonGroup>
+                    <DropdownButton variant='light' className='ms-3' id="dropdown-basic-button" title={<i className="fs-4 bi bi-share-fill"></i>}>
+                        {props.currentPlace && <Dropdown.Item onClick={() => { copyLocationAddress(LinkType.PLACE); } }>Current Place</Dropdown.Item>}
+                        {(props.currentPlace && place_type === PlaceType.Interior) && <Dropdown.Item onClick={() => { copyLocationAddress(LinkType.PLACE_POS); } }>Current Place and position</Dropdown.Item>}
+                        {(!props.currentPlace || place_type !== PlaceType.Interior) && <Dropdown.Item onClick={() => { copyLocationAddress(LinkType.WORLD_POS); } }>World Position</Dropdown.Item>}
+                    </DropdownButton>
+                </ButtonGroup>
 
                 <WalletWidget/>
                 <SpawnSelectWidget teleportToLocation={props.teleportToLocation}/>

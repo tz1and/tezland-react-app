@@ -144,7 +144,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 return undefined;
 
             case OverlayForm.Instructions:
-                return <Instructions closeForm={this.closeForm}
+                return <Instructions currentPlace={this.state.currentPlace}
+                    closeForm={this.closeForm}
                     loadForm={this.loadForm}
                     getCurrentLocation={this.getCurrentLocation}
                     teleportToLocation={this.teleportToLocation}

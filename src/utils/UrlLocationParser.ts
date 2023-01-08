@@ -10,20 +10,29 @@ export namespace UrlLocationParser {
         // TEMP-ish: get coordinates from url.
         const urlParams = new URLSearchParams(window.location.search);
 
+        let parsed_pos: Vector3 | undefined;
+
+        // Parse position, if position is set.
         if (urlParams.has('coordx') && urlParams.has('coordz')) {
             const yParam = urlParams.get('coordy');
             const xCoord = parseFloat(urlParams.get('coordx')!);
             const yCoord = yParam ? parseFloat(yParam) : 0;
             const zCoord = parseFloat(urlParams.get('coordz')!);
 
-            return new WorldLocation({pos: new Vector3(
-                xCoord, yCoord, zCoord
-            )});
+            parsed_pos = new Vector3(xCoord, yCoord, zCoord);
         }
-        else if (urlParams.has('placeid')) {
+
+        if (urlParams.has('placeid')) {
             const placeId = parseInt(urlParams.get('placeid')!);
 
-            return new WorldLocation({placeKey: new PlaceKey(placeId, Conf.place_contract)});
+            // NOTE: in this case, position is assume local to the place.
+            return new WorldLocation({placeKey: new PlaceKey(placeId, Conf.place_contract), pos: parsed_pos});
+        }
+        else if (urlParams.has('interiorid')) {
+            const interiorId = parseInt(urlParams.get('interiorid')!);
+
+            // NOTE: in this case, position is assume local to the place.
+            return new WorldLocation({placeKey: new PlaceKey(interiorId, Conf.interior_contract), pos: parsed_pos});
         }
         else if (urlParams.has('placekey')) {
             const place_key_array = urlParams.get('placekey')!.split(',');
@@ -33,7 +42,10 @@ export namespace UrlLocationParser {
 
             // TODO: make sure fa2 is valid
 
-            return new WorldLocation({placeKey: new PlaceKey(placeId, placeFA2)});
+            return new WorldLocation({placeKey: new PlaceKey(placeId, placeFA2), pos: parsed_pos});
+        }
+        else if (parsed_pos) {
+            return new WorldLocation({pos: parsed_pos});
         }
 
         return undefined;

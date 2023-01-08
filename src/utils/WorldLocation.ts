@@ -15,4 +15,8 @@ export default class WorldLocation {
     public isValid() {
         return this.pos || this.placeKey || this.district;
     }
+
+    public absoluteLocationOrDistrict() {
+        return (this.pos && !this.placeKey) || this.district;
+    }
 }

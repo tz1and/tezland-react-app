@@ -162,47 +162,52 @@ export class Game {
     public teleportTo(location: WorldLocation) {
         assert(location.isValid(), "Invalid location");
 
-        if (location.pos || location.district) {
+        if (location.absoluteLocationOrDistrict()) {
             this.switchWorld(World, location);
         }
-
-        if (location.placeKey) {
+        else if (location.placeKey) {
             if (location.placeKey.fa2 === Conf.interior_contract) {
-                this.switchWorld(InteriorWorld, undefined, location.placeKey.id);
+                this.switchWorld(InteriorWorld, location, location.placeKey.id);
             }
             else { //if (location.placeKey.fa2 === Conf.place_contract) {
                 this.switchWorld(World, location);
             }
         }
+        else {
+            throw new Error(`Unhandled teleport location: ${location}`);
+        }
     }
 
-    private switchWorld(toWorldType: new(game: Game) => World | InteriorWorld, location?: WorldLocation, placeId?: number) {
+    private switchWorld(toWorldType: new(game: Game) => World | InteriorWorld, location: WorldLocation, placeId?: number) {
         // If teleport from exterior to exterior, don't destroy world.
         if (this.world && this.world instanceof World && toWorldType === World) {
-            // TODO: await teleportToLocal?
-            if(location) this.playerController.teleportToLocal(location);
+            this.playerController.teleportToLocal(location);
         }
         else {
             this.world?.dispose();
             this.world = new toWorldType(this);
 
-            // TODO: await teleportToLocal?
-            if (location) {
-                this.playerController.teleportToLocal(location);
-            }
-            else {
-                this.playerController.teleportToLocal(new WorldLocation({
-                    pos: new Vector3(0, 0, 0)
-                }));
-            }
-
             if (this.world instanceof InteriorWorld) {
                 Logging.InfoDev("Switching world to InteriorWorld");
+                // If the location has a position attached, teleport to that position
+                if (location.pos) {
+                    this.playerController.teleportToLocal(new WorldLocation({pos: location.pos}));
+                }
+                // Else, teleport to Interior origin.
+                else {
+                    this.playerController.teleportToLocal(new WorldLocation({
+                        pos: new Vector3(0, 0, 0)
+                    }));
+                }
+
                 assert(placeId !== undefined, "placeId is undefined");
                 this.world.loadWorld(new PlaceKey(placeId, Conf.interior_contract)).catch(e => {});
             }
             else if (this.world instanceof World) {
                 Logging.InfoDev("Switching world to World");
+                // Teleport player to desired world location.
+                this.playerController.teleportToLocal(location);
+
                 this.world.loadWorld().catch(e => {});
             }
         }
