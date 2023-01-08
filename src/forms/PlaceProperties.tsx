@@ -194,7 +194,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                                     </Col>
                                 </Row>
                             </Container>
-                            <div id="interiorLightDirectionHelp" className="form-text">You can change the light direction in your Interior. Values <i>should</i> be in the range [-1, 1].</div>
+                            <div id="interiorLightDirectionHelp" className="form-text">You can change the light direction in your Interior. Y is up, values <i>should</i> be in the range [-1, 1].</div>
                             <ErrorMessage name="interiorLightDirection" children={errorDisplay}/>
                         </div>}
 
