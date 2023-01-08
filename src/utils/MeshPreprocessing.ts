@@ -1,5 +1,5 @@
 import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
-import { prune, dedup, quantize, weld, reorder, unpartition, resample } from '@gltf-transform/functions';
+import { prune, /*dedup,*/ quantize, weld, reorder, unpartition, resample } from '@gltf-transform/functions';
 //import { TextureBasisu } from '@gltf-transform/extensions';
 //import { encodeWrapper } from '../external/basis_encoder/basis_loader';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
