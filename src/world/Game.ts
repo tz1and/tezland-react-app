@@ -271,6 +271,9 @@ export class Game {
             pipeline.imageProcessing.toneMappingType = TonemappingOperator.Photographic;
             pipeline.imageProcessing.exposure = 1.05;
 
+            pipeline.imageProcessing.ditheringEnabled = true;
+            pipeline.imageProcessing.ditheringIntensity = 1 / 255;
+
             if (AppSettings.enableGrain.value) {
                 pipeline.grainEnabled = true;
                 pipeline.grain.intensity = 4;
