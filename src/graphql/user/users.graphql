@@ -75,8 +75,8 @@ query getHeldPermissions($address: String!, $fa2: String!, $id: bigint!) {
 }
 
 query getGivenPermissions($address: String!, $fa2: String!, $id: bigint!) {
-    holder(where: {address: {_eq: $address}, givenPermissions: {place: {contractId: {_eq: $fa2}, tokenId: {_eq: $id}}}}) {
-        givenPermissions {
+    holder(where: {address: {_eq: $address}}) {
+        givenPermissions(where: {place: {contractId: {_eq: $fa2}, tokenId: {_eq: $id}}}) {
             place {
                 contractId
                 tokenId
