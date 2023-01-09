@@ -398,5 +398,8 @@ export class InteriorWorld extends BaseWorld {
             this.skybox.setEnabled(true);
             this.game.scene.autoClear = false;
         }
+
+        // Update env probe.
+        this.reflectionProbe.cubeTexture.resetRefreshCounter();
     }
 }
