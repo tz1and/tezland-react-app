@@ -8,7 +8,8 @@ import markerIconRed from '../../img/map/mapmarker-red.png'
 import { Engine, Scene, Vector3, Color3,
     Matrix, Vector4, Quaternion, HemisphericLight, Mesh,
     EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
-import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
+import { SimpleMaterial } from "@babylonjs/materials";
+import { SkyMaterial } from "../../materials/sky/skyMaterial";
 import { AdvancedDynamicTexture, Control, Image,
     TextBlock, Vector2WithInfo } from "@babylonjs/gui";
 import { MapControlFunctions } from "../AppControlFunctions";
@@ -217,6 +218,8 @@ export class WorldMap {
         //skyMaterial.luminance = 0.3;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
+        // @ts-expect-error
+        skyMaterial.dithering = true;
 
         this.scene.clearColor.set(0.071, 0.082, 0.133, 1);
 

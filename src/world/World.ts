@@ -4,7 +4,8 @@ import { Vector3, Color3, Vector2,
     AbstractMesh, DeepImmutable, MeshBuilder,
     Nullable, Ray, ReflectionProbe, RenderTargetTexture,
     SceneLoader, Texture, TransformNode } from "@babylonjs/core";
-import { SkyMaterial, WaterMaterial } from "@babylonjs/materials";
+import { WaterMaterial } from "@babylonjs/materials";
+import { SkyMaterial } from "../materials/sky/skyMaterial";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
 import Contracts, { ALL_WORLD_EP_NAMES } from "../tz/Contracts";
@@ -87,8 +88,10 @@ export class World extends BaseWorld {
         //skyMaterial.luminance = 0.3;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
+        // @ts-expect-error
+        skyMaterial.dithering = true;
 
-        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.game.scene);
+        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.game.scene, false, Mesh.BACKSIDE);
         this.skybox.material = skyMaterial;
         this.skybox.parent = this.worldNode;
 
