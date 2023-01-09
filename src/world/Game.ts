@@ -87,7 +87,7 @@ export class Game {
         this.playerController = new PlayerController(this, appControlFunctions);
 
         // TODO: need to figure out how to exclude GUI.
-        this.setupDefaultRenderingPipeline();
+        //this.setupDefaultRenderingPipeline();
 
         // Render every frame
         this.engine.stopRenderLoop();
