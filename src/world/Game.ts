@@ -1,5 +1,5 @@
 import { DefaultRenderingPipeline, Engine, Scene,
-    TonemappingOperator, Nullable, Color3, HighlightLayer, Mesh, Vector3 } from "@babylonjs/core";
+    Nullable, Color3, HighlightLayer, Mesh, Vector3 } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -87,7 +87,7 @@ export class Game {
         this.playerController = new PlayerController(this, appControlFunctions);
 
         // TODO: need to figure out how to exclude GUI.
-        //this.setupDefaultRenderingPipeline();
+        this.setupDefaultRenderingPipeline();
 
         // Render every frame
         this.engine.stopRenderLoop();
@@ -249,36 +249,50 @@ export class Game {
             pipeline.samples = 4;
         }
 
-        if (AppSettings.enableFxaa.value) {
+        /*if (AppSettings.enableFxaa.value) {
             pipeline.fxaaEnabled = true;
-        }
+        }*/
 
         // NOTE: let's not do bloom for now, because it blooms the UI too.
-        if (AppSettings.enableBloom.value) {
+        /*if (AppSettings.enableBloom.value) {
             pipeline.bloomEnabled = true;
             // TODO: find some nice settings.
             //pipeline.bloomThreshold = 0.8;
             //pipeline.bloomWeight = 0.3;
             //pipeline.bloomKernel = 64;
             //pipeline.bloomScale = 0.5;
-        }
+        }*/
 
         // Maybe have it under some "other postprocessing" option
         if (true) {
             pipeline.imageProcessingEnabled = true;
 
-            pipeline.imageProcessing.toneMappingEnabled = true;
+            /*const curve = new ColorCurves();
+            curve.shadowsHue = 0;
+            curve.shadowsDensity = 50;
+
+            curve.midtonesHue = 300;
+            curve.midtonesDensity = 35;
+
+            curve.highlightsHue = 240;
+            curve.highlightsDensity = 25;
+            curve.highlightsExposure = 75;
+
+            pipeline.imageProcessing.colorCurvesEnabled = true;
+            pipeline.imageProcessing.colorCurves = curve;*/
+
+            /*pipeline.imageProcessing.toneMappingEnabled = true;
             pipeline.imageProcessing.toneMappingType = TonemappingOperator.Photographic;
-            pipeline.imageProcessing.exposure = 1.05;
+            pipeline.imageProcessing.exposure = 1.25;*/
 
             pipeline.imageProcessing.ditheringEnabled = true;
             pipeline.imageProcessing.ditheringIntensity = 1 / 255;
 
-            if (AppSettings.enableGrain.value) {
+            /*if (AppSettings.enableGrain.value) {
                 pipeline.grainEnabled = true;
                 pipeline.grain.intensity = 4;
                 pipeline.grain.animated = true;
-            }
+            }*/
         }
 
         // NOTE: SSAO2 is kinda broken right now.
