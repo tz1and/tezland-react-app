@@ -169,7 +169,8 @@ describe('IItemData with flags', () => {
         position: new Vector3(0.0, 1.0, 1.5),
         scaling: new Vector3(1.5, 1.5, 1.5),
         rotationQuaternion: Quaternion.Identity(),
-        disableCollisions: true,
+        disableCollision: true,
+        recieveShadows: false,
         teleporterData: null
     };
 
@@ -208,7 +209,8 @@ describe('IItemData without flags', () => {
         position: new Vector3(0.0, 1.0, 1.5),
         scaling: new Vector3(1.5, 1.5, 1.5),
         rotationQuaternion: Quaternion.Identity(),
-        disableCollisions: false,
+        disableCollision: false,
+        recieveShadows: false,
         teleporterData: null
     };
 
@@ -249,7 +251,8 @@ describe('IItemData that needs float24', () => {
         position: new Vector3(0.0, 4223.0, -1500.5),
         scaling: new Vector3(1.5, 1.5, 1.5),
         rotationQuaternion: Quaternion.Identity(),
-        disableCollisions: false,
+        disableCollision: false,
+        recieveShadows: false,
         teleporterData: null
     };
 
@@ -290,7 +293,8 @@ it('Teleporter to place 0', () => {
         position: new Vector3(0.0, 1.0, 1.5),
         scaling: new Vector3(1.5, 1.5, 1.5),
         rotationQuaternion: Quaternion.Identity(),
-        disableCollisions: false,
+        disableCollision: false,
+        recieveShadows: false,
         teleporterData: null
     };
 

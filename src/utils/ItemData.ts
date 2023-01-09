@@ -265,7 +265,7 @@ export interface IItemData {
     position: Vector3;
     scaling: Vector3;
     rotationQuaternion: Nullable<Quaternion>;
-    disableCollisions: boolean;
+    disableCollision: boolean;
     recieveShadows: boolean;
     teleporterData: Nullable<TeleporterData>;
 }
@@ -309,7 +309,7 @@ export class ItemDataWriter {
 
     private static writeFlags(item: IItemData): Uint8Array | null {
         let flags = ItemDataFlags.NONE;
-        if (item.disableCollisions)
+        if (item.disableCollision)
             flags |= ItemDataFlags.DISABLE_COLLISIONS;
         if (item.recieveShadows)
             flags |= ItemDataFlags.RECIEVE_SHADOWS;

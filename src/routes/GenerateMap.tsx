@@ -63,6 +63,101 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         downloadFile(downloadLink, "districts.json");
     }
 
+    private squareLot = (width: number, height: number, buildHeight: number): [Lot, number[], number[][]] => {
+        const w_half = width / 2, h_half = height / 2;
+
+        const lot = new Lot(new Vector2(0, 0), [
+            new Vector2(w_half, h_half),
+            new Vector2(w_half, -h_half),
+            new Vector2(-w_half, -h_half),
+            new Vector2(-w_half, h_half),
+        ]);
+        lot.buildHeight = buildHeight
+
+        const centroid = lot.centroid();
+        const pointsrel: number[][] = [];
+        lot.verticesRelative(centroid).forEach((p) => {
+            pointsrel.push([parseFloat(p.x.toFixed(4)), 0, parseFloat(p.y.toFixed(4))])
+        });
+
+        const centercoords: number[] = [parseFloat((centroid.x).toFixed(4)), 0, parseFloat((centroid.y).toFixed(4))];
+
+        return [lot, centercoords, pointsrel];
+    }
+
+    private mintSpecialInteriors = async () => {
+        const interiorPlaces = await this.context.tezosToolkit().wallet.at(Conf.interior_contract);
+        const walletphk = this.context.walletPHK();
+        assert(walletphk === prodAdminAddress, "Not admin!");
+
+        const next_minted_place_id = (await Contracts.countInteriorPlacesView(this.context)).toNumber();
+
+        const place_params = [
+            // EXAMPLE
+            {width: 160, height: 160, build_height: 160, to: prodAdminAddress}, // Interior #0, Admin
+        ]
+
+        const places = []
+
+        for (const [idx, params] of place_params.entries()) {
+            const lot_id = next_minted_place_id + idx;
+
+            console.log("interior id", lot_id)
+
+            const [lot, centercoords, pointsrel] = this.squareLot(params.width, params.height, params.build_height);
+
+            places.push(createPlaceTokenMetadata({
+                name: `tz1and Interior #${lot_id}`,
+                description: `${lot.area().toFixed(2)} \u33A1`,
+                minter: walletphk,
+                centerCoordinates: centercoords,
+                borderCoordinates: pointsrel,
+                buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
+                placeType: "interior",
+                royalties: {
+                    decimals: 3,
+                    shares: new Map([
+                        [Conf.fees_address, 100]
+                    ])
+                }
+            }));
+
+            console.log("place area and dims", lot.area(), [params.width, params.height, lot.buildHeight]);
+        }
+
+        // Upload all places metadata
+        // eslint-disable-next-line no-unreachable
+        const place_meta_files = await upload_places(places);
+
+        console.log("upload places done");
+
+        let batch = [];
+
+        for(let idx = 0; idx < place_params.length; ++idx) {
+            const params = place_params[idx];
+            const meta = place_meta_files[idx];
+            console.log(meta, params.to);
+
+            const metadata_map = new MichelsonMap<string,string>({ prim: "map", args: [{prim: "string"}, {prim: "bytes"}]});
+            metadata_map.set('', char2Bytes(meta));
+            batch.push({
+                to_: params.to,
+                metadata: metadata_map
+            });
+        }
+
+        console.log(`minting ${place_params.length} new places`);
+
+        const batch_op = await interiorPlaces.methodsObject.mint(batch).send();
+
+        await new Promise<void>((resolve, reject) => {
+            Contracts.handleOperation(this.context, batch_op, (completed) => {
+                if (completed) resolve();
+                else reject();
+            }, 3);
+        })
+    }
+
     private mintInteriors = async () => {
         const interiorPlaces = await this.context.tezosToolkit().wallet.at(Conf.interior_contract);
         const walletphk = this.context.walletPHK();
@@ -74,8 +169,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         const prando = new Prando(next_minted_place_id);
 
-        throw new Error("fix winding order!");
-
         let total_price = new BigNumber(0);
         const places = []
 
@@ -85,24 +178,10 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             console.log("interior id", lot_id)
 
             const w = prando.next(min_size, max_size), h = prando.next(min_size, max_size);
-            const w_half = w / 2, h_half = h / 2;
+            const min_dim = Math.min(w, h);
+            const build_height = prando.next(Math.max(min_size, min_dim), min_dim);
 
-            // TODO: winding order!
-            const lot = new Lot(new Vector2(0, 0), [
-                new Vector2(w_half, h_half),
-                new Vector2(-w_half, h_half),
-                new Vector2(-w_half, -h_half),
-                new Vector2(w_half, -h_half),
-            ]);
-            lot.buildHeight = prando.next(25, Math.min(w, h));
-
-            const centroid = lot.centroid();
-            const pointsrel: number[][] = [];
-            lot.verticesRelative(centroid).forEach((p) => {
-                pointsrel.push([parseFloat(p.x.toFixed(4)), 0, parseFloat(p.y.toFixed(4))])
-            });
-
-            const centercoords: number[] = [parseFloat((centroid.x).toFixed(4)), 0, parseFloat((centroid.y).toFixed(4))];
+            const [lot, centercoords, pointsrel] = this.squareLot(w, h, build_height);
 
             places.push(createPlaceTokenMetadata({
                 name: `tz1and Interior #${lot_id}`,
@@ -1174,6 +1253,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
     override render(): React.ReactNode {
         return (
             <main className="container">
+                <button className="btn btn-warning me-2" onClick={() => this.mintSpecialInteriors()}>Mint Special Interiors</button>
                 <button className="btn btn-warning me-2" onClick={() => this.mintInteriors()}>Mint Interiors</button>
                 <button className="btn btn-warning me-2" onClick={() => this.mintPlaces()}>Mint Places</button>
                 <button className="btn btn-warning me-2" onClick={() => this.createAuctions()}>Create Auctions</button>
