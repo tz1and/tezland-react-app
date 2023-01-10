@@ -11,7 +11,6 @@ import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict, { ExclusionZone } from "../worldgen/VoronoiDistrict";
 import { PublicPlaces } from "../worldgen/PublicPlaces";
 import assert from "assert";
-import Config from "../Config";
 import Contracts from "../tz/Contracts";
 import Metadata from "../world/Metadata";
 import BigNumber from "bignumber.js";
@@ -366,18 +365,29 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         // TODO: add batch support!
 
-        const last_batch_id = 673 + 1;
-        const last_minted_place_id = (await Contracts.countExteriorPlacesView(this.context)).minus(1).toNumber();
-
-        const known_places: number[] = Array.from({length: last_minted_place_id - last_batch_id + 1}, (x, i) => last_batch_id + i);
-        const exclude_places: Set<number> = new Set([
-        ]);
-
+        const interiors: boolean = true;
         const auction_id_list: number[] = [];
 
-        for (const place_id of known_places) {
-            if (!PublicPlaces.has(place_id) && !exclude_places.has(place_id))
-                auction_id_list.push(place_id);
+        if (interiors) {
+            const last_batch_id = 3;
+            const next_minted_place_id = (await Contracts.countInteriorPlacesView(this.context)).toNumber();
+
+            for (let id = (last_batch_id + 1); id < next_minted_place_id; ++id) {
+                auction_id_list.push(id);
+            }
+        }
+        else {
+            const last_batch_id = 673 + 1;
+            const last_minted_place_id = (await Contracts.countExteriorPlacesView(this.context)).minus(1).toNumber();
+
+            const known_places: number[] = Array.from({length: last_minted_place_id - last_batch_id + 1}, (x, i) => last_batch_id + i);
+            const exclude_places: Set<number> = new Set([
+            ]);
+
+            for (const place_id of known_places) {
+                if (!PublicPlaces.has(place_id) && !exclude_places.has(place_id))
+                    auction_id_list.push(place_id);
+            }
         }
 
         console.log(auction_id_list.length);
@@ -387,7 +397,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         assert(auction_id_list.length <= 100);
 
         const auctionsWallet = await this.context.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
-        const placesWallet = await this.context.tezosToolkit().wallet.at(Conf.place_contract);
+        const placesWallet = await this.context.tezosToolkit().wallet.at(interiors ? Conf.interior_contract : Conf.place_contract);
 
         const duration = 168; // 7 days = 24h * 7.
         const start_time_offset = 45; // in seconds, should be larger than current block time (30s).
@@ -395,16 +405,17 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const start_time = (Math.floor((current_time + start_time_offset) / 60) + 1) * 60; // begins at the next full minute.
         const end_time = Math.floor(start_time + duration * 3600); // hours to seconds
 
-        const pricePerAreaFactor = 1 / 40;
-        const pricePerVolumeFactor = 1 / 1000;
+        const priceMult = 3;
+        const pricePerAreaFactor = 1 / (40 / priceMult);
+        const pricePerVolumeFactor = 1 / (1000 / priceMult);
 
-        const adhoc_ops = [];
+        const operator_adds = [];
         const create_ops: WalletParamsWithKind[] = [];
 
         let running_total = new BigNumber(0);
 
         for (const place_id of auction_id_list) {
-            const place_metadata = await Metadata.getPlaceMetadata(place_id, Conf.place_contract);
+            const place_metadata = await Metadata.getPlaceMetadata(place_id, placesWallet.address);
             assert(place_metadata);
 
             const polygon = place_metadata.borderCoordinates;
@@ -422,17 +433,29 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
             console.log(placeArea, mutezToTez(placePrice).toNumber());
 
-            adhoc_ops.push({
-                operator: Config.dutch_auction_contract,
-                token_id: place_id
-            });
-
             create_ops.push({
                 kind: OpKind.TRANSACTION,
                 ...auctionsWallet.methodsObject.create({
-                    token_id: place_id, start_price: placePrice, end_price: placePrice,
-                    start_time: start_time.toString(), end_time: end_time.toString(), fa2: Conf.place_contract
+                    auction_key: {
+                        fa2: placesWallet.address,
+                        token_id: place_id,
+                        owner: walletphk
+                    },
+                    auction: {
+                        start_price: placePrice,
+                        end_price: placePrice,
+                        start_time: start_time.toString(),
+                        end_time: end_time.toString()
+                    }
                 }).toTransferParams()
+            });
+
+            operator_adds.push({
+                add_operator: {
+                    owner: walletphk,
+                    operator: auctionsWallet.address,
+                    token_id: place_id
+                }
             });
         }
 
@@ -441,8 +464,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         const batch_op = await this.context.tezosToolkit().wallet.batch([
             {
                 kind: OpKind.TRANSACTION,
-                ...placesWallet.methodsObject.update_adhoc_operators({ add_adhoc_operators: adhoc_ops
-                }).toTransferParams()
+                ...placesWallet.methodsObject.update_operators(operator_adds).toTransferParams()
             },
             ...create_ops
             // would require FA2 admin...
