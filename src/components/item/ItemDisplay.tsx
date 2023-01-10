@@ -34,10 +34,6 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
         royaltiesElement = <p>Supply: {royaltiesAndSupply.supply}<br />Royalties: {royaltiesAndSupply.royalties === 0 ? 0 : (royaltiesAndSupply.royalties / 10).toFixed(2)}{"\u0025"}</p>
     }
 
-    const extraProps = props.targetBlank ? {
-        target: "_blank", rel: "noopener noreferrer"
-    } : {}
-
     return (
         props.metadata ? <div>
             {props.targetBlank && <div>{DirectoryUtils.itemLinkElement(props.tokenKey, true)}</div>}
