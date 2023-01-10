@@ -4,7 +4,7 @@ import earcut from 'earcut';
 import BigNumber from "bignumber.js";
 import Contracts from "../../tz/Contracts";
 import { Logging } from "../../utils/Logging";
-import { mutezToTez, pointIsInside } from "../../utils/Utils";
+import { mutezToTez } from "../../utils/Utils";
 import Metadata, { PlaceTokenMetadata } from "../Metadata";
 import { BaseWorld } from "../BaseWorld";
 import ItemNode, { ItemLoadState } from "./ItemNode";
@@ -16,6 +16,7 @@ import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
 import PlaceKey from "../../utils/PlaceKey";
 import PlaceProperties from "../../utils/PlaceProperties";
+import { MeshUtils } from "../../utils/MeshUtils";
 
 
 export type PlaceItemData = {
@@ -503,7 +504,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         for(var i = 0; i < bbox.vectorsWorld.length; ++i) {
             const p = bbox.vectorsWorld[i];
 
-            if(!pointIsInside(p, this._placeBounds))
+            if(!MeshUtils.pointIsInside(p, this._placeBounds))
                 return false;
         }
 

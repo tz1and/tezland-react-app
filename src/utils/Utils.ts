@@ -1,43 +1,5 @@
-// TODO: use tree shaking where possible to reduce size of package
-// In this specific case, we use tree shaking to reduce size of webworkers.
-import { Ray } from '@babylonjs/core/Culling/ray';
-import { Axis, Vector3 } from '@babylonjs/core/Maths/math';
-import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
-import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import BigNumber from 'bignumber.js';
-import { ItemTokenMetadata } from "../world/Metadata";
 
-
-export const pointIsInside = (point: Vector3, mesh: Mesh) => {
-    const boundInfo = mesh.getBoundingInfo();
-    if(!boundInfo.intersectsPoint(point))
-        return false;
-
-    const diameter = 2 * boundInfo.boundingSphere.radius;
-
-    var pointFound = false;
-    var hitCount = 0;
-    const ray = new Ray(Vector3.Zero(), Axis.X, diameter);
-    const direction = point.clone();
-    const refPoint = point.clone();
-
-    hitCount = 0;
-    ray.origin = refPoint;
-    ray.direction = direction;
-    ray.length = diameter;
-    var pickInfo = ray.intersectsMesh(mesh);
-    while (pickInfo.hit) {
-        hitCount++;
-        pickInfo.pickedPoint!.addToRef(direction.scale(0.00000001), refPoint);
-        ray.origin = refPoint;
-        pickInfo = ray.intersectsMesh(mesh);
-    }   
-    if((hitCount % 2) === 1) {
-        pointFound = true;
-    }
-    
-    return pointFound;
-}
 
 // NOTE: using isDev or inDev will stop webpack from stripping this code
 // If that is desired either use:
@@ -161,16 +123,6 @@ export const signedArea = (data: number[], start: number, end: number, dim: numb
   return sum / 2;
 }
 
-export const countPolygons = (meshes: AbstractMesh[]): number => {
-  let polycount = 0;
-  for(const m of meshes) {
-      m.updateFacetData();
-      polycount += m.facetNb;
-      m.disableFacetData();
-  }
-  return polycount;
-}
-
 export const getUrlFileSizeHead = async (url: string): Promise<number> => {
   const response = await fetch(url, { method: 'HEAD'});
 
@@ -212,8 +164,3 @@ export const scrollbarVisible = (element: HTMLElement) => {
 }
 
 export const numberWithSign = (n: number): string => { return (n > 0) ? "+" + n : n.toString(); };
-
-export type FileWithMetadata = {
-  file: File;
-  metadata: ItemTokenMetadata;
-}

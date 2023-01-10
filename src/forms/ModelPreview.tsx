@@ -2,7 +2,7 @@ import React from 'react';
 import { SkyMaterial } from "../materials/sky/skyMaterial";
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
-import { countPolygons, getFileType } from '../utils/Utils';
+import { getFileType } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
@@ -10,6 +10,7 @@ import ArtifactDownload from '../utils/ArtifactDownload';
 import BabylonUtils from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
 import { instantiateOptions } from '../utils/ArtifactMemCache';
+import { MeshUtils } from '../utils/MeshUtils';
 
 
 class PreviewScene {
@@ -133,7 +134,7 @@ class PreviewScene {
 
             this.previewObject.position.y = -extent.y * new_scale / 2;
 
-            const polycount = countPolygons(result.meshes);
+            const polycount = MeshUtils.countPolygons(result.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.
@@ -180,7 +181,7 @@ class PreviewScene {
 
             this.previewObject.position.y = -extent.y * new_scale / 2;
 
-            const polycount = countPolygons(asset.object.meshes);
+            const polycount = MeshUtils.countPolygons(asset.object.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.

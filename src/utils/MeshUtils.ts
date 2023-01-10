@@ -1,4 +1,5 @@
-import { Material, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Axis, Material, Mesh, MeshBuilder,
+    Ray, Scene, Vector3 } from "@babylonjs/core";
 import earcut from "earcut";
 
 export namespace MeshUtils {
@@ -39,4 +40,44 @@ export namespace MeshUtils {
         return extrude;
     }
 
+    export const pointIsInside = (point: Vector3, mesh: Mesh) => {
+        const boundInfo = mesh.getBoundingInfo();
+        if(!boundInfo.intersectsPoint(point))
+            return false;
+    
+        const diameter = 2 * boundInfo.boundingSphere.radius;
+    
+        var pointFound = false;
+        var hitCount = 0;
+        const ray = new Ray(Vector3.Zero(), Axis.X, diameter);
+        const direction = point.clone();
+        const refPoint = point.clone();
+    
+        hitCount = 0;
+        ray.origin = refPoint;
+        ray.direction = direction;
+        ray.length = diameter;
+        var pickInfo = ray.intersectsMesh(mesh);
+        while (pickInfo.hit) {
+            hitCount++;
+            pickInfo.pickedPoint!.addToRef(direction.scale(0.00000001), refPoint);
+            ray.origin = refPoint;
+            pickInfo = ray.intersectsMesh(mesh);
+        }   
+        if((hitCount % 2) === 1) {
+            pointFound = true;
+        }
+        
+        return pointFound;
+    }
+
+    export const countPolygons = (meshes: AbstractMesh[]): number => {
+        let polycount = 0;
+        for(const m of meshes) {
+            m.updateFacetData();
+            polycount += m.facetNb;
+            m.disableFacetData();
+        }
+        return polycount;
+    }
 }

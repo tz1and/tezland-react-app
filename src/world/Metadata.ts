@@ -3,6 +3,10 @@ import { grapphQLUser } from "../graphql/user";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { Logging } from "../utils/Logging";
 
+export type FileWithMetadata = {
+    file: File;
+    metadata: ItemTokenMetadata;
+}
 
 export type ItemTokenMetadata = {
     tokenId: number;

@@ -15,7 +15,7 @@ import { getPlaceType, PlaceType } from '../utils/PlaceKey';
 import { Vector3 } from '@babylonjs/core';
 import PlaceProperties, { colorToBytes } from '../utils/PlaceProperties';
 import { Button, Col, Container, Row } from 'react-bootstrap';
-import { pointIsInside } from '../utils/Utils';
+import { MeshUtils } from '../utils/MeshUtils';
 
 
 interface PlacePropertiesFormValues {
@@ -107,7 +107,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                         assert(props.place.placeBounds);
                         assert(props.place.itemsNode);
                         const absolute_pos = values.spawnPosition.add(props.place.itemsNode.position);
-                        if(!pointIsInside(absolute_pos, props.place.placeBounds))
+                        if(!MeshUtils.pointIsInside(absolute_pos, props.place.placeBounds))
                             errors.spawnPosition = "Spawn position is out of bounds.";
                     }
                 }
