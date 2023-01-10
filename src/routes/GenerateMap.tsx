@@ -165,7 +165,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
         const next_minted_place_id = (await Contracts.countInteriorPlacesView(this.context)).toNumber();
 
-        const num_places = 50, min_size = 20, max_size = 20;
+        const num_places = 50, min_size = 30, max_size = 60;
 
         const prando = new Prando(next_minted_place_id);
 
@@ -179,7 +179,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
             const w = prando.next(min_size, max_size), h = prando.next(min_size, max_size);
             const min_dim = Math.min(w, h);
-            const build_height = prando.next(Math.max(min_size, min_dim), min_dim);
+            const build_height = prando.next(min_dim / 2, min_dim);
 
             const [lot, centercoords, pointsrel] = this.squareLot(w, h, build_height);
 
@@ -199,7 +199,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 }
             }));
 
-            const priceMult = 4;
+            const priceMult = 3;
             const pricePerAreaFactor = 1 / (40 / priceMult);
             const pricePerVolumeFactor = 1 / (1000 / priceMult);
 
@@ -214,7 +214,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             ).toFixed(1)));
 
             console.log("place pice", mutezToTez(placePrice).toNumber());
-            console.log("place area and dims", mutezToTez(placePrice).toNumber(), placeArea, [w, h, lot.buildHeight]);
+            console.log("place area and dims", placeArea, [w, h, lot.buildHeight]);
 
             total_price = total_price.plus(placePrice);
         }
