@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import ModelPreview from '../../forms/ModelPreview';
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import { MetadataUtils, RoyaltiesAndSupply } from '../../utils/MetadataUtils';
 import TokenKey from '../../utils/TokenKey';
-import { truncateAddress } from '../../utils/Utils';
 import { ItemTokenMetadata } from '../../world/Metadata';
 
 
