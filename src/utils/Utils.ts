@@ -1,4 +1,9 @@
-import { AbstractMesh, Axis, Mesh, Ray, Vector3 } from "@babylonjs/core";
+// TODO: use tree shaking where possible to reduce size of package
+// In this specific case, we use tree shaking to reduce size of webworkers.
+import { Ray } from '@babylonjs/core/Culling/ray';
+import { Axis, Vector3 } from '@babylonjs/core/Maths/math';
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import BigNumber from 'bignumber.js';
 import { ItemTokenMetadata } from "../world/Metadata";
 

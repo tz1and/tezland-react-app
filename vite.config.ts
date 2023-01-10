@@ -66,6 +66,32 @@ export default defineConfig(({mode}) => {
             }
         },*/
 
+        build: {
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        babylonjsCore: ['@babylonjs/core'],
+                        babylonjsOther: ['@babylonjs/gui',
+                            '@babylonjs/loaders',
+                            '@babylonjs/materials',
+                            '@babylonjs/gui-editor',
+                            '@babylonjs/inspector',
+                            '@babylonjs/serializers'],
+                        gltfTransform: ['@gltf-transform/core',
+                            '@gltf-transform/extensions',
+                            '@gltf-transform/functions'],
+
+                        // TODO: try taquito again with the above method.
+
+                        // NOTE: splitting the following results in errors:
+                        //if (id.includes('@gltf-transform')) return 'gltfTransform';
+                        //if (id.includes('bootstrap')) return 'bootstrap';
+                        //if (id.includes('@taquito')) return 'taquito';
+                    }
+                }
+            }
+        },
+
         plugins: [
             htmlPlugin(),
             eslint(),

@@ -11,6 +11,10 @@ import Faq from './routes/Faq';
 import Docs from './routes/Docs';
 import Terms from './routes/Terms';
 import Privacy from './routes/Privacy';
+import Map from './routes/Map';
+import EventMap from './routes/EventMap';
+import DirectoryMap from './routes/DirectoryMap';
+import Explore from './components/Explore';
 import MintFormWrapper from './forms/MintFormWrapper';
 import MintCollectionFormWrapper from './forms/MintCollectionFormWrapper';
 import PageNotFound from './routes/PageNotFound';
@@ -27,15 +31,11 @@ import { TypedArtBlog } from './routes/blog/TypedArtBlog';
 import { TypedArtBlogPost } from './routes/blog/TypedArtBlogPost';
 import { TypedArtPostType } from './routes/blog/TypedArtUtils';
 import EnterDirectory from './routes/EnterDirectory';
-import Loading from './components/util/Loading';
 import Tools from './routes/Tools';
+import Loading from './components/util/Loading';
 import Conf from './Config';
 
 
-const Map = React.lazy(() => import('./routes/Map'));
-const EventMap = React.lazy(() => import('./routes/EventMap'));
-const DirectoryMap = React.lazy(() => import('./routes/DirectoryMap'));
-const Explore = React.lazy(() => import('./components/Explore'));
 const Acknowledgements = React.lazy(() => import('./routes/Acknowledgements'));
 
 const RedirectToV1Item: React.FC<{directoryEnabled: boolean}> = (props) => {
@@ -74,7 +74,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
     let devRoutes;
     if (import.meta.env.DEV) {
         const GenerateMap = React.lazy(() => import('./routes/GenerateMap'));
-        devRoutes = <Route path="genmap" element={<GenerateMap />} />;
+        devRoutes = <Route path="genmap" element={<Suspense fallback={<Loading />}><GenerateMap /></Suspense>} />;
     }
 
     return (
@@ -102,7 +102,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                             <Route path="tools" element={<Tools />} />
                             <Route path="privacy" element={<Privacy />} />
                             <Route path="terms" element={<Terms />} />
-                            <Route path="acknowledgements" element={<Acknowledgements />} />
+                            <Route path="acknowledgements" element={<Suspense fallback={<Loading />}><Acknowledgements /></Suspense>} />
 
                             <Route path="blog">
                                 <Route path="" element={<TypedArtBlog tag={TypedArtPostType.Blog} />} />
@@ -126,10 +126,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                                 <Route path="*" element={<PageNotFound />} />
                             </Route>
                         </Route> }
-                    <Route path="/explore" element={
-                        <Suspense fallback={<Loading />}>
-                            <Explore />
-                        </Suspense>} />
+                    <Route path="/explore" element={<Explore />} />
                 </Routes>
             </BrowserRouter>
         </TezosWalletProvider>

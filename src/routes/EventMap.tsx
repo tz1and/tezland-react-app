@@ -3,10 +3,9 @@ import { Helmet } from 'react-helmet-async';
 import { MarkerMode } from '../world/map/WorldMap';
 import { useParams } from 'react-router-dom';
 import { grapphQLUser } from '../graphql/user';
+import InteractiveMap from '../components/InteractiveMap';
 import assert from 'assert';
 
-
-const InteractiveMap = React.lazy(() => import('../components/InteractiveMap'));
 
 const EventMap: React.FC<{}> = () => {
     const params = useParams();
