@@ -377,6 +377,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             }
         }
         else {
+            // TODO: fix this mess
             const last_batch_id = 673 + 1;
             const last_minted_place_id = (await Contracts.countExteriorPlacesView(this.context)).minus(1).toNumber();
 
@@ -467,12 +468,6 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
                 ...placesWallet.methodsObject.update_operators(operator_adds).toTransferParams()
             },
             ...create_ops
-            // would require FA2 admin...
-            /*{
-                kind: OpKind.TRANSACTION,
-                ...placesWallet.methodsObject.update_adhoc_operators({ clear_adhoc_operators: null
-                }).toTransferParams()
-            }*/
         ]).send();
 
         Contracts.handleOperation(this.context, batch_op, undefined, 3);
