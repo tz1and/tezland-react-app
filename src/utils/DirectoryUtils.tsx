@@ -24,11 +24,21 @@ export namespace DirectoryUtils {
             return `/c/${fa2}`;
     }
 
+    export const collectionLinkElement = (fa2: string, targetBlank = false): JSX.Element => {
+        const extraProps = targetBlank ? { target: "_blank", rel: "noopener noreferrer" } : { };
+        return <Link {...extraProps} to={DirectoryUtils.collectionLink(fa2)}>{truncateAddress(fa2)}</Link>
+    }
+
     export const itemLink = (tokenKey: TokenKey) => {
         if(getDirectoryEnabledGlobal())
             return `/directory/i/${tokenKey.fa2}/${tokenKey.id.toNumber()}`;
         else
             return `/i/${tokenKey.fa2}/${tokenKey.id.toNumber()}`;
+    }
+
+    export const itemLinkElement = (tokenKey: TokenKey, targetBlank = false, label = "Open in new Tab"): JSX.Element => {
+        const extraProps = targetBlank ? { target: "_blank", rel: "noopener noreferrer" } : { };
+        return <Link {...extraProps} to={DirectoryUtils.itemLink(tokenKey)}>{label}</Link>
     }
 
     export const placeLink = (placeKey: PlaceKey) => {

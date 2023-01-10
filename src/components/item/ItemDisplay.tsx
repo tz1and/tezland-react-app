@@ -42,12 +42,13 @@ export const ItemDisplay: React.FC<ItemDisplayProps> = (props) => {
 
     return (
         props.metadata ? <div>
-            by <Link {...extraProps} to={DirectoryUtils.userLink(props.metadata.minter)}>{truncateAddress(props.metadata.minter)}</Link><br/>
-            Collection: <Link {...extraProps} to={DirectoryUtils.collectionLink(props.tokenKey.fa2)}>{truncateAddress(props.tokenKey.fa2)}</Link><br/>
+            {props.targetBlank && <div>{DirectoryUtils.itemLinkElement(props.tokenKey, true)}</div>}
+            by {DirectoryUtils.userLinkElement(props.metadata.minter, props.targetBlank)}<br/>
+            Collection: {DirectoryUtils.collectionLinkElement(props.tokenKey.fa2, props.targetBlank)}#{props.tokenKey.id.toNumber()}<br/>
 
             {props.displayModel ?
                 <ModelPreview tokenKey={props.tokenKey} width={640} height={480} modelLoaded={() => {}} /> :
-            <img src={MetadataUtils.getThumbnailUrl(props.metadata)} width={350} height={350} alt="..." />}
+                <img src={MetadataUtils.getThumbnailUrl(props.metadata)} width={350} height={350} alt="..." />}
 
             <h5 className="mt-3">Description:</h5>
             <p style={{whiteSpace: "pre-wrap"}}>{MetadataUtils.getDescription(props.metadata)}</p>
