@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Metadata, { PlaceTokenMetadata } from '../../world/Metadata';
-import { Button, Col, Container, Row } from 'react-bootstrap';
+import { Button, Col, Container, Row, Table } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { getDirectoryEnabledGlobal, iFrameControlEvent } from '../../forms/DirectoryForm';
 import Conf from "../../Config";
@@ -12,6 +12,7 @@ import { InventoryItem } from "../../components/InventoryItem";
 import PlaceKey, { getPlaceType, PlaceType } from "../../utils/PlaceKey";
 import WorldLocation from "../../utils/WorldLocation";
 import { WorldMap2D } from '../../components/WorldMap2D';
+import { signedArea } from '../../utils/Utils';
 
 
 type PlaceProps = {
@@ -51,24 +52,24 @@ export const Place: React.FC<PlaceProps> = (props) => {
         }
     }
 
-    let name = null;
-    let description = "None.";
-
-    // TODO: put this in state maybe?
-    let center_pos: [number, number] = [1000, 1000];
-    let placePoly: [number, number][] = [];
     let content = undefined;
     if (metadata) {
-        name = metadata.name;
-        if (metadata.description) description = metadata.description;
+        const name = metadata.name;
+        //const description = metadata.description ? metadata.description : "None.";
 
         const coords = metadata.centerCoordinates;
-        center_pos = [1000 + -coords[2], 1000 + -coords[0]];
+        const center_pos: [number, number] = [1000 + -coords[2], 1000 + -coords[0]];
 
+        // TODO: put this in state maybe?
         const polygon = metadata.borderCoordinates;
+        const placePoly: [number, number][] = [];
+        const areaPoly: number[] = [];
         for(const pos of polygon) {
             placePoly.push([center_pos[0] + -pos[2], center_pos[1] + -pos[0]]);
+            areaPoly.push(pos[0], pos[2]);
         }
+
+        const placeArea = Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2));
 
         const placeType = getPlaceType(props.placeKey.fa2);
 
@@ -82,9 +83,23 @@ export const Place: React.FC<PlaceProps> = (props) => {
                     </Col>
                     <Col xl="5" lg="12">
                         {props.detailOverride ? props.detailOverride : <div>
-                            <h5>Description:</h5>
-                            <p>{description}</p>
-                            {owner && <p>Owner: {DirectoryUtils.userLinkElement(owner, props.openLinksInNewTab)}</p>}
+                            <h4>Place Details</h4>
+                            <Table className='mb-3 align-middle'>
+                                <tbody>
+                                    <tr>
+                                        <td>Place Area</td>
+                                        <td>{placeArea.toFixed(2)} m<sup>2</sup></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Build Height</td>
+                                        <td>{metadata.buildHeight.toFixed(2)} m</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Owner</td>
+                                        <td>{owner && DirectoryUtils.userLinkElement(owner, props.openLinksInNewTab)}</td>
+                                    </tr>
+                                </tbody>
+                            </Table>
                             {props.openLinksInNewTab ?
                                 <Link to={DirectoryUtils.placeExploreLink(props.placeKey)} target="_blank">
                                     <Button>Visit Place</Button>
