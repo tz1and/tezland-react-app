@@ -2,10 +2,11 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import eslint from 'vite-plugin-eslint'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import replace from 'rollup-plugin-re'
 //import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 //import rollupPolyfillNode from 'rollup-plugin-polyfill-node'
 
-export default defineConfig(({mode}) => {
+export default defineConfig(({command, mode}) => {
     // We define our own plugin of making env var replacements in index.html.
     // Ref: https://github.com/Taiwan-Ebook-Lover/Taiwan-Ebook-Lover.github.io/pull/62/commits/cf27dd66280e8c21daaf3b51c594c1eea9065fdd#r886052909
     const env = loadEnv(mode, '');
@@ -93,9 +94,18 @@ export default defineConfig(({mode}) => {
         },
 
         plugins: [
+            command === "build" ? {
+                ...replace({
+                    include: ['node_modules/@airgap/**'],
+                    replaces: {
+                        "import * as qrcode from 'qrcode-generator';": "import qrcode from 'qrcode-generator';",
+                    },
+                }),
+                enforce: 'pre',
+            } : null,
             htmlPlugin(),
             eslint(),
-            react()
+            react(),
         ]
     }
 })
