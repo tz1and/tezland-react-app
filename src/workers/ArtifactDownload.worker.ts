@@ -31,6 +31,7 @@ const shutdown = async () => {
     Logging.InfoDev("Terminating pool: MeshPreprocessing.worker");
     // Note: Don't force shutdown threads.
     // There apprears to be some bug terminating the thread pool with force = true.
+    await pool.settled(true);
     return pool.terminate(false);
 }
 

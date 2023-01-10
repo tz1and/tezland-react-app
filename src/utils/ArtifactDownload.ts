@@ -134,7 +134,7 @@ export default class ArtifactDownload {
         }
     }*/
 
-    public static saveToDBCache(artifactUri: string, file: ArrayBuffer) {
+    private static saveToDBCache(artifactUri: string, file: ArrayBuffer) {
         if (Metadata.Storage instanceof DatabaseStorage) {
             const db = Metadata.Storage.db;
 
@@ -151,7 +151,7 @@ export default class ArtifactDownload {
         }
     }
 
-    public static async loadFromDBCache(artifactUri: string): Promise<ArrayBuffer | undefined> {
+    private static async loadFromDBCache(artifactUri: string): Promise<ArrayBuffer | undefined> {
         if (Metadata.Storage instanceof DatabaseStorage) {
             const db = Metadata.Storage.db;
 

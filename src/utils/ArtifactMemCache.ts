@@ -57,19 +57,28 @@ class ArtifactMemCache {
     }
 
     public dispose() {
-        ArtifactProcessingQueue.dispose();
+        const disposeRegular = () => {
+            ArtifactProcessingQueue.dispose();
 
-        this.artifactCache.forEach(v => {
-            v.then(res => res.object.dispose());
-        })
-        this.artifactCache.clear();
+            this.artifactCache.forEach(v => {
+                v.then(res => res.object.dispose());
+            })
+            this.artifactCache.clear();
+        }
 
         if (this.workerThread) {
             this.workerThread.shutdown().then(() => {
                 Thread.terminate(this.workerThread!).then(() => {
                     Logging.InfoDev("Thread terminated: ArtifactDownload.worker");
+                }).catch((e) => {
+                    Logging.InfoDev("Thread failed to terminate: ArtifactDownload.worker:", e);
+                }).finally(() => {
+                    disposeRegular();
                 });
             });
+        }
+        else {
+            disposeRegular();
         }
     }
 
