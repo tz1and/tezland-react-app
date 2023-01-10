@@ -94,7 +94,7 @@
     "build:staging": "NODE_OPTIONS=--max-old-space-size=32768 vite build --mode staging --sourcemap true",
     "preview": "vite preview --port 3006",
     "test": "vitest --mode development",
-    "analyze": "source-map-explorer 'dist/static/js/*.js'",
+    "analyze": "source-map-explorer 'dist/assets/*.js'",
     "generate-licenses": "node scripts/generate-licenses.js",
     "generate-gql-schema": "graphql-codegen && get-graphql-schema -h 'X-API-KEY=changeme' http://localhost:42000/v1/graphql > src/graphql/generated/schema.graphql"
   },
