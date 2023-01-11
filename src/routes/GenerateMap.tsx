@@ -425,7 +425,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
             const placeArea = Math.abs(signedArea(areaPoly, 0, areaPoly.length, 2));
             const placePrice = tezToMutez(parseFloat((
-                10
+                10 * priceMult
                 + placeArea * pricePerAreaFactor
                 + placeArea * place_metadata.buildHeight * pricePerVolumeFactor
             ).toFixed(1)));
