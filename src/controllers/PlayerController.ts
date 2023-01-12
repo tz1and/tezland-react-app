@@ -18,10 +18,18 @@ import PlaceKey, { getPlaceType, PlaceType } from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 import { ImportedWorldDef } from "../world/ImportWorldDef";
 
+const Gravity = 9.81;
+const GravityUnderwater = -1.0;
 
-const PlayerWalkSpeed = 2; // m/s
-const PlayerJogSpeed = 4.0; // m/s
+const PlayerAccel = 1000.0; // m/s?
+const PlayerGroundFriction = 6.0;
+const PlayerWaterFriction = 2.5;
+const PlayerFlyFriction = 2.0;
+const PlayerMaxJogVel = 4;
+const PlayerMaxWalkVel = 2;
+const PlayerMass = 2;
 const PlayerFlySpeedMult = isDev() ? 10.0 : 1.2;
+
 const LimitFlyDistance = !isDev();
 const UnglitchCooldown = 10000; // 10s
 
@@ -38,15 +46,15 @@ export default class PlayerController {
 
     private input: PlayerKeyboardInput;
     private velocity: Vector3 = new Vector3();
-    private gravity: Vector3 = new Vector3();
     private walk: boolean = false;
 
     public freeze: boolean = true;
 
-    private static readonly GRAVITY = 0.225;
     private static readonly BODY_HEIGHT = 1.5;
     private static readonly LEGS_HEIGHT = 0.3;
-    private static readonly JUMP_VEL = 0.07;
+    private static readonly JUMP_VEL = 3.5;
+
+    public isUnderwater: boolean = false;
 
     private _flyMode: boolean;
     public get flyMode(): boolean { return this._flyMode; }
@@ -88,6 +96,12 @@ export default class PlayerController {
         this.playerTrigger.isVisible = false;
         //this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
+
+        // Ellipsoid for debugging.
+        /*var ellipsoid = MeshBuilder.CreateCylinder("debug", {diameter: (this.playerTrigger.ellipsoid.x *2), height: (this.playerTrigger.ellipsoid.y * 2), subdivisions: 24}, this.scene);
+        ellipsoid.position.copyFrom(this.playerTrigger.position);
+        ellipsoid.position.addInPlace(this.playerTrigger.ellipsoidOffset);
+        ellipsoid.parent = this.playerTrigger;*/
 
         this.camera.onViewMatrixChangedObservable.add(this.updateLastUserInput);
 
@@ -355,7 +369,6 @@ export default class PlayerController {
         }
 
         this.velocity.setAll(0);
-        this.gravity.setAll(0);
     }
 
     /**
@@ -431,8 +444,11 @@ export default class PlayerController {
 
     //Send raycast to the floor to detect if there are any hits with meshes below the character
     private floorRaycast(offsetx: number, offsetz: number, raycastlen?: number): number {
-        // position the raycast from bottom center of ellipsoid
-        let raycastFloorPos = new Vector3(this.playerTrigger.position.x + offsetx, this.playerTrigger.position.y + PlayerController.LEGS_HEIGHT, this.playerTrigger.position.z + offsetz);
+        // position the raycast from top center of ellipsoid
+        let raycastFloorPos = new Vector3(
+            this.playerTrigger.position.x + offsetx,
+            this.playerTrigger.position.y + PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT,
+            this.playerTrigger.position.z + offsetz);
         let ray = new Ray(raycastFloorPos, Vector3.Down(), raycastlen);
 
         // Only collide with meshes that have collision enabled.
@@ -445,16 +461,21 @@ export default class PlayerController {
         }
     }
 
-    private static readonly EPSILON = 0.00000001;
+    private static readonly EPSILON = 0.000001;
 
-    private groundPlayer(): number {
-        let dist_to_ground = this.floorRaycast(0, 0);
+    private groundPlayer(): boolean {
+        const dist_to_ground = this.floorRaycast(0, 0);
         // If less than leg height, adjust position.
-        if(dist_to_ground + PlayerController.EPSILON < PlayerController.LEGS_HEIGHT) {
-            this.playerTrigger.position.y += PlayerController.LEGS_HEIGHT - dist_to_ground;
-            dist_to_ground = PlayerController.LEGS_HEIGHT;
+        const raycast_from = PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT;
+        if (isEpsilonEqual(dist_to_ground, raycast_from, PlayerController.EPSILON))
+            return true;
+
+        if(dist_to_ground < raycast_from) {
+            this.playerTrigger.position.y += raycast_from - dist_to_ground;
+            return true;
         }
-        return dist_to_ground;
+        
+        return false;
     }
 
     private position_prev_frame: Vector3 = new Vector3();
@@ -478,30 +499,72 @@ export default class PlayerController {
         // If player is frozen, no need to process physics.
         if (this.freeze) return;
 
+        const allAxes = this._flyMode || this.isUnderwater;
+
         // Figure out directions.
         const cam_dir = this.camera.getDirection(Axis.Z);
         const right = Vector3.Cross(Vector3.Up(), cam_dir);
-        const fwd = this._flyMode ? cam_dir : Vector3.Cross(right, Vector3.Up());
+        const fwd = allAxes ? cam_dir : Vector3.Cross(right, Vector3.Up());
+
+        //this.forces.setAll(0);
+
+        // gravity
+        let gravity;
+        if (this._flyMode) gravity = 0;
+        else if (this.isUnderwater) gravity = GravityUnderwater;
+        else gravity = Gravity;
+        const forces: Vector3 = Vector3.DownReadOnly.scale(gravity);
+
+        // left/right movement
+        const movement_forces = right.scale(moveRight);
+        // forward/backward movement
+        movement_forces.addInPlace(fwd.scale(moveFwd));
+        // up/down movement
+        if (allAxes) movement_forces.addInPlace(Vector3.Up().scale(moveUp));
+        movement_forces.normalize();
+
+        forces.addInPlace(movement_forces.scale(PlayerAccel));
+
+        // add other forces in for taste - usual suspects include air resistence
+        // proportional to the square of velocity, against the direction of movement. 
+        // this has the effect of capping max speed.
 
         // Player velocity.
-        const playerSpeed = (this.walk ? PlayerWalkSpeed : PlayerJogSpeed) * (this._flyMode ? PlayerFlySpeedMult : 1);
-        const accel = playerSpeed * delta_time;
-        const new_vel = (this._flyMode ?
-            fwd.scale(moveFwd).add(right.scale(moveRight)).add(Vector3.Up().scale(moveUp)) :
-            fwd.scale(moveFwd).add(right.scale(moveRight))
-        ).normalize().scale(accel);
-        //this.velocity.scaleInPlace(1 - accel).addInPlace(new_vel);
-        this.velocity.copyFrom(new_vel);
-
-        // Not needed if accel and decel are eq.
-        /*if(this.velocity.length() > PlayerJogSpeed) {
-            console.log("clamping vel");
-            this.velocity.normalize().scaleInPlace(PlayerJogSpeed);
-        }*/
+        const acceleration: Vector3 = forces.scale(1 / PlayerMass);
+        this.velocity.addInPlace(acceleration.scale(delta_time));
 
         // Get the distance to ground
-        let dist_to_ground = this.groundPlayer();
-        const grounded = isEpsilonEqual(dist_to_ground, PlayerController.LEGS_HEIGHT, PlayerController.EPSILON);
+        const grounded = this.groundPlayer();
+
+        if (!allAxes && grounded) this.velocity.y = 0;
+
+        // If grounded, we can jump.
+        if (!allAxes && grounded && this.input.jump) {
+            this.velocity.y = PlayerController.JUMP_VEL;
+        }
+
+        // We can early out sometimes.
+        if (isEpsilonEqual(this.velocity.x, 0, PlayerController.EPSILON) &&
+            isEpsilonEqual(this.velocity.y, 0, PlayerController.EPSILON) &&
+            isEpsilonEqual(this.velocity.z, 0, PlayerController.EPSILON)) return;
+
+        // Limit max speed.
+        // TODO: this is wrong. but good enoug for now...
+        (() => {
+            const vec = this.velocity.clone();
+
+            const speed = vec.length();
+            if (isEpsilonEqual(speed, 0, PlayerController.EPSILON)) {
+                return;
+            }
+
+            const playerMaxVel = (this.walk ? PlayerMaxWalkVel : PlayerMaxJogVel) * (this._flyMode ? PlayerFlySpeedMult : 1);
+
+            const newspeed = Math.min(speed, playerMaxVel) / speed;
+            this.velocity.x = vec.x * newspeed;
+            if (allAxes) this.velocity.y = vec.y * newspeed;
+            this.velocity.z = vec.z * newspeed;
+        })();
 
         // TODO: obstacles should affect velocity!
         // Work that out based on distance travlled before and after moveWithCollisions.
@@ -509,53 +572,52 @@ export default class PlayerController {
         // This is dumb.
         this.position_prev_frame.copyFrom(this.playerTrigger.position);
 
-        // Fly mode controls
-        if (this._flyMode) {
-            // no gravity in fly mode
-            this.gravity.setAll(0);
+        const displacement_vector = this.velocity.scale(delta_time);
 
-            this.playerTrigger.moveWithCollisions(this.velocity);
+        assert(!isNaN(displacement_vector.x), "x was NaN");
+        assert(!isNaN(displacement_vector.y), "y was NaN");
+        assert(!isNaN(displacement_vector.z), "z was NaN");
 
-            // TODO: up/down controls in flymode.
-        } else {
-            if(!grounded) {
-                // increase fall velocity.
-                this.gravity.addInPlace(Vector3.Down().scale(delta_time * PlayerController.GRAVITY));
-                this.velocity.y = this.gravity.y;
-    
-                this.playerTrigger.moveWithCollisions(this.velocity);
-    
-                // ground player again after applying gravity.
-                this.groundPlayer();
-            } else {
-                // reset fall velocity.
-                this.gravity.setAll(0);
-    
-                // If grounded, we can jump.
-                if (this.input.jump) {
-                    this.gravity.addInPlace(Vector3.Up().scale(PlayerController.JUMP_VEL));
-                }
-    
-                this.velocity.y = this.gravity.y;
-    
-                this.playerTrigger.moveWithCollisions(this.velocity);
+        this.playerTrigger.moveWithCollisions(displacement_vector);
+
+        // Velocity after collision is position - prev position.
+        // TODO: need to limit velocity somehow. probably could:
+        // - figure out the actual displacement vector after collision
+        // - figure out what the velocity should be with respect to delta time.
+        //this.playerTrigger.position.subtractToRef(this.position_prev_frame, this.velocity);
+
+        // ground player again after applying forces.
+        this.groundPlayer();
+
+        // Friction.
+        // TODO: friction is a bit broken
+        // This is basically what Q3 does.
+        (() => {
+            const vec = this.velocity.clone();
+            if (allAxes) vec.y = 0;
+
+            const speed = vec.length();
+            if (isEpsilonEqual(speed, 0, PlayerController.EPSILON)) {
+                this.velocity.x = 0;
+                this.velocity.z = 0;
+                return;
             }
-        }
 
-        // This kinda somewhat works but isn't perfect.
-        const vel_diff = this.playerTrigger.position.subtract(this.position_prev_frame).subtractInPlace(this.velocity);
-        if(!isEpsilonEqual(vel_diff.x, 0, PlayerController.EPSILON))
-            this.velocity.x += vel_diff.x;
-        if(!isEpsilonEqual(vel_diff.y, 0, PlayerController.EPSILON))
-            this.velocity.y += vel_diff.y;
-        if(!isEpsilonEqual(vel_diff.z, 0, PlayerController.EPSILON))
-            this.velocity.z += vel_diff.z;
-        //console.log(this.velocity)
-        /*if (Vector3.Dot(vel_actual, this.velocity) < 0) {
-            this.playerTrigger.position = pos_before;
-            this.velocity.set(0, 0, 0);
-        }
-        else this.velocity.set(vel_actual.x, 0, vel_actual.z);*/
+            let drop = 0;
+            if (grounded && !this.isUnderwater) {
+                drop += speed*PlayerGroundFriction*delta_time;
+            }
+
+            if (this.isUnderwater) drop += speed*PlayerWaterFriction*delta_time;
+
+            if (this._flyMode) drop += speed*PlayerFlyFriction*delta_time;
+
+            // scale the velocity, must be > 0.
+            const newspeed = Math.max(speed - drop, 0) / speed;
+            this.velocity.scaleInPlace(newspeed);
+        })();
+
+        //Logging.InfoDev(this.velocity);
 
         // Ensure player can't move too far from body in fly mode
         if (LimitFlyDistance && this._flyMode) {

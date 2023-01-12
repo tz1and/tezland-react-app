@@ -210,6 +210,10 @@ export class InteriorWorld extends BaseWorld {
         }
     }
 
+    public override getWorldNode() {
+        return this.worldNode;
+    }
+
     public dispose() {
         this.game.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
 

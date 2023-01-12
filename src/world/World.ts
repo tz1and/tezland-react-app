@@ -1,10 +1,9 @@
-import { Vector3, Color3, Vector2,
-    Matrix, Vector4, Quaternion, HemisphericLight,
-    ShadowGenerator, CascadedShadowGenerator, Mesh,
-    AbstractMesh, DeepImmutable, MeshBuilder,
-    Nullable, Ray, ReflectionProbe, RenderTargetTexture,
-    SceneLoader, Texture, TransformNode } from "@babylonjs/core";
-import { WaterMaterial } from "@babylonjs/materials";
+import { Vector3, Color3, Matrix, Vector4,
+    Quaternion, HemisphericLight, ShadowGenerator,
+    CascadedShadowGenerator, Mesh, AbstractMesh,
+    DeepImmutable, MeshBuilder, Nullable, Ray,
+    ReflectionProbe, RenderTargetTexture,
+    SceneLoader, TransformNode } from "@babylonjs/core";
 import { SkyMaterial } from "../materials/sky/skyMaterial";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
@@ -18,7 +17,6 @@ import SunLight from "./nodes/SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import assert from "assert";
 import { Edge } from "../worldgen/WorldPolygon";
-import waterbump from "../models/waterbump.png";
 import WorldGrid from "../utils/WorldGrid";
 import ArtifactMemCache, { instantiateOptions } from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./nodes/TeleporterBooth";
@@ -29,6 +27,7 @@ import PlaceNode from "./nodes/PlaceNode";
 import Conf from "../Config";
 import PlaceKey from "../utils/PlaceKey";
 import { ImportedWorldDef } from "./ImportWorldDef";
+import Water from "./nodes/Water";
 
 
 const worldUpdateDistance = 10; // in m
@@ -38,7 +37,7 @@ const shadowListUpdateInterval = 2000; // in ms
 export class World extends BaseWorld {
     private worldNode: TransformNode;
 
-    private waterMaterial: WaterMaterial;
+    private waterNode: Water;
     
     private sunLight: SunLight;
     private skybox: Mesh;
@@ -106,28 +105,10 @@ export class World extends BaseWorld {
         this.game.scene.environmentTexture = this.reflectionProbe.cubeTexture;
 
         // The worlds water.
-        const waterMaterial = new WaterMaterial("water", this.game.scene, new Vector2(512, 512));
-        waterMaterial.backFaceCulling = true;
-        const bumpTexture = new Texture(waterbump, this.game.scene);
-        bumpTexture.uScale = 4;
-        bumpTexture.vScale = 4;
-        waterMaterial.bumpTexture = bumpTexture;
-        waterMaterial.windForce = -1;
-        waterMaterial.waveHeight = 0; //0.05;
-        waterMaterial.bumpHeight = 0.15;
-        waterMaterial.windDirection = new Vector2(1, 1);
-        waterMaterial.waterColor = new Color3(0.02, 0.06, 0.24);
-        waterMaterial.colorBlendFactor = 0.7;
-        waterMaterial.addToRenderList(this.skybox);
-        this.waterMaterial = waterMaterial
-
-        const water = Mesh.CreateGround("water", 2000, 2000, 4, this.game.scene);
-        water.material = this.waterMaterial;
-        water.isPickable = false;
-        water.checkCollisions = true;
-        water.receiveShadows = true;
-        water.position.y = -3;
-        water.parent = this.worldNode;
+        const waterNode = new Water("water", this);
+        waterNode.parent = this.worldNode;
+        waterNode.material.addToRenderList(this.skybox);
+        this.waterNode = waterNode;
 
         // After, camera, lights, etc, the shadow generator
         if (AppSettings.shadowOptions.value === "standard") {
@@ -227,6 +208,10 @@ export class World extends BaseWorld {
                 }
             }
         }
+    }
+
+    public override getWorldNode() {
+        return this.worldNode;
     }
 
     public dispose() {
@@ -331,7 +316,7 @@ export class World extends BaseWorld {
             mesh.parent = this.worldNode;
             mesh.freezeWorldMatrix();
 
-            this.waterMaterial.addToRenderList(mesh);
+            this.waterNode.material.addToRenderList(mesh);
 
             // TODO: gaps for bridges.
             // Create invisible wall.

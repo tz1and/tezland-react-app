@@ -1,3 +1,4 @@
+import { TransformNode } from "@babylonjs/core/Meshes";
 import { Game } from "./Game";
 
 export abstract class BaseWorld {
@@ -8,6 +9,8 @@ export abstract class BaseWorld {
     }
 
     //public abstract loadWorld(): Promise<void>;
+
+    public abstract getWorldNode(): TransformNode;
 
     public abstract dispose(): void;
 }
