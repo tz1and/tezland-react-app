@@ -2,7 +2,7 @@ import { Vector3, Color3, HemisphericLight,
     ShadowGenerator, CascadedShadowGenerator, Mesh,
     AbstractMesh, Nullable, ReflectionProbe,
     RenderTargetTexture, TransformNode, Color4 } from "@babylonjs/core";
-import { SkyMaterial } from "../materials/sky/skyMaterial";
+import { SkyMaterial } from "@babylonjs/materials";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
@@ -76,7 +76,6 @@ export class InteriorWorld extends BaseWorld {
         //skyMaterial.luminance = 0.3;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
-        // @ts-expect-error
         skyMaterial.dithering = true;
 
         this.skybox = Mesh.CreateBox('skyBox', 1000.0, this.game.scene, false, Mesh.BACKSIDE);

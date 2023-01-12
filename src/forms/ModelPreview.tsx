@@ -1,7 +1,7 @@
 import React from 'react';
-import { SkyMaterial } from "../materials/sky/skyMaterial";
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
+import { SkyMaterial } from "@babylonjs/materials";
 import { getFileType } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
@@ -77,7 +77,6 @@ class PreviewScene {
         //skyMaterial.luminance = 0.3;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
-        // @ts-expect-error
         skyMaterial.dithering = true;
 
         let skybox = Mesh.CreateBox("skyBox", 1000.0, skyScene, false, Mesh.BACKSIDE);
