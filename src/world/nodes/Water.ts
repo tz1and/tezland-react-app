@@ -20,12 +20,6 @@ export default class Water extends TransformNode {
 
         this.world = world;
 
-        scene.fogMode = Scene.FOGMODE_EXP;
-        //scene.fogStart = 5;
-        //scene.fogEnd = 100;
-        scene.fogColor = new Color3(0.1, 0.12, 0.22);
-        scene.fogDensity = 0;
-
         // The worlds water.
         const waterMaterial = new WaterMaterial("water", scene, new Vector2(512, 512));
         waterMaterial.backFaceCulling = false;

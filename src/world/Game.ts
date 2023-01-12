@@ -61,6 +61,13 @@ export class Game {
         this.scene.collisionsEnabled = true;
         this.scene.blockMaterialDirtyMechanism = true;
 
+        // Fog is currently needed for underwater.
+        this.scene.fogMode = Scene.FOGMODE_EXP;
+        //scene.fogStart = 5;
+        //scene.fogEnd = 100;
+        this.scene.fogColor = new Color3(0.1, 0.12, 0.22);
+        this.scene.fogDensity = 0;
+
         this.highlightLayer = new HighlightLayer("portalHl", this.scene);
 
         // Enable inspector in dev
