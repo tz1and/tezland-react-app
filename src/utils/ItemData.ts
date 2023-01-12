@@ -233,8 +233,8 @@ export class ItemDataParser {
         return [val, startIdx + sizeForBits(bits)];
     }
 
-    private static parseFloat16(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(16, uint8array, startIdx) }
-    private static parseFloat24(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(24, uint8array, startIdx) }
+    public static parseFloat16(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(16, uint8array, startIdx) }
+    public static parseFloat24(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(24, uint8array, startIdx) }
     private static parseFloat32(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(32, uint8array, startIdx) }
     private static parseFloat64(uint8array: Uint8Array, startIdx: number) { return this.parseFloat(64, uint8array, startIdx) }
 
@@ -490,8 +490,8 @@ export class ItemDataWriter {
         return startIdx + sizeForBits(bits);
     }
 
-    private static writeFloat16(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(16, uint8array, val, startIdx) }
-    private static writeFloat24(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(24, uint8array, val, startIdx) }
+    public static writeFloat16(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(16, uint8array, val, startIdx) }
+    public static writeFloat24(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(24, uint8array, val, startIdx) }
     private static writeFloat32(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(32, uint8array, val, startIdx) }
     private static writeFloat64(uint8array: Uint8Array, val: number, startIdx: number) { return this.writeFloat(64, uint8array, val, startIdx) }
 

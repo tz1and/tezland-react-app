@@ -21,6 +21,7 @@ import { Game } from "./Game";
 import PlaceKey from "../utils/PlaceKey";
 import PlaceProperties from "../utils/PlaceProperties";
 import WorldLocation from "../utils/WorldLocation";
+import Water from "./nodes/Water";
 
 
 const worldUpdateDistance = 10; // in m
@@ -48,6 +49,8 @@ export class InteriorWorld extends BaseWorld {
     private place: Nullable<InteriorPlaceNode> = null;
 
     private ground: Mesh;
+
+    private waterNode: Nullable<Water>;
 
     constructor(game: Game) {
         super(game);
@@ -99,6 +102,8 @@ export class InteriorWorld extends BaseWorld {
         this.ground.receiveShadows = true;
         this.ground.position.y = -0.01;
         this.ground.parent = this.worldNode;
+
+        this.waterNode = null;
 
         // After, camera, lights, etc, the shadow generator
         // TODO: shadow generator should be BaseWorld!
@@ -406,5 +411,23 @@ export class InteriorWorld extends BaseWorld {
 
         // Update env probe.
         this.reflectionProbe.cubeTexture.resetRefreshCounter();
+
+        // The worlds water.
+        if (props.interiorWaterLevel) {
+            if (this.waterNode) this.waterNode.waterLevel = props.interiorWaterLevel;
+            else {
+                const waterNode = new Water("water", this);
+                waterNode.parent = this.worldNode;
+                waterNode.material.addToRenderList(this.skybox);
+                waterNode.waterLevel = props.interiorWaterLevel;
+                this.waterNode = waterNode;
+            }
+        }
+        else {
+            if (this.waterNode) {
+                this.waterNode.dispose();
+                this.waterNode = null;
+            }
+        }
     }
 }

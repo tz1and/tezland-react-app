@@ -27,6 +27,8 @@ interface PlacePropertiesFormValues {
     interiorBackgroundColor: string;
     interiorOverrideLightDir: boolean;
     interiorLightDirection: Vector3;
+    interiorOverrideWaterLevel: boolean;
+    interiorWaterLevel: number;
     // Maybe general again:
     overrideSpawnPos: boolean;
     spawnPosition: Vector3;
@@ -63,6 +65,9 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
         // light dir
         interiorOverrideLightDir: placeProps.interiorLightDirection ? true : false,
         interiorLightDirection: placeProps.interiorLightDirection || new Vector3(1,1,1),
+        // water level
+        interiorOverrideWaterLevel: placeProps.interiorWaterLevel ? true : false,
+        interiorWaterLevel: placeProps.interiorWaterLevel || 10,
         // spawn pos
         overrideSpawnPos: placeProps.spawnPosition ? true : false,
         spawnPosition: placeProps.spawnPosition || new Vector3(0,0,0)
@@ -110,6 +115,12 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                         if(!MeshUtils.pointIsInside(absolute_pos, props.place.placeBounds))
                             errors.spawnPosition = "Spawn position is out of bounds.";
                     }
+
+                    if (values.interiorOverrideWaterLevel) {
+                        if (values.interiorWaterLevel < 0) {
+                            errors.spawnPosition = "Water level must be >= 0.";
+                        }
+                    }
                 }
 
                 // revalidation clears trisate and error
@@ -124,6 +135,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                 placeProps.interiorDisableFloor = values.interiorDisableFloor ? true : null;
                 placeProps.interiorBackgroundColor = values.interiorOverrideBackground ? values.interiorBackgroundColor : null;
                 placeProps.interiorLightDirection = values.interiorOverrideLightDir ? values.interiorLightDirection : null;
+                placeProps.interiorWaterLevel = values.interiorOverrideWaterLevel ? values.interiorWaterLevel : null;
                 placeProps.spawnPosition = values.overrideSpawnPos ? values.spawnPosition : null;
 
                 const [changes, removals] = placeProps.getChangesAndRemovals();
@@ -222,6 +234,14 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                             <div id="spawnPositionHelp" className="form-text">You can change the spawn position of your Interior.</div>
                             <Button variant='outline-primary' disabled={isSubmitting || !values.overrideSpawnPos} onClick={() => updatePosition(setFieldValue)}>Current position</Button>
                             <ErrorMessage name="spawnPosition" children={errorDisplay}/>
+                        </div>}
+
+                        {place_type === PlaceType.Interior && <div className="mb-3">
+                            <Field id="interiorOverrideWaterLevel" name="interiorOverrideWaterLevel" type="checkbox" className="form-check-input me-2" aria-describedby="interiorWaterLevelHelp" disabled={isSubmitting}/>
+                            <label htmlFor="interiorOverrideWaterLevel" className="form-label">Water level</label>
+                            <Field id="interiorWaterLevel" name="interiorWaterLevel" type="number" className="form-control" aria-describedby="interiorWaterLevelHelp" disabled={isSubmitting || !values.interiorOverrideWaterLevel} />
+                            <div id="interiorWaterLevelHelp" className="form-text">The Interiors water level, if any. 0 = ground level.</div>
+                            <ErrorMessage name="interiorWaterLevel" children={errorDisplay}/>
                         </div>}
 
                         {place_type === PlaceType.Interior && <div className="mb-3">

@@ -9,9 +9,7 @@ import waterbump from "../../models/waterbump.png";
 
 export default class Water extends TransformNode {
     readonly material: WaterMaterial;
-    //private waterMesh: Mesh;
-
-    readonly waterLevel: number;
+    private waterMesh: Mesh;
 
     private world: BaseWorld;
 
@@ -43,15 +41,14 @@ export default class Water extends TransformNode {
         waterMaterial.colorBlendFactor = 0.7;
         this.material = waterMaterial
 
-        this.waterLevel = -3;
-
         const water = Mesh.CreateGround("water", 2000, 2000, 4, world.game.scene);
         water.material = this.material;
         water.isPickable = true;
         water.checkCollisions = false;
         water.receiveShadows = true;
-        water.position.y = this.waterLevel;
+        water.position.y = -3;
         water.parent = this;
+        this.waterMesh = water;
 
         /*const water2 = Mesh.CreateGround("water", 2000, 2000, 4, world.game.scene);
         water2.material = this.material;
@@ -70,10 +67,16 @@ export default class Water extends TransformNode {
         world.game.scene.registerBeforeRender(this.updateWater);
     }
 
+    public get waterLevel() { return this.waterMesh.position.y; }
+    public set waterLevel(waterLevel: number) { this.waterMesh.position.y = waterLevel; }
+
     public override dispose(doNotRecurse?: boolean, disposeMaterialAndTextures?: boolean): void {
         super.dispose(doNotRecurse, disposeMaterialAndTextures);
 
         this.getScene().unregisterBeforeRender(this.updateWater);
+
+        // Also make sure the player isn't marked underwater anymore.
+        this.world.game.playerController.isUnderwater = false;
     }
 
     private eyesUnderwater: boolean;

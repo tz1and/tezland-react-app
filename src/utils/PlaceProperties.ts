@@ -23,6 +23,7 @@ export default class PlaceProperties {
     public interiorDisableFloor: Nullable<boolean>;
     public interiorBackgroundColor: Nullable<string>;
     public interiorLightDirection: Nullable<Vector3>;
+    public interiorWaterLevel: Nullable<number>;
     // Maybe general again:
     public spawnPosition: Nullable<Vector3>;
 
@@ -48,6 +49,9 @@ export default class PlaceProperties {
         const spawn_pos_prop = place_props.get('05');
         this.spawnPosition = spawn_pos_prop ? PlaceProperties.parseSpawnPostion(spawn_pos_prop) : null;
 
+        const water_levl_prop = place_props.get('06');
+        this.interiorWaterLevel = water_levl_prop ? ItemDataParser.parseFloat24(fromHexString(water_levl_prop), 0)[0] : null;
+
         // Copy the props map to a new map.
         this.oldProps = new Map(place_props.entries());
     }
@@ -55,6 +59,12 @@ export default class PlaceProperties {
     private static serialiseVec3_16(vec: Vector3): string {
         const serialised = new Uint8Array(6);
         ItemDataWriter.writeVec3_16(serialised, vec, 0);
+        return toHexString(serialised);
+    }
+
+    private static serialiseFloat_24(val: number): string {
+        const serialised = new Uint8Array(3);
+        ItemDataWriter.writeFloat24(serialised, val, 0);
         return toHexString(serialised);
     }
 
@@ -95,6 +105,8 @@ export default class PlaceProperties {
         if (this.interiorLightDirection) encoded_props.set('04', PlaceProperties.serialiseVec3_16(this.interiorLightDirection));
 
         if (this.spawnPosition) encoded_props.set('05', PlaceProperties.serialiseSpawnPosition(this.spawnPosition));
+
+        if (this.interiorWaterLevel) encoded_props.set('06', PlaceProperties.serialiseFloat_24(this.interiorWaterLevel));
 
         return encoded_props;
     }
