@@ -646,4 +646,5 @@ export class Contracts {
     }
 }
 
-export default new Contracts();
+const contracts = new Contracts();
+export default contracts;

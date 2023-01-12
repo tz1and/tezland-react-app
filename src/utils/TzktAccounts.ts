@@ -49,4 +49,5 @@ class TzktAccounts {
     }
 }
 
-export default new TzktAccounts();
+const tzktAccounts = new TzktAccounts();
+export default tzktAccounts;

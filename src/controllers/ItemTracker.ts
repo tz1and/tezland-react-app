@@ -103,4 +103,5 @@ class ItemTracker {
     }
 }
 
-export default new ItemTracker();
+const itemTracker = new ItemTracker();
+export default itemTracker;

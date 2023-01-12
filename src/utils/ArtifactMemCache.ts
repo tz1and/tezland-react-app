@@ -271,4 +271,5 @@ class ArtifactMemCache {
     }
 }
 
-export default new ArtifactMemCache();
+const memCache = new ArtifactMemCache();
+export default memCache;

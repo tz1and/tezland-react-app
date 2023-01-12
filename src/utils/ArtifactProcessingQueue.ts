@@ -1,9 +1,9 @@
 import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import PQueue from "p-queue";
+import { FileWithMetadata } from "../world/Metadata";
 import { Logging } from "./Logging";
 import RefCounted from "./RefCounted";
-import { FileWithMetadata } from "./Utils";
 
 GLTFFileLoader.IncrementalLoading = false;
 
@@ -134,4 +134,5 @@ class ArtifactProcessingQueue {
     };
 }
 
-export default new ArtifactProcessingQueue()
+const processingQueue = new ArtifactProcessingQueue();
+export default processingQueue;
