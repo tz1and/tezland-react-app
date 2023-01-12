@@ -1,4 +1,3 @@
-import { Scene } from "@babylonjs/core/scene";
 import { Texture } from "@babylonjs/core/Materials/Textures";
 import { Color3, Vector2 } from "@babylonjs/core/Maths/math";
 import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
