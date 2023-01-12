@@ -9,7 +9,7 @@ import { WorldHolderInfo } from '../components/item/WorldHolderInfo';
 import { ItemDisplay } from '../components/item/ItemDisplay';
 import { Logging } from '../utils/Logging';
 import TokenKey from '../utils/TokenKey';
-import PlaceKey from '../utils/PlaceKey';
+import PlaceKey, { getPlaceName } from '../utils/PlaceKey';
 
 
 type CollectFormProps = {
@@ -64,7 +64,7 @@ export const CollectForm: React.FC<CollectFormProps> = (props) => {
                 </Container>
 
                 {props.xtzPerItem > 0 ?
-                    <><Button onClick={collectItem}>{`Collect for ${props.xtzPerItem} \uA729`}</Button> from Place #{props.placeKey.id}</> :
+                    <><Button onClick={collectItem}>{`Collect for ${props.xtzPerItem} \uA729`}</Button> from {getPlaceName(props.placeKey)}</> :
                     <><Button disabled>Not collectible</Button></>}
             </div>
         </div>

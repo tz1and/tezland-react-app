@@ -40,3 +40,7 @@ export function getPlaceType(fa2: string) {
     Logging.ErrorDev(`Unknown place type: ${fa2}`);
     return PlaceType.Unknown;
 }
+
+export function getPlaceName(placeKey: PlaceKey) {
+    return `${getPlaceType(placeKey.fa2)} #${placeKey.id}`;
+}

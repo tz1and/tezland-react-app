@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { getDirectoryEnabledGlobal } from "../forms/DirectoryForm";
-import PlaceKey, { getPlaceType, PlaceType } from "./PlaceKey";
+import PlaceKey, { getPlaceName, getPlaceType, PlaceType } from "./PlaceKey";
 import TokenKey from "./TokenKey";
 import { truncateAddress } from "./Utils";
 
@@ -57,7 +57,7 @@ export namespace DirectoryUtils {
 
     export const placeLinkElement = (placeKey: PlaceKey, targetBlank = false): JSX.Element => {
         const extraProps = targetBlank ? { target: "_blank", rel: "noopener noreferrer" } : { };
-        return <Link {...extraProps} to={DirectoryUtils.placeLink(placeKey)}>Place #{placeKey.id}</Link>
+        return <Link {...extraProps} to={DirectoryUtils.placeLink(placeKey)}>{getPlaceName(placeKey)}</Link>
     }
 
     export const tagLink = (tag: string): string => {

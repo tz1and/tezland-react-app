@@ -6,7 +6,7 @@ import AppSettings from "../storage/AppSettings";
 import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
 import assert from "assert";
 import Conf from "../Config";
-import PlaceKey, { getPlaceType } from "../utils/PlaceKey";
+import PlaceKey, { getPlaceName } from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 
 
@@ -79,9 +79,8 @@ export default class SpawnSelectWidget extends React.Component<SpawnSelectProps,
     override render(): React.ReactNode {
         const listElements: JSX.Element[] = []
         for (var place of this.state.userPlaces) {
-            const place_type = getPlaceType(place.token.contractId)
-            const token_key = new PlaceKey(place.token.tokenId, place.token.contractId);
-            listElements.push(<option key={token_key.toString()} value={token_key.toJson()}>{place_type} #{place.token.tokenId}</option>);
+            const placeKey = new PlaceKey(place.token.tokenId, place.token.contractId);
+            listElements.push(<option key={placeKey.toString()} value={placeKey.toJson()}>{getPlaceName(placeKey)}</option>);
         }
 
         // TODO: don't hardcode number of districts, load them from DistrictDefinition.

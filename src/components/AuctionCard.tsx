@@ -6,7 +6,7 @@ import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import AuctionDetails from './AuctionDetails';
-import { getPlaceType, PlaceType } from '../utils/PlaceKey';
+import { getPlaceName, getPlaceType, PlaceType } from '../utils/PlaceKey';
 import { WorldMap2D } from "./WorldMap2D";
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 import { BaseAuction, BaseAuctionProps, BaseAuctionState } from './BaseAuction';
@@ -98,7 +98,7 @@ export default class AuctionCard extends BaseAuction<AuctionCardProps, AuctionCa
 
                 <div className='p-3 text-center'>
                     <img className="mx-auto mb-1 d-block" src="/logo192.png" alt="" width="48" height="48" />
-                    <h4 className="mb-0">{placeType} #{this.props.placeKey.id}</h4>
+                    <h4 className="mb-0">{getPlaceName(this.props.placeKey)}</h4>
                     <small className='d-block mb-0'>Auction #{this.props.auctionId}</small>
                     <Link to={DirectoryUtils.placeExploreLink(this.props.placeKey)} target='_blank' className="btn btn-outline-secondary btn-sm mt-1">Visit place</Link>
                 </div>
