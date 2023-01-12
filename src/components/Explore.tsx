@@ -38,7 +38,7 @@ type ExploreState = {
     form_props?: OverlayFormProps | undefined;
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     currentPlace: BasePlaceNode | null;
-    virtualSpaceFailed: boolean;
+    virtualSpaceFailed?: string;
 };
 
 export default class Explore extends React.Component<ExploreProps, ExploreState> {
@@ -49,8 +49,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         this.state = {
             show_form: AppTerms.termsAccepted.value ? OverlayForm.Instructions : OverlayForm.Terms,
             notifications: [],
-            currentPlace: null,
-            virtualSpaceFailed: false
+            currentPlace: null
         };
     }
 
@@ -134,7 +133,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
     virtualSpaceFailed = (e: any) => {
         Logging.Error("Failed to load:", e);
-        this.setState({virtualSpaceFailed: true});
+        this.setState({virtualSpaceFailed: e.toString()});
     }
 
     private getFormElement(): JSX.Element | undefined {
@@ -213,7 +212,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
     override render() {
         // NOTE: maybe could use router for overlay/forms.
-        if(this.state.virtualSpaceFailed) return <LoadingError/>;
+        if(this.state.virtualSpaceFailed) return <LoadingError errorMsg={this.state.virtualSpaceFailed}/>;
 
         const overlay = this.getOverlay();
 
