@@ -9,6 +9,7 @@ import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker'
 import { ModuleThread, Pool } from "threads";
 import assert from "assert";
 import TokenKey from "./TokenKey";
+import { isImageFileType } from "./Utils";
 
 
 async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {
@@ -106,7 +107,9 @@ export default class ArtifactDownload {
                 processed = await preprocessMesh(cachedBuf, mime_type, maxTexRes);
             }
 
-            return { file: new File([processed], itemMetadata.artifactUri, {type: "model/gltf-binary" }), metadata: itemMetadata };
+            const new_mime_type = isImageFileType(mime_type) ? mime_type : "model/gltf-binary";
+
+            return { file: new File([processed], itemMetadata.artifactUri, {type: new_mime_type }), metadata: itemMetadata };
         }
         catch(e: any) {
             Logging.ErrorDev(`Pre-processing model for token ${token_key.id} failed: ${e}`);

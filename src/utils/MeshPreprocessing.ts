@@ -6,11 +6,46 @@ import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
 import { Logging } from './Logging';
 import assert from 'assert';
+import { isImageFileType } from './Utils';
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
 
 
 export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, maxTexRes: number): Promise<Uint8Array> {
     //if (detectInsideWebworker()) Logging.InfoDev("Processing in webworker");
+
+    if(isImageFileType(mime_type)) {
+        // TODO: unduplicate image resizing code!
+        const res = await createImageBitmap(new Blob([buffer])); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
+
+        // Compute new height < maxTexRes
+        let newWidth = res.width;
+        let newHeight = res.height;
+        if (res.width > maxTexRes || res.height > maxTexRes) {
+            const aspectRatio = res.width / res.height;
+            if (res.width > res.height) {
+                newWidth = maxTexRes;
+                newHeight = Math.floor(maxTexRes / aspectRatio);
+            }
+            else {
+                newHeight = maxTexRes;
+                newWidth = Math.floor(maxTexRes * aspectRatio);
+            }
+        }
+
+        //Logging.InfoDev("old", res.width, res.height);
+        //Logging.InfoDev("new", newWidth, newHeight);
+
+        const canvas: any = new OffscreenCanvas(newWidth, newHeight);
+        const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+        assert(context);
+        context.drawImage(res, 0, 0, newWidth, newHeight);
+
+        const blob: Blob = await canvas.convertToBlob({type: mime_type});
+        const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
+        res.close();
+
+        return newImageBuffer;
+    }
 
     // TODO: preprocess!
     let document: Document;
