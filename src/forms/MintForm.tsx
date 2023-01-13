@@ -421,11 +421,11 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                     <div id="collectionHelp" className="form-text">The collection to mint in.</div>
                                                 </div>
                                                 <div className="mb-3">
-                                                    <label htmlFor="itemFile" className="form-label">3D Model file</label>
+                                                    <label htmlFor="itemFile" className="form-label">3D Model/Image file</label>
                                                     <Field id="itemFile" name="itemFile" className="form-control" aria-describedby="fileHelp" component={CustomFileUpload} disabled={isSubmitting} />
                                                     <div id="fileHelp" className="form-text">
                                                         Only glb models are supported. Self-contained gltf files will work, too.<br/>
-                                                        <a href="https://framer.tz1and.com/" target="_blank" rel="noreferrer">3D-framed images are also supported.</a><br/>
+                                                        Image formats supported: png, jpeg.<br/>
                                                         Current (default, soft) limit: {AppSettings.triangleLimit.defaultValue}/{AppSettings.triangleLimitInterior.defaultValue} triangles, {AppSettings.fileSizeLimit.defaultValue / 1024 / 1024}/{AppSettings.fileSizeLimitInterior.defaultValue / 1024 / 1024} Mb
                                                     </div>
                                                     <ErrorMessage name="itemFile" children={this.errorDisplay}/>
