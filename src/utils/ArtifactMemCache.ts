@@ -6,7 +6,7 @@ import AppSettings from "../storage/AppSettings";
 import { ModuleThread, spawn, Thread } from "threads"
 import { Logging } from "./Logging";
 import assert from "assert";
-import { getFileType } from "./Utils";
+import { getFileType, isImageFileType } from "./Utils";
 import { ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
@@ -133,9 +133,18 @@ class ArtifactMemCache {
 
             const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });
 
+            let resolution;
+            if (isImageFileType(mime_type)) {
+                const res = await createImageBitmap(file);
+                resolution = {
+                    width: res.width, height: res.height
+                }
+                res.close();
+            }
+
             // NOTE: this is kinda nasty...
             return ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
-                baseScale: 1
+                baseScale: 1, ...resolution
             } as ItemTokenMetadata}, scene);
         })()
 
@@ -153,7 +162,11 @@ class ArtifactMemCache {
         if (parent.isDisposed()) return null;
 
         // get the original, untransformed bounding vectors from the asset.
-        parent.boundingVectors = asset?.object.meshes[0].getHierarchyBoundingVectors();
+        if (asset.object.rootNodes.length > 0) {
+            parent.boundingVectors = asset.object.rootNodes[0].getHierarchyBoundingVectors();
+        } else {
+            parent.boundingVectors = asset.object.meshes[0].getHierarchyBoundingVectors();
+        }
     
         // Instantiate.
         // Getting first root node is probably enough.
@@ -212,7 +225,11 @@ class ArtifactMemCache {
         if (parent.isDisposed()) return null;
 
         // get the original, untransformed bounding vectors from the asset.
-        parent.boundingVectors = asset.object.meshes[0].getHierarchyBoundingVectors();
+        if (asset.object.rootNodes.length > 0) {
+            parent.boundingVectors = asset.object.rootNodes[0].getHierarchyBoundingVectors();
+        } else {
+            parent.boundingVectors = asset.object.meshes[0].getHierarchyBoundingVectors();
+        }
     
         // Instantiate.
         // Getting first root node is probably enough.

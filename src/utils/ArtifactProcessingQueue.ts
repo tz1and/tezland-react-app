@@ -1,5 +1,6 @@
 import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { GLTFFileLoader } from '@babylonjs/loaders';
+import assert from "assert";
 import PQueue from "p-queue";
 import { FileWithMetadata } from "../world/Metadata";
 import { createFrameForImage } from "./FrameImage";
@@ -54,7 +55,9 @@ class ArtifactProcessingQueue {
     private async processArtifact(download: FileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
         if (isImageFileType(download.file.type)) {
             const assetContainer = new AssetContainer(scene);
-            const framedImage = await createFrameForImage(download.file, scene, assetContainer);
+            // TODO: get dimensions from metadata or something!
+            assert(download.metadata.width !== null && download.metadata.height !== null, "No image resolution in metadata.");
+            createFrameForImage(download.file, {width: download.metadata.width, height: download.metadata.height}, scene, assetContainer);
 
             // Enabled collision on all meshes.
             assetContainer.meshes.forEach((m) => {
@@ -64,6 +67,19 @@ class ArtifactProcessingQueue {
                 //m.useOctreeForPicking = true;
                 //m.useOctreeForRenderingSelection = true;
             });
+
+            // Freeze all materials.
+            assetContainer.materials.forEach(m => m.freeze());
+        
+            // Normalise scale to base scale (1m by default).
+            // NOTE: use result.meshes[0] instead of transformNodes
+            // NOTE: could use normalizeToUnitCube, but that doesn't let us scale freely.
+            const baseScale = download.metadata.baseScale; // in m
+            const {min, max} = assetContainer.transformNodes[0].getHierarchyBoundingVectors(true);
+            const extent = max.subtract(min);
+            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+            const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
+            assetContainer.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
             return new RefCounted(assetContainer);
         }

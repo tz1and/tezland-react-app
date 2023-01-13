@@ -125,7 +125,9 @@ class PreviewScene {
 
             let polycount = 0;
             if (isImageFile(file_type)) {
-                this.previewObject = await createFrameForImage(file, this.scene, null);
+                const res = await createImageBitmap(file);
+                this.previewObject = createFrameForImage(file, {width: res.width, height: res.height}, this.scene, null);
+                res.close();
             }
             else {
                 const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null, '.' + file_type);

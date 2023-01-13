@@ -98,6 +98,8 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
                 const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
 
                 t.setImage(newImageBuffer);
+
+                res.close();
             }
             catch(e: any) {
                 Logging.Warn("Failed to resize texture: " + t.getName());

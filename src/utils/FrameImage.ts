@@ -86,24 +86,23 @@ function frameMaker(name: string, options: {path: Vector3[], profile: Vector3[]}
     return mergedMesh.convertToFlatShadedMesh();
 }
 
-export async function createFrameForImage(file: File, scene: Scene, assetContainer: Nullable<AssetContainer>) {
-    // TODO: blocking entity collection should absolutely happen before
-    // loading the texture, but await will totally break it.
-    const tex = await loadTextureAsync(file, scene);
-
+export function createFrameForImage(file: File, dim: {width: number, height: number}, scene: Scene, assetContainer: Nullable<AssetContainer>) {
     scene._blockEntityCollection = !!assetContainer;
+
+    const tex = Texture.LoadFromDataString(file.name, file, scene);
     tex._parentContainer = assetContainer;
 
     const mat = new StandardMaterial("image_mat", scene);
     mat.diffuseTexture = tex;
     mat.indexOfRefraction = 1.5;
-    mat.emissiveColor = new Color3(0.8, 0.8, 0.8);
+    mat.emissiveColor = new Color3(0.7, 0.7, 0.7);
     //mat.directIntensity = 2;
     mat.roughness = 0.8;
     mat._parentContainer = assetContainer;
 
-    const size = tex.getBaseSize();
-    const image = MeshBuilder.CreatePlane("image", { width: size.width, height: size.height, sideOrientation: Mesh.FRONTSIDE }, scene);
+    console.log(dim);
+
+    const image = MeshBuilder.CreatePlane("image", { width: dim.width, height: dim.height, sideOrientation: Mesh.FRONTSIDE }, scene);
     image.material = mat;
     image._parentContainer = assetContainer;
 
@@ -121,17 +120,17 @@ export async function createFrameForImage(file: File, scene: Scene, assetContain
     backMat.roughness = 1;
     backMat._parentContainer = assetContainer;
 
-    const back = MeshBuilder.CreatePlane("back", { width: size.width, height: size.height, sideOrientation: Mesh.BACKSIDE }, scene);
+    const back = MeshBuilder.CreatePlane("back", { width: dim.width, height: dim.height, sideOrientation: Mesh.BACKSIDE }, scene);
     back.material = backMat;
     back._parentContainer = assetContainer;
 
     // TODO: Needs to be a var in metadata?
-    const frameSize = Math.max(size.width, size.height) / 50;
+    const frameSize = Math.max(dim.width, dim.height) / 50;
     const frameSizeB = frameSize / 3 * 2;
 
     // Frame path needs to account for frame size.
-    const w_half = size.width * 0.5 + frameSize * 2;
-    const h_half = size.height * 0.5 + frameSize * 2;
+    const w_half = dim.width * 0.5 + frameSize * 2;
+    const h_half = dim.height * 0.5 + frameSize * 2;
 
     const path = [
         new Vector3(-w_half, -h_half, 0),
