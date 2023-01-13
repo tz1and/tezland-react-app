@@ -11,6 +11,7 @@ import { ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import RefCounted from "./RefCounted";
+import { defaultFrameParams } from "./FrameImage";
 //import { Logging } from "./Logging";
 
 
@@ -137,7 +138,8 @@ class ArtifactMemCache {
             if (isImageFileType(mime_type)) {
                 const res = await createImageBitmap(file);
                 resolution = {
-                    width: res.width, height: res.height
+                    width: res.width, height: res.height,
+                    imageFrameJson: defaultFrameParams
                 }
                 res.close();
             }

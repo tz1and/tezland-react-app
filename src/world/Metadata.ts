@@ -1,6 +1,7 @@
 import { deleteDB } from "idb";
 import { grapphQLUser } from "../graphql/user";
 import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
+import { FrameParams } from "../utils/FrameImage";
 import { Logging } from "../utils/Logging";
 
 export type FileWithMetadata = {
@@ -24,6 +25,7 @@ export type ItemTokenMetadata = {
     minter: string;
     width: number | null;
     height: number | null;
+    imageFrameJson: FrameParams | null;
 }
 
 export type PlaceTokenMetadata = {

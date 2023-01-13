@@ -47,6 +47,9 @@ query getItemTokenMetadata($id: bigint!, $fa2: String!) {
         fileSize
         mimeType
         polygonCount
+        width
+        height
+        imageFrameJson
         timestamp
         token {
             tokenId

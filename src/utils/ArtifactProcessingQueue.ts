@@ -3,7 +3,7 @@ import { GLTFFileLoader } from '@babylonjs/loaders';
 import assert from "assert";
 import PQueue from "p-queue";
 import { FileWithMetadata } from "../world/Metadata";
-import { createFrameForImage, defaultFrameParams } from "./FrameImage";
+import { createFrameForImage } from "./FrameImage";
 import { Logging } from "./Logging";
 import RefCounted from "./RefCounted";
 import { isImageFileType } from "./Utils";
@@ -57,7 +57,8 @@ class ArtifactProcessingQueue {
             const assetContainer = new AssetContainer(scene);
             // TODO: get dimensions from metadata or something!
             assert(download.metadata.width !== null && download.metadata.height !== null, "No image resolution in metadata.");
-            createFrameForImage(download.file, {width: download.metadata.width, height: download.metadata.height}, defaultFrameParams, scene, assetContainer);
+            assert(download.metadata.imageFrameJson, "No image frame in metadata.");
+            createFrameForImage(download.file, {width: download.metadata.width, height: download.metadata.height}, download.metadata.imageFrameJson, scene, assetContainer);
 
             // Enabled collision on all meshes.
             assetContainer.meshes.forEach((m) => {
