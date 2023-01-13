@@ -1,6 +1,7 @@
 import Conf from '../Config';
 import { FileLike, RefLike } from '../utils/Utils';
 import assert from 'assert';
+import { FrameParams } from '../utils/FrameImage';
 
 
 type Royalties = {
@@ -18,7 +19,7 @@ type MetadataFormat = {
     mimeType: string;
     fileName: string;
     fileSize?: number;
-    dimensions?: MetadataFormatDimensions;
+    dimensions?: MetadataFormatDimensions | undefined;
 }
 
 type ItemMetadata = {
@@ -34,6 +35,7 @@ type ItemMetadata = {
     polygonCount: number;
     date: Date;
     royalties: Royalties;
+    imageFrame?: FrameParams | undefined;
 }
 
 export function processTags(tags: string): string[] {
@@ -68,7 +70,8 @@ export function createItemTokenMetadata(metadata: ItemMetadata): string {
         royalties: {
             decimals: metadata.royalties.decimals,
             shares: Object.fromEntries(metadata.royalties.shares)
-        }
+        },
+        imageFrame: metadata.imageFrame
     });
 }
 

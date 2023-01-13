@@ -11,7 +11,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { dataURItoBlob, fileToFileLike, getFileType } from '../utils/Utils';
+import { dataURItoBlob, fileToFileLike, getFileType, isImageFileType } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import Conf from '../Config';
@@ -25,6 +25,8 @@ import { grapphQLUser } from '../graphql/user';
 import { GetUserCollectionsQuery } from '../graphql/generated/user';
 import { Logging } from '../utils/Logging';
 import { Royalties } from '../components/Royalties';
+import { defaultFrameParams } from '../utils/FrameImage';
+
 
 interface MintFormValues {
     collection: string;
@@ -181,10 +183,13 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         MintFrom.checkImageValid(decoded_display, displayRes, displayRes, "display");
 
         // TODO: validate mimeType in validation.
-        var mime_type;
+        let mime_type;
         const file_type = await getFileType(values.itemFile);
+        // TODO: have a getMimeType
         if(file_type === "glb") mime_type = "model/gltf-binary";
         else if(file_type === "gltf") mime_type = "model/gltf+json";
+        else if(file_type === "png") mime_type = "image/png";
+        else if(file_type === "jpg" || file_type === "jpeg") mime_type = "image/jpeg";
         else throw new Error("Unsupported mimeType");
 
         const metadata_royalties = new Map<string, number>();
@@ -192,6 +197,19 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         for (const [k, v] of values.itemRoyalties) metadata_royalties.set(k, Math.floor(v * 10));
         metadata_royalties.set(Conf.fees_address, 35);
 
+        const isImage = isImageFileType(file_type);
+
+        let imageDimenstions;
+        if (isImage) {
+            const res = await createImageBitmap(values.itemFile);
+            imageDimenstions = {
+                value: res.width + "x" + res.height,
+                unit: "px"
+            }
+            res.close();
+        }
+
+        // TODO: add frame parameters!
         const metadata = createItemTokenMetadata({
             name: values.itemTitle,
             description: values.itemDescription,
@@ -207,6 +225,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                     mimeType: mime_type,
                     fileSize: values.itemFile.size,
                     fileName: values.itemFile.name,
+                    dimensions: imageDimenstions
                 },
                 {
                     uri: { topLevelRef: "displayUri" },
@@ -232,7 +251,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             royalties: {
                 decimals: 3,
                 shares: metadata_royalties
-            }
+            },
+            imageFrame: isImage ? defaultFrameParams : undefined
         });
 
         let data;

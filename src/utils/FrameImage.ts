@@ -9,7 +9,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
 
 
-type FrameParams = {
+export type FrameParams = {
     version: number;
     imageMat: {
         indexOfRefraction: number;

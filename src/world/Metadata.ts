@@ -22,6 +22,8 @@ export type ItemTokenMetadata = {
     polygonCount: number;
     timestamp: string;
     minter: string;
+    width: number | null;
+    height: number | null;
 }
 
 export type PlaceTokenMetadata = {
