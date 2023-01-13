@@ -12,7 +12,7 @@ import TokenKey from '../utils/TokenKey';
 import { instantiateOptions } from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
 import { Logging } from '../utils/Logging';
-import { createFrameForImage } from '../utils/FrameImage';
+import { createFrameForImage, defaultFrameParams } from '../utils/FrameImage';
 
 
 class PreviewScene {
@@ -126,7 +126,7 @@ class PreviewScene {
             let polycount = 0;
             if (isImageFile(file_type)) {
                 const res = await createImageBitmap(file);
-                this.previewObject = createFrameForImage(file, {width: res.width, height: res.height}, this.scene, null);
+                this.previewObject = createFrameForImage(file, {width: res.width, height: res.height}, defaultFrameParams, this.scene, null);
                 res.close();
             }
             else {

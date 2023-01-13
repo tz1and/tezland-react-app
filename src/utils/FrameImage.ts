@@ -7,25 +7,69 @@ import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
-import { Logging } from "./Logging";
 
 
-function loadTextureAsync(file: File, scene: Scene): Promise<Texture> {
-    return new Promise((resolve, reject) => {
-        const tex = Texture.LoadFromDataString(file.name, file, scene,
-            undefined, // deleteBuffer
-            undefined, // noMipmapOrOptions
-            undefined, // invertY
-            undefined, // samplingMode
-            undefined, // onLoad
-            (err) => { // onError
-                Logging.Error(err);
-                reject(err);
-            });
-        tex.onLoadObservable.addOnce((texture) => {
-            resolve(texture);
-        })
-    });
+type FrameParams = {
+    version: number;
+    imageMat: {
+        indexOfRefraction: number;
+        emissiveColor: [number, number, number];
+        roughness: number;
+    };
+    frameMat: {
+        diffuseColor: [number, number, number];
+        indexOfRefraction: number;
+        roughness: number;
+    };
+    backMat: {
+        diffuseColor: [number, number, number];
+        indexOfRefraction: number;
+        roughness: number;
+    };
+    frame: {
+        // Size of the frame in relation to the image.
+        // Math.max(dim.width, dim.height) * frameParams.frame.frameRatio;
+        frameRatio: number;
+        // The frame profile. Values should not exceed 1.0, scaled by frameRatio.
+        // In XY plane, the left most point(s) will form the outer edge of the frame along the given path.
+        // Winding order matters.
+        profile: [number, number][];
+        // Offset of image and back panel.
+        // Relative to frameSize, 0 = center. 1 = outer edge.
+        frontOffset: number;
+        backOffset: number;
+    }
+}
+
+export const defaultFrameParams: FrameParams = {
+    version: 1,
+    imageMat: {
+        indexOfRefraction: 1.5,
+        emissiveColor: [0.7, 0.7, 0.7],
+        roughness: 0.8
+    },
+    frameMat: {
+        diffuseColor: [0.06, 0.04, 0.02],
+        indexOfRefraction: 1.4,
+        roughness: 0.2
+    },
+    backMat: {
+        diffuseColor: [0.455, 0.26, 0.13],
+        indexOfRefraction: 1.0,
+        roughness: 1.0
+    },
+    frame: {
+        frameRatio: 0.02,
+        profile: [
+            [-1, 1],
+            [-1, -1],
+            //[2/3, -1],
+            [1, -2/3],
+            [1, 1],
+        ],
+        frontOffset: 0.2,
+        backOffset: -0.8
+    }
 }
 
 function frameMaker(name: string, options: {path: Vector3[], profile: Vector3[]}, scene: Scene) {	
@@ -85,7 +129,7 @@ function frameMaker(name: string, options: {path: Vector3[], profile: Vector3[]}
     return mergedMesh.convertToFlatShadedMesh();
 }
 
-export function createFrameForImage(file: File, dim: {width: number, height: number}, scene: Scene, assetContainer: Nullable<AssetContainer>) {
+export function createFrameForImage(file: File, dim: {width: number, height: number}, frameParams: FrameParams, scene: Scene, assetContainer: Nullable<AssetContainer>) {
     scene._blockEntityCollection = !!assetContainer;
 
     const tex = Texture.LoadFromDataString(file.name, file, scene);
@@ -93,10 +137,10 @@ export function createFrameForImage(file: File, dim: {width: number, height: num
 
     const mat = new StandardMaterial("image_mat", scene);
     mat.diffuseTexture = tex;
-    mat.indexOfRefraction = 1.5;
-    mat.emissiveColor = new Color3(0.7, 0.7, 0.7);
+    mat.indexOfRefraction = frameParams.imageMat.indexOfRefraction;
+    mat.emissiveColor = Color3.FromArray(frameParams.imageMat.emissiveColor);
     //mat.directIntensity = 2;
-    mat.roughness = 0.8;
+    mat.roughness = frameParams.imageMat.roughness;
     mat._parentContainer = assetContainer;
 
     const image = MeshBuilder.CreatePlane("image", { width: dim.width, height: dim.height, sideOrientation: Mesh.FRONTSIDE }, scene);
@@ -105,16 +149,16 @@ export function createFrameForImage(file: File, dim: {width: number, height: num
 
     const frameMat = new StandardMaterial("frame_mat", scene);
     // TODO: Needs to be a var in metadata?
-    frameMat.diffuseColor = new Color3(0.06, 0.04, 0.02);
-    frameMat.indexOfRefraction = 1.4;
-    frameMat.roughness = 0.2;
+    frameMat.diffuseColor = Color3.FromArray(frameParams.frameMat.diffuseColor);
+    frameMat.indexOfRefraction = frameParams.frameMat.indexOfRefraction;
+    frameMat.roughness = frameParams.frameMat.roughness;
     frameMat._parentContainer = assetContainer;
 
     const backMat = new StandardMaterial("back_mat", scene);
     // TODO: Needs to be a var in metadata?
-    backMat.diffuseColor = new Color3(0.35, 0.2, 0.1).scale(1.3);
-    backMat.indexOfRefraction = 1.0;
-    backMat.roughness = 1;
+    backMat.diffuseColor = Color3.FromArray(frameParams.backMat.diffuseColor)
+    backMat.indexOfRefraction = frameParams.backMat.indexOfRefraction;
+    backMat.roughness = frameParams.backMat.roughness;
     backMat._parentContainer = assetContainer;
 
     const back = MeshBuilder.CreatePlane("back", { width: dim.width, height: dim.height, sideOrientation: Mesh.BACKSIDE }, scene);
@@ -122,8 +166,7 @@ export function createFrameForImage(file: File, dim: {width: number, height: num
     back._parentContainer = assetContainer;
 
     // TODO: Needs to be a var in metadata?
-    const frameSize = Math.max(dim.width, dim.height) / 50;
-    const frameSizeB = frameSize / 3 * 2;
+    const frameSize = Math.max(dim.width, dim.height) * frameParams.frame.frameRatio;
 
     // Frame path needs to account for frame size.
     const w_half = dim.width * 0.5 + frameSize * 2;
@@ -136,17 +179,13 @@ export function createFrameForImage(file: File, dim: {width: number, height: num
         new Vector3(-w_half, h_half, 0)
     ];
 
-    // TODO: Profile may need to be a var in metadata?
-    //profile in XoY plane, the left most point(s) will form the outer edge of the frame along the given path.
-    const profilePoints = [
-        new Vector3(-frameSize, frameSize, 0),
-        new Vector3(-frameSize, -frameSize, 0),
-        //new Vector3(frameSizeB, -frameSize, 0),
-        new Vector3(frameSize, -frameSizeB, 0),
-        new Vector3(frameSize, frameSize, 0),
-    ];
+    // profile in XoY plane, the left most point(s) will form the outer edge of the frame along the given path.
+    const profilePoints: Vector3[] = [];
+    for (const tup of frameParams.frame.profile) {
+        profilePoints.push(new Vector3(tup[0] * frameSize, tup[1] * frameSize, 0))
+    }
 
-    const frame = frameMaker("line", {path: path, profile:profilePoints}, scene);
+    const frame = frameMaker("frame", {path: path, profile:profilePoints}, scene);
     frame.material = frameMat;
     frame._parentContainer = assetContainer;
 
@@ -156,11 +195,11 @@ export function createFrameForImage(file: File, dim: {width: number, height: num
     parent._parentContainer = assetContainer;
 
     image.parent = parent;
-    image.position.z -= frameSize;
+    image.position.z -= frameSize + (frameSize * frameParams.frame.frontOffset);
     frame.parent = parent;
     frame.position.z -= frameSize;
     back.parent = parent;
-    back.position.z -= frameSize * 0.5;
+    back.position.z -= frameSize + (frameSize * frameParams.frame.backOffset);
 
     scene._blockEntityCollection = false;
 
