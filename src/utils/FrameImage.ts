@@ -49,9 +49,9 @@ export const defaultFrameParams: FrameParams = {
         roughness: 0.3
     },
     frameMat: {
-        diffuseColor: [0.06, 0.04, 0.02],
+        diffuseColor: [0.4, 0.35, 0.4],
         indexOfRefraction: 1.4,
-        roughness: 0.2
+        roughness: 0.8
     },
     backMat: {
         diffuseColor: [0.455, 0.26, 0.13],
