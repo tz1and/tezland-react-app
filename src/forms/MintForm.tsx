@@ -197,7 +197,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         for (const [k, v] of values.itemRoyalties) metadata_royalties.set(k, Math.floor(v * 10));
         metadata_royalties.set(Conf.fees_address, 35);
 
-        const isImage = isImageFileType(file_type);
+        const isImage = isImageFileType(mime_type);
 
         let imageDimenstions;
         if (isImage) {

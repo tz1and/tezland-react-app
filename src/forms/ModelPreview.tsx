@@ -121,7 +121,7 @@ class PreviewScene {
             // TODO: use asset container.
             const file_type = await getFileType(file);
 
-            Logging.InfoDev("Loading file:", file.name)
+            Logging.InfoDev("Loading file:", file.name);
 
             let polycount = 0;
             if (isImageFile(file_type)) {
