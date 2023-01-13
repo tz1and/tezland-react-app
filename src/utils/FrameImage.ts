@@ -74,8 +74,7 @@ function frameMaker(name: string, options: {path: Vector3[], profile: Vector3[]}
             extrusionPaths[m].push(new Vector3(cornerProfile[p][m].x, cornerProfile[p][m].y, profile[m].y));
             extrusionPaths[m].push(new Vector3(cornerProfile[(p + 1) % nbPoints][m].x, cornerProfile[(p + 1) % nbPoints][m].y, profile[m].y));
         }
-        
-        // TODO: don't use double sdie
+
         frame[p] = MeshBuilder.CreateRibbon("frameLeft", {pathArray: extrusionPaths, sideOrientation: Mesh.BACKSIDE, updatable: true, closeArray: true}, scene);
     }
 
@@ -99,8 +98,6 @@ export function createFrameForImage(file: File, dim: {width: number, height: num
     //mat.directIntensity = 2;
     mat.roughness = 0.8;
     mat._parentContainer = assetContainer;
-
-    console.log(dim);
 
     const image = MeshBuilder.CreatePlane("image", { width: dim.width, height: dim.height, sideOrientation: Mesh.FRONTSIDE }, scene);
     image.material = mat;
