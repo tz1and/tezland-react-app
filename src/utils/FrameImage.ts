@@ -28,14 +28,14 @@ type FrameParams = {
     };
     frame: {
         // Size of the frame in relation to the image.
-        // Math.max(dim.width, dim.height) * frameParams.frame.frameRatio;
+        // frameSize = `Math.max(img.width, img.height) * frame.frameRatio;`
         frameRatio: number;
-        // The frame profile. Values should not exceed 1.0, scaled by frameRatio.
-        // In XY plane, the left most point(s) will form the outer edge of the frame along the given path.
-        // Winding order matters.
+        // The frame profile, in the XY plane, scaled by frameSize.
+        // Values -1 and 1 are the "edge" of the frame, values can exceed those limits, but probably shouldn't.
+        // Winding order matters (because backfaces).
         profile: [number, number][];
         // Offset of image and back panel.
-        // Relative to frameSize, 0 = center. 1 = outer edge.
+        // Relative to frameSize, 0 = center. -1 and 1 = outer edge.
         frontOffset: number;
         backOffset: number;
     }
@@ -46,7 +46,7 @@ export const defaultFrameParams: FrameParams = {
     imageMat: {
         indexOfRefraction: 1.5,
         emissiveColor: [0.7, 0.7, 0.7],
-        roughness: 0.8
+        roughness: 0.3
     },
     frameMat: {
         diffuseColor: [0.06, 0.04, 0.02],
