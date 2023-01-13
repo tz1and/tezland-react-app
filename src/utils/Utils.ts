@@ -99,6 +99,7 @@ export const sleep = (milliseconds: number) => {
 
 // Tries to get the file type from the file header, otherwise
 // returns extension.
+// TODO: rename to getFileExt
 export const getFileType = async (file: File): Promise<string> => {
   const fbuf = await file.arrayBuffer();
   const view = new DataView(fbuf);
@@ -110,10 +111,16 @@ export const getFileType = async (file: File): Promise<string> => {
   return getFileExt(file.name);
 }
 
-export const isImageFileType = (ext: string) => {
+export const isImageFile = (ext: string) => {
   if (ext === "jpg") return true;
   if (ext === "jpeg") return true;
   if (ext === "png") return true;
+  return false;
+}
+
+export const isImageFileType = (mime_type: string) => {
+  if (mime_type === "image/jpeg") return true;
+  if (mime_type === "image/png") return true;
   return false;
 }
 

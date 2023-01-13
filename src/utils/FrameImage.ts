@@ -1,10 +1,12 @@
-import { PBRMaterial } from "@babylonjs/core/Materials/PBR";
+import { AssetContainer } from "@babylonjs/core/assetContainer";
+import { StandardMaterial } from "@babylonjs/core/Materials";
 import { Texture } from "@babylonjs/core/Materials/Textures";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
+import { Nullable } from "@babylonjs/core/types";
 import { Logging } from "./Logging";
 
 
@@ -84,32 +86,44 @@ function frameMaker(name: string, options: {path: Vector3[], profile: Vector3[]}
     return mergedMesh.convertToFlatShadedMesh();
 }
 
-export async function createFrameForImage(file: File, scene: Scene) {
-    const mat = new PBRMaterial("image_mat", scene);
+export async function createFrameForImage(file: File, scene: Scene, assetContainer: Nullable<AssetContainer>) {
+    // TODO: blocking entity collection should absolutely happen before
+    // loading the texture, but await will totally break it.
     const tex = await loadTextureAsync(file, scene);
-    mat.albedoTexture = tex;
-    mat.metallic = 0.1;
+
+    scene._blockEntityCollection = !!assetContainer;
+    tex._parentContainer = assetContainer;
+
+    const mat = new StandardMaterial("image_mat", scene);
+    mat.diffuseTexture = tex;
+    mat.indexOfRefraction = 1.5;
+    mat.emissiveColor = new Color3(0.8, 0.8, 0.8);
     //mat.directIntensity = 2;
     mat.roughness = 0.8;
+    mat._parentContainer = assetContainer;
 
-    const size = tex.getSize();
+    const size = tex.getBaseSize();
     const image = MeshBuilder.CreatePlane("image", { width: size.width, height: size.height, sideOrientation: Mesh.FRONTSIDE }, scene);
     image.material = mat;
+    image._parentContainer = assetContainer;
 
-    const frameMat = new PBRMaterial("frame_mat", scene);
+    const frameMat = new StandardMaterial("frame_mat", scene);
     // TODO: Needs to be a var in metadata?
-    frameMat.albedoColor = new Color3(0.03, 0.02, 0.01);
-    frameMat.metallic = 0.4;
+    frameMat.diffuseColor = new Color3(0.06, 0.04, 0.02);
+    frameMat.indexOfRefraction = 1.4;
     frameMat.roughness = 0.2;
+    frameMat._parentContainer = assetContainer;
 
-    const backMat = new PBRMaterial("back_mat", scene);
+    const backMat = new StandardMaterial("back_mat", scene);
     // TODO: Needs to be a var in metadata?
-    backMat.albedoColor = new Color3(0.2, 0.1, 0.05);
-    backMat.metallic = 0.0;
+    backMat.diffuseColor = new Color3(0.35, 0.2, 0.1).scale(1.3);
+    backMat.indexOfRefraction = 1.0;
     backMat.roughness = 1;
+    backMat._parentContainer = assetContainer;
 
     const back = MeshBuilder.CreatePlane("back", { width: size.width, height: size.height, sideOrientation: Mesh.BACKSIDE }, scene);
     back.material = backMat;
+    back._parentContainer = assetContainer;
 
     // TODO: Needs to be a var in metadata?
     const frameSize = Math.max(size.width, size.height) / 50;
@@ -138,16 +152,35 @@ export async function createFrameForImage(file: File, scene: Scene) {
 
     const frame = frameMaker("line", {path: path, profile:profilePoints}, scene);
     frame.material = frameMat;
+    frame._parentContainer = assetContainer;
 
     // TODO: frame and image need to be offset somehow.
 
     const parent = new TransformNode("parent", scene);
+    parent._parentContainer = assetContainer;
+
     image.parent = parent;
-    image.position.z += frameSize;
+    image.position.z -= frameSize;
     frame.parent = parent;
-    frame.position.z += frameSize;
+    frame.position.z -= frameSize;
     back.parent = parent;
-    back.position.z += frameSize + frameSize * 0.5;
+    back.position.z -= frameSize * 0.5;
+
+    scene._blockEntityCollection = false;
+
+    if (assetContainer) {
+        // Add to AssetContainer.
+        assetContainer.meshes.push(...parent.getChildMeshes());
+        assetContainer.transformNodes.push(parent);
+        assetContainer.rootNodes.push(parent);
+
+        for (const mesh of assetContainer.meshes) {
+            if (mesh.material) {
+                assetContainer.materials.push(mesh.material);
+                assetContainer.textures.push(...mesh.material.getActiveTextures())
+            }
+        }
+    }
 
     return parent;
 }

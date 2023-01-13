@@ -124,8 +124,11 @@ class ArtifactMemCache {
         assetPromise = (async () => {
             var mime_type;
             const file_type = await getFileType(file);
+            // TODO: have a getMimeType
             if(file_type === "glb") mime_type = "model/gltf-binary";
             else if(file_type === "gltf") mime_type = "model/gltf+json";
+            else if(file_type === "png") mime_type = "image/png";
+            else if(file_type === "jpg" || file_type === "jpeg") mime_type = "image/jpeg";
             else throw new Error("Unsupported mimeType");
 
             const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });

@@ -2,8 +2,10 @@ import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, 
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import PQueue from "p-queue";
 import { FileWithMetadata } from "../world/Metadata";
+import { createFrameForImage } from "./FrameImage";
 import { Logging } from "./Logging";
 import RefCounted from "./RefCounted";
+import { isImageFileType } from "./Utils";
 
 GLTFFileLoader.IncrementalLoading = false;
 
@@ -50,47 +52,64 @@ class ArtifactProcessingQueue {
     }
     
     private async processArtifact(download: FileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
-        let plugin_ext;
-        if (download.file.type === "model/gltf-binary")
-            plugin_ext = ".glb";
-        else if (download.file.type === "model/gltf+json")
-            plugin_ext = ".gltf";
-        else throw new Error("Unsupported mimeType");
-    
-        // LoadAssetContainer?
-        const result = await SceneLoader.LoadAssetContainerAsync(download.file.name, download.file, scene, null, plugin_ext);
-    
-        // remove all lights and cameras.
-        while (result.lights.length) result.lights[0].dispose();
-        while (result.cameras.length) result.cameras[0].dispose();
-    
-        ArtifactProcessingQueue.removeRefraction(result.materials);
-    
-        // Enabled collision on all meshes.
-        result.meshes.forEach((m) => {
-            m.checkCollisions = true;
-            // needed? maybe decide based on polycount!
-            //m.useOctreeForCollisions = true;
-            //m.useOctreeForPicking = true;
-            //m.useOctreeForRenderingSelection = true;
-        })
-        // Make sure to stop all animations.
-        result.animationGroups.forEach(ag => ag.stop());
+        if (isImageFileType(download.file.type)) {
+            const assetContainer = new AssetContainer(scene);
+            const framedImage = await createFrameForImage(download.file, scene, assetContainer);
 
-        // Freeze all materials.
-        result.materials.forEach(m => m.freeze());
-    
-        // Normalise scale to base scale (1m by default).
-        // NOTE: use result.meshes[0] instead of transformNodes
-        // NOTE: could use normalizeToUnitCube, but that doesn't let us scale freely.
-        const baseScale = download.metadata.baseScale; // in m
-        const {min, max} = result.meshes[0].getHierarchyBoundingVectors(true);
-        const extent = max.subtract(min);
-        const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
-        const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
-        result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-    
-        return new RefCounted(result);
+            // Enabled collision on all meshes.
+            assetContainer.meshes.forEach((m) => {
+                m.checkCollisions = true;
+                // needed? maybe decide based on polycount!
+                //m.useOctreeForCollisions = true;
+                //m.useOctreeForPicking = true;
+                //m.useOctreeForRenderingSelection = true;
+            });
+
+            return new RefCounted(assetContainer);
+        }
+        else {
+            let plugin_ext;
+            if (download.file.type === "model/gltf-binary")
+                plugin_ext = ".glb";
+            else if (download.file.type === "model/gltf+json")
+                plugin_ext = ".gltf";
+            else throw new Error("Unsupported mimeType");
+        
+            // LoadAssetContainer?
+            const result = await SceneLoader.LoadAssetContainerAsync(download.file.name, download.file, scene, null, plugin_ext);
+        
+            // remove all lights and cameras.
+            while (result.lights.length) result.lights[0].dispose();
+            while (result.cameras.length) result.cameras[0].dispose();
+        
+            ArtifactProcessingQueue.removeRefraction(result.materials);
+        
+            // Enabled collision on all meshes.
+            result.meshes.forEach((m) => {
+                m.checkCollisions = true;
+                // needed? maybe decide based on polycount!
+                //m.useOctreeForCollisions = true;
+                //m.useOctreeForPicking = true;
+                //m.useOctreeForRenderingSelection = true;
+            })
+            // Make sure to stop all animations.
+            result.animationGroups.forEach(ag => ag.stop());
+
+            // Freeze all materials.
+            result.materials.forEach(m => m.freeze());
+        
+            // Normalise scale to base scale (1m by default).
+            // NOTE: use result.meshes[0] instead of transformNodes
+            // NOTE: could use normalizeToUnitCube, but that doesn't let us scale freely.
+            const baseScale = download.metadata.baseScale; // in m
+            const {min, max} = result.meshes[0].getHierarchyBoundingVectors(true);
+            const extent = max.subtract(min);
+            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+            const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
+            result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+        
+            return new RefCounted(result);
+        }
     }
 
     static removeRefraction(materials: Nullable<Material>[]) {

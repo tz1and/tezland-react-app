@@ -2,7 +2,7 @@ import React from 'react';
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
-import { getFileType, isImageFileType } from '../utils/Utils';
+import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
@@ -124,8 +124,8 @@ class PreviewScene {
             Logging.InfoDev("Loading file:", file.name)
 
             let polycount = 0;
-            if (isImageFileType(file_type)) {
-                this.previewObject = await createFrameForImage(file, this.scene);
+            if (isImageFile(file_type)) {
+                this.previewObject = await createFrameForImage(file, this.scene, null);
             }
             else {
                 const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null, '.' + file_type);
