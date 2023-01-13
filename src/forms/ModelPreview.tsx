@@ -2,7 +2,7 @@ import React from 'react';
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
-import { getFileType } from '../utils/Utils';
+import { getFileType, isImageFileType } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
@@ -11,6 +11,8 @@ import BabylonUtils from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
 import { instantiateOptions } from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
+import { Logging } from '../utils/Logging';
+import { createFrameForImage } from '../utils/FrameImage';
 
 
 class PreviewScene {
@@ -45,7 +47,7 @@ class PreviewScene {
     }
 
     private createScene() {
-        var scene = new Scene(this.engine);
+        let scene = new Scene(this.engine);
 
         scene.collisionsEnabled = false;
 
@@ -110,17 +112,31 @@ class PreviewScene {
              this.previewObject = null;
         }
 
-        if(!file) return -1;
+        if(!file) {
+            Logging.ErrorDev("File not set.")
+            return -1;
+        }
 
         try {
             // TODO: use asset container.
             const file_type = await getFileType(file);
-            const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null, '.' + file_type);
-            // remove all lights.
-            result.lights.forEach((l) => { l.dispose(); });
-            // stop animations
-            result.animationGroups.forEach((ag) => { ag.stop(); })
-            this.previewObject = result.meshes[0] as Mesh;
+
+            Logging.InfoDev("Loading file:", file.name)
+
+            let polycount = 0;
+            if (isImageFileType(file_type)) {
+                this.previewObject = await createFrameForImage(file, this.scene);
+            }
+            else {
+                const result = await SceneLoader.ImportMeshAsync('', '', file, this.scene, null, '.' + file_type);
+                // remove all lights.
+                result.lights.forEach((l) => { l.dispose(); });
+                // stop animations
+                result.animationGroups.forEach((ag) => { ag.stop(); })
+                this.previewObject = result.meshes[0] as Mesh;
+
+                polycount = MeshUtils.countPolygons(result.meshes);
+            }
 
             const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
             const extent = max.subtract(min);
@@ -133,7 +149,6 @@ class PreviewScene {
 
             this.previewObject.position.y = -extent.y * new_scale / 2;
 
-            const polycount = MeshUtils.countPolygons(result.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.
@@ -141,7 +156,8 @@ class PreviewScene {
 
             return polycount;
         }
-        catch {
+        catch(e) {
+            Logging.ErrorDev(e);
             modelLoaded('failed', 0, 0);
 
             return -1;

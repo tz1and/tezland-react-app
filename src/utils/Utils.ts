@@ -110,6 +110,13 @@ export const getFileType = async (file: File): Promise<string> => {
   return getFileExt(file.name);
 }
 
+export const isImageFileType = (ext: string) => {
+  if (ext === "jpg") return true;
+  if (ext === "jpeg") return true;
+  if (ext === "png") return true;
+  return false;
+}
+
 export const getFileExt = (filename: string) => {
   return filename.substring(filename.lastIndexOf('.') + 1);
 }
