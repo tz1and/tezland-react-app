@@ -1,6 +1,5 @@
 import { Button, Col, Row } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
-import image_framer from '../img/image_framer.webp';
 import building_maker from '../img/building_maker.webp';
 
 
