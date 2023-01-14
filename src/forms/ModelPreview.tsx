@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
-    Nullable, ReflectionProbe, RenderTargetTexture, Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
+    MeshBuilder, Nullable, ReflectionProbe, RenderTargetTexture,
+    Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
@@ -81,7 +82,7 @@ class PreviewScene {
         skyMaterial.sunPosition = sun_direction.scale(-1);
         skyMaterial.dithering = true;
 
-        let skybox = Mesh.CreateBox("skyBox", 1000.0, skyScene, false, Mesh.BACKSIDE);
+        const skybox = MeshBuilder.CreateIcoSphere("skyBox", {subdivisions: 8, radius: 1000.0, sideOrientation: Mesh.BACKSIDE}, skyScene);
         skybox.material = skyMaterial;
 
         // reflection probe

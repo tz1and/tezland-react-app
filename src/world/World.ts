@@ -89,7 +89,7 @@ export class World extends BaseWorld {
         skyMaterial.sunPosition = sun_direction.scale(-1);
         skyMaterial.dithering = true;
 
-        this.skybox = Mesh.CreateBox("skyBox", 1000.0, this.game.scene, false, Mesh.BACKSIDE);
+        this.skybox = MeshBuilder.CreateIcoSphere("skyBox", {subdivisions: 8, radius: 1000.0, sideOrientation: Mesh.BACKSIDE}, this.game.scene);
         this.skybox.material = skyMaterial;
         this.skybox.parent = this.worldNode;
 

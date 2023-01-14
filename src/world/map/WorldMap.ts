@@ -236,7 +236,7 @@ export class WorldMap {
         waterMaterial.colorBlendFactor = 0.7;
         this.waterMaterial = waterMaterial
 
-        const water = Mesh.CreateGround("water", 2000, 2000, 4, this.scene);
+        const water = MeshBuilder.CreateGround("interiorGround", {width: 2000.0, height: 2000.0, subdivisions: 4}, this.game.scene);
         water.material = this.waterMaterial;
         water.isPickable = false;
         water.checkCollisions = true;

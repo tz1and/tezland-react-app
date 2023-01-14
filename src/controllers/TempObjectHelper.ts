@@ -1,4 +1,4 @@
-import { Color3, DeepImmutable, Mesh, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
+import { Color3, DeepImmutable, Mesh, MeshBuilder, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import { SimpleMaterial } from "@babylonjs/materials";
 import ItemNode from "../world/nodes/ItemNode";
 
@@ -23,7 +23,7 @@ export default class TempObjectHelper {
         this.node.rotationQuaternion = quat;
 
         // positioning helper.
-        this.cube = Mesh.CreateBox("cube", 1, scene, false);
+        this.cube = MeshBuilder.CreateBox("dummyShadowCaster", {size: 1.0}, scene);
         this.cube.isPickable = false;
         this.cube.parent = this.node;
         this.cube.material = this.material;

@@ -285,17 +285,17 @@ class OtherPlayer {
 
     constructor(name: string, parent: TransformNode) {
         this.tranformNode = new TransformNode(name);
-        this.head = Mesh.CreateBox("head", 0.4, null, false);
+        this.head = MeshBuilder.CreateBox("head", {size: 0.4}, null);
         this.head.isPickable = false;
         this.head.parent = this.tranformNode;
         this.head.position.y = 1.8 - 0.15; // TODO: don't hardocde this
 
-        const nose = Mesh.CreateBox("nose", 0.075, null, false);
+        const nose = MeshBuilder.CreateBox("nose", {size: 0.075}, null);
         nose.isPickable = false;
         nose.parent = this.head;
         nose.position.z = 0.225;
 
-        this.body = Mesh.CreateCylinder("body", 0.8, 0.75, 0.75, 12, null, undefined, false);
+        this.body = MeshBuilder.CreateCylinder("body", {height: 0.8, diameterTop: 0.75, diameterBottom: 0.75, tessellation: 12}, null);
         this.body.isPickable = false;
         this.body.parent = this.tranformNode;
         this.body.position.y = 0.95; // TODO: don't hardocde this

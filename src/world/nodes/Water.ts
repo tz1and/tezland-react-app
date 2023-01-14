@@ -1,6 +1,6 @@
 import { Texture } from "@babylonjs/core/Materials/Textures";
 import { Color3, Vector2 } from "@babylonjs/core/Maths/math";
-import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
+import { Mesh, MeshBuilder, TransformNode } from "@babylonjs/core/Meshes";
 import { WaterMaterial } from "@babylonjs/materials/water";
 import { BaseWorld } from "../BaseWorld";
 import waterbump from "../../models/waterbump.png";
@@ -34,7 +34,7 @@ export default class Water extends TransformNode {
         waterMaterial.colorBlendFactor = 0.7;
         this.material = waterMaterial
 
-        const water = Mesh.CreateGround("water", 2000, 2000, 4, world.game.scene);
+        const water = MeshBuilder.CreateGround("water", {width: 2000.0, height: 2000.0, subdivisions: 4}, world.game.scene);
         water.material = this.material;
         water.isPickable = true;
         water.checkCollisions = false;
@@ -43,7 +43,7 @@ export default class Water extends TransformNode {
         water.parent = this;
         this.waterMesh = water;
 
-        /*const water2 = Mesh.CreateGround("water", 2000, 2000, 4, world.game.scene);
+        /*const water2 = MeshBuilder.CreateGround("water", {width: 2000.0, height: 2000.0, subdivisions: 4}, world.game.scene);
         water2.material = this.material;
         water2.isPickable = true;
         water2.checkCollisions = false;
