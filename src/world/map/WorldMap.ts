@@ -211,10 +211,7 @@ export class WorldMap {
 
         const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
         skyMaterial.backFaceCulling = false;
-        //skyMaterial.inclination = 0.25;
-        //skyMaterial.turbidity = 1;
-        //skyMaterial.rayleigh = 3;
-        //skyMaterial.luminance = 0.3;
+        //skyMaterial.fogEnabled = false;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
         skyMaterial.dithering = true;
