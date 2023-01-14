@@ -85,6 +85,7 @@
     "util": "^0.12.5",
     "vite": "^4.0.4",
     "vite-plugin-eslint": "^1.8.1",
+    "vite-plugin-tsc-watch": "^2.0.1",
     "vitest": "^0.27.0"
   },
   "scripts": {
@@ -94,7 +95,7 @@
     "build:dev": "NODE_OPTIONS=--max-old-space-size=32768 vite build --mode development --sourcemap true",
     "build:staging": "NODE_OPTIONS=--max-old-space-size=32768 vite build --mode staging --sourcemap true",
     "preview": "vite preview --port 3006",
-    "test": "vitest --mode development",
+    "test": "vitest --mode test",
     "lint": "eslint --max-warnings=0 --ignore-path .gitignore --ignore-pattern 'src/external' src",
     "analyze": "source-map-explorer 'dist/assets/*.js' --no-border-checks",
     "generate-licenses": "node scripts/generate-licenses.js",

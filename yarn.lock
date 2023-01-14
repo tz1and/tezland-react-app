@@ -8800,6 +8800,11 @@ vite-plugin-eslint@^1.8.1:
     "@types/eslint" "^8.4.5"
     rollup "^2.77.2"
 
+vite-plugin-tsc-watch@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/vite-plugin-tsc-watch/-/vite-plugin-tsc-watch-2.0.1.tgz#d449aa3fe0f5dd78326298f485fe064b00b27a10"
+  integrity sha512-GuZ5wlZFEl1/S1imsQxHzDizRaeLQeBo+b9M5Afp0qE8tn/0NezSvS7XUS4ea6/hA2BgBw5/TJ6Hlkbv4JoB3w==
+
 "vite@^3.0.0 || ^4.0.0", vite@^4.0.4:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/vite/-/vite-4.0.4.tgz#4612ce0b47bbb233a887a54a4ae0c6e240a0da31"

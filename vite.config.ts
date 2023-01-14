@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import eslint from 'vite-plugin-eslint'
+import eslintPlugin from 'vite-plugin-eslint'
+import { tscPlugin } from 'vite-plugin-tsc-watch'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import replace from 'rollup-plugin-re'
 //import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
@@ -94,7 +95,7 @@ export default defineConfig(({command, mode}) => {
         },
 
         plugins: [
-            command === "build" ? {
+            command === 'build' && {
                 ...replace({
                     include: ['node_modules/@airgap/**'],
                     replaces: {
@@ -102,9 +103,10 @@ export default defineConfig(({command, mode}) => {
                     },
                 }),
                 enforce: 'pre',
-            } : null,
+            },
+            mode !== 'test' && eslintPlugin(),
+            mode !== 'test' && tscPlugin(),
             htmlPlugin(),
-            eslint(),
             react(),
         ]
     }
