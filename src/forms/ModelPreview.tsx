@@ -114,6 +114,20 @@ class PreviewScene {
         }
     }
 
+    private scaleAndCenterVertically(object: TransformNode) {
+        const {min, max} = object.getHierarchyBoundingVectors(true);
+        const extent = max.subtract(min);
+
+        const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
+
+        // Scale and move object based on extent.
+        const new_scale = 6 / extent_max;
+        object.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+
+        // Center the object in height by its extent.
+        object.position.y = (extent.y / 2 + min.y) * -new_scale;
+    }
+
     async loadObject(modelLoaded: ModelLoadedCallback, file: File | undefined, frameOpts: {ratio: number, color: string}): Promise<[number, FrameParams | undefined]> {
         // Tell the mint form the model is unloaded/false.
         modelLoaded('none', 0, 0);
@@ -157,17 +171,7 @@ class PreviewScene {
                 polycount = MeshUtils.countPolygons(result.meshes);
             }
 
-            const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
-            const extent = max.subtract(min);
-
-            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
-
-            // Scale and move object based on extent.
-            const new_scale = 6 / extent_max;
-            this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-
-            // Center the object in height by its extent.
-            this.previewObject.position.y = (extent.y / 2 + min.y) * -new_scale;
+            this.scaleAndCenterVertically(this.previewObject);
 
             //Logging.Log("polycount", polycount);
 
@@ -205,16 +209,7 @@ class PreviewScene {
             const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
             this.previewObject = instance.rootNodes[0];
 
-            const {min, max} = this.previewObject.getHierarchyBoundingVectors(true);
-            const extent = max.subtract(min);
-
-            const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
-
-            // Scale and move object based on extent.
-            const new_scale = 6 / extent_max;
-            this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-
-            this.previewObject.position.y = -extent.y * new_scale / 2;
+            this.scaleAndCenterVertically(this.previewObject);
 
             const polycount = MeshUtils.countPolygons(asset.object.meshes);
             //Logging.Log("polycount", polycount);
