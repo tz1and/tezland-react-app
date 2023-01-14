@@ -65,8 +65,8 @@ export class Game {
         this.scene.fogMode = Scene.FOGMODE_EXP;
         //scene.fogStart = 5;
         //scene.fogEnd = 100;
-        this.scene.fogColor = new Color3(0.1, 0.12, 0.22);
-        this.scene.fogDensity = 0;
+        this.scene.fogColor = BaseWorld.FogSettings.color;
+        this.scene.fogDensity = BaseWorld.FogSettings.density;
 
         this.highlightLayer = new HighlightLayer("portalHl", this.scene);
 

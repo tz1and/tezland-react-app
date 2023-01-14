@@ -91,10 +91,12 @@ export default class Water extends TransformNode {
 
             const scene = this.world.game.scene;
             if (this.eyesUnderwater) {
+                scene.fogColor = new Color3(0.1, 0.12, 0.22);
                 scene.fogDensity = 0.05;
             }
             else {
-                scene.fogDensity = 0.0;
+                scene.fogColor = BaseWorld.FogSettings.color;
+                scene.fogDensity = BaseWorld.FogSettings.density;
             }
         }
 
