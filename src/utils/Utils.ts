@@ -125,7 +125,7 @@ export const isImageFileType = (mime_type: string) => {
 }
 
 export const getFileExt = (filename: string) => {
-  return filename.substring(filename.lastIndexOf('.') + 1);
+  return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
 }
 
 export const signedArea = (data: number[], start: number, end: number, dim: number) => {
