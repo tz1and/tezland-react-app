@@ -15,22 +15,6 @@ export default function Tools() {
             <Row xs={1} md={2}>
                 <Col>
                     <div className="mx-auto mx-md-0">
-                        <a href="https://framer.tz1and.com" target="_blank" rel="noreferrer noopener">
-                            <img src={image_framer} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
-                                height="500" loading="lazy" />
-                        </a>
-                    </div>
-                    <div className="mt-3 mb-5">
-                        <h1>Image Framer</h1>
-                        <p className="lead">
-                            By NoRulesJustFeels - <a className="link-secondary" href="https://github.com/NoRulesJustFeels/image-framer" target="_blank" rel="noreferrer noopener">GitHub Repo</a>.<br/>
-                            Frames images in a 3d frame.<br/>
-                            <Button size="lg" className="mt-2" as={"a"} href="https://framer.tz1and.com" target="_blank" rel="noreferrer noopener">Open Image Framer</Button>
-                        </p>
-                    </div>
-                </Col>
-                <Col>
-                    <div className="mx-auto mx-md-0">
                         <a href="https://building.tz1and.com" target="_blank" rel="noreferrer noopener">
                             <img src={building_maker} className="d-block img-fluid rounded-3 shadow" alt="Bootstrap Themes" width="700"
                                 height="500" loading="lazy" />
