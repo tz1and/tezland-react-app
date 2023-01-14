@@ -248,8 +248,8 @@ type ModelPreviewProps = {
     width?: number;
     height?: number;
     bgColorSelection?: boolean;
-    frameColor: string;
-    frameRatio: number;
+    frameColor?: string | undefined;
+    frameRatio?: number | undefined;
 };
 
 type ModelPreviewState = {
@@ -278,7 +278,8 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
         // File or frame changed, update the preview.
         if(this.props.file !== prevProps.file ||
             this.props.frameRatio !== prevProps.frameRatio) {
-            // if file is not null and preview exists.
+            // TODO: is it correct to assert this?
+            assert(this.props.frameRatio !== undefined && this.props.frameColor !== undefined);
             if(this.state.preview) {
                 this.state.preview.loadObject(this.props.modelLoaded, this.props.file, {ratio: this.props.frameRatio, color: this.props.frameColor}).then(([polycount, frameParams]) => {
                     this.setState({ polycount: polycount, frameParams: frameParams });
@@ -288,6 +289,8 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
 
         // Frame color changed.
         if(this.props.frameColor !== prevProps.frameColor) {
+            // TODO: is it correct to assert this?
+            assert(this.props.frameColor !== undefined);
             if(this.state.preview) {
                 this.state.preview.updateFrame(this.props.frameColor);
             }
