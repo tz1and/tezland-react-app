@@ -11,7 +11,7 @@ import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
 import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { dataURItoBlob, fileToFileLike, getFileType, isImageFileType } from '../utils/Utils';
+import { dataURItoBlob, fileToFileLike, getFileExt, getFileType, isImageFile, isImageFileType } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import Conf from '../Config';
@@ -25,7 +25,6 @@ import { grapphQLUser } from '../graphql/user';
 import { GetUserCollectionsQuery } from '../graphql/generated/user';
 import { Logging } from '../utils/Logging';
 import { Royalties } from '../components/Royalties';
-import { defaultFrameParams } from '../utils/FrameImage';
 
 
 interface MintFormValues {
@@ -35,6 +34,8 @@ interface MintFormValues {
     itemTags: string;
     itemAmount: number;
     itemRoyalties: [string, number][];
+    frameRatio: number;
+    frameColor: string;
     itemFile?: File | undefined;
 }
 
@@ -59,7 +60,9 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         itemDescription: "",
         itemTags: "",
         itemAmount: 1,
-        itemRoyalties: []
+        itemRoyalties: [],
+        frameRatio: 0.02,
+        frameColor: '#555555'
     };
     private modelPreviewRef = React.createRef<ModelPreview>();
     private formikRef = React.createRef<FormikProps<MintFormValues>>();
@@ -169,6 +172,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         // TEMP: don't check this for images, etc:
         // For some meshes (fox) you can't count the polygons...
         assert(this.modelPreviewRef.current.state.polycount >= 0);
+        assert(this.modelPreviewRef.current.state.frameParams !== undefined);
 
         // Get thumbnail and check it's valid.
         const thumbnailRes = 350;
@@ -201,6 +205,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
 
         let imageDimenstions;
         if (isImage) {
+            // TODO: get this from model preview. pass image dimensions back to mint form.
+            // also the image frame settings? no, they probably need to be passed *into* model preview.
             const res = await createImageBitmap(values.itemFile);
             imageDimenstions = {
                 value: res.width + "x" + res.height,
@@ -208,6 +214,8 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             }
             res.close();
         }
+
+        const frameParams = this.modelPreviewRef.current.state.frameParams;
 
         // TODO: add frame parameters!
         const metadata = createItemTokenMetadata({
@@ -252,7 +260,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                 decimals: 3,
                 shares: metadata_royalties
             },
-            imageFrame: isImage ? defaultFrameParams : undefined
+            imageFrame: isImage ? frameParams : undefined
         });
 
         let data;
@@ -437,13 +445,13 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                         <Col sm='12' md='7'>
                                                             <label htmlFor="itemTitle" className="form-label">Title</label>
                                                             <Field id="itemTitle" name="itemTitle" type="text" className="form-control" disabled={isSubmitting} />
-                                                            <div id="amountHelp" className="form-text">Name/title of the minted item.</div>
+                                                            <div id="itemTitleHelp" className="form-text">Name/title of the minted item.</div>
                                                             <ErrorMessage name="itemTitle" children={this.errorDisplay}/>
                                                         </Col>
                                                         <Col sm='12' md='5'>
                                                             <label htmlFor="itemAmount" className="form-label">Amount</label>
-                                                            <Field id="itemAmount" name="itemAmount" type="number" min={1} max={10000} className="form-control" aria-describedby="amountHelp" disabled={isSubmitting} />
-                                                            <div id="amountHelp" className="form-text">Number of Items minted.</div>
+                                                            <Field id="itemAmount" name="itemAmount" type="number" min={1} max={10000} className="form-control" aria-describedby="itemAmountHelp" disabled={isSubmitting} />
+                                                            <div id="itemAmountHelp" className="form-text">Number of Items minted.</div>
                                                             <ErrorMessage name="itemAmount" children={this.errorDisplay}/>
                                                         </Col>
                                                     </Row>
@@ -459,6 +467,23 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                     <Field id="itemTags" name="itemTags" type="text" className="form-control" aria-describedby="tagsHelp" disabled={isSubmitting} />
                                                     <div id="tagsHelp" className="form-text">List of tags, separated by <b>;</b>.</div>
                                                 </div>
+                                                {values.itemFile && isImageFile(getFileExt(values.itemFile.name)) && 
+                                                    <Container className='mx-0 px-0 mb-3'>
+                                                        <Row className='gx-3'>
+                                                            <Col sm='12' md='6'>
+                                                                <label htmlFor="frameColor" className="form-label">Frame color</label>
+                                                                <Field id="frameColor" name="frameColor" type="color" className="form-control" aria-describedby="frameColorHelp" style={{height: "2.4rem"}} disabled={isSubmitting} />
+                                                                <div id="frameColorHelp" className="form-text">Color of the frame.</div>
+                                                                <ErrorMessage name="frameColor" children={this.errorDisplay}/>
+                                                            </Col>
+                                                            <Col sm='12' md='6'>
+                                                                <label htmlFor="frameRatio" className="form-label">Frame ratio</label>
+                                                                <Field id="frameRatio" name="frameRatio" type="number" min="0" max="0.5" step="0.01" className="form-control" aria-describedby="frameRatioHelp" disabled={isSubmitting} />
+                                                                <div id="frameRatioHelp" className="form-text">Ratio of frame to image.</div>
+                                                                <ErrorMessage name="frameRatio" children={this.errorDisplay}/>
+                                                            </Col>
+                                                        </Row>
+                                                    </Container>}
                                                 <div className="mb-3">
                                                     <label htmlFor="itemRoyalties" className="form-label">Royalties</label>
                                                     <Field id="itemRoyalties" name="itemRoyalties" component={Royalties} rows={2} className="form-control" disabled={isSubmitting} />
@@ -471,7 +496,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                                                 {this.state.error && ( <small className='text-danger'>Minting Item failed: {this.state.error}</small> )}
                                             </Col>
                                             <Col md='5'>
-                                                <ModelPreview file={values.itemFile} ref={this.modelPreviewRef} width={350} height={350} modelLoaded={this.modelLoaded} bgColorSelection={true} />
+                                                <ModelPreview file={values.itemFile} frameColor={values.frameColor} frameRatio={values.frameRatio} ref={this.modelPreviewRef} width={350} height={350} modelLoaded={this.modelLoaded} bgColorSelection={true} />
                                                 <div className='bg-info bg-info p-3 text-dark rounded small mb-2'>The image will be used for the preview thumbnail.<br/>
                                                     Use the mouse to control the view.<br/><br/>
                                                     Mouse wheel: zoom<br/>

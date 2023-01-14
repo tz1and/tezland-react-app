@@ -61,11 +61,11 @@ export const defaultFrameParams: FrameParams = {
     frame: {
         frameRatio: 0.02,
         profile: [
-            [-1, 1],
-            [-1, -1],
-            //[2/3, -1],
-            [1, -2/3],
-            [1, 1],
+            [-1.05, 1.05],
+            [-1.05, -1.05],
+            //[2/3, -1.05],
+            [1.05, -2/3],
+            [1.05, 1.05],
         ],
         frontOffset: 0.2,
         backOffset: -0.8

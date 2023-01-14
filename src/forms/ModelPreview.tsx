@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
     MeshBuilder, Nullable, ReflectionProbe, RenderTargetTexture,
-    Scene, SceneLoader, Tools, TransformNode, Vector3 } from "@babylonjs/core";
+    Scene, SceneLoader, StandardMaterial, Tools, TransformNode, Vector3 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
@@ -13,7 +13,7 @@ import TokenKey from '../utils/TokenKey';
 import { instantiateOptions } from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
 import { Logging } from '../utils/Logging';
-import { createFrameForImage, defaultFrameParams } from '../utils/FrameImage';
+import { createFrameForImage, defaultFrameParams, FrameParams } from '../utils/FrameImage';
 
 
 class PreviewScene {
@@ -55,7 +55,7 @@ class PreviewScene {
         const canvas = this.engine.getRenderingCanvas();
         assert(canvas, "Engine not attached to a canvas element");
 
-        const camera = new ArcRotateCamera("camera", Math.PI / 1.5, Math.PI / 2.5, 11, new Vector3(0, 0, 0), scene);
+        const camera = new ArcRotateCamera("camera", Math.PI / -1.5, Math.PI / 2.5, 11, new Vector3(0, 0, 0), scene);
         camera.wheelPrecision = 25;
         camera.attachControl(canvas, false);
         
@@ -74,10 +74,7 @@ class PreviewScene {
 
         const skyMaterial = new SkyMaterial("skyMaterial", skyScene);
         skyMaterial.backFaceCulling = false;
-        //skyMaterial.inclination = 0.25;
-        //skyMaterial.turbidity = 1;
-        //skyMaterial.rayleigh = 3;
-        //skyMaterial.luminance = 0.3;
+        //skyMaterial.fogEnabled = false;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
         skyMaterial.dithering = true;
@@ -104,7 +101,20 @@ class PreviewScene {
         return scene;
     };
 
-    async loadObject(modelLoaded: ModelLoadedCallback, file?: File): Promise<number> {
+    updateFrame(color: string) {
+        if(this.previewObject) {
+            // Find the frame mesh.
+            for (const mesh of this.previewObject.getChildMeshes()) {
+                if (mesh.name === "frame") {
+                    assert(mesh.material instanceof StandardMaterial);
+                    mesh.material.diffuseColor = Color3.FromHexString(color);
+                    return;
+                }
+            }
+        }
+    }
+
+    async loadObject(modelLoaded: ModelLoadedCallback, file: File | undefined, frameOpts: {ratio: number, color: string}): Promise<[number, FrameParams | undefined]> {
         // Tell the mint form the model is unloaded/false.
         modelLoaded('none', 0, 0);
 
@@ -115,7 +125,7 @@ class PreviewScene {
 
         if(!file) {
             Logging.ErrorDev("File not set.")
-            return -1;
+            return [-1, undefined];
         }
 
         try {
@@ -124,10 +134,16 @@ class PreviewScene {
 
             Logging.InfoDev("Loading file:", file.name);
 
+            let frameParams: FrameParams | undefined;
             let polycount = 0;
             if (isImageFile(file_type)) {
                 const res = await createImageBitmap(file);
-                this.previewObject = createFrameForImage(file, {width: res.width, height: res.height}, defaultFrameParams, this.scene, null);
+                // Copy default frame params.
+                frameParams = {} as FrameParams;
+                Object.assign(frameParams, defaultFrameParams);
+                frameParams.frame.frameRatio = frameOpts.ratio;
+                Color3.FromHexString(frameOpts.color).toArray(frameParams.frameMat.diffuseColor);
+                this.previewObject = createFrameForImage(file, {width: res.width, height: res.height}, frameParams, this.scene, null);
                 res.close();
             }
             else {
@@ -150,20 +166,21 @@ class PreviewScene {
             const new_scale = 6 / extent_max;
             this.previewObject.scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-            this.previewObject.position.y = -extent.y * new_scale / 2;
+            // Center the object in height by its extent.
+            this.previewObject.position.y = (extent.y / 2 + min.y) * -new_scale;
 
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.
             modelLoaded('success', file.size, polycount);
 
-            return polycount;
+            return [polycount, frameParams];
         }
         catch(e) {
             Logging.ErrorDev(e);
             modelLoaded('failed', 0, 0);
 
-            return -1;
+            return [-1, undefined];
         }
     }
 
@@ -236,12 +253,15 @@ type ModelPreviewProps = {
     width?: number;
     height?: number;
     bgColorSelection?: boolean;
+    frameColor: string;
+    frameRatio: number;
 };
 
 type ModelPreviewState = {
     loading: boolean;
     thumbnail: any;
     polycount: number;
+    frameParams?: FrameParams | undefined;
     preview: PreviewScene | null;
 };
 
@@ -260,14 +280,21 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     }
 
     override componentDidUpdate(prevProps: ModelPreviewProps) {
-        // did the file change?
-        // if yes, update the preview.
-        if(this.props.file !== prevProps.file) {
+        // File or frame changed, update the preview.
+        if(this.props.file !== prevProps.file ||
+            this.props.frameRatio !== prevProps.frameRatio) {
             // if file is not null and preview exists.
             if(this.state.preview) {
-                this.state.preview.loadObject(this.props.modelLoaded, this.props.file).then((res) => {
-                    this.setState({ polycount: res });
+                this.state.preview.loadObject(this.props.modelLoaded, this.props.file, {ratio: this.props.frameRatio, color: this.props.frameColor}).then(([polycount, frameParams]) => {
+                    this.setState({ polycount: polycount, frameParams: frameParams });
                 });
+            }
+        }
+
+        // Frame color changed.
+        if(this.props.frameColor !== prevProps.frameColor) {
+            if(this.state.preview) {
+                this.state.preview.updateFrame(this.props.frameColor);
             }
         }
     }
