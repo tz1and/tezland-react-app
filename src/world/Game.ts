@@ -17,6 +17,7 @@ import ItemNode from "./nodes/ItemNode";
 import PlaceKey from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 import { UrlLocationParser } from "../utils/UrlLocationParser";
+import MultiplayerClient from "./MultiplayerClient";
 
 
 export class Game {
@@ -32,6 +33,8 @@ export class Game {
     readonly transparentGridMat: GridMaterial;
 
     readonly playerController: PlayerController;
+    private _multiClient: MultiplayerClient;
+    public get multiClient() { return this._multiClient; }
 
     private cleanupInterval: number;
 
@@ -118,22 +121,26 @@ export class Game {
             const location = this.getSpwanLocation();
             this.teleportTo(location);
         });
+
+        this._multiClient = new MultiplayerClient(this);
+        this.walletProvider.walletEvents().addListener("walletChange", this.updateMultiplayerIdentity);
+    }
+
+    private updateMultiplayerIdentity = () => {
+        this._multiClient.updatePlayerIdentity();
     }
 
     public dispose() {
         // Hide inspector in dev
         if(import.meta.env.DEV) this.scene.debugLayer.hide();
 
-        //this.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
+        this.walletProvider.walletEvents().removeListener("walletChange", this.updateMultiplayerIdentity);
         window.removeEventListener('resize', this.onResize);
 
         this.world?.dispose();
         this.world = null;
         
-        /*this.unregisterPlacesSubscription();
-        this.multiClient?.disconnectAndDispose();
-
-        this.places.clear();*/
+        this.multiClient.dispose();
 
         this.playerController.dispose();
 

@@ -24,7 +24,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    // Needed for multiplayer
+    "experimentalDecorators": true
   },
   "include": [
     "src"

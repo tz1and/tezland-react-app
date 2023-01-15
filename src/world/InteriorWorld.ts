@@ -11,7 +11,6 @@ import { Logging } from "../utils/Logging";
 import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
-import MultiplayerClient from "./MultiplayerClient";
 import SunLight from "./nodes/SunLight";
 import assert from "assert";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
@@ -42,8 +41,6 @@ export class InteriorWorld extends BaseWorld {
 
     private lastUpdatePosition: Vector3;
     private worldUpdatePending: boolean = false;
-
-    private multiClient?: MultiplayerClient | undefined;
 
     private subscription?: Subscription<OperationContent> | undefined;
 
@@ -162,18 +159,7 @@ export class InteriorWorld extends BaseWorld {
 
         this.registerPlacesSubscription();
 
-        // Delay start MultiplayerClient.
-        setTimeout(() => {
-            this.multiClient = new MultiplayerClient(this.game);
-            this.game.walletProvider.walletEvents().addListener("walletChange", this.reconnectMultiplayer);
-        }, 500);
-
         //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
-    }
-
-    private reconnectMultiplayer = () => {
-        this.multiClient?.disconnectAndDispose();
-        this.multiClient = new MultiplayerClient(this.game);
     }
 
     // TODO: move the subscription stuff into it's own class?
@@ -218,8 +204,6 @@ export class InteriorWorld extends BaseWorld {
     }
 
     public dispose() {
-        this.game.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
-
         this.game.scene.unregisterBeforeRender(this.updateShadowRenderList);
         this.game.scene.unregisterAfterRender(this.updateWorld);
 
@@ -230,7 +214,6 @@ export class InteriorWorld extends BaseWorld {
         this.shadowGenerator = null;
         
         this.unregisterPlacesSubscription();
-        this.multiClient?.disconnectAndDispose();
 
         this.place?.dispose();
         this.place = null;
@@ -253,6 +236,8 @@ export class InteriorWorld extends BaseWorld {
         this.updateCurrentPlace();
 
         this.worldUpdatePending = false;
+
+        await this.game.multiClient.changeRoom("interior", {placeId: placeKey.id});
     };
 
     private async reloadPlace() {
@@ -284,27 +269,6 @@ export class InteriorWorld extends BaseWorld {
             Logging.InfoDev("Error loading place: " + metadata.tokenId);
             Logging.InfoDev(e);
             Logging.InfoDev(metadata);
-        }
-    }
-
-    private lastMultiplayerUpdate: number = 0;
-
-    private updateMultiplayer() {
-        if(this.multiClient && this.multiClient.connected) {
-            // Occasionally send player postition.
-            const now = performance.now();
-            const elapsed = now - this.lastMultiplayerUpdate;
-            if(!this.game.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
-                this.lastMultiplayerUpdate = now;
-
-                this.multiClient.updatePlayerPosition(
-                    this.game.playerController.getPosition(),
-                    this.game.playerController.getRotation()
-                );
-            }
-
-            // interpolate other players
-            this.multiClient.interpolateOtherPlayers();
         }
     }
 
@@ -346,7 +310,7 @@ export class InteriorWorld extends BaseWorld {
         this.skybox.position.copyFrom(playerPos);
 
         // update multiplayer
-        this.updateMultiplayer();
+        this.game.multiClient.updateMultiplayer();
 
         // Update world when player has moved a certain distance.
         if(!this.worldUpdatePending && Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)

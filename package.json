@@ -19,6 +19,7 @@
     "bootstrap": "^5.1.3",
     "bootstrap-icons": "^1.7.2",
     "byte-data": "file:../byte-data",
+    "colyseus.js": "^0.14.13",
     "earcut": "^2.2.3",
     "fast-png": "^6.1.0",
     "formik": "^2.2.9",

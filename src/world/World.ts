@@ -12,7 +12,6 @@ import { Logging } from "../utils/Logging";
 import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
-import MultiplayerClient from "./MultiplayerClient";
 import SunLight from "./nodes/SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import assert from "assert";
@@ -52,8 +51,6 @@ export class World extends BaseWorld {
 
     private lastUpdatePosition: Vector3;
     private worldUpdatePending: boolean = false;
-
-    private multiClient?: MultiplayerClient | undefined;
 
     private subscription?: Subscription<OperationContent> | undefined;
 
@@ -159,17 +156,9 @@ export class World extends BaseWorld {
         this.registerPlacesSubscription();
 
         // Delay start MultiplayerClient.
-        setTimeout(() => {
-            this.multiClient = new MultiplayerClient(this.game);
-            this.game.walletProvider.walletEvents().addListener("walletChange", this.reconnectMultiplayer);
-        }, 500);
+        this.game.multiClient.changeRoom("hub");
 
         //new UniversalCamera("testCam", new Vector3(0,2,-10), this.scene);
-    }
-
-    private reconnectMultiplayer = () => {
-        this.multiClient?.disconnectAndDispose();
-        this.multiClient = new MultiplayerClient(this.game);
     }
 
     // TODO: move the subscription stuff into it's own class?
@@ -212,8 +201,6 @@ export class World extends BaseWorld {
     }
 
     public dispose() {
-        this.game.walletProvider.walletEvents().removeListener("walletChange", this.reconnectMultiplayer);
-
         this.game.scene.unregisterBeforeRender(this.updateShadowRenderList);
         this.game.scene.unregisterAfterRender(this.updateWorld);
 
@@ -224,7 +211,6 @@ export class World extends BaseWorld {
         this.shadowGenerator = null;
         
         this.unregisterPlacesSubscription();
-        this.multiClient?.disconnectAndDispose();
 
         // Dispose all places.
         for (const p of this.places.values()) {
@@ -502,27 +488,6 @@ export class World extends BaseWorld {
         }
     }
 
-    private lastMultiplayerUpdate: number = 0;
-
-    private updateMultiplayer() {
-        if(this.multiClient && this.multiClient.connected) {
-            // Occasionally send player postition.
-            const now = performance.now();
-            const elapsed = now - this.lastMultiplayerUpdate;
-            if(!this.game.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
-                this.lastMultiplayerUpdate = now;
-
-                this.multiClient.updatePlayerPosition(
-                    this.game.playerController.getPosition(),
-                    this.game.playerController.getRotation()
-                );
-            }
-
-            // interpolate other players
-            this.multiClient.interpolateOtherPlayers();
-        }
-    }
-
     private updateCurrentPlace(pos: DeepImmutable<Vector3>) {
         const pickResult = this.game.scene.pickWithRay(new Ray(pos, Vector3.Up()), (mesh) => {
             return mesh.parent instanceof PlaceNode;
@@ -577,7 +542,7 @@ export class World extends BaseWorld {
         this.skybox.position.copyFrom(playerPos);
 
         // update multiplayer
-        this.updateMultiplayer();
+        this.game.multiClient.updateMultiplayer();
 
         // Update world when player has moved a certain distance.
         if(!this.worldUpdatePending && Vector3.Distance(this.lastUpdatePosition, playerPos) > worldUpdateDistance)

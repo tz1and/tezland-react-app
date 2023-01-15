@@ -1,171 +1,139 @@
-import assert from 'assert';
 import Conf from '../Config';
-//import EventEmitter from 'events';
 import {  Constants, DynamicTexture, Mesh, MeshBuilder, Nullable,
     StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
-import { fromHexString, toHexString, truncate } from '../utils/Utils';
-import crypto from 'crypto';
+import { truncateAddress } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import { Game } from './Game';
+import * as Colyseus from "colyseus.js";
+import { MapSchema, Schema, DataChange, type } from "@colyseus/schema";
+
+export class Player extends Schema {
+    @type("number") x: number = 0;
+    @type("number") y: number = 0;
+    @type("number") z: number = 0;
+
+    @type("number") rot_x: number = 0;
+    @type("number") rot_y: number = 0;
+    @type("number") rot_z: number = 0;
+
+    @type("string") name: string = "Guest";
+}
+
+export class tz1RoomState extends Schema {
+    @type({ map: Player }) players = new MapSchema<Player>();
+}
 
 
 export default class MultiplayerClient { //extends EventEmitter {
-    public static UpdateInterval = 100;
+    public static UpdateInterval = 50;
 
-    private ws: WebSocket;
+    private client: Colyseus.Client;
+    private currentRoom: Nullable<Colyseus.Room<tz1RoomState>>;
+
+    private playerSessionId: string = "";
+
     private game: Game;
-    private otherPlayersNode: Nullable<TransformNode>;
+    private otherPlayersNode: TransformNode;
     private otherPlayers: Map<string, OtherPlayer> = new Map();
 
-    private _connected: boolean;
-    get connected(): boolean { return this._connected; }
-
     private readOnlyClient: boolean;
-    private identity?: string | undefined;
+
+    private identity: string;
 
     constructor(game: Game, readOnlyClient: boolean = false) {
         //super(); // event emitter
 
         this.game = game;
         this.readOnlyClient = readOnlyClient;
-        this._connected = false;
 
-        this.otherPlayersNode = null;
-
-        this.ws = this.connect();
-    }
-
-    private static readonly reconnectInterval = 10 * 1000;
-
-    private connect(): WebSocket {
-        assert(!this.otherPlayersNode);
-
-        const ws = new WebSocket(Conf.multiplayer_url);
+        this.client = new Colyseus.Client(Conf.multiplayer_url);
+        this.currentRoom = null;
 
         this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.game.scene);
 
-        let randomUid = false;
-        if (this.readOnlyClient) randomUid = true;
-        else randomUid = !this.game.walletProvider.isWalletConnected();
-
-        this.identity = randomUid ? crypto.randomBytes(18).toString('hex') : this.game.walletProvider.walletPHK();
-
-        ws.onopen = () => {
-            this.handshake();
-        };
-
-        ws.onmessage = (msg) => {
-            this.handleMessage(msg);
-        };
-
-        ws.onerror = (ev) => {
-            Logging.InfoDev('MultiplayerClient: Socket error: ', ev); // TODO: figure out how to get msg
-        };
-
-        ws.onclose = () => {
-            // If the other side closed.
-            this.dispose(); // TODO: should call dispose here, not disconnect
-            this._connected = false;
-            Logging.InfoDev('MultiplayerClient: Connection terminated. Reconnecting...');
-            setTimeout(() => { this.ws = this.connect() }, MultiplayerClient.reconnectInterval);
-        };
-
-        return ws;
-    };
-
-    private handshake() {
-        const auth = { msg: "hello", user: this.identity };
-        this.ws.send(JSON.stringify(auth));
+        this.identity = this.getIdentity();
     }
 
-    private handleMessage(message: MessageEvent<any>) {
-        //Logging.Log('received: %s', message.data);
+    private lastMultiplayerUpdate: number = 0;
 
+    public updateMultiplayer() {
+        // Occasionally send player postition.
+        const now = performance.now();
+        const elapsed = now - this.lastMultiplayerUpdate;
+        if(!this.game.playerController.flyMode && elapsed > MultiplayerClient.UpdateInterval) {
+            this.lastMultiplayerUpdate = now;
+
+            this.game.multiClient.updatePlayerPosition(
+                this.game.playerController.getPosition(),
+                this.game.playerController.getRotation()
+            );
+        }
+
+        // interpolate other players
+        this.game.multiClient.interpolateOtherPlayers();
+    }
+
+    public async changeRoom(room: string, options?: any) {
         try {
-            const msgObj = JSON.parse(message.data.toString());
-
-            var res = null;
-            switch(msgObj.msg) {
-                case "challenge":
-                    res = this.challengeResponse(msgObj.challenge);
-                    break;
-
-                case "authenticated":
-                    this._connected = true;
-                    break;
-
-                case "error":
-                    Logging.Error(msgObj.desc);
-                    // server may close after sending error.
-                    break;
-
-                case "position-updates":
-                    this.updateOtherPlayers(msgObj.updates);
-                    break;
-
-                default:
-                    throw new Error("Unhandled message type");
+            if(this.currentRoom) {
+                await this.currentRoom.leave();
+                // Delete other players.
+                this.otherPlayers.forEach(p => p.dispose());
+                this.otherPlayers.clear();
+                this.currentRoom = null;
             }
 
-            if(res) this.ws.send(JSON.stringify(res));
-        } catch(err) {
-            Logging.Error("Error handling server response: " + err);
+            const newRoom = await this.client.joinOrCreate<tz1RoomState>(room, options);
+            console.log(newRoom.sessionId, "joined", newRoom.name);
+            this.currentRoom = newRoom;
+            this.playerSessionId = this.currentRoom.sessionId;
+
+            //this.currentRoom.onStateChange(this.roomStateChanged)
+            this.currentRoom.state.players.onAdd = this.playerJoin;
+            this.currentRoom.state.players.onRemove = this.playerLeave;
+
+            // send current player state
+            this.updatePlayerPosition(this.last_pos, this.last_rot);
+            this.updatePlayerIdentity();
+        } catch(e) {
+            console.log("Failed to switch room", e);
         }
     }
 
-    private challengeResponse(challenge: string): any {
-        return { msg: "challenge-response",
-            // TODO:
-            //response: this.world.walletProvider.signMessage(challenge)
-            response: "OK"
+    private isPlayer(sessionId: string) {
+        return (sessionId === this.playerSessionId);
+    }
+
+    private playerJoin = (player: Player, sessionId: string) => {
+        if(this.isPlayer(sessionId)) return;
+
+        const p = new OtherPlayer(player, sessionId, this.otherPlayersNode);
+        this.otherPlayers.set(sessionId, p);
+        p.updateNextTransform();
+        p.moveToNext();
+        Logging.LogDev("MultiplayerClient: player connected:", sessionId);
+    }
+
+    private playerLeave = (player: Player, sessionId: string) => {
+        if(this.isPlayer(sessionId)) return;
+
+        const p = this.otherPlayers.get(sessionId);
+        if(p) {
+            this.otherPlayers.delete(sessionId);
+            p.dispose();
+            Logging.LogDev("MultiplayerClient: player disconnected:", sessionId);
         }
     }
 
-    private updateOtherPlayers(updates: any) {
-        assert(this.otherPlayersNode);
-
-        if(updates.length === 0) return;
-
-        //const start_time = performance.now();
-
-        updates.forEach((u: any) => {
-            // skip currently connected player.
-            if (this.identity === u.name) return;
-
-            // handle disconnect messages.
-            if(u.dc === true) {
-                let p = this.otherPlayers.get(u.name);
-                if(p) {
-                    this.otherPlayers.delete(u.name);
-                    p.dispose();
-                    Logging.LogDev("MultiplayerClient: player disconnected:", u.name);
-                }
-                return;
-            }
-
-            // otherwise it's an update
-            let p = this.otherPlayers.get(u.name);
-            if(!p) {
-                p = new OtherPlayer(u.name, this.otherPlayersNode!);
-                this.otherPlayers.set(u.name, p);
-                p.update(u.upd);
-                p.moveToLast();
-                Logging.LogDev("MultiplayerClient: player connected:", u.name);
-            }
-            else p.update(u.upd);
-        });
-
-        //const elapsed = performance.now() - start_time;
-        //Logging.Log(`update other players took: ${elapsed}ms`);
+    private getIdentity(): string {
+        const anon = !this.game.walletProvider.isWalletConnected();
+        return anon ? "Guest" : this.game.walletProvider.walletPHK();
     }
 
     private last_pos = new Vector3();
     private last_rot = new Vector3();
 
     public updatePlayerPosition(pos: Vector3, rot: Vector3) {
-        assert(this.ws && this.ws.readyState === WebSocket.OPEN, "Not connected");
-        assert(this.connected, "Not authenticated");
-
         // dont send update if nothing changed.
         if (this.last_pos.equalsWithEpsilon(pos) && this.last_rot.equalsWithEpsilon(rot))
             return;
@@ -174,25 +142,26 @@ export default class MultiplayerClient { //extends EventEmitter {
         this.last_pos.copyFrom(pos);
         this.last_rot.copyFrom(rot);
 
-        // TODO: optimize this. Write some tests.
-        const from_float32 = (data: Float32Array) => {
-            const uints = new Uint8Array(data.length * 4);
-            const view = new DataView(uints.buffer);
-            for (let i = 0; i < data.length; ++i)
-                view.setFloat32(i * 4, data[i]);
-            return toHexString(uints);
+        if(this.currentRoom) {
+            this.currentRoom.send("updatePosition", {
+                x: pos.x,
+                y: pos.y,
+                z: pos.z,
+                rot_x: rot.x,
+                rot_y: rot.y,
+                rot_z: rot.z,
+            });
         }
+    }
 
-        const tdata = Float32Array.from(pos.asArray().concat(rot.asArray()));
+    public updatePlayerIdentity() {
+        this.identity = this.getIdentity();
 
-        const req = {
-            msg: "upd",
-            upd: from_float32(tdata)
-        };
-
-        this.ws.send(JSON.stringify(req));
-
-        // server doesn't respond to update position
+        if(this.currentRoom) {
+            this.currentRoom.send("updateName", {
+                name: this.identity
+            });
+        }
     }
 
     public interpolateOtherPlayers() {
@@ -212,36 +181,24 @@ export default class MultiplayerClient { //extends EventEmitter {
         //Logging.Log(`interpolating players took: ${elapsed}ms`);
     }
 
-    private dispose() {
+    public dispose() {
+        // TODO: disconnect colyseus?
         this.otherPlayers.clear();
-        this.otherPlayersNode?.dispose();
-        this.otherPlayersNode = null;
-    }
-
-    // todo: split into dispose/disconnect
-    public disconnectAndDispose() {
-        this.ws.close();
-        // TODO: figure out if I need to close this...
-        this.ws.onopen = null;
-        this.ws.onmessage = null;
-        this.ws.onerror = null;
-        this.ws.onclose = null;
-        this._connected = false;
-
-        this.dispose();
-
-        Logging.LogDev('MultiplayerClient: Socket closed.');
+        this.otherPlayersNode.dispose();
     }
 }
 
 class OtherPlayer {
+    private player: Player;
+
     readonly head: Mesh;
     readonly body: Mesh;
-    readonly nameplate: Mesh;
+    private nameplate: Mesh;
     readonly tranformNode: TransformNode;
 
-    public lastPos: Vector3;
-    public lastRot: Vector3;
+    public nextPos: Vector3;
+    public nextRot: Vector3;
+    public name: string;
 
     private makeBillboard(name: string, parent: TransformNode) {
         const scene = parent.getScene();
@@ -250,8 +207,8 @@ class OtherPlayer {
         var text: string;
         var aspect_ratio: number;
         if (name.startsWith('tz1')) {
-            aspect_ratio = 1/7.2;
-            text = truncate(name, 12, '\u2026'); // TODO: use truncateAddress
+            aspect_ratio = 1/9;
+            text = truncateAddress(name);
         }
         else {
             aspect_ratio = 1 / 2.8;
@@ -264,7 +221,7 @@ class OtherPlayer {
         var dynamicTexture = new DynamicTexture("NameplateTexture", {width: res_h / aspect_ratio, height: res_h}, scene, true);
         dynamicTexture.hasAlpha = true;
         dynamicTexture.getContext().fillStyle = 'transparent';
-        dynamicTexture.drawText(text, 1, res_h - 2, `${res_h}px Arial`, "white", "transparent", true);
+        dynamicTexture.drawText(text, 2, res_h - 5, `${res_h}px Arial`, "white", "transparent", true);
 
         const mat = new StandardMaterial("NameplateMaterial", scene);
         mat.diffuseTexture = dynamicTexture;
@@ -272,7 +229,7 @@ class OtherPlayer {
         mat.alphaMode = Constants.ALPHA_MULTIPLY;
         mat.disableLighting = true;
 
-        const plane = MeshBuilder.CreatePlane("Nameplate", {width: 0.2 / aspect_ratio, height: 0.2, updatable: false}, null);
+        const plane = MeshBuilder.CreatePlane("Nameplate", {width: 0.1 / aspect_ratio, height: 0.1, updatable: false}, null);
         //const plane = Mesh.CreatePlane("Nameplate", 0.5, scene, true);
         plane.parent = this.tranformNode;
         //plane.material.backFaceCulling = false;
@@ -280,10 +237,18 @@ class OtherPlayer {
         plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
         plane.addLODLevel(10, null);
 
+        plane.isPickable = false;
+        plane.position.y = 1.8 + 0.25; // TODO: don't hardocde this
+
         return plane;
     };
 
-    constructor(name: string, parent: TransformNode) {
+    constructor(player: Player, name: string, parent: TransformNode) {
+        this.player = player;
+        this.player.onChange = this.dataChange;
+
+        this.name = name;
+
         this.tranformNode = new TransformNode(name);
         this.head = MeshBuilder.CreateBox("head", {size: 0.4}, null);
         this.head.isPickable = false;
@@ -301,40 +266,48 @@ class OtherPlayer {
         this.body.position.y = 0.95; // TODO: don't hardocde this
 
         this.nameplate = this.makeBillboard(name, this.tranformNode);
-        this.nameplate.isPickable = false;
-        this.nameplate.position.y = 1.8 + 0.5; // TODO: don't hardocde this
 
         this.tranformNode.parent = parent;
 
-        this.lastPos = new Vector3(0,0,0);
-        this.lastRot = new Vector3(0,0,0);
+        this.nextPos = new Vector3(0,0,0);
+        this.nextRot = new Vector3(0,0,0);
     }
 
-    update(tranformData: string) {
-        assert(tranformData.length === 48)
-        const uints = fromHexString(tranformData);
-        const view = new DataView(uints.buffer)
-        this.lastPos.set(view.getFloat32(0), view.getFloat32(4), view.getFloat32(8));
-        this.lastRot.set(view.getFloat32(12), view.getFloat32(16), view.getFloat32(20));
+    updateNextTransform() {
+        this.nextPos.set(this.player.x, this.player.y, this.player.z);
+        this.nextRot.set(this.player.rot_x, this.player.rot_y, this.player.rot_z);
     }
 
-    moveToLast() {
-        this.tranformNode.position = this.lastPos;
-        this.head.rotation = this.lastRot;
+    dataChange = (changes: DataChange<any>[]) => {
+        this.updateNextTransform();
+        changes.forEach(c => {
+            if(c.field === 'name') {
+                this.name = c.value as string;
+                this.nameplate.dispose();
+                this.nameplate = this.makeBillboard(this.name, this.tranformNode);
+            }
+        });
+    }
+
+    moveToNext() {
+        this.tranformNode.position.copyFrom(this.nextPos);
+        this.head.rotation.copyFrom(this.nextRot);
     }
 
     interpolate(delta: number) {
         // when player moves far, for example when teleporting, don't interpolate.
-        if (Vector3.Distance(this.tranformNode.position, this.lastPos) > 10) {
-            this.moveToLast();
+        if (Vector3.Distance(this.tranformNode.position, this.nextPos) > 10) {
+            this.moveToNext();
             return;
         }
 
-        this.tranformNode.position = Vector3.Lerp(this.tranformNode.position, this.lastPos, delta);
-        this.head.rotation = Vector3.Lerp(this.head.rotation, this.lastRot, delta);
+        // TODO: use delta time?
+        this.tranformNode.position = Vector3.Lerp(this.tranformNode.position, this.nextPos, 0.05);
+        this.head.rotation = Vector3.Lerp(this.head.rotation, this.nextRot, 0.05);
     }
 
     dispose() {
+        this.player.onChange = undefined;
         this.tranformNode.dispose();
     }
 }

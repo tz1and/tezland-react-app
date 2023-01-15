@@ -308,8 +308,6 @@ export class WorldMap {
 
         this.scene.unregisterAfterRender(this.updateWorld);
 
-        //this.multiClient.disconnectAndDispose();
-
         this.places.clear();
 
         // Destorying the engine should prbably be enough.

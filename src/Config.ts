@@ -19,6 +19,7 @@ export default class Conf {
     public static hasura_url: string = getEnvVar('VITE_HASURA_URL');
     public static backend_url: string = getEnvVar('VITE_BACKEND');
     public static multiplayer_url: string = getEnvVar('VITE_MULTIPLAYER');
+    //public static multiplayer_mm_url: string = getEnvVar('VITE_MULTIPLAYER_MM');
 
     public static item_v1_contract: string = getEnvVar('VITE_ITEM_V1_CONTRACT');
     public static item_contract: string = getEnvVar('VITE_ITEM_CONTRACT');
