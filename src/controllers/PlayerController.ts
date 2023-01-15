@@ -583,9 +583,14 @@ export default class PlayerController {
         this.playerTrigger.moveWithCollisions(displacement_vector);
 
         // Velocity after collision is position - prev position.
+        // Probably don't need to do this. Works almost exactly the same as before.
         // TODO: need to limit velocity somehow. probably could:
         // - figure out the actual displacement vector after collision
         // - figure out what the velocity should be with respect to delta time.
+        /*const actual_displacement_vector = this.playerTrigger.position.subtract(this.position_prev_frame);
+        const actual_velocity = actual_displacement_vector.scale(1 / delta_time);
+        //console.log(this.velocity, actual_velocity)
+        this.velocity.set(actual_velocity.x, this.velocity.y, actual_velocity.z);*/
         //this.playerTrigger.position.subtractToRef(this.position_prev_frame, this.velocity);
 
         // ground player again after applying forces.
