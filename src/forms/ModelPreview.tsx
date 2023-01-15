@@ -80,6 +80,7 @@ class PreviewScene {
         skyMaterial.dithering = true;
 
         const skybox = MeshBuilder.CreateIcoSphere("skyBox", {subdivisions: 8, radius: 1000.0, sideOrientation: Mesh.BACKSIDE}, skyScene);
+        //this.skybox.infiniteDistance = true; // What does this do?
         skybox.material = skyMaterial;
 
         // reflection probe

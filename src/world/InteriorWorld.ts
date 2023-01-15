@@ -80,6 +80,7 @@ export class InteriorWorld extends BaseWorld {
         skyMaterial.dithering = true;
 
         this.skybox = MeshBuilder.CreateIcoSphere("skyBox", {subdivisions: 8, radius: 1000.0, sideOrientation: Mesh.BACKSIDE}, this.game.scene);
+        //this.skybox.infiniteDistance = true; // What does this do?
         this.skybox.material = skyMaterial;
         this.skybox.parent = this.worldNode;
 
@@ -342,7 +343,7 @@ export class InteriorWorld extends BaseWorld {
         ArtifactProcessingQueue.isSlow = Date.now() - this.game.playerController.lastUserInputTime < 1000;
 
         this.sunLight.update(playerPos);
-        this.skybox.position.set(playerPos.x, 0, playerPos.z)
+        this.skybox.position.copyFrom(playerPos);
 
         // update multiplayer
         this.updateMultiplayer();

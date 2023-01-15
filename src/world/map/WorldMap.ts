@@ -209,12 +209,12 @@ export class WorldMap {
         ambient_light.specular = new Color3(1, 1, 0.7);
         ambient_light.groundColor = new Color3(1, 1, 0.7);
 
-        const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
+        /*const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
         skyMaterial.backFaceCulling = false;
         //skyMaterial.fogEnabled = false;
         skyMaterial.useSunPosition = true;
         skyMaterial.sunPosition = sun_direction.scale(-1);
-        skyMaterial.dithering = true;
+        skyMaterial.dithering = true;*/
 
         this.scene.clearColor.set(0.071, 0.082, 0.133, 1);
 
