@@ -508,6 +508,8 @@ export default class PlayerController {
 
         //this.forces.setAll(0);
 
+        // Reference: https://gamedev.stackexchange.com/questions/15708/how-can-i-implement-gravity/16466#16466
+
         // gravity
         let gravity;
         if (this._flyMode) gravity = 0;
