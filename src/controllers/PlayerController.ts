@@ -19,7 +19,7 @@ import WorldLocation from "../utils/WorldLocation";
 import { ImportedWorldDef } from "../world/ImportWorldDef";
 
 const Gravity = 9.81;
-const GravityUnderwater = -1.0;
+const GravityUnderwater = -0.05;
 
 const PlayerMass = 0.5;
 const PlayerAccel = 200.0; // m/s?
@@ -636,7 +636,6 @@ export default class PlayerController {
     }
 
     private updateController = () => {
-        console.log(this.velocity.length())
         const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
         // Player movement.
