@@ -172,7 +172,6 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         // TEMP: don't check this for images, etc:
         // For some meshes (fox) you can't count the polygons...
         assert(this.modelPreviewRef.current.state.polycount >= 0);
-        assert(this.modelPreviewRef.current.state.frameParams !== undefined);
 
         // Get thumbnail and check it's valid.
         const thumbnailRes = 350;
