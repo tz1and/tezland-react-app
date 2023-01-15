@@ -22,6 +22,7 @@ import PlaceKey from "../utils/PlaceKey";
 import PlaceProperties from "../utils/PlaceProperties";
 import WorldLocation from "../utils/WorldLocation";
 import Water from "./nodes/Water";
+//import bg_tex from '../img/bg_texture.png';
 
 
 const worldUpdateDistance = 10; // in m
@@ -405,6 +406,41 @@ export class InteriorWorld extends BaseWorld {
             this.skybox.setEnabled(true);
             this.game.scene.autoClear = false;
         }
+
+        /*(async () => {
+            //this.skybox.dispose();
+
+            /*const req = await fetch(bg_tex);
+            const res = await createImageBitmap(await req.blob()); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
+
+            // Compute new height < maxTexRes
+            let newWidth = 1024;
+            let newHeight = 1024;
+
+            Logging.InfoDev("old", res.width, res.height);
+            Logging.InfoDev("new", newWidth, newHeight);
+
+            const canvas: any = new OffscreenCanvas(newWidth, newHeight);
+            const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+            assert(context);
+            context.drawImage(res, 0, 0, newWidth, newHeight);
+            const data = context.getImageData(0, 0, newWidth, newHeight);
+            //Logging.InfoDev(data);
+            // @ts-expect-error
+            const buffer = data.buffer;
+
+            const cube_tex = new RawCubeTexture(this.game.scene, [buffer, buffer, buffer, buffer, buffer, buffer], 1024); //, Engine.TEXTUREFORMAT_RGBA_INTEGER); //, Engine.TEXTURETYPE_UNSIGNED_BYTE);* /
+
+            //const cube_tex = CubeTexture.CreateFromImages([bg_tex, bg_tex, bg_tex, bg_tex, bg_tex, bg_tex], this.game.scene);
+
+            const skyboxMaterial = new StandardMaterial("skyBoxMat", this.game.scene);
+            skyboxMaterial.backFaceCulling = true;
+            skyboxMaterial.reflectionTexture = cube_tex;
+            skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+            skyboxMaterial.diffuseColor = new Color3(0, 0, 0);
+            skyboxMaterial.specularColor = new Color3(0, 0, 0);
+            this.skybox.material = skyboxMaterial;
+        })()*/
 
         // Update env probe.
         this.reflectionProbe.cubeTexture.resetRefreshCounter();
