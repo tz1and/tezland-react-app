@@ -551,5 +551,5 @@ export default abstract class BasePlaceNode extends TransformNode {
         }
     }
 
-    protected abstract updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void;
+    public abstract updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void;
 }

@@ -15,7 +15,7 @@ export default class InteriorPlaceNode extends BasePlaceNode {
         return `Interior #${this.placeKey.id}`;
     }
 
-    protected override updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void {
+    public override updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void {
         assert(this.placeGround);
         this.placeGround.setEnabled(!(props.interiorDisableFloor || false));
 

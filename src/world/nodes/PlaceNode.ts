@@ -13,7 +13,7 @@ export default class PlaceNode extends BasePlaceNode {
         return `Place #${this.placeKey.id}`;
     }
 
-    protected override updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void {
+    public override updateOnPlacePropChange(props: PlaceProperties, first_load: boolean): void {
         // Do nothing for PlaceNode.
     }
 }

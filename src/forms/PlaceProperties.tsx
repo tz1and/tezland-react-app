@@ -14,7 +14,7 @@ import assert from 'assert';
 import { getPlaceType, PlaceType } from '../utils/PlaceKey';
 import { Vector3 } from '@babylonjs/core';
 import PlaceProperties, { colorToBytes } from '../utils/PlaceProperties';
-import { Button, Col, Container, Row } from 'react-bootstrap';
+import { Button, ButtonToolbar, Col, Container, Row } from 'react-bootstrap';
 import { MeshUtils } from '../utils/MeshUtils';
 
 
@@ -86,6 +86,21 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
         ));
     }
 
+    const previewChanges = (values: PlacePropertiesFormValues) => {
+        updatePlacePropsFromFormValues(values);
+        props.place.updateOnPlacePropChange(placeProps, false);
+    }
+
+    const updatePlacePropsFromFormValues = (values: PlacePropertiesFormValues) => {
+        placeProps.placeGroundColor = values.placeGroundColor;
+        placeProps.placeName = values.placeName !== "" ? values.placeName : null;
+        placeProps.interiorDisableFloor = values.interiorDisableFloor ? true : null;
+        placeProps.interiorBackgroundColor = values.interiorOverrideBackground ? values.interiorBackgroundColor : null;
+        placeProps.interiorLightDirection = values.interiorOverrideLightDir ? values.interiorLightDirection : null;
+        placeProps.interiorWaterLevel = values.interiorOverrideWaterLevel ? values.interiorWaterLevel : null;
+        placeProps.spawnPosition = values.overrideSpawnPos ? values.spawnPosition : null;
+    }
+
     return (
         <Formik
             initialValues={initialValues}
@@ -130,13 +145,7 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
             }}
             onSubmit={(values, actions) => {
                 // Update the PlaceProperties
-                placeProps.placeGroundColor = values.placeGroundColor;
-                placeProps.placeName = values.placeName !== "" ? values.placeName : null;
-                placeProps.interiorDisableFloor = values.interiorDisableFloor ? true : null;
-                placeProps.interiorBackgroundColor = values.interiorOverrideBackground ? values.interiorBackgroundColor : null;
-                placeProps.interiorLightDirection = values.interiorOverrideLightDir ? values.interiorLightDirection : null;
-                placeProps.interiorWaterLevel = values.interiorOverrideWaterLevel ? values.interiorWaterLevel : null;
-                placeProps.spawnPosition = values.overrideSpawnPos ? values.spawnPosition : null;
+                updatePlacePropsFromFormValues(values);
 
                 const [changes, removals] = placeProps.getChangesAndRemovals();
 
@@ -250,9 +259,12 @@ export const PlacePropertiesForm: React.FC<PlacePropertiesFormProps> = (props) =
                             <div id="interiorDisableFloorHelp" className="form-text">You can disable the ground in your Interior.</div>
                         </div>}
 
-                        <button type="submit" className={`btn btn-${triHelper(state.successState, "danger", "primary", "success")}`} disabled={isSubmitting || !isValid}>
-                            {isSubmitting && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button><br/>
-                        {state.error && ( <small className='text-danger d-inline-block mt-2'>Saving Place properties failed: {state.error}</small> )}
+                        <ButtonToolbar className="justify-content-between">
+                            <button type="submit" className={`btn btn-${triHelper(state.successState, "danger", "primary", "success")}`} disabled={isSubmitting || !isValid}>
+                                {isSubmitting && (<span className="spinner-border spinner-grow-sm" role="status" aria-hidden="true"></span>)} save Place props</button><br/>
+                            {state.error && ( <small className='text-danger d-inline-block mt-2'>Saving Place properties failed: {state.error}</small> )}
+                            {place_type === PlaceType.Interior && <Button variant='outline-warning' disabled={isSubmitting} onClick={() => previewChanges(values)}>Preview</Button>}
+                        </ButtonToolbar>
                     </Form>
                 )
             }}
