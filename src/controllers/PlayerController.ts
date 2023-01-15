@@ -19,7 +19,7 @@ import WorldLocation from "../utils/WorldLocation";
 import { ImportedWorldDef } from "../world/ImportWorldDef";
 
 const Gravity = 9.81;
-const GravityUnderwater = -0.05;
+const GravityUnderwater = -0.25;
 
 const PlayerMass = 0.5;
 const PlayerAccel = 200.0; // m/s?
