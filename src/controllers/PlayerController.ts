@@ -21,13 +21,15 @@ import { ImportedWorldDef } from "../world/ImportWorldDef";
 const Gravity = 9.81;
 const GravityUnderwater = -1.0;
 
-const PlayerAccel = 1000.0; // m/s?
+const PlayerMass = 0.5;
+const PlayerAccel = 200.0; // m/s?
+const PlayerJumpVel = 7;
+
 const PlayerGroundFriction = 6.0;
 const PlayerWaterFriction = 2.5;
 const PlayerFlyFriction = 2.0;
 const PlayerMaxJogVel = 4;
 const PlayerMaxWalkVel = 2;
-const PlayerMass = 2;
 const PlayerFlySpeedMult = isDev() ? 10.0 : 1.2;
 
 const LimitFlyDistance = !isDev();
@@ -52,7 +54,6 @@ export default class PlayerController {
 
     private static readonly BODY_HEIGHT = 1.5;
     private static readonly LEGS_HEIGHT = 0.3;
-    private static readonly JUMP_VEL = 3.5;
 
     public isUnderwater: boolean = false;
 
@@ -447,7 +448,7 @@ export default class PlayerController {
         // position the raycast from top center of ellipsoid
         let raycastFloorPos = new Vector3(
             this.playerTrigger.position.x + offsetx,
-            this.playerTrigger.position.y + PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT,
+            this.playerTrigger.position.y + PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT - 0.01,
             this.playerTrigger.position.z + offsetz);
         let ray = new Ray(raycastFloorPos, Vector3.Down(), raycastlen);
 
@@ -466,7 +467,7 @@ export default class PlayerController {
     private groundPlayer(): boolean {
         const dist_to_ground = this.floorRaycast(0, 0);
         // If less than leg height, adjust position.
-        const raycast_from = PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT;
+        const raycast_from = PlayerController.LEGS_HEIGHT + PlayerController.BODY_HEIGHT - 0.01;
         if (isEpsilonEqual(dist_to_ground, raycast_from, PlayerController.EPSILON))
             return true;
 
@@ -542,7 +543,7 @@ export default class PlayerController {
 
         // If grounded, we can jump.
         if (!allAxes && grounded && this.input.jump) {
-            this.velocity.y = PlayerController.JUMP_VEL;
+            this.velocity.y = PlayerJumpVel;
         }
 
         // We can early out sometimes.
@@ -635,6 +636,7 @@ export default class PlayerController {
     }
 
     private updateController = () => {
+        console.log(this.velocity.length())
         const delta_time: number = this.scene.getEngine().getDeltaTime() / 1000;
 
         // Player movement.
