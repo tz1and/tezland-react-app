@@ -66,10 +66,15 @@ export default class Water extends TransformNode {
     public override dispose(doNotRecurse?: boolean, disposeMaterialAndTextures?: boolean): void {
         super.dispose(doNotRecurse, disposeMaterialAndTextures);
 
-        this.getScene().unregisterBeforeRender(this.updateWater);
+        const scene = this.getScene();
+        scene.unregisterBeforeRender(this.updateWater);
 
         // Also make sure the player isn't marked underwater anymore.
         this.world.game.playerController.isUnderwater = false;
+
+        // And that the fog colour is reset.
+        scene.fogColor = BaseWorld.FogSettings.color;
+        scene.fogDensity = BaseWorld.FogSettings.density;
     }
 
     private eyesUnderwater: boolean;
