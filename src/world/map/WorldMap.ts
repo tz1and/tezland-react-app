@@ -8,7 +8,7 @@ import markerIconRed from '../../img/map/mapmarker-red.png'
 import { Engine, Scene, Vector3, Color3,
     Matrix, Vector4, Quaternion, HemisphericLight, Mesh,
     EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
-import { SimpleMaterial, SkyMaterial } from "@babylonjs/materials";
+import { SimpleMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, Control, Image,
     TextBlock, Vector2WithInfo } from "@babylonjs/gui";
 import { MapControlFunctions } from "../AppControlFunctions";
