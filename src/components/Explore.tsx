@@ -259,6 +259,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         const toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 
         const chatActive = this.state.show_form === OverlayForm.Instructions;
+        const chatVisible = this.state.show_form === OverlayForm.Instructions || this.state.show_form === OverlayForm.None;
 
         return (
             <div className='Explore'>
@@ -268,7 +269,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
-                <div className={`position-absolute chatPanel ${!chatActive && 'chatPanelInactive'}`}>
+                {chatVisible && <div className={`position-absolute chatPanel ${!chatActive && 'chatPanelInactive'}`}>
                     <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
                         <Card.Body className='messageContainer' ref={this.messageContainer}>
                             {this.state.chatMessageBuffer.map((msg, idx) => {return <p className='m-1' key={idx}><b>{msg.from ? truncateAddress(msg.from) : "System"}</b>: {msg.msg}</p>}).toArray()}
@@ -280,7 +281,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                             </InputGroup>
                         </Card.Footer>}
                     </Card>
-                </div>
+                </div>}
                 {placeInfoOverlay}
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{
