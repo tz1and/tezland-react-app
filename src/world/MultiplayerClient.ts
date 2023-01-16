@@ -5,7 +5,9 @@ import { truncateAddress } from '../utils/Utils';
 import { Logging } from '../utils/Logging';
 import { Game } from './Game';
 import * as Colyseus from "colyseus.js";
+import crypto from 'crypto';
 import { MapSchema, Schema, DataChange, type } from "@colyseus/schema";
+import { ChatMessage } from './AppControlFunctions';
 
 export class Player extends Schema {
     @type("number") x: number = 0;
@@ -16,12 +18,15 @@ export class Player extends Schema {
     @type("number") rot_y: number = 0;
     @type("number") rot_z: number = 0;
 
-    @type("string") name: string = "Guest";
+    @type("string") name: string = "";
 }
 
 export class tz1RoomState extends Schema {
     @type({ map: Player }) players = new MapSchema<Player>();
 }
+
+
+// TODO: detect connection dropped and reconnect somehow.
 
 
 export default class MultiplayerClient { //extends EventEmitter {
@@ -88,6 +93,8 @@ export default class MultiplayerClient { //extends EventEmitter {
             this.currentRoom = newRoom;
             this.playerSessionId = this.currentRoom.sessionId;
 
+            this.currentRoom.onMessage<ChatMessage>("messages", this.game.appControlFunctions.newChatMessage);// this.onChatMessage);
+
             //this.currentRoom.onStateChange(this.roomStateChanged)
             this.currentRoom.state.players.onAdd = this.playerJoin;
             this.currentRoom.state.players.onRemove = this.playerLeave;
@@ -125,9 +132,15 @@ export default class MultiplayerClient { //extends EventEmitter {
         }
     }
 
+    // We don't really need to handle incoming chat messages here.
+    /*private onChatMessage = (msg: ChatMessage) => {
+        this.game.appControlFunctions.newChatMessage(msg);
+        console.log(`${msg.from ? msg.from : "System"}: ${msg.msg}`)
+    }*/
+
     private getIdentity(): string {
         const anon = !this.game.walletProvider.isWalletConnected();
-        return anon ? "Guest" : this.game.walletProvider.walletPHK();
+        return anon ? "Guest-" + crypto.randomBytes(3).toString('hex') : this.game.walletProvider.walletPHK();
     }
 
     private last_pos = new Vector3();
@@ -162,6 +175,10 @@ export default class MultiplayerClient { //extends EventEmitter {
                 name: this.identity
             });
         }
+    }
+
+    public sendChatMessage(msg: string) {
+        if(this.currentRoom) this.currentRoom.send("message", msg);
     }
 
     public interpolateOtherPlayers() {

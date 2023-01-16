@@ -49,9 +49,15 @@ export const enum OverlayForm {
     Terms
 }
 
+export type ChatMessage = {
+    from: string | null;
+    msg: string;
+}
+
 export type AppControlFunctions = {
     loadForm(form_type: OverlayForm, props?: OverlayFormProps): void;
     addNotification(data: NotificationData): void;
+    newChatMessage(msg: ChatMessage): void;
     updatePlaceInfo(place: BasePlaceNode): void;
     unlockControls(): void;
 };

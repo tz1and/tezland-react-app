@@ -53,6 +53,11 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         this.state.game.playerController.handleDroppedFile(file);
     }
 
+    sendChatMessage(msg: string) {
+        assert(this.state.game);
+        this.state.game.multiClient.sendChatMessage(msg)
+    }
+
     lockControls() {
         // Well, it seems requestPointerLock can return a promise.
         // Try to handle it. To not get a top level DOM exception.

@@ -12,10 +12,10 @@ import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { OverlayForm, DirectoryFormProps, OverlayFormProps,
-    PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps } from '../world/AppControlFunctions';
+    PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps, ChatMessage } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import BasePlaceNode from '../world/nodes/BasePlaceNode';
-import { isDev } from '../utils/Utils';
+import { isDev, truncateAddress } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
@@ -26,6 +26,8 @@ import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
 import { Logging } from '../utils/Logging';
+import CBuffer from "CBuffer";
+import { Button, Card, InputGroup } from 'react-bootstrap';
 
 
 type ExploreProps = {
@@ -39,17 +41,21 @@ type ExploreState = {
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     currentPlace: BasePlaceNode | null;
     virtualSpaceFailed?: string;
+    chatMessageBuffer: CBuffer<ChatMessage>;
 };
 
 export default class Explore extends React.Component<ExploreProps, ExploreState> {
     private virtualSpaceRef = React.createRef<VirtualSpace>();
+    private chatInputRef = React.createRef<HTMLInputElement>();
+    private messageContainer = React.createRef<HTMLDivElement>();
 
     constructor(props: ExploreProps) {
         super(props);
         this.state = {
             show_form: AppTerms.termsAccepted.value ? OverlayForm.Instructions : OverlayForm.Terms,
             notifications: [],
-            currentPlace: null
+            currentPlace: null,
+            chatMessageBuffer: new CBuffer<ChatMessage>(128)
         };
     }
 
@@ -110,6 +116,29 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             this.setState({notifications: newNotifications});
         }, 10000);
     }
+
+    newChatMessage = (msg: ChatMessage) => {
+        this.state.chatMessageBuffer.push(msg);
+        this.setState({chatMessageBuffer: this.state.chatMessageBuffer});
+        this.scrollChatToBottom();
+    }
+
+    sendChatMessage = () => {
+        const input = this.chatInputRef.current;
+        const curVS = this.virtualSpaceRef.current;
+        if (input && curVS && input.value.length > 0) {
+            curVS.sendChatMessage(input.value);
+            input.value = "";
+        }
+    }
+
+    scrollChatToBottom = () => {
+        const div = this.messageContainer.current;
+        if(div) {
+            const scroll = div.scrollHeight - div.clientHeight;
+            div.scrollTo(0, scroll);
+        }
+    };
 
     updatePlaceInfo = (place: BasePlaceNode | null) => {
         this.setState({currentPlace: place});
@@ -229,6 +258,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         const toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 
+        const chatActive = this.state.show_form === OverlayForm.Instructions;
+
         return (
             <div className='Explore'>
                 <Helmet>
@@ -237,11 +268,25 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
+                <div className='position-absolute chatPanel'>
+                    <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
+                        <Card.Body className='messageContainer' ref={this.messageContainer}>
+                            {this.state.chatMessageBuffer.map((msg, idx) => {return <p className='m-1' key={idx}><b>{msg.from ? truncateAddress(msg.from) : "System"}</b>: {msg.msg}</p>}).toArray()}
+                        </Card.Body>
+                        {chatActive && <Card.Footer>
+                            <InputGroup>
+                                <input type="text" ref={this.chatInputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && this.sendChatMessage()} />
+                                <Button disabled={!chatActive} onClick={this.sendChatMessage}>Send</Button>
+                            </InputGroup>
+                        </Card.Footer>}
+                    </Card>
+                </div>
                 {placeInfoOverlay}
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
                 <VirtualSpace ref={this.virtualSpaceRef} appControl={{
                     loadForm: this.loadForm,
                     addNotification: this.addNotification,
+                    newChatMessage: this.newChatMessage,
                     updatePlaceInfo: this.updatePlaceInfo,
                     unlockControls: this.unlockControls
                 }} errorCallback={this.virtualSpaceFailed} />
