@@ -268,14 +268,14 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
-                <div className='position-absolute chatPanel'>
+                <div className={`position-absolute chatPanel ${!chatActive && 'chatPanelInactive'}`}>
                     <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
                         <Card.Body className='messageContainer' ref={this.messageContainer}>
                             {this.state.chatMessageBuffer.map((msg, idx) => {return <p className='m-1' key={idx}><b>{msg.from ? truncateAddress(msg.from) : "System"}</b>: {msg.msg}</p>}).toArray()}
                         </Card.Body>
                         {chatActive && <Card.Footer>
                             <InputGroup>
-                                <input type="text" ref={this.chatInputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && this.sendChatMessage()} />
+                                <input autoComplete="off" type="text" ref={this.chatInputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && this.sendChatMessage()} />
                                 <Button disabled={!chatActive} onClick={this.sendChatMessage}>Send</Button>
                             </InputGroup>
                         </Card.Footer>}

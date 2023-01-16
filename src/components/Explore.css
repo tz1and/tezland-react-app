@@ -72,6 +72,10 @@
   width: 25vw;
 }
 
+.chatPanelInactive {
+  bottom: 1rem;
+}
+
 .chatCard {
   height: 100%;
 }
