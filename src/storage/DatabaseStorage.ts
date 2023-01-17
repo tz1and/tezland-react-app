@@ -99,6 +99,13 @@ export class DatabaseStorage implements IStorageProvider {
         return Promise.resolve();
     }
 
+    close() {
+        if (this._db) {
+            this._db.close();
+            this._db = null;
+        }
+    }
+
     // TODO: maybe should never assert in the db interface?
 
     /**

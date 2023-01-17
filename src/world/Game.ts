@@ -139,6 +139,7 @@ export class Game {
 
         this.walletProvider.walletEvents().removeListener("walletChange", this.updateMultiplayerIdentity);
         window.removeEventListener('resize', this.onResize);
+        window.clearInterval(this.cleanupInterval);
 
         this.world?.dispose();
         this.world = null;
@@ -152,11 +153,12 @@ export class Game {
         this.loadingQueue.clear();
 
         // Dispose assets and processing queues.
-        window.clearInterval(this.cleanupInterval);
-        ArtifactMemCache.dispose();
-
-        // Destorying the engine should prbably be enough.
-        this.engine.dispose();
+        ArtifactMemCache.dispose(() => {
+            // Babylon needs to be destroyed after the worker threads.
+            // I THINK!
+            Logging.InfoDev("Disposing Babylon");
+            this.engine.dispose();
+        });
     }
 
     private onResize = () => {

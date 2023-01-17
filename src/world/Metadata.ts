@@ -55,6 +55,12 @@ export default class Metadata {
         }
     }
 
+    public static ShutdownStorage() {
+        if(Metadata.Storage instanceof DatabaseStorage) {
+            Metadata.Storage.close();
+        }
+    }
+
     private static async deleteBabylonJsDb() {
         try {
             const babylonDbName = "babylonjs";

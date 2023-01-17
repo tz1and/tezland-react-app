@@ -1,6 +1,5 @@
 import React from 'react';
 import './Explore.css';
-import VirtualSpace from './VirtualSpace';
 import { MintFrom } from '../forms/MintForm';
 import { PlaceForm } from '../forms/PlaceForm';
 import { Inventory } from '../forms/Inventory';
@@ -26,13 +25,15 @@ import { Helmet } from 'react-helmet-async';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
-import { Logging } from '../utils/Logging';
 import { Chat } from './chat/Chat';
+import { Game } from '../world/Game';
 
 
 type ExploreProps = {
-    // using `interface` is also ok
-    //message: string;
+    game: Game | null;
+    loadError: any | undefined;
+    appControl: AppControl;
+    lockControls: () => void;
 };
 
 type ExploreState = {
@@ -40,36 +41,31 @@ type ExploreState = {
     form_props?: OverlayFormProps | undefined;
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     currentPlace: BasePlaceNode | null;
-    virtualSpaceFailed?: string;
-    appControl: AppControl;
 };
 
 export default class Explore extends React.Component<ExploreProps, ExploreState> {
-    private virtualSpaceRef = React.createRef<VirtualSpace>();
-
     constructor(props: ExploreProps) {
         super(props);
         this.state = {
             show_form: AppTerms.termsAccepted.value ? OverlayForm.Instructions : OverlayForm.Terms,
             notifications: [],
-            currentPlace: null,
-            appControl: new AppControl()
+            currentPlace: null
         };
     }
 
     override componentDidMount(): void {
-        this.state.appControl.loadForm.subscribe(this.loadForm);
-        this.state.appControl.addNotification.subscribe(this.addNotification);
-        this.state.appControl.updatePlaceInfo.subscribe(this.updatePlaceInfo);
-        this.state.appControl.unlockControls.subscribe(this.unlockControls);
+        this.props.appControl.loadForm.subscribe(this.loadForm);
+        this.props.appControl.addNotification.subscribe(this.addNotification);
+        this.props.appControl.updatePlaceInfo.subscribe(this.updatePlaceInfo);
+        this.props.appControl.unlockControls.subscribe(this.unlockControls);
     }
 
     override componentWillUnmount(): void {
-        this.state.appControl.loadForm.unsubscribe(this.loadForm);
-        this.state.appControl.addNotification.unsubscribe(this.addNotification);
-        this.state.appControl.updatePlaceInfo.unsubscribe(this.updatePlaceInfo);
-        this.state.appControl.unlockControls.unsubscribe(this.unlockControls);
-        this.state.appControl.dispose();
+        this.props.appControl.loadForm.unsubscribe(this.loadForm);
+        this.props.appControl.addNotification.unsubscribe(this.addNotification);
+        this.props.appControl.updatePlaceInfo.unsubscribe(this.updatePlaceInfo);
+        this.props.appControl.unlockControls.unsubscribe(this.unlockControls);
+        this.props.appControl.dispose();
     }
 
     loadForm = (data: {form_type: OverlayForm, props?: OverlayFormProps}) => {
@@ -87,7 +83,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         this.loadForm({form_type: OverlayForm.None});
 
-        this.virtualSpaceRef.current?.lockControls();
+        this.props.lockControls();
     }
 
     unlockControls = () => {
@@ -98,11 +94,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     selectItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
         this.loadForm({form_type: OverlayForm.None});
 
-        const curVS = this.virtualSpaceRef.current;
-        if (curVS) {
-            curVS.setInventoryItem(tokenKey, quantity);
-            curVS.lockControls();
-        }
+        assert(this.props.game);
+        this.props.game.playerController.selectItemForPlacement(tokenKey, quantity);
     }
 
     burnItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
@@ -131,8 +124,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     sendChatMessage = (msg: string) => {
-        const curVS = this.virtualSpaceRef.current;
-        if (curVS) curVS.sendChatMessage(msg);
+        assert(this.props.game);
+        this.props.game.multiClient.sendChatMessage(msg);
     }
 
     updatePlaceInfo = (place: BasePlaceNode | null) => {
@@ -140,25 +133,20 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     getCurrentLocation = (): [number, number, number] => {
-        const curVS = this.virtualSpaceRef.current;
-        if (curVS) return curVS.getCurrentLocation();
-        return [0, 0, 0];
+        assert(this.props.game);
+        const pos = this.props.game.playerController.getPosition();
+        return [pos.x, pos.y, pos.z];
     }
 
     teleportToLocation = (location: WorldLocation): void => {
-        const curVS = this.virtualSpaceRef.current;
-        if (curVS) curVS.teleportToLocation(location);
+        assert(this.props.game);
+        this.props.game.teleportTo(location);
     };
 
     handleFileDrop = (fileList: FileList) => {
-        const curVS = this.virtualSpaceRef.current;
-        if (curVS) curVS.handleDroppedFile(fileList.item(0)!);
+        assert(this.props.game);
+        this.props.game.playerController.handleDroppedFile(fileList.item(0)!);
     };
-
-    virtualSpaceFailed = (e: any) => {
-        Logging.Error("Failed to load:", e);
-        this.setState({virtualSpaceFailed: e.toString()});
-    }
 
     private getFormElement(): JSX.Element | undefined {
         switch (this.state.show_form) {
@@ -236,7 +224,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
     override render() {
         // NOTE: maybe could use router for overlay/forms.
-        if(this.state.virtualSpaceFailed) return <LoadingError errorMsg={this.state.virtualSpaceFailed}/>;
+        if(this.props.loadError) return <LoadingError errorMsg={this.props.loadError.toString()}/>;
 
         const overlay = this.getOverlay();
 
@@ -256,16 +244,12 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         return (
             <div className='Explore'>
-                <Helmet>
-                    <title>tz1and - Explore</title>
-                </Helmet>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
-                <Chat overlayState={this.state.show_form} appControl={this.state.appControl} sendMsg={this.sendChatMessage}/>
+                <Chat overlayState={this.state.show_form} appControl={this.props.appControl} sendMsg={this.sendChatMessage}/>
                 {placeInfoOverlay}
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
-                <VirtualSpace ref={this.virtualSpaceRef} appControl={this.state.appControl} errorCallback={this.virtualSpaceFailed} />
                 { isDev() ? <div id="inspector-host" /> : null }
             </div>
         );

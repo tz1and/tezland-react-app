@@ -14,7 +14,7 @@ import Privacy from './routes/Privacy';
 import Map from './routes/Map';
 import EventMap from './routes/EventMap';
 import DirectoryMap from './routes/DirectoryMap';
-import Explore from './components/Explore';
+import VirtualSpace from './components/VirtualSpace';
 import MintFormWrapper from './forms/MintFormWrapper';
 import MintCollectionFormWrapper from './forms/MintCollectionFormWrapper';
 import PageNotFound from './routes/PageNotFound';
@@ -126,7 +126,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                                 <Route path="*" element={<PageNotFound />} />
                             </Route>
                         </Route> }
-                    <Route path="/explore" element={<Explore />} />
+                    <Route path="/explore" element={<VirtualSpace />} />
                 </Routes>
             </BrowserRouter>
         </TezosWalletProvider>

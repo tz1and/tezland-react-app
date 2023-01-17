@@ -1,73 +1,38 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AppControl } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
-import TezosWalletContext from './TezosWalletContext';
+import { useTezosWalletContext } from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
 import { Logger } from '@babylonjs/core';
 import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
-import TokenKey from '../utils/TokenKey';
 import Contracts from '../tz/Contracts';
-import WorldLocation from '../utils/WorldLocation';
+import Explore from './Explore';
+import { Helmet } from 'react-helmet-async';
 
 
-type VirtualSpaceProps = {
-    appControl: AppControl;
-    errorCallback: (e: any) => void;
-};
+const VirtualSpace: React.FC<{}> = (props) => {
+    const context = useTezosWalletContext();
 
-type VirtualSpaceState = {
-    game: Game | null;
-};
+    const mount = useRef<HTMLCanvasElement>(null);
 
-class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState> {
-    static override contextType = TezosWalletContext;
-    declare context: React.ContextType<typeof TezosWalletContext>;
+    const [appControl] = useState(new AppControl());
+    const [game, setGame] = useState<Game | null>(null);
 
-    private mount = React.createRef<HTMLCanvasElement>();
+    const [error, setError] = useState<Error>();
 
-    constructor(props: VirtualSpaceProps) {
-        super(props);
-        this.state = { game: null };
-    }
-
-    setInventoryItem(tokenKey: TokenKey, quantity: number) {
-        assert(this.state.game);
-        this.state.game.playerController.selectItemForPlacement(tokenKey, quantity);
-    }
-
-    getCurrentLocation(): [number, number, number] {
-        assert(this.state.game);
-        const pos = this.state.game.playerController.getPosition();
-        return [pos.x, pos.y, pos.z];
-    }
-
-    teleportToLocation(location: WorldLocation) {
-        assert(this.state.game);
-        this.state.game.teleportTo(location);
-    }
-
-    handleDroppedFile(file: File) {
-        assert(this.state.game);
-        this.state.game.playerController.handleDroppedFile(file);
-    }
-
-    sendChatMessage(msg: string) {
-        assert(this.state.game);
-        this.state.game.multiClient.sendChatMessage(msg)
-    }
-
-    lockControls() {
+    const lockControls = useCallback(() => {
         // Well, it seems requestPointerLock can return a promise.
         // Try to handle it. To not get a top level DOM exception.
         // Sneaky Chrome...
-        const promise: unknown = this.mount.current?.requestPointerLock();
+        const promise: unknown = mount.current?.requestPointerLock();
         if (promise instanceof Promise) promise.catch((e: DOMException) => { Logging.DirDev(e); })
-    }
+    }, [mount])
 
-    override componentDidMount() {
-        assert(this.mount.current);
+    useEffect(() => {
+        //Logging.InfoDev("running VirtualSpace::useEffect");
+        assert(mount.current);
 
         const mobileCheck = function() {
             let check = false;
@@ -78,32 +43,39 @@ class VirtualSpace extends React.Component<VirtualSpaceProps, VirtualSpaceState>
         };
 
         if (mobileCheck() === true) {
-            this.props.errorCallback(new Error("tz1and is currently not available on mobile devices."));
+            setError(new Error("tz1and is currently not available on mobile devices."));
             return;
         }
 
-        BabylonUtils.createEngine(this.mount.current).then(async (engine) => {
+        let game: Game | null = null;
+        BabylonUtils.createEngine(mount.current).then(async (engine) => {
             // Only show babylonjs errors in log.
             Logger.LogLevels = Logger.ErrorLogLevel;
             try {
-                await Contracts.getWorldAllowedPlaceTokens(this.context);
-                this.setState({game: new Game(engine, this.props.appControl, this.context)});
+                await Contracts.getWorldAllowedPlaceTokens(context);
+                game = new Game(engine, appControl, context);
+                setGame(game);
             }
             catch(err: any) {
-                this.props.errorCallback(err);
+                setError(err);
             }
-        }).catch(err => this.props.errorCallback(err));
-    }
+        }).catch(err => setError(err));
 
-    override componentWillUnmount() {
-        this.state.game?.dispose();
-    }
+        return () => {
+            game?.dispose();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    override render() {
-        return (
-            <canvas id="renderCanvas" touch-action="none" ref={this.mount} ></canvas>
-        )
-    }
+    return (
+        <div>
+            <Helmet>
+                <title>tz1and - Explore</title>
+            </Helmet>
+            <canvas id="renderCanvas" touch-action="none" ref={mount} />
+            <Explore game={game} appControl={appControl} lockControls={lockControls} loadError={error}></Explore>
+        </div>
+    )
 }
 
 export default VirtualSpace;

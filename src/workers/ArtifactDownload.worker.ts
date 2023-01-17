@@ -1,6 +1,6 @@
 import ArtifactDownload, { GatewayType } from '../utils/ArtifactDownload';
 import { MeshPreprocessingWorkerApi } from './MeshPreprocessing.worker';
-import { initialiseWorkerStorage, getNumLogicalCores } from './WorkerUtils';
+import { initialiseWorkerStorage, getNumLogicalCores, shutdownWorkerStorage } from './WorkerUtils';
 import BigNumber from 'bignumber.js';
 import { expose } from 'threads/worker';
 import { spawn, Pool } from "threads"
@@ -12,9 +12,9 @@ const pool = Pool(
     () => spawn<typeof MeshPreprocessingWorkerApi>(
         new Worker(new URL("./MeshPreprocessing.worker.ts", import.meta.url),
             { type: 'module', name: "MeshPreprocessing.worker" })),
-    // At least two, but at most 8 threads.
-    // Note: Pool.terminate chashes chromium if there are 16 threads.
-    Math.max(2, Math.min(8, getNumLogicalCores())));
+        // At least two, but at most 8 threads.
+        // Note: Pool.terminate chashes chromium if there are 16 threads.
+        Math.max(2, Math.min(8, getNumLogicalCores())));
 
 const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (
     token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
@@ -32,6 +32,7 @@ const shutdown = async () => {
     // Note: Don't force shutdown threads.
     // There apprears to be some bug terminating the thread pool with force = true.
     await pool.settled(true);
+    shutdownWorkerStorage();
     return pool.terminate(false);
 }
 

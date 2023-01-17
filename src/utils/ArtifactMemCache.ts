@@ -39,7 +39,7 @@ export const instantiateOptions = (clone: boolean = false): {
 
 class ArtifactMemCache {
     private artifactCache: Map<string, Promise<RefCounted<AssetContainer>>>;
-    private workerThread?: ModuleThread<typeof ArtifactDownloadWorkerApi>;
+    private workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
 
     /**
      * This is checked by world to know when it needs to do some cleanup.
@@ -51,13 +51,13 @@ class ArtifactMemCache {
     }
 
     public async initialise() {
-        this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(new Worker(
-            new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
-            { type: 'module', name: "ArtifactDownload.worker" }));
+        this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
+            new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
+                { type: 'module', name: "ArtifactDownload.worker" }));
         await this.workerThread.initialise();
     }
 
-    public dispose() {
+    public dispose(callback: () => void) {
         const disposeRegular = () => {
             ArtifactProcessingQueue.dispose();
 
@@ -65,6 +65,8 @@ class ArtifactMemCache {
                 v.then(res => res.object.dispose());
             })
             this.artifactCache.clear();
+
+            callback();
         }
 
         if (this.workerThread) {
@@ -72,8 +74,9 @@ class ArtifactMemCache {
                 Thread.terminate(this.workerThread!).then(() => {
                     Logging.InfoDev("Thread terminated: ArtifactDownload.worker");
                 }).catch((e) => {
-                    Logging.InfoDev("Thread failed to terminate: ArtifactDownload.worker:", e);
+                    Logging.ErrorDev("Thread failed to terminate: ArtifactDownload.worker:", e);
                 }).finally(() => {
+                    this.workerThread = null;
                     disposeRegular();
                 });
             });
