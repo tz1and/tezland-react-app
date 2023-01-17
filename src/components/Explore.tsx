@@ -247,7 +247,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         const controlInfo = overlay ? <ControlsHelp/> : null;
 
-        {/* Move place overlay to component */}
+        /* Move place overlay to component */
         const placeInfoOverlay = !overlay && this.state.currentPlace ?
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
                 <h5 className='mb-0'>{this.state.currentPlace.getName()}</h5>
