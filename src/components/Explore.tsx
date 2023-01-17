@@ -247,6 +247,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         const controlInfo = overlay ? <ControlsHelp/> : null;
 
+        {/* Move place overlay to component */}
         const placeInfoOverlay = !overlay && this.state.currentPlace ?
             <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
                 <h5 className='mb-0'>{this.state.currentPlace.getName()}</h5>
@@ -269,6 +270,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
+                {/* Move chat to component */}
                 {chatVisible && <div className={`position-absolute chatPanel ${!chatActive && 'chatPanelInactive'}`}>
                     <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
                         <Card.Body className='messageContainer' ref={this.messageContainer}>

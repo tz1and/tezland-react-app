@@ -201,7 +201,7 @@ export default class MultiplayerClient { //extends EventEmitter {
     }
 
     public dispose() {
-        // TODO: disconnect colyseus?
+        this.currentRoom?.connection.close();
         this.otherPlayers.clear();
         this.otherPlayersNode.dispose();
     }
