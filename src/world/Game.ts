@@ -153,7 +153,7 @@ export class Game {
         this.loadingQueue.clear();
 
         // Dispose assets and processing queues.
-        ArtifactMemCache.dispose(() => {
+        ArtifactMemCache.dispose().finally(() => {
             // Babylon needs to be destroyed after the worker threads.
             // I THINK!
             Logging.InfoDev("Disposing Babylon");

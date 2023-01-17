@@ -57,33 +57,24 @@ class ArtifactMemCache {
         await this.workerThread.initialise();
     }
 
-    public dispose(callback: () => void) {
-        const disposeRegular = () => {
-            ArtifactProcessingQueue.dispose();
-
-            this.artifactCache.forEach(v => {
-                v.then(res => res.object.dispose());
-            })
-            this.artifactCache.clear();
-
-            callback();
-        }
-
+    public async dispose() {
         if (this.workerThread) {
-            this.workerThread.shutdown().then(() => {
-                Thread.terminate(this.workerThread!).then(() => {
-                    Logging.InfoDev("Thread terminated: ArtifactDownload.worker");
-                }).catch((e) => {
-                    Logging.ErrorDev("Thread failed to terminate: ArtifactDownload.worker:", e);
-                }).finally(() => {
-                    this.workerThread = null;
-                    disposeRegular();
-                });
-            });
+            await this.workerThread.shutdown();
+            try {
+                await Thread.terminate(this.workerThread);
+                Logging.InfoDev("Thread terminated: ArtifactDownload.worker");
+            } catch(e) {
+                Logging.ErrorDev("Thread failed to terminate: ArtifactDownload.worker:", e);
+            }
+            this.workerThread = null;
         }
-        else {
-            disposeRegular();
-        }
+
+        ArtifactProcessingQueue.dispose();
+
+        this.artifactCache.forEach(v => {
+            v.then(res => res.object.dispose());
+        })
+        this.artifactCache.clear();
     }
 
     public cleanup(scene: Scene) {
