@@ -1,4 +1,4 @@
-import { Nullable } from "@babylonjs/core";
+import { Nullable, Scene, UtilityLayerRenderer } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Control, Ellipse, Image, TextBlock } from "@babylonjs/gui";
 import AppSettings from "../storage/AppSettings";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';
@@ -20,6 +20,7 @@ export const enum CursorType {
 }
 
 export default class GuiController {
+    private utilLayer: UtilityLayerRenderer;
     private advancedTexture: AdvancedDynamicTexture;
 
     private cursors: Map<CursorType, Control> = new Map();
@@ -28,8 +29,11 @@ export default class GuiController {
 
     private teleporterText: TextBlock;
 
-    constructor() {
-        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    constructor(scene: Scene) {
+        // NOTE: not sure if rendering UI onto a utility layer is valid or not.
+        // Should maybe use a different camera with a different layer mask instead.
+        this.utilLayer = new UtilityLayerRenderer(scene);
+        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.utilLayer.utilityLayerScene);
         // todo: get size from canvas?
         this.advancedTexture.idealHeight = 1920;
         this.advancedTexture.idealWidth = 1080;
@@ -82,6 +86,7 @@ export default class GuiController {
 
     public dispose() {
         this.advancedTexture.dispose();
+        this.utilLayer.dispose();
     }
 
     private createCursor(cursor: CursorType): Control {

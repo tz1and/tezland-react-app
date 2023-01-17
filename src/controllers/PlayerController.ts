@@ -74,7 +74,7 @@ export default class PlayerController {
         this.scene = game.scene;
         this._currentPlace = null;
 
-        this.gui = new GuiController();
+        this.gui = new GuiController(this.scene);
         this.controllerManager = new UserControllerManager();
         this.controllerManager.activate("picking", this);
         this._flyMode = false;

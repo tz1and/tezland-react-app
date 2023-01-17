@@ -1,5 +1,5 @@
 import { DefaultRenderingPipeline, Engine, Scene,
-    Nullable, Color3, HighlightLayer, Mesh, Vector3 } from "@babylonjs/core";
+    Nullable, Color3, HighlightLayer, Mesh, Vector3, TonemappingOperator } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -97,7 +97,7 @@ export class Game {
         this.playerController = new PlayerController(this, appControlFunctions);
 
         // TODO: need to figure out how to exclude GUI.
-        //this.setupDefaultRenderingPipeline();
+        this.setupDefaultRenderingPipeline();
 
         // Render every frame
         this.engine.stopRenderLoop();
@@ -260,21 +260,20 @@ export class Game {
         );
 
         if (AppSettings.enableAntialiasing.value) {
-            pipeline.samples = 4;
+            pipeline.samples = 2;
         }
 
-        /*if (AppSettings.enableFxaa.value) {
+        if (AppSettings.enableFxaa.value) {
             pipeline.fxaaEnabled = true;
-        }*/
+        }
 
-        // NOTE: let's not do bloom for now, because it blooms the UI too.
+        // NOTE: let's not do bloom for now.
         /*if (AppSettings.enableBloom.value) {
             pipeline.bloomEnabled = true;
-            // TODO: find some nice settings.
-            //pipeline.bloomThreshold = 0.8;
-            //pipeline.bloomWeight = 0.3;
-            //pipeline.bloomKernel = 64;
-            //pipeline.bloomScale = 0.5;
+            pipeline.bloomThreshold = 0.0;
+            pipeline.bloomWeight = 0.05;
+            pipeline.bloomKernel = 64;
+            pipeline.bloomScale = 0.25;
         }*/
 
         // Maybe have it under some "other postprocessing" option
@@ -295,34 +294,34 @@ export class Game {
             pipeline.imageProcessing.colorCurvesEnabled = true;
             pipeline.imageProcessing.colorCurves = curve;*/
 
-            /*pipeline.imageProcessing.toneMappingEnabled = true;
+            pipeline.imageProcessing.toneMappingEnabled = true;
             pipeline.imageProcessing.toneMappingType = TonemappingOperator.Photographic;
-            pipeline.imageProcessing.exposure = 1.25;*/
+            pipeline.imageProcessing.exposure = 1.0;
 
             pipeline.imageProcessing.ditheringEnabled = true;
             pipeline.imageProcessing.ditheringIntensity = 1 / 255;
 
-            /*if (AppSettings.enableGrain.value) {
+            if (AppSettings.enableGrain.value) {
                 pipeline.grainEnabled = true;
-                pipeline.grain.intensity = 4;
+                pipeline.grain.intensity = 2;
                 pipeline.grain.animated = true;
-            }*/
+            }
         }
 
         // NOTE: SSAO2 is kinda broken right now.
         /*var ssaoRatio = {
-            ssaoRatio: 0.5, // Ratio of the SSAO post-process, in a lower resolution
-            blurRatio: 0.5// Ratio of the combine post-process (combines the SSAO and the scene)
+            ssaoRatio: 1.0, // Ratio of the SSAO post-process, in a lower resolution
+            blurRatio: 1.0// Ratio of the combine post-process (combines the SSAO and the scene)
         };
 
-        var ssao = new SSAO2RenderingPipeline("ssao", this.scene, ssaoRatio, undefined, false);
-        ssao.radius = 5;
-        ssao.totalStrength = 1.3;
+        var ssao = new SSAO2RenderingPipeline("ssao", this.scene, ssaoRatio, [this.playerController.camera], false);
+        ssao.radius = 2;
+        ssao.totalStrength = 1;
         ssao.expensiveBlur = false;
-        ssao.samples = 16;
-        ssao.maxZ = 250;
+        ssao.samples = 8;
+        //ssao.maxZ = 250;
 
         // Attach camera to the SSAO render pipeline
-        this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", this.playerController.camera);*/
+        //this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", this.playerController.camera);*/
     }
 }
