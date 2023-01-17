@@ -43,6 +43,7 @@ const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
 
         // Freeze wold matrix.
         item.getChildMeshes(false).forEach((e) => e.freezeWorldMatrix());
+        item.freezeWorldMatrix();
     }
 }
 

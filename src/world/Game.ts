@@ -1,5 +1,5 @@
 import { DefaultRenderingPipeline, Engine, Scene,
-    Nullable, Color3, HighlightLayer, Mesh, Vector3, TonemappingOperator } from "@babylonjs/core";
+    Nullable, Color3, HighlightLayer, Mesh, Vector3, TonemappingOperator, ScenePerformancePriority } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -64,6 +64,9 @@ export class Game {
         this.scene.collisionsEnabled = true;
         this.scene.blockMaterialDirtyMechanism = true;
 
+        // Not sure if this is right, but let's assume it is.
+        this.scene.freezeActiveMeshes();
+
         // Fog is currently needed for underwater.
         this.scene.fogMode = Scene.FOGMODE_EXP;
         //scene.fogStart = 5;
@@ -113,7 +116,7 @@ export class Game {
         // Run asset cleanup once every minute.
         this.cleanupInterval = window.setInterval(() => {
             Logging.Info("Running asset cleanup")
-            ArtifactMemCache.cleanup();
+            ArtifactMemCache.cleanup(this.scene);
             this.scene.cleanCachedTextureBuffer();
         }, 60000);
 

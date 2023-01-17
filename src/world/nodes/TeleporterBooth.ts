@@ -19,7 +19,8 @@ export default class TeleporterBooth extends TransformNode {
         ArtifactMemCache.loadOther(chosen_booth.id, chosen_booth.filename, scene, this).then(res => {
             res.getChildMeshes().forEach(c => {
                 c.freezeWorldMatrix();
-            })
+            });
+            res.freezeWorldMatrix();
         })
     }
 

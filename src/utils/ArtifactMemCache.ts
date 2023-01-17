@@ -83,7 +83,10 @@ class ArtifactMemCache {
         }
     }
 
-    public cleanup() {
+    public cleanup(scene: Scene) {
+        // https://doc.babylonjs.com/features/featuresDeepDive/scene/optimize_your_scene#scene-with-large-number-of-meshes
+        scene.blockfreeActiveMeshesAndRenderingGroups = true;
+
         // For all assets in the cache
         this.artifactCache.forEach((v, k) => {
             v.then(res => {
@@ -98,6 +101,8 @@ class ArtifactMemCache {
                 }
             });
         });
+
+        scene.blockfreeActiveMeshesAndRenderingGroups = false;
     }
 
     /**

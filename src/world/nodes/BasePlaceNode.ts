@@ -161,6 +161,9 @@ export default abstract class BasePlaceNode extends TransformNode {
     }
 
     public override dispose(doNotRecurse?: boolean | undefined, disposeMaterialAndTextures?: boolean | undefined): void {
+        // https://doc.babylonjs.com/features/featuresDeepDive/scene/optimize_your_scene#scene-with-large-number-of-meshes
+        this.world.game.scene.blockfreeActiveMeshesAndRenderingGroups = true;
+
         this.items.clear();
         this.outOfBoundsItems.clear();
 
@@ -180,6 +183,8 @@ export default abstract class BasePlaceNode extends TransformNode {
         ItemTracker.removeTrackedItemsForPlace(this.placeKey.id);
 
         super.dispose(doNotRecurse, disposeMaterialAndTextures);
+
+        this.world.game.scene.blockfreeActiveMeshesAndRenderingGroups = false;
     }
 
     // TODO: use MeshUtils.extrudeMeshFromShape
@@ -218,6 +223,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         shape = shape.reverse();
 
         this.position.copyFrom(this._origin); // TODO: move to base constructor?
+        this.freezeWorldMatrix();
 
         // create bounds
         // TODO: use MeshUtils.extrudeMeshFromShape
@@ -242,11 +248,13 @@ export default abstract class BasePlaceNode extends TransformNode {
         this._itemsNode = new TransformNode(`items`, this.world.game.scene);
         this._itemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
         this._itemsNode.parent = this;
+        this._itemsNode.freezeWorldMatrix();
 
         // create temp items node
         this._tempItemsNode = new TransformNode(`itemsTemp`, this.world.game.scene);
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
         this._tempItemsNode.parent = this;
+        this._tempItemsNode.freezeWorldMatrix();
     }
 
     public displayOutOfBoundsItemsNotification() {
@@ -524,6 +532,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         this._tempItemsNode = new TransformNode(`placeTemp${this.placeKey.id}`, this.world.game.scene);
         this._tempItemsNode.position.y += this._buildHeight * 0.5; // center on build height for f16 precision
         this._tempItemsNode.parent = this;
+        this._tempItemsNode.freezeWorldMatrix();
     }
 
     /**
