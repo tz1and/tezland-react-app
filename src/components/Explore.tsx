@@ -280,6 +280,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                             <InputGroup>
                                 <input autoComplete="off" type="text" ref={this.chatInputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && this.sendChatMessage()} />
                                 <Button disabled={!chatActive} onClick={this.sendChatMessage}>Send</Button>
+                                {/*<div className='text-center w-100 m-0 mt-2 p-1 rounded bg-warning-light'>Don't give away sensitive information like passwords or seed phrases.</div>*/}
                             </InputGroup>
                         </Card.Footer>}
                     </Card>
