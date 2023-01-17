@@ -81,6 +81,7 @@ export default class MultiplayerClient { //extends EventEmitter {
     public async changeRoom(room: string, options?: any) {
         try {
             if(this.currentRoom) {
+                this.game.appControlFunctions.newChatMessage({from: null, msg: "You left " + this.currentRoom.name});
                 await this.currentRoom.leave();
                 // Delete other players.
                 this.otherPlayers.forEach(p => p.dispose());
@@ -92,6 +93,7 @@ export default class MultiplayerClient { //extends EventEmitter {
             console.log(newRoom.sessionId, "joined", newRoom.name);
             this.currentRoom = newRoom;
             this.playerSessionId = this.currentRoom.sessionId;
+            this.game.appControlFunctions.newChatMessage({from: null, msg: "You joined " + this.currentRoom.name});
 
             this.currentRoom.onMessage<ChatMessage>("messages", this.game.appControlFunctions.newChatMessage);// this.onChatMessage);
 
