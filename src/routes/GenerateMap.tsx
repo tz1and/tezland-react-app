@@ -16,6 +16,8 @@ import Metadata from "../world/Metadata";
 import BigNumber from "bignumber.js";
 import Lot from "../worldgen/Lot";
 import Prando from "prando";
+import PlaceKey from "../utils/PlaceKey";
+import { PlacePermissions } from "../world/nodes/BasePlaceNode";
 
 const prodAdminAddress = "tz1Ly2nrAF7p4dYGHYfuDNTX6M3Ly8tDZ7Pn";
 
@@ -509,11 +511,11 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         for (const perm of give_permissions) {
             ops.push(
                 {
-                    add_permission: {
+                    add: {
                         owner: walletphk,
                         permittee: perm.permittee,
-                        token_id: perm.token_id,
-                        perm: 1 // permPlaceItems
+                        place_key: new PlaceKey(perm.token_id, Conf.place_contract),
+                        perm: PlacePermissions.permissionPlaceItems
                     }
                 }
             );
@@ -522,10 +524,10 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
         for (const perm of remove_permissions) {
             ops.push(
                 {
-                    remove_permission: {
+                    remove: {
                         owner: walletphk,
                         permittee: perm.permittee,
-                        token_id: perm.token_id
+                        place_key: new PlaceKey(perm.token_id, Conf.place_contract),
                     }
                 }
             );
