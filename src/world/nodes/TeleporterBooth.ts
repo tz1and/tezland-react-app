@@ -6,6 +6,9 @@ export default class TeleporterBooth extends TransformNode {
     private static AvailableBooths = [
         { id: -80074, filename: 'telebooth.glb', scale: 1.0 },
         { id: -80075, filename: 'telebooth_dengiskong_v2.glb', scale: 0.525 }
+        // For when other meshes are preprocessed.
+        /*{ id: -80074, filename: 'telebooth.glb', scale: 3.0 },
+        { id: -80075, filename: 'telebooth_dengiskong_v2.glb', scale: 3.75 }*/
     ];
 
     constructor(pos: Vector3, scene: Scene, isPure?: boolean) {

@@ -265,6 +265,15 @@ class ArtifactMemCache {
             assetPromise = (async () => {
                 const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
                 return new RefCounted(res);
+                // Enable this, but figure out why booths are darker sometimes.
+                // Probably to do with reflection probe, RTTs not updating or something.
+                // Maybe related to freeze active meshes?
+                /*const response = await fetch('/models/' + fileName);
+                const fileWithMimeType = new File([await response.arrayBuffer()], fileName, { type: "model/gltf-binary" });
+
+                return ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
+                    baseScale: 1
+                } as ItemTokenMetadata}, scene);*/
             })()
     
             /*if (this.artifactCache.has(token_id_number)) {
