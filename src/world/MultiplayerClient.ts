@@ -81,7 +81,7 @@ export default class MultiplayerClient { //extends EventEmitter {
     public async changeRoom(room: string, options?: any) {
         try {
             if(this.currentRoom) {
-                this.game.appControlFunctions.newChatMessage({from: null, msg: "You left " + this.currentRoom.name});
+                this.game.appControl.newChatMessage.dispatch({from: null, msg: "You left " + this.currentRoom.name});
                 await this.currentRoom.leave();
                 // Delete other players.
                 this.otherPlayers.forEach(p => p.dispose());
@@ -93,9 +93,9 @@ export default class MultiplayerClient { //extends EventEmitter {
             console.log(newRoom.sessionId, "joined", newRoom.name);
             this.currentRoom = newRoom;
             this.playerSessionId = this.currentRoom.sessionId;
-            this.game.appControlFunctions.newChatMessage({from: null, msg: "You joined " + this.currentRoom.name});
+            this.game.appControl.newChatMessage.dispatch({from: null, msg: "You joined " + this.currentRoom.name});
 
-            this.currentRoom.onMessage<ChatMessage>("messages", this.game.appControlFunctions.newChatMessage);// this.onChatMessage);
+            this.currentRoom.onMessage<ChatMessage>("messages", msg => this.game.appControl.newChatMessage.dispatch(msg));// this.onChatMessage);
 
             //this.currentRoom.onStateChange(this.roomStateChanged)
             this.currentRoom.state.players.onAdd = this.playerJoin;
@@ -136,8 +136,8 @@ export default class MultiplayerClient { //extends EventEmitter {
 
     // We don't really need to handle incoming chat messages here.
     /*private onChatMessage = (msg: ChatMessage) => {
-        this.game.appControlFunctions.newChatMessage(msg);
-        console.log(`${msg.from ? msg.from : "System"}: ${msg.msg}`)
+        this.game.appControl.newChatMessage.dispatch(msg);
+        //console.log(`${msg.from ? msg.from : "System"}: ${msg.msg}`)
     }*/
 
     private getIdentity(): string {

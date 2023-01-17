@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppControlFunctions } from '../world/AppControlFunctions';
+import { AppControl } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 import TezosWalletContext from './TezosWalletContext';
 import assert from 'assert';
@@ -13,7 +13,7 @@ import WorldLocation from '../utils/WorldLocation';
 
 
 type VirtualSpaceProps = {
-    appControl: AppControlFunctions;
+    appControl: AppControl;
     errorCallback: (e: any) => void;
 };
 

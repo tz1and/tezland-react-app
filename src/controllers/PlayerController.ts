@@ -5,7 +5,7 @@ import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
-import { AppControlFunctions, DirectoryFormProps, OverlayForm } from "../world/AppControlFunctions";
+import { AppControl, DirectoryFormProps, OverlayForm } from "../world/AppControlFunctions";
 import Metadata from "../world/Metadata";
 import BasePlaceNode from "../world/nodes/BasePlaceNode";
 import { Game } from "../world/Game";
@@ -37,7 +37,7 @@ const UnglitchCooldown = 10000; // 10s
 
 export default class PlayerController {
     readonly camera: FreeCamera;
-    readonly appControlFunctions: AppControlFunctions;
+    readonly appControl: AppControl;
     readonly game: Game;
     readonly scene: Scene;
 
@@ -68,8 +68,8 @@ export default class PlayerController {
 
     private last_unglitch_time: number = 0;
 
-    constructor(game: Game, appControlFunctions: AppControlFunctions) {
-        this.appControlFunctions = appControlFunctions;
+    constructor(game: Game, appControl: AppControl) {
+        this.appControl = appControl;
         this.game = game;
         this.scene = game.scene;
         this._currentPlace = null;
@@ -123,7 +123,7 @@ export default class PlayerController {
                 this.camera.detachControl();
                 this.input.detachControl();
                 //this.isPointerLocked = false;
-                this.appControlFunctions.unlockControls();
+                this.appControl.unlockControls.dispatch();
             } else {
                 // focus on canvas for keyboard input to work.
                 this.scene.getEngine().getRenderingCanvas()?.focus();
@@ -136,7 +136,7 @@ export default class PlayerController {
         // Catch pointerlock errors to not get stuck
         this.onPointerlockError = () => {
             Logging.Error("Pointerlock request failed.");
-            this.appControlFunctions.loadForm(OverlayForm.Instructions);
+            this.appControl.loadForm.dispatch({form_type: OverlayForm.Instructions});
         };
 
         // add pointerlock event listeners
@@ -169,7 +169,7 @@ export default class PlayerController {
                     // Opens the mint form
                     case 'KeyM':
                         document.exitPointerLock();
-                        this.appControlFunctions.loadForm(OverlayForm.Mint);
+                        this.appControl.loadForm.dispatch({form_type: OverlayForm.Mint});
                         break;
 
                     // Opens the place properties form
@@ -178,9 +178,9 @@ export default class PlayerController {
                             if (this._currentPlace.getPermissions.hasProps()) {
                                 document.exitPointerLock();
                                 // NOTE: we just assume, placeInfo in Explore is up to date.
-                                this.appControlFunctions.loadForm(OverlayForm.PlaceProperties);
+                                this.appControl.loadForm.dispatch({form_type: OverlayForm.PlaceProperties});
                             } else {
-                                this.appControlFunctions.addNotification({
+                                this.appControl.addNotification.dispatch({
                                     id: "permissionsProps" + this._currentPlace.placeKey.id,
                                     title: "No permission",
                                     body: `You don't have permission to edit the properties of this place.`,
@@ -193,7 +193,7 @@ export default class PlayerController {
                     // Opens the inventory
                     case 'KeyI':
                         document.exitPointerLock();
-                        this.appControlFunctions.loadForm(OverlayForm.Inventory);
+                        this.appControl.loadForm.dispatch({form_type: OverlayForm.Inventory});
                         break;
 
                     // Clear item selection
@@ -252,9 +252,9 @@ export default class PlayerController {
                     case 'KeyN':
                         if(isDev()) {
                             document.exitPointerLock();
-                            this.appControlFunctions.loadForm(OverlayForm.Directory, {
+                            this.appControl.loadForm.dispatch({form_type: OverlayForm.Directory, props: {
                                 mapCoords: [this.playerTrigger.position.x, this.playerTrigger.position.z]
-                            } as DirectoryFormProps);
+                            } as DirectoryFormProps});
                         }
                         break;
                 }
@@ -397,7 +397,7 @@ export default class PlayerController {
             if (place) {
                 // Update permissions, place info, notifications.
                 place.updateOwnerAndPermissions().then(() => {
-                    this.appControlFunctions.updatePlaceInfo(place);
+                    this.appControl.updatePlaceInfo.dispatch(place);
 
                     Logging.InfoDev("entered place: " + place.placeKey.id);
 

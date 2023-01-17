@@ -12,10 +12,11 @@ import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { OverlayForm, DirectoryFormProps, OverlayFormProps,
-    PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps, ChatMessage } from '../world/AppControlFunctions';
+    PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps,
+    AppControl } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import BasePlaceNode from '../world/nodes/BasePlaceNode';
-import { isDev, truncateAddress } from '../utils/Utils';
+import { isDev } from '../utils/Utils';
 import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
@@ -26,8 +27,7 @@ import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
 import { Logging } from '../utils/Logging';
-import CBuffer from "CBuffer";
-import { Button, Card, InputGroup } from 'react-bootstrap';
+import { Chat } from './chat/Chat';
 
 
 type ExploreProps = {
@@ -41,13 +41,11 @@ type ExploreState = {
     notifications: NotificationData[]; // TODO: should probably we a map from id to notification.
     currentPlace: BasePlaceNode | null;
     virtualSpaceFailed?: string;
-    chatMessageBuffer: CBuffer<ChatMessage>;
+    appControl: AppControl;
 };
 
 export default class Explore extends React.Component<ExploreProps, ExploreState> {
     private virtualSpaceRef = React.createRef<VirtualSpace>();
-    private chatInputRef = React.createRef<HTMLInputElement>();
-    private messageContainer = React.createRef<HTMLDivElement>();
 
     constructor(props: ExploreProps) {
         super(props);
@@ -55,35 +53,50 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             show_form: AppTerms.termsAccepted.value ? OverlayForm.Instructions : OverlayForm.Terms,
             notifications: [],
             currentPlace: null,
-            chatMessageBuffer: new CBuffer<ChatMessage>(128)
+            appControl: new AppControl()
         };
     }
 
-    loadForm = (form_type: OverlayForm, props?: OverlayFormProps) => {
+    override componentDidMount(): void {
+        this.state.appControl.loadForm.subscribe(this.loadForm);
+        this.state.appControl.addNotification.subscribe(this.addNotification);
+        this.state.appControl.updatePlaceInfo.subscribe(this.updatePlaceInfo);
+        this.state.appControl.unlockControls.subscribe(this.unlockControls);
+    }
+
+    override componentWillUnmount(): void {
+        this.state.appControl.loadForm.unsubscribe(this.loadForm);
+        this.state.appControl.addNotification.unsubscribe(this.addNotification);
+        this.state.appControl.updatePlaceInfo.unsubscribe(this.updatePlaceInfo);
+        this.state.appControl.unlockControls.unsubscribe(this.unlockControls);
+        this.state.appControl.dispose();
+    }
+
+    loadForm = (data: {form_type: OverlayForm, props?: OverlayFormProps}) => {
         this.setState({
-            show_form: form_type,
-            form_props: props
+            show_form: data.form_type,
+            form_props: data.props
         });
     }
 
     closeForm = () => {
         if (this.state.show_form === OverlayForm.Settings || this.state.show_form === OverlayForm.Terms) {
-            this.loadForm(OverlayForm.Instructions);
+            this.loadForm({form_type: OverlayForm.Instructions});
             return;
         }
 
-        this.loadForm(OverlayForm.None);
+        this.loadForm({form_type: OverlayForm.None});
 
         this.virtualSpaceRef.current?.lockControls();
     }
 
     unlockControls = () => {
         if (this.state.show_form === OverlayForm.None)
-            this.loadForm(OverlayForm.Instructions);
+            this.loadForm({form_type: OverlayForm.Instructions});
     }
 
     selectItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this.loadForm(OverlayForm.None);
+        this.loadForm({form_type: OverlayForm.None});
 
         const curVS = this.virtualSpaceRef.current;
         if (curVS) {
@@ -93,11 +106,11 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     burnItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this.loadForm(OverlayForm.BurnItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
+        this.loadForm({form_type: OverlayForm.BurnItem, props: { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps});
     }
 
     transferItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this.loadForm(OverlayForm.TransferItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
+        this.loadForm({form_type: OverlayForm.TransferItem, props: { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps});
     }
 
     addNotification = (data: NotificationData) => {
@@ -117,28 +130,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         }, 10000);
     }
 
-    newChatMessage = (msg: ChatMessage) => {
-        this.state.chatMessageBuffer.push(msg);
-        this.setState({chatMessageBuffer: this.state.chatMessageBuffer});
-        this.scrollChatToBottom();
-    }
-
-    sendChatMessage = () => {
-        const input = this.chatInputRef.current;
+    sendChatMessage = (msg: string) => {
         const curVS = this.virtualSpaceRef.current;
-        if (input && curVS && input.value.length > 0) {
-            curVS.sendChatMessage(input.value);
-            input.value = "";
-        }
+        if (curVS) curVS.sendChatMessage(msg);
     }
-
-    scrollChatToBottom = () => {
-        const div = this.messageContainer.current;
-        if(div) {
-            const scroll = div.scrollHeight - div.clientHeight;
-            div.scrollTo(0, scroll);
-        }
-    };
 
     updatePlaceInfo = (place: BasePlaceNode | null) => {
         this.setState({currentPlace: place});
@@ -259,9 +254,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         const toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 
-        const chatActive = this.state.show_form === OverlayForm.Instructions;
-        const chatVisible = this.state.show_form === OverlayForm.Instructions || this.state.show_form === OverlayForm.None;
-
         return (
             <div className='Explore'>
                 <Helmet>
@@ -270,30 +262,10 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
-                {/* Move chat to component */}
-                {chatVisible && <div className={`position-absolute chatPanel ${!chatActive && 'chatPanelInactive'}`}>
-                    <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
-                        <Card.Body className='messageContainer' ref={this.messageContainer}>
-                            {this.state.chatMessageBuffer.map((msg, idx) => {return <p className='m-1' key={idx}><b>{msg.from ? truncateAddress(msg.from) : "System"}</b>: {msg.msg}</p>}).toArray()}
-                        </Card.Body>
-                        {chatActive && <Card.Footer>
-                            <InputGroup>
-                                <input autoComplete="off" type="text" ref={this.chatInputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && this.sendChatMessage()} />
-                                <Button disabled={!chatActive} onClick={this.sendChatMessage}>Send</Button>
-                                {/*<div className='text-center w-100 m-0 mt-2 p-1 rounded bg-warning-light'>Don't give away sensitive information like passwords or seed phrases.</div>*/}
-                            </InputGroup>
-                        </Card.Footer>}
-                    </Card>
-                </div>}
+                <Chat overlayState={this.state.show_form} appControl={this.state.appControl} sendMsg={this.sendChatMessage}/>
                 {placeInfoOverlay}
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
-                <VirtualSpace ref={this.virtualSpaceRef} appControl={{
-                    loadForm: this.loadForm,
-                    addNotification: this.addNotification,
-                    newChatMessage: this.newChatMessage,
-                    updatePlaceInfo: this.updatePlaceInfo,
-                    unlockControls: this.unlockControls
-                }} errorCallback={this.virtualSpaceFailed} />
+                <VirtualSpace ref={this.virtualSpaceRef} appControl={this.state.appControl} errorCallback={this.virtualSpaceFailed} />
                 { isDev() ? <div id="inspector-host" /> : null }
             </div>
         );

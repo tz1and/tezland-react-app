@@ -13,7 +13,7 @@ import BasePlaceNode from '../world/nodes/BasePlaceNode';
 type InstructionsProps = {
     currentPlace: BasePlaceNode | null;
     closeForm: () => void;
-    loadForm: (form_type: OverlayForm) => void;
+    loadForm: (data: {form_type: OverlayForm}) => void;
     getCurrentLocation: () => [number, number, number];
     teleportToLocation: (location: WorldLocation) => void;
     handleFileDrop?: (files: FileList) => void | undefined;
@@ -90,7 +90,7 @@ export const Instructions: React.FC<InstructionsProps> = (props) => {
         <div className="text-center" onDrop={handleDrop} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver}>
             <div className='position-fixed top-0 start-0 text-white mt-3 ms-3'>
                 <button className='btn btn-outline-light fs-4' onClick={() => { nav("/"); } }><i className="bi bi-house"></i></button>
-                <button className='btn btn-light ms-3 fs-4' onClick={() => { props.loadForm(OverlayForm.Settings) } }><i className="bi bi-gear-fill"></i></button>
+                <button className='btn btn-light ms-3 fs-4' onClick={() => { props.loadForm({form_type: OverlayForm.Settings}) } }><i className="bi bi-gear-fill"></i></button>
 
                 <ButtonGroup>
                     <DropdownButton variant='light' className='ms-3' id="dropdown-basic-button" title={<i className="fs-4 bi bi-share-fill"></i>}>

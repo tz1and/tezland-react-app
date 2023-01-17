@@ -276,7 +276,7 @@ export class World extends BaseWorld {
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.game.playerController.currentPlace;
         if(currentPlace)
-            this.game.appControlFunctions.updatePlaceInfo(currentPlace);
+            this.game.appControl.updatePlaceInfo.dispatch(currentPlace);
 
         this.worldUpdatePending = false;
     };

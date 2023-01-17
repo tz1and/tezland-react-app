@@ -262,7 +262,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         // Display out of bounds notifications if there are any.
         if (this.outOfBoundsItems.size > 0 && this.permissions.hasPlaceItems()) {
             const itemList = Array.from(this.outOfBoundsItems).join(', ');
-            this.world.game.appControlFunctions.addNotification({
+            this.world.game.appControl.addNotification.dispatch({
                 id: "oobItems" + this.placeKey.id,
                 title: "Out of bounds items!",
                 body: `Your Place #${this.placeKey.id} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
@@ -487,7 +487,7 @@ export default abstract class BasePlaceNode extends TransformNode {
                 ItemTracker.removeTrackedItemsForPlace(this.placeKey.id);
             }
         }).catch(e => {
-            this.world.game.appControlFunctions.addNotification({
+            this.world.game.appControl.addNotification.dispatch({
                 id: "saveFailed" + this.placeKey.id,
                 title: "Saving items failed!",
                 body: `Saving items in place #${this.placeKey.id} failed:\n\n${e.message}`,

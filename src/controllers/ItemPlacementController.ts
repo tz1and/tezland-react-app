@@ -159,7 +159,7 @@ export default class ItemPlacementController extends BaseUserController {
                     const currentItemBalance = this.currentItemQuantity - ItemTracker.getTempItemTrack(this.currentItem);
                     if (currentItemBalance <= 0) {
                         // TODO: notification on insufficient balance.
-                        this.playerController.appControlFunctions.addNotification({
+                        this.playerController.appControl.addNotification.dispatch({
                             id: "insufficientBalance" + this.currentItem,
                             title: "Insufficient Balance",
                             body: `You don't have sufficient balance to place more of item ${this.currentItem}.`,
@@ -185,7 +185,7 @@ export default class ItemPlacementController extends BaseUserController {
                             // If it's a valid token, not an imported model, bring up the place item dialog.
                             if (this.tempObject.isValidItem()) {
                                 document.exitPointerLock();
-                                this.playerController.appControlFunctions.loadForm(OverlayForm.PlaceItem, { node: newObject, maxQuantity: currentItemBalance} as PlaceItemFromProps);
+                                this.playerController.appControl.loadForm.dispatch({form_type: OverlayForm.PlaceItem, props: { node: newObject, maxQuantity: currentItemBalance} as PlaceItemFromProps});
                             }
                         }
                     }
@@ -257,7 +257,7 @@ export default class ItemPlacementController extends BaseUserController {
             this.currentItemQuantity = 0;
             this.playerController.gui.setCursor(CursorType.Pointer);
 
-            this.playerController.appControlFunctions.addNotification({
+            this.playerController.appControl.addNotification.dispatch({
                 id: "itemLimits" + token_key.id,
                 title: "Item failed to load",
                 body: `The item you selected (token id: ${token_key.id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
@@ -325,7 +325,7 @@ export default class ItemPlacementController extends BaseUserController {
             this.currentItemQuantity = 0;
             this.playerController.gui.setCursor(CursorType.Pointer);
 
-            this.playerController.appControlFunctions.addNotification({
+            this.playerController.appControl.addNotification.dispatch({
                 id: "droppedFileFailed" + file.name,
                 title: "File failed to load",
                 body: `File "${file.name}" failed to load.\n\nError: ${e.message}`,
