@@ -21,7 +21,6 @@ import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
 import { DirectoryForm } from '../forms/DirectoryForm';
 import assert from 'assert';
-import { Helmet } from 'react-helmet-async';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
