@@ -108,7 +108,8 @@ export class World extends BaseWorld {
         if (AppSettings.shadowOptions.value === "standard") {
             const shadowGenerator = new ShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
             shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.filter = ShadowGenerator.FILTER_PCSS;
+            shadowGenerator.filter = ShadowGenerator.FILTER_PCF;
+            shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
             // Self-shadow bias
             shadowGenerator.bias = 0.001;
             shadowGenerator.normalBias = 0.02;
@@ -120,13 +121,14 @@ export class World extends BaseWorld {
         }
         else if (AppSettings.shadowOptions.value === "cascaded") {
             const shadowGenerator = new CascadedShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
+            shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
             //shadowGenerator.debug = true;
-            //shadowGenerator.autoCalcDepthBounds = true;
+            //shadowGenerator.autoCalcDepthBounds = false;
             shadowGenerator.frustumEdgeFalloff = 0.1;
             shadowGenerator.freezeShadowCastersBoundingInfo = true;
             shadowGenerator.stabilizeCascades = true;
-            shadowGenerator.shadowMaxZ = 250;
-            shadowGenerator.numCascades = 4;
+            shadowGenerator.shadowMaxZ = 75;
+            shadowGenerator.numCascades = 2;
             shadowGenerator.lambda = 0.6;
             // Self-shadow bias
             shadowGenerator.bias = 0.001;
