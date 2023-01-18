@@ -8,6 +8,7 @@ import * as Colyseus from "colyseus.js";
 import crypto from 'crypto';
 import { MapSchema, Schema, DataChange, type } from "@colyseus/schema";
 import { ChatMessage } from './AppControlFunctions';
+import EventBus, { ChatMessageEvent } from '../utils/eventbus/EventBus';
 
 export class Player extends Schema {
     @type("number") x: number = 0;
@@ -81,7 +82,8 @@ export default class MultiplayerClient { //extends EventEmitter {
     public async changeRoom(room: string, options?: any) {
         try {
             if(this.currentRoom) {
-                this.game.appControl.newChatMessage.dispatch({from: null, msg: "You left " + this.currentRoom.name});
+                EventBus.publish("chat-message", new ChatMessageEvent(
+                    {from: null, msg: "You left " + this.currentRoom.name}));
                 await this.currentRoom.leave();
                 // Delete other players.
                 this.otherPlayers.forEach(p => p.dispose());
@@ -93,9 +95,10 @@ export default class MultiplayerClient { //extends EventEmitter {
             console.log(newRoom.sessionId, "joined", newRoom.name);
             this.currentRoom = newRoom;
             this.playerSessionId = this.currentRoom.sessionId;
-            this.game.appControl.newChatMessage.dispatch({from: null, msg: "You joined " + this.currentRoom.name});
+            EventBus.publish("chat-message", new ChatMessageEvent(
+                {from: null, msg: "You joined " + this.currentRoom.name}));
 
-            this.currentRoom.onMessage<ChatMessage>("messages", msg => this.game.appControl.newChatMessage.dispatch(msg));// this.onChatMessage);
+            this.currentRoom.onMessage<ChatMessage>("messages", msg => EventBus.publish("chat-message", new ChatMessageEvent(msg)));// this.onChatMessage);
 
             //this.currentRoom.onStateChange(this.roomStateChanged)
             this.currentRoom.state.players.onAdd = this.playerJoin;

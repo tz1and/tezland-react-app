@@ -11,8 +11,8 @@ import { Notification, NotificationData } from './Notification';
 import Conf from '../Config';
 import { EditPlace } from '../forms/EditPlace';
 import { OverlayForm, DirectoryFormProps, OverlayFormProps,
-    PlaceItemFromProps, TransferItemFromProps, CollectItemFromProps,
-    AppControl } from '../world/AppControlFunctions';
+    PlaceItemFromProps, TransferItemFromProps,
+    CollectItemFromProps } from '../world/AppControlFunctions';
 import { LoadingError } from './LoadingError';
 import BasePlaceNode from '../world/nodes/BasePlaceNode';
 import { isDev } from '../utils/Utils';
@@ -26,12 +26,12 @@ import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
 import { Chat } from './chat/Chat';
 import { Game } from '../world/Game';
+import EventBus, { AddNotificationEvent, ChangeCurrentPlaceEvent, LoadFormEvent, UnlockControlsEvent } from '../utils/eventbus/EventBus';
 
 
 type ExploreProps = {
     game: Game | null;
     loadError: any | undefined;
-    appControl: AppControl;
     lockControls: () => void;
 };
 
@@ -53,70 +53,77 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
     }
 
     override componentDidMount(): void {
-        this.props.appControl.loadForm.subscribe(this.loadForm);
-        this.props.appControl.addNotification.subscribe(this.addNotification);
-        this.props.appControl.updatePlaceInfo.subscribe(this.updatePlaceInfo);
-        this.props.appControl.unlockControls.subscribe(this.unlockControls);
+        EventBus.subscribe("load-form", this.loadForm);
+        EventBus.subscribe("add-notification", this.addNotification);
+        EventBus.subscribe("change-current-place", this.updatePlaceInfo);
+        EventBus.subscribe("unlock-controls", this.unlockControls);
     }
 
     override componentWillUnmount(): void {
-        this.props.appControl.loadForm.unsubscribe(this.loadForm);
-        this.props.appControl.addNotification.unsubscribe(this.addNotification);
-        this.props.appControl.updatePlaceInfo.unsubscribe(this.updatePlaceInfo);
-        this.props.appControl.unlockControls.unsubscribe(this.unlockControls);
-        this.props.appControl.dispose();
+        EventBus.unsubscribe("load-form", this.loadForm);
+        EventBus.unsubscribe("add-notification", this.addNotification);
+        EventBus.unsubscribe("change-current-place", this.updatePlaceInfo);
+        EventBus.unsubscribe("unlock-controls", this.unlockControls);
     }
 
-    loadForm = (data: {form_type: OverlayForm, props?: OverlayFormProps}) => {
+    loadForm = (e: LoadFormEvent) => {
+        this._loadForm(e.form_type, e.props);
+    }
+
+    private _loadForm(form_type: OverlayForm, props?: OverlayFormProps) {
         this.setState({
-            show_form: data.form_type,
-            form_props: data.props
+            show_form: form_type,
+            form_props: props
         });
     }
 
+    // TODO: close form can *probaby* go through the EventBus?
+    // Though, have to be careful not to introduce unwanted behaviour.
     closeForm = () => {
         if (this.state.show_form === OverlayForm.Settings || this.state.show_form === OverlayForm.Terms) {
-            this.loadForm({form_type: OverlayForm.Instructions});
+            this._loadForm(OverlayForm.Instructions);
             return;
         }
 
-        this.loadForm({form_type: OverlayForm.None});
+        this._loadForm(OverlayForm.None);
 
         this.props.lockControls();
     }
 
-    unlockControls = () => {
+    unlockControls = (e: UnlockControlsEvent) => {
         if (this.state.show_form === OverlayForm.None)
-            this.loadForm({form_type: OverlayForm.Instructions});
+            this._loadForm(OverlayForm.Instructions);
     }
 
     selectItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this.loadForm({form_type: OverlayForm.None});
+        this._loadForm(OverlayForm.None);
 
         assert(this.props.game);
         this.props.game.playerController.selectItemForPlacement(tokenKey, quantity);
     }
 
+    // TODO: use EventBus where it's passed.
     burnItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this.loadForm({form_type: OverlayForm.BurnItem, props: { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps});
+        this._loadForm(OverlayForm.BurnItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
     }
 
+    // TODO: use EventBus where it's passed.
     transferItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this.loadForm({form_type: OverlayForm.TransferItem, props: { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps});
+        this._loadForm(OverlayForm.TransferItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
     }
 
-    addNotification = (data: NotificationData) => {
+    addNotification = (e: AddNotificationEvent) => {
         // TODO: move notification hadnling into it's own component.
         // Don't add notification if one with the same id exists.
-        if(this.state.notifications.find((n) => data.id === n.id)) return;
+        if(this.state.notifications.find((n) => e.notification.id === n.id)) return;
 
-        this.setState({ notifications: this.state.notifications.concat(data) });
+        this.setState({ notifications: this.state.notifications.concat(e.notification) });
 
         // warnign: dangling timeout
         setTimeout(() => {
             const newNotifications: NotificationData[] = [];
             for(const p of this.state.notifications) {
-                if(p.id !== data.id) newNotifications.push(p);
+                if(p.id !== e.notification.id) newNotifications.push(p);
             }
             this.setState({notifications: newNotifications});
         }, 10000);
@@ -127,8 +134,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
         this.props.game.multiClient.sendChatMessage(msg);
     }
 
-    updatePlaceInfo = (place: BasePlaceNode | null) => {
-        this.setState({currentPlace: place});
+    updatePlaceInfo = (e: ChangeCurrentPlaceEvent) => {
+        this.setState({currentPlace: e.place});
     }
 
     getCurrentLocation = (): [number, number, number] => {
@@ -156,7 +163,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             case OverlayForm.Instructions:
                 return <Instructions currentPlace={this.state.currentPlace}
                     closeForm={this.closeForm}
-                    loadForm={this.loadForm}
                     getCurrentLocation={this.getCurrentLocation}
                     teleportToLocation={this.teleportToLocation}
                     handleFileDrop={this.handleFileDrop} />
@@ -246,7 +252,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
-                <Chat overlayState={this.state.show_form} appControl={this.props.appControl} sendMsg={this.sendChatMessage}/>
+                <Chat overlayState={this.state.show_form} sendMsg={this.sendChatMessage}/>
                 {placeInfoOverlay}
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
                 { isDev() ? <div id="inspector-host" /> : null }

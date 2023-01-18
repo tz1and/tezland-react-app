@@ -27,6 +27,7 @@ import Conf from "../Config";
 import PlaceKey from "../utils/PlaceKey";
 import { ImportedWorldDef } from "./ImportWorldDef";
 import Water from "./nodes/Water";
+import EventBus, { ChangeCurrentPlaceEvent } from "../utils/eventbus/EventBus";
 
 
 const worldUpdateDistance = 10; // in m
@@ -276,7 +277,7 @@ export class World extends BaseWorld {
         // TEMP: workaround as long as loading owner and owned is delayed.
         const currentPlace = this.game.playerController.currentPlace;
         if(currentPlace)
-            this.game.appControl.updatePlaceInfo.dispatch(currentPlace);
+            EventBus.publish("change-current-place", new ChangeCurrentPlaceEvent(currentPlace));
 
         this.worldUpdatePending = false;
     };

@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppControl } from '../world/AppControlFunctions';
 import './VirtualSpace.css';
 import { useTezosWalletContext } from './TezosWalletContext';
 import assert from 'assert';
@@ -17,9 +16,7 @@ const VirtualSpace: React.FC<{}> = (props) => {
 
     const mount = useRef<HTMLCanvasElement>(null);
 
-    const [appControl] = useState(new AppControl());
     const [game, setGame] = useState<Game | null>(null);
-
     const [error, setError] = useState<Error>();
 
     const lockControls = useCallback(() => {
@@ -53,7 +50,7 @@ const VirtualSpace: React.FC<{}> = (props) => {
             Logger.LogLevels = Logger.ErrorLogLevel;
             try {
                 await Contracts.getWorldAllowedPlaceTokens(context);
-                game = new Game(engine, appControl, context);
+                game = new Game(engine, context);
                 setGame(game);
             }
             catch(err: any) {
@@ -73,7 +70,7 @@ const VirtualSpace: React.FC<{}> = (props) => {
                 <title>tz1and - Explore</title>
             </Helmet>
             <canvas id="renderCanvas" touch-action="none" ref={mount} />
-            <Explore game={game} appControl={appControl} lockControls={lockControls} loadError={error}></Explore>
+            <Explore game={game} lockControls={lockControls} loadError={error} />
         </div>
     )
 }

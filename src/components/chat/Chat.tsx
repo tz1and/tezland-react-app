@@ -1,13 +1,13 @@
 import CBuffer from "CBuffer";
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, InputGroup } from "react-bootstrap";
+import EventBus, { ChatMessageEvent } from "../../utils/eventbus/EventBus";
 import { truncateAddress } from "../../utils/Utils";
-import { AppControl, ChatMessage, OverlayForm } from "../../world/AppControlFunctions";
+import { ChatMessage, OverlayForm } from "../../world/AppControlFunctions";
 
 
 type ChatProps = {
     overlayState: OverlayForm;
-    appControl: AppControl;
     sendMsg: (msg: string) => void;
 };
 
@@ -42,8 +42,8 @@ export const Chat: React.FC<ChatProps> = (props) => {
 
     const [chatMessageBuffer, setChatMessageBuffer] = useState<ChatBufferState>({buffer: new CBuffer<ChatMessage>(128)});
 
-    const addChatMessage = useCallback((msg: ChatMessage) => {
-        chatMessageBuffer.buffer.push(msg);
+    const addChatMessage = useCallback((e: ChatMessageEvent) => {
+        chatMessageBuffer.buffer.push(e.msg);
         setChatMessageBuffer({buffer: chatMessageBuffer.buffer});
         scrollChatToBottom(messageContainer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,12 +51,12 @@ export const Chat: React.FC<ChatProps> = (props) => {
 
     useEffect(() => {
         //Logging.InfoDev("running Chat::useEffect");
-        props.appControl.newChatMessage.subscribe(addChatMessage)
+        EventBus.subscribe("chat-message", addChatMessage);
         return () => {
             //Logging.InfoDev("unsubscribing from newChatMessage");
-            props.appControl.newChatMessage.unsubscribe(addChatMessage);
+            EventBus.unsubscribe("chat-message", addChatMessage);
         }
-    }, [addChatMessage, props.appControl]);
+    }, [addChatMessage]);
 
     return (
         <div>

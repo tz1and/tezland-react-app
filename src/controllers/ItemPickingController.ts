@@ -17,6 +17,7 @@ import TokenKey from "../utils/TokenKey";
 import TzktAccounts from "../utils/TzktAccounts";
 import { Logging } from "../utils/Logging";
 import { toWorldLoaction } from "../utils/ItemData";
+import EventBus, { LoadFormEvent } from "../utils/eventbus/EventBus";
 
 
 class ItemInfoGui extends Rectangle {
@@ -299,9 +300,9 @@ export default class ItemPickingController extends BaseUserController {
 
                 if(instanceRoot && instanceRoot instanceof TeleporterBooth) {
                     document.exitPointerLock();
-                    this.playerController.appControl.loadForm.dispatch({form_type: OverlayForm.Directory, props: {
+                    EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, {
                         mapCoords: [instanceRoot.position.x, instanceRoot.position.z]
-                    } as DirectoryFormProps});
+                    } as DirectoryFormProps));
 
                     eventState.skipNextObservers = true;
                 }
@@ -319,13 +320,13 @@ export default class ItemPickingController extends BaseUserController {
                     if (instanceRoot.isValidItem()) {
                         document.exitPointerLock();
                         // IMPORTANT! TODO: a bit clumsy, but maybe ok.
-                        this.playerController.appControl.loadForm.dispatch({form_type: OverlayForm.CollectItem, props: {
+                        EventBus.publish("load-form", new LoadFormEvent(OverlayForm.CollectItem, {
                             tokenKey: instanceRoot.tokenKey,
                             placeKey: instanceRoot.getPlace().placeKey,
                             chunkId: instanceRoot.chunkId.toNumber(),
                             itemId: instanceRoot.itemId.toNumber(),
                             issuer: instanceRoot.issuer,
-                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps});
+                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps));
                     }
 
                     eventState.skipNextObservers = true;

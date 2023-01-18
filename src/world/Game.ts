@@ -6,7 +6,6 @@ import PlayerController from "../controllers/PlayerController";
 import AppSettings from "../storage/AppSettings";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import { Logging } from "../utils/Logging";
-import { AppControl } from "./AppControlFunctions";
 import { World } from "./World";
 import { BaseWorld } from "./BaseWorld";
 import PQueue from "p-queue";
@@ -27,8 +26,6 @@ export class Game {
 
     private highlightLayer: HighlightLayer;
 
-    readonly appControl: AppControl;
-
     readonly defaultMaterial: SimpleMaterial;
     readonly transparentGridMat: GridMaterial;
 
@@ -43,8 +40,7 @@ export class Game {
 
     private world: Nullable<BaseWorld> = null;
 
-    constructor(engine: Engine, appControl: AppControl, walletProvider: ITezosWalletProvider) {
-        this.appControl = appControl;
+    constructor(engine: Engine, walletProvider: ITezosWalletProvider) {
         this.engine = engine;
         this.walletProvider = walletProvider;
 
@@ -97,7 +93,7 @@ export class Game {
         this.transparentGridMat.backFaceCulling = false;
 
         // create camera first
-        this.playerController = new PlayerController(this, appControl);
+        this.playerController = new PlayerController(this);
 
         // TODO: need to figure out how to exclude GUI.
         this.setupDefaultRenderingPipeline();
