@@ -1,7 +1,8 @@
 import { Contract, MichelCodecPacker, MichelsonMap, OpKind, PollingSubscribeProvider, TransactionWalletOperation } from "@taquito/taquito";
 import { MichelsonV1Expression } from "@taquito/rpc";
 import Conf from "../Config";
-import { tezToMutez, toHexString } from "../utils/Utils";
+import { toHexString } from "../utils/Utils";
+import { tezToMutez } from "../utils/TezosUtils";
 import { char2Bytes } from '@taquito/utils'
 import Metadata from "../world/Metadata";
 import BasePlaceNode, { PlacePermissions, PlaceData, PlaceItemData, PlaceSequenceNumbers } from "../world/nodes/BasePlaceNode";

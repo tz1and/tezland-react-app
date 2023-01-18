@@ -23,7 +23,7 @@ import MapPlaceNode from "./MapPlaceNode";
 import { OrthoCameraMouseInput } from "../input/OrthoCameraMouseInput";
 import { grapphQLUser } from "../../graphql/user";
 //import MultiplayerClient from "./MultiplayerClient";
-import { truncateAddress } from "../../utils/Utils";
+import { truncateAddress } from "../../utils/TezosUtils";
 import PlaceKey from "../../utils/PlaceKey";
 import WorldLocation from "../../utils/WorldLocation";
 import { ImportedWorldDef } from "../ImportWorldDef";

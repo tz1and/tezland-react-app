@@ -1,20 +1,19 @@
 import CBuffer from "CBuffer";
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, InputGroup } from "react-bootstrap";
-import EventBus, { ChatMessageEvent } from "../../utils/eventbus/EventBus";
-import { truncateAddress } from "../../utils/Utils";
+import EventBus, { ChatMessageEvent, SendChatMessageEvent } from "../../utils/eventbus/EventBus";
+import { truncateAddress } from "../../utils/TezosUtils";
 import { ChatMessage, OverlayForm } from "../../world/AppControlFunctions";
 
 
 type ChatProps = {
     overlayState: OverlayForm;
-    sendMsg: (msg: string) => void;
 };
 
-function sendChatMessage(sendMsg: (msg: string) => void, ref: MutableRefObject<HTMLInputElement | null>) {
+function sendChatMessage(ref: MutableRefObject<HTMLInputElement | null>) {
     const input = ref.current;
     if (input && input.value.length > 0) {
-        sendMsg(input.value);
+        EventBus.publish("send-chat-message", new SendChatMessageEvent(input.value));
         input.value = "";
     }
 }
@@ -41,6 +40,7 @@ export const Chat: React.FC<ChatProps> = (props) => {
     const messageContainer = useRef<HTMLDivElement>(null);
 
     const [chatMessageBuffer, setChatMessageBuffer] = useState<ChatBufferState>({buffer: new CBuffer<ChatMessage>(128)});
+    //const [players, setPlayers] = useState<Player[]>([]);
 
     const addChatMessage = useCallback((e: ChatMessageEvent) => {
         chatMessageBuffer.buffer.push(e.msg);
@@ -49,14 +49,21 @@ export const Chat: React.FC<ChatProps> = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    /*const chatRoom = useCallback((e: ChatRoomEvent) => {
+        setPlayers([...e.room.players.values()]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])*/
+
     useEffect(() => {
         //Logging.InfoDev("running Chat::useEffect");
         EventBus.subscribe("chat-message", addChatMessage);
+        //EventBus.subscribe("chat-room", chatRoom);
         return () => {
             //Logging.InfoDev("unsubscribing from newChatMessage");
             EventBus.unsubscribe("chat-message", addChatMessage);
+            //EventBus.unsubscribe("chat-room", chatRoom);
         }
-    }, [addChatMessage]);
+    }, [addChatMessage/*, chatRoom*/]);
 
     return (
         <div>
@@ -64,12 +71,13 @@ export const Chat: React.FC<ChatProps> = (props) => {
                 <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
                     <Card.Header>Chat</Card.Header>
                     <Card.Body className='messageContainer' ref={messageContainer}>
+                        {/*players.map((player, idx) => {return <p className='m-1' key={`player${idx}`}><b>{truncateAddress(player.name)}</b></p>})*/}
                         {chatMessageBuffer.buffer.map((msg, idx) => {return <p className='m-1' key={idx}><b>{msg.from ? truncateAddress(msg.from) : "System"}</b>: {msg.msg}</p>}).toArray()}
                     </Card.Body>
                     {chatActive && <Card.Footer>
                         <InputGroup>
-                            <input autoComplete="off" type="text" ref={inputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(props.sendMsg, inputRef)} />
-                            <Button disabled={!chatActive} onClick={() => sendChatMessage(props.sendMsg, inputRef)}>Send</Button>
+                            <input autoComplete="off" type="text" ref={inputRef} name="chat-input" className="form-control chatInput" placeholder="Type your message..." onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(inputRef)} />
+                            <Button disabled={!chatActive} onClick={() => sendChatMessage(inputRef)}>Send</Button>
                             {/*<div className='text-center w-100 m-0 mt-2 p-1 rounded bg-warning-light'>Don't give away sensitive information like passwords or seed phrases.</div>*/}
                         </InputGroup>
                     </Card.Footer>}

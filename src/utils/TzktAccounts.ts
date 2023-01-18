@@ -1,5 +1,5 @@
 import { Logging } from "./Logging";
-import { truncateAddress } from "./Utils";
+import { truncateAddress } from "./TezosUtils";
 
 
 export class TzktAccount {

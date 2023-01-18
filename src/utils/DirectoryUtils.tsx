@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { getDirectoryEnabledGlobal } from "../forms/DirectoryForm";
 import PlaceKey, { getPlaceName, getPlaceType, PlaceType } from "./PlaceKey";
 import TokenKey from "./TokenKey";
-import { truncateAddress } from "./Utils";
+import { truncateAddress } from "./TezosUtils";
 
 export namespace DirectoryUtils {
     export const userLink = (address: string): string => {

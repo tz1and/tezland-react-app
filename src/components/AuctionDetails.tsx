@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import './Auction.css'
-import { mutezToTez } from '../utils/Utils';
+import { mutezToTez } from '../utils/TezosUtils';
 import React from 'react';
 import TezosWalletContext from './TezosWalletContext';
 import DutchAuction from '../tz/DutchAuction';

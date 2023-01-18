@@ -4,7 +4,7 @@ import earcut from 'earcut';
 import BigNumber from "bignumber.js";
 import Contracts from "../../tz/Contracts";
 import { Logging } from "../../utils/Logging";
-import { mutezToTez } from "../../utils/Utils";
+import { mutezToTez } from "../../utils/TezosUtils";
 import Metadata, { PlaceTokenMetadata } from "../Metadata";
 import { BaseWorld } from "../BaseWorld";
 import ItemNode, { ItemLoadState } from "./ItemNode";

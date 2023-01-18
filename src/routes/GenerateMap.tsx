@@ -5,7 +5,8 @@ import Conf from "../Config";
 import { MichelsonMap, OpKind, WalletParamsWithKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
 import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
-import { downloadFile, mutezToTez, signedArea, sleep, tezToMutez } from "../utils/Utils";
+import { downloadFile, signedArea, sleep } from "../utils/Utils";
+import { mutezToTez, tezToMutez } from "../utils/TezosUtils";
 import TezosWalletContext from "../components/TezosWalletContext";
 import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict, { ExclusionZone } from "../worldgen/VoronoiDistrict";

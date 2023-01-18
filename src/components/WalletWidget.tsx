@@ -1,4 +1,4 @@
-import { truncateAddress } from "../utils/Utils";
+import { truncateAddress } from "../utils/TezosUtils";
 import { useTezosWalletContext } from "./TezosWalletContext";
 import { OverlayTrigger, Popover } from "react-bootstrap";
 

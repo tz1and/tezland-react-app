@@ -1,5 +1,5 @@
 import React from 'react';
-import { truncateOperationHash } from '../utils/Utils';
+import { truncateOperationHash } from '../utils/TezosUtils';
 
 export type OperationPendingData = {
     hash: string,

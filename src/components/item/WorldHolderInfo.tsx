@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { mutezToTez } from '../../utils/Utils';
+import { mutezToTez } from '../../utils/TezosUtils';
 import Conf from '../../Config';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemHolderInfoQuery, GetItemWorldInfoQuery } from '../../graphql/generated/user';

@@ -1,6 +1,3 @@
-import BigNumber from 'bignumber.js';
-
-
 // NOTE: using isDev or inDev will stop webpack from stripping this code
 // If that is desired either use:
 // if (import.meta.env.DEV) ...
@@ -29,18 +26,6 @@ export function readFileAsync(file: File): Promise<ArrayBuffer> {
     reader.readAsArrayBuffer(file);
   })
 }
-
-export const tokensAmountToNat = (tokensAmount: BigNumber | number, decimals: number): BigNumber => {
-  return new BigNumber(tokensAmount).multipliedBy(10 ** decimals).integerValue();
-};
-
-export const numberToTokensAmount = (value: BigNumber | number, decimals: number): BigNumber => {
-  return new BigNumber(value).div(10 ** decimals);
-};
-
-const tezDecimals = 6;
-export const tezToMutez = (tez: BigNumber | number): BigNumber => tokensAmountToNat(tez, tezDecimals);
-export const mutezToTez = (mutez: BigNumber | number): BigNumber => numberToTokensAmount(mutez, tezDecimals);
 
 export const dataURItoBlob = (dataURI: string): Blob => {
   // separate out the mime component
@@ -76,22 +61,6 @@ export const fileToFileLike = (file: File, mimeType?: string): Promise<FileLike>
 export const truncate = (str: string, n: number, ellip?: string) => {
   return (str.length > n) ? str.substring(0, n-1).trimEnd() + (ellip ? ellip :'&hellip;') : str;
 };
-
-export const truncateAddress = (address: string) => {
-  if(address.length > 13) {
-    return address.substring(0, 8) + '\u2026' + address.substring(address.length-5, address.length);
-  }
-
-  return address;
-}
-
-export const truncateOperationHash = (opHash: string) => {
-  if(opHash.length > 12) {
-    return opHash.substring(0, 7) + '\u2026' + opHash.substring(opHash.length-5, opHash.length);
-  }
-
-  return opHash;
-}
 
 export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))

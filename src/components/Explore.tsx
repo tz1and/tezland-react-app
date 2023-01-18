@@ -24,9 +24,11 @@ import assert from 'assert';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
-import { Chat } from './chat/Chat';
+import { Chat } from './overlay/Chat';
+import { PlaceInfo } from './overlay/PlaceInfo';
 import { Game } from '../world/Game';
-import EventBus, { AddNotificationEvent, ChangeCurrentPlaceEvent, LoadFormEvent, UnlockControlsEvent } from '../utils/eventbus/EventBus';
+import EventBus, { AddNotificationEvent, ChangeCurrentPlaceEvent,
+    LoadFormEvent, UnlockControlsEvent } from '../utils/eventbus/EventBus';
 
 
 type ExploreProps = {
@@ -127,11 +129,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
             }
             this.setState({notifications: newNotifications});
         }, 10000);
-    }
-
-    sendChatMessage = (msg: string) => {
-        assert(this.props.game);
-        this.props.game.multiClient.sendChatMessage(msg);
     }
 
     updatePlaceInfo = (e: ChangeCurrentPlaceEvent) => {
@@ -235,16 +232,6 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         const controlInfo = overlay ? <ControlsHelp/> : null;
 
-        /* Move place overlay to component */
-        const placeInfoOverlay = !overlay && this.state.currentPlace ?
-            <div className='position-fixed top-0 start-0 bg-white p-3 m-2 rounded-1'>
-                <h5 className='mb-0'>{this.state.currentPlace.getName()}</h5>
-                <small className='text-muted'>#{this.state.currentPlace.placeKey.id}</small>
-                <hr/>
-                Owner: {this.state.currentPlace.currentOwner}<br/>
-                Permissions: {this.state.currentPlace.getPermissions.toString()}
-            </div> : null;
-
         const toasts = this.state.notifications.map((v) => { return <Notification data={v} key={v.id}/> });
 
         return (
@@ -252,8 +239,8 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
                 <small className='position-fixed bottom-0 end-0 text-white text-bolder mb-2 me-3' style={{zIndex: "1040"}}>{ "tz1and v" + Conf.app_version} (beta)</small>
                 {overlay}
                 {controlInfo}
-                <Chat overlayState={this.state.show_form} sendMsg={this.sendChatMessage}/>
-                {placeInfoOverlay}
+                <Chat overlayState={this.state.show_form} />
+                <PlaceInfo show={!overlay} currentPlace={this.state.currentPlace}/>
                 <div className="toast-container position-fixed bottom-0 start-0 p-5 px-4" style={{zIndex: "1050"}}>{toasts}</div>
                 { isDev() ? <div id="inspector-host" /> : null }
             </div>

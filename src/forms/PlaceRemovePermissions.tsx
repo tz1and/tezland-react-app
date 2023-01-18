@@ -6,7 +6,7 @@ import { GetGivenPermissionsQuery } from '../graphql/generated/user';
 import { DirectoryUtils } from '../utils/DirectoryUtils';
 import Contracts from '../tz/Contracts';
 import { Table } from 'react-bootstrap';
-import { truncateAddress } from '../utils/Utils';
+import { truncateAddress } from '../utils/TezosUtils';
 
 
 type PlaceRemovePermissionsFormProps = {

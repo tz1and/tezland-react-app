@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { mutezToTez, truncateAddress } from '../../utils/Utils';
+import { mutezToTez, truncateAddress } from '../../utils/TezosUtils';
 import { grapphQLUser } from '../../graphql/user';
 import { GetItemHistoryQuery } from '../../graphql/generated/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';

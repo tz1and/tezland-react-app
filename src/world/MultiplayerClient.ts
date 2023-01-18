@@ -1,14 +1,14 @@
 import Conf from '../Config';
 import {  Constants, DynamicTexture, Mesh, MeshBuilder, Nullable,
     StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
-import { truncateAddress } from '../utils/Utils';
+import { truncateAddress } from '../utils/TezosUtils';
 import { Logging } from '../utils/Logging';
 import { Game } from './Game';
 import * as Colyseus from "colyseus.js";
 import crypto from 'crypto';
 import { MapSchema, Schema, DataChange, type } from "@colyseus/schema";
 import { ChatMessage } from './AppControlFunctions';
-import EventBus, { ChatMessageEvent } from '../utils/eventbus/EventBus';
+import EventBus, { ChatMessageEvent, ChatRoomEvent, SendChatMessageEvent } from '../utils/eventbus/EventBus';
 
 export class Player extends Schema {
     @type("number") x: number = 0;
@@ -58,6 +58,8 @@ export default class MultiplayerClient { //extends EventEmitter {
         this.otherPlayersNode = new TransformNode("multiplayerPlayers", this.game.scene);
 
         this.identity = this.getIdentity();
+
+        EventBus.subscribe("send-chat-message", this.sendChatMessage);
     }
 
     private lastMultiplayerUpdate: number = 0;
@@ -124,6 +126,8 @@ export default class MultiplayerClient { //extends EventEmitter {
         p.updateNextTransform();
         p.moveToNext();
         Logging.LogDev("MultiplayerClient: player connected:", sessionId);
+
+        if (this.currentRoom) EventBus.publish("chat-room", new ChatRoomEvent(this.currentRoom.state));
     }
 
     private playerLeave = (player: Player, sessionId: string) => {
@@ -135,6 +139,8 @@ export default class MultiplayerClient { //extends EventEmitter {
             p.dispose();
             Logging.LogDev("MultiplayerClient: player disconnected:", sessionId);
         }
+
+        if (this.currentRoom) EventBus.publish("chat-room", new ChatRoomEvent(this.currentRoom.state));
     }
 
     // We don't really need to handle incoming chat messages here.
@@ -182,8 +188,8 @@ export default class MultiplayerClient { //extends EventEmitter {
         }
     }
 
-    public sendChatMessage(msg: string) {
-        if(this.currentRoom) this.currentRoom.send("message", msg);
+    private sendChatMessage = (e: SendChatMessageEvent) => {
+        if(this.currentRoom) this.currentRoom.send("message", e.msg);
     }
 
     public interpolateOtherPlayers() {
@@ -207,6 +213,8 @@ export default class MultiplayerClient { //extends EventEmitter {
         this.currentRoom?.connection.close();
         this.otherPlayers.clear();
         this.otherPlayersNode.dispose();
+
+        EventBus.unsubscribe("send-chat-message", this.sendChatMessage);
     }
 }
 

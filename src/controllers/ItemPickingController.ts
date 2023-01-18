@@ -3,7 +3,8 @@ import { Nullable, PickingInfo, TransformNode, Node,
     PointerEventTypes, KeyboardEventTypes } from "@babylonjs/core";
 import { Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import { grapphQLUser } from "../graphql/user";
-import { truncate, truncateAddress } from "../utils/Utils";
+import { truncate } from "../utils/Utils";
+import { truncateAddress } from "../utils/TezosUtils";
 import { CollectItemFromProps, DirectoryFormProps, OverlayForm } from "../world/AppControlFunctions";
 import ItemNode from "../world/nodes/ItemNode";
 import Metadata from "../world/Metadata";

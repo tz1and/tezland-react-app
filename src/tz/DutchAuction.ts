@@ -5,7 +5,7 @@ import { MichelsonV1Expression } from '@taquito/rpc';
 import { Schema } from '@taquito/michelson-encoder';
 import Conf from "../Config";
 import { Logging } from "../utils/Logging";
-import { tezToMutez } from "../utils/Utils";
+import { tezToMutez } from "../utils/TezosUtils";
 import Contracts from "./Contracts";
 import { SHA3 } from 'sha3';
 import PlaceKey from "../utils/PlaceKey";

@@ -1,5 +1,6 @@
 import './InventoryItem.css';
-import { mutezToTez, numberWithSign, truncate, truncateAddress } from '../utils/Utils';
+import { numberWithSign, truncate } from '../utils/Utils';
+import { mutezToTez, truncateAddress } from '../utils/TezosUtils';
 import { Col, Row, Container, OverlayTrigger, Popover } from 'react-bootstrap';
 import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
