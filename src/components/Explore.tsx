@@ -102,6 +102,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         assert(this.props.game);
         this.props.game.playerController.selectItemForPlacement(tokenKey, quantity);
+        this.props.lockControls();
     }
 
     // TODO: use EventBus where it's passed.
