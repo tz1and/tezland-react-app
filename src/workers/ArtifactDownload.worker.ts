@@ -1,12 +1,21 @@
 import ArtifactDownload, { GatewayType } from '../utils/ArtifactDownload';
 import { MeshPreprocessingWorkerApi } from './MeshPreprocessing.worker';
-import { initialiseWorkerStorage, getNumLogicalCores, shutdownWorkerStorage } from './WorkerUtils';
+import { getNumLogicalCores } from './WorkerUtils';
 import BigNumber from 'bignumber.js';
 import { expose } from 'threads/worker';
 import { spawn, Pool } from "threads"
 import { Logging } from '../utils/Logging';
 import TokenKey from '../utils/TokenKey';
+import Metadata from '../world/Metadata';
 
+
+async function initialiseWorkerStorage() {
+    await Metadata.InitialiseStorage();
+}
+
+function shutdownWorkerStorage() {
+    Metadata.ShutdownStorage();
+}
 
 const pool = Pool(
     () => spawn<typeof MeshPreprocessingWorkerApi>(

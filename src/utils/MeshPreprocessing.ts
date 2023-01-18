@@ -1,5 +1,5 @@
 import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
-import { prune, /*dedup,*/ quantize, weld, reorder, unpartition, resample } from '@gltf-transform/functions';
+import { prune, /*dedup,*/ quantize, weld, reorder, unpartition, resample, textureResize } from '@gltf-transform/functions';
 //import { TextureBasisu } from '@gltf-transform/extensions';
 //import { encodeWrapper } from '../external/basis_encoder/basis_loader';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
@@ -7,8 +7,16 @@ import { MeshoptEncoder } from "meshoptimizer";
 import { Logging } from './Logging';
 import assert from 'assert';
 import { isImageFileType } from './Utils';
+import { detectInsideWebworker } from '../workers/WorkerUtils';
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
 
+
+/*import { Buffer } from "buffer";
+export async function preprocessMeshBase64(buffer: string, mime_type: string, maxTexRes: number): Promise<string> {
+    const uint8view = new Uint8Array(Buffer.from(buffer, 'base64'));
+    const res = await preprocessMesh(uint8view, mime_type, maxTexRes);
+    return Buffer.from(res).toString('base64');
+}*/
 
 export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, maxTexRes: number): Promise<Uint8Array> {
     //if (detectInsideWebworker()) Logging.InfoDev("Processing in webworker");
@@ -67,6 +75,11 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         //dedup(), // NOTE: dedup broken in latest?
     ];
 
+    const createImageBitmapAvailable = typeof createImageBitmap === "function";
+    if (detectInsideWebworker() && !createImageBitmapAvailable) Logging.Warn("createImageBitmapAvailable not available in webworker");
+
+    if (!createImageBitmapAvailable) transforms.push(textureResize({size: [maxTexRes, maxTexRes]}));
+
     // If meshoptimizer is supported.
     if (MeshoptEncoder.supported) {
         // Make sure it's ready.
@@ -95,75 +108,77 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
     }
 
     // Pre-process textures.
-    for (const t of document.getRoot().listTextures()) {
-        // Try to resize image.
-        //{
-        const texMimeType = t.getMimeType();
-        const image = t.getImage();
-    
-        if (image && (texMimeType === "image/jpeg" || texMimeType === "image/png")) {
-            try {
-                // TODD: use high or pixelated resize quality, depending on sampler.
-                const res = await createImageBitmap(new Blob([image])); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
-
-                // Compute new height < maxTexRes
-                let newWidth = res.width;
-                let newHeight = res.height;
-                if (res.width > maxTexRes || res.height > maxTexRes) {
-                    const aspectRatio = res.width / res.height;
-                    if (res.width > res.height) {
-                        newWidth = maxTexRes;
-                        newHeight = Math.floor(maxTexRes / aspectRatio);
-                    }
-                    else {
-                        newHeight = maxTexRes;
-                        newWidth = Math.floor(maxTexRes * aspectRatio);
-                    }
-
-                    //Logging.InfoDev("old", res.width, res.height);
-                    //Logging.InfoDev("new", newWidth, newHeight);
-                }
-
-                const canvas: any = new OffscreenCanvas(newWidth, newHeight);
-                const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-                assert(context);
-                context.drawImage(res, 0, 0, newWidth, newHeight);
-
-                const blob: Blob = await canvas.convertToBlob({type: t.getMimeType()});
-                const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
-
-                t.setImage(newImageBuffer);
-
-                res.close();
-            }
-            catch(e: any) {
-                Logging.Warn("Failed to resize texture: " + t.getName());
-            }
-        }
-        //}
-
-        // Then try to basisu it.
-        // NOTE: disabled for now
-        /*{
+    if (createImageBitmapAvailable) {
+        for (const t of document.getRoot().listTextures()) {
+            // Try to resize image.
+            //{
             const texMimeType = t.getMimeType();
             const image = t.getImage();
-
-            // TODO: convert jpeg to png: texMimeType === "image/jpeg" || 
-            if (image && (texMimeType === "image/png")) {
+        
+            if (image && (texMimeType === "image/jpeg" || texMimeType === "image/png")) {
                 try {
-                    const encoded = await encodeWrapper(image);
+                    // TODD: use high or pixelated resize quality, depending on sampler.
+                    const res = await createImageBitmap(new Blob([image])); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
 
-                    // Create an Extension attached to the Document.
-                    const basisuExtension = document.createExtension(TextureBasisu)
-                        .setRequired(true);
+                    // Compute new height < maxTexRes
+                    let newWidth = res.width;
+                    let newHeight = res.height;
+                    if (res.width > maxTexRes || res.height > maxTexRes) {
+                        const aspectRatio = res.width / res.height;
+                        if (res.width > res.height) {
+                            newWidth = maxTexRes;
+                            newHeight = Math.floor(maxTexRes / aspectRatio);
+                        }
+                        else {
+                            newHeight = maxTexRes;
+                            newWidth = Math.floor(maxTexRes * aspectRatio);
+                        }
 
-                    t.setMimeType('image/ktx2').setImage(encoded);
+                        //Logging.InfoDev("old", res.width, res.height);
+                        //Logging.InfoDev("new", newWidth, newHeight);
+                    }
+
+                    const canvas: any = new OffscreenCanvas(newWidth, newHeight);
+                    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+                    assert(context);
+                    context.drawImage(res, 0, 0, newWidth, newHeight);
+
+                    const blob: Blob = await canvas.convertToBlob({type: t.getMimeType()});
+                    const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
+
+                    t.setImage(newImageBuffer);
+
+                    res.close();
                 }
                 catch(e: any) {
-                    Logging.Warn("Failed to basisu encode texture: " + t.getName(), e);
+                    Logging.Warn("Failed to resize texture: " + t.getName(), e);
                 }
             }
-        }*/
+            //}
+
+            // Then try to basisu it.
+            // NOTE: disabled for now
+            /*{
+                const texMimeType = t.getMimeType();
+                const image = t.getImage();
+
+                // TODO: convert jpeg to png: texMimeType === "image/jpeg" || 
+                if (image && (texMimeType === "image/png")) {
+                    try {
+                        const encoded = await encodeWrapper(image);
+
+                        // Create an Extension attached to the Document.
+                        const basisuExtension = document.createExtension(TextureBasisu)
+                            .setRequired(true);
+
+                        t.setMimeType('image/ktx2').setImage(encoded);
+                    }
+                    catch(e: any) {
+                        Logging.Warn("Failed to basisu encode texture: " + t.getName(), e);
+                    }
+                }
+            }*/
+        }
     }
 
     return io.writeBinary(document);
