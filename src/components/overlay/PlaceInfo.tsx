@@ -9,7 +9,7 @@ type PlaceInfoProps = {
 };
 
 export const PlaceInfo: React.FC<PlaceInfoProps> = (props) => {
-    const tzktAccount = useTzktAlias(props.currentPlace ? props.currentPlace.currentOwner : '');
+    //const tzktAccount = useTzktAlias(props.currentPlace ? props.currentPlace.currentOwner : '');
 
     return (
         (props.show && props.currentPlace) ?
@@ -17,7 +17,7 @@ export const PlaceInfo: React.FC<PlaceInfoProps> = (props) => {
                 <h5 className='mb-0'>{props.currentPlace.getName()}</h5>
                 <small className='text-muted'>{getPlaceType(props.currentPlace.placeKey.fa2)} #{props.currentPlace.placeKey.id}</small>
                 <hr/>
-                Owner: {tzktAccount.getNameDisplay()}<br/>
+                Owner: {props.currentPlace.currentOwner} {/*tzktAccount.getNameDisplay()*/}<br/>
                 Permissions: {props.currentPlace.getPermissions.toString()}
             </div> : null
     )

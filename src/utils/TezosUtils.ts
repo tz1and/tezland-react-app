@@ -14,6 +14,8 @@ export const tezToMutez = (tez: BigNumber | number): BigNumber => tokensAmountTo
 export const mutezToTez = (mutez: BigNumber | number): BigNumber => numberToTokensAmount(mutez, tezDecimals);
 
 const isTezosAccountAddress = (address: string) => {
+    /*return address.length === 36 || address.startsWith('tz1') || address.startsWith('tz2') ||
+        address.startsWith('tz3') || address.startsWith('tz4') || address.startsWith('KT1');*/
     const match = address.match(/^(tz(1|2|3|4)|KT1)/);
     return address.length === 36 && (match !== null && match.length > 0);
 }
