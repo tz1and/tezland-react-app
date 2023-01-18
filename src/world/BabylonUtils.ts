@@ -13,6 +13,7 @@ namespace BabylonUtils {
 
         if (webGPUSupported) {
             const options: WebGPUEngineOptions = {
+                audioEngine: false,
                 antialiasing: AppSettings.enableAntialiasing.value,
                 powerPreference: "high-performance",
                 stencil: true,
