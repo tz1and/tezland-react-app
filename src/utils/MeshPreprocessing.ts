@@ -168,3 +168,40 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
 
     return io.writeBinary(document);
 }
+
+
+// NOTES
+/*import { Engine, NullEngine, Scene, SceneLoader, SceneSerializer } from '@babylonjs/core';
+import "@babylonjs/core/Loading";
+import "@babylonjs/loaders";
+import "@babylonjs/loaders/glTF";
+import { GLTFFileLoader } from '@babylonjs/loaders';
+
+GLTFFileLoader.IncrementalLoading = false;
+
+const offscreen = new OffscreenCanvas(512, 512);
+const nullEngine = new NullEngine();
+// Set max texture res
+const caps = nullEngine.getCaps();
+caps.maxTextureSize = Math.min(caps.maxTextureSize, 128);
+    
+    try {
+    const dummyScene = new Scene(nullEngine);
+
+    // LoadAssetContainer?
+    const resultTemp = await SceneLoader.LoadAssetContainerAsync("test.glb", new File([binary], "test.glb"), dummyScene, null, ".glb");
+    resultTemp.addAllToScene();
+
+    const serialised = JSON.stringify(await SceneSerializer.SerializeAsync(dummyScene));
+
+    const blob = new File([serialised], "test.babylon", { type: "octet/stream" });
+
+    dummyScene.dispose();
+    nullEngine.dispose();
+
+    return new Uint8Array(await blob.arrayBuffer());
+    }
+    catch(e) {
+        console.log(e)
+        throw e;
+    }*/
