@@ -8,9 +8,8 @@ import { Places } from '../../components/Places';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import TzktAccounts, { TzktAccount } from '../../utils/TzktAccounts';
 
-type UserProps = {}
 
-const useTzktAlias = (address: string) => {
+export const useTzktAlias = (address: string) => {
     const [tzktAccount, setTzktAccount] = useState<TzktAccount>(new TzktAccount(address));
     useEffect(() => {
         TzktAccounts.getAccount(address).then(res => {
@@ -20,6 +19,8 @@ const useTzktAlias = (address: string) => {
 
     return tzktAccount
 }
+
+type UserProps = {}
 
 const User: React.FC<UserProps> = (props) => {
     const params = useParams();
