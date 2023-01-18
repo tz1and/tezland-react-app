@@ -1,4 +1,4 @@
-import { useTzktAlias } from "../../routes/directory/User";
+//import { useTzktAlias } from "../../routes/directory/User";
 import { getPlaceType } from "../../utils/PlaceKey";
 import BasePlaceNode from "../../world/nodes/BasePlaceNode";
 

@@ -1,7 +1,6 @@
 import { Vector3, Color3, Matrix, Vector4,
     Quaternion, HemisphericLight, ShadowGenerator,
-    CascadedShadowGenerator, Mesh, AbstractMesh,
-    DeepImmutable, MeshBuilder, Nullable, Ray,
+    Mesh, DeepImmutable, MeshBuilder, Nullable, Ray,
     ReflectionProbe, RenderTargetTexture,
     SceneLoader, TransformNode } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";

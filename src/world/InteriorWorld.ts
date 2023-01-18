@@ -1,11 +1,9 @@
 import { Vector3, Color3, HemisphericLight,
-    ShadowGenerator, CascadedShadowGenerator, Mesh,
-    AbstractMesh, Nullable, ReflectionProbe,
+    ShadowGenerator, Mesh, Nullable, ReflectionProbe,
     RenderTargetTexture, TransformNode, Color4, MeshBuilder } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
-import AppSettings from "../storage/AppSettings";
 import Contracts, { ALL_WORLD_EP_NAMES } from "../tz/Contracts";
 import { Logging } from "../utils/Logging";
 import { OperationContent, Subscription } from "@taquito/taquito";
