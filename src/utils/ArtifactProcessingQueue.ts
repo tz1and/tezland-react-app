@@ -1,4 +1,6 @@
-import { AssetContainer, Material, MultiMaterial, Nullable, PBRMaterial, Scene, SceneLoader, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { AssetContainer, Material, MultiMaterial,
+    Nullable, PBRMaterial, Scene, SceneLoader,
+    StandardMaterial, Vector3 } from "@babylonjs/core";
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import assert from "assert";
 import PQueue from "p-queue";
@@ -91,7 +93,7 @@ class ArtifactProcessingQueue {
             else if (download.file.type === "model/gltf+json")
                 plugin_ext = ".gltf";
             else throw new Error("Unsupported mimeType");
-        
+
             // LoadAssetContainer?
             const result = await SceneLoader.LoadAssetContainerAsync(download.file.name, download.file, scene, null, plugin_ext);
         
