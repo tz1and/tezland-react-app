@@ -98,6 +98,7 @@
     "build:staging": "NODE_OPTIONS=--max-old-space-size=32768 vite build --mode staging --sourcemap true",
     "preview": "vite preview --port 3006",
     "test": "vitest --mode test",
+    "bench": "vitest bench --mode test",
     "lint": "eslint --max-warnings=0 --ignore-path .gitignore --ignore-pattern 'src/external' src",
     "analyze": "source-map-explorer 'dist/assets/*.js' --no-border-checks",
     "generate-licenses": "node scripts/generate-licenses.js",
