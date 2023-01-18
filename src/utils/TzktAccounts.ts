@@ -42,10 +42,17 @@ class TzktAccounts {
     }
 
     private static async fetchAccount (account: string) {
-        const res = await fetch(`https://api.tzkt.io/v1/accounts/${account}`);
-        const parsed = await res.json();
+        try {
+            const res = await fetch(`https://api.tzkt.io/v1/accounts/${account}`);
+            const parsed = await res.json();
 
-        return new TzktAccount(parsed.address, parsed.alias);
+            return new TzktAccount(parsed.address, parsed.alias);
+        }
+        catch(e) {
+            Logging.WarnDev("Failed to fetch tzkt account details:", e);
+
+            return new TzktAccount(account);
+        }
     }
 }
 
