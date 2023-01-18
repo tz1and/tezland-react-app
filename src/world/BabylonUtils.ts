@@ -26,6 +26,7 @@ namespace BabylonUtils {
             if (!isWebGL2Supported()) throw new Error("WebGL 2 not support");
 
             const options: EngineOptions = {
+                audioEngine: false,
                 powerPreference: "high-performance",
                 preserveDrawingBuffer: true,
                 stencil: true,
