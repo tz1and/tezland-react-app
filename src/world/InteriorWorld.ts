@@ -45,6 +45,7 @@ export class InteriorWorld extends BaseWorld {
     private subscription?: Subscription<OperationContent> | undefined;
 
     private place: Nullable<InteriorPlaceNode> = null;
+    private placeKey: Nullable<PlaceKey> = null;
 
     private ground: Mesh;
 
@@ -102,37 +103,7 @@ export class InteriorWorld extends BaseWorld {
         this.waterNode = null;
 
         // After, camera, lights, etc, the shadow generator
-        // TODO: shadow generator should be BaseWorld!
-        if (AppSettings.shadowOptions.value === "standard") {
-            const shadowGenerator = new ShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
-            shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.filter = ShadowGenerator.FILTER_PCSS;
-            // Self-shadow bias
-            shadowGenerator.bias = 0.001;
-            shadowGenerator.normalBias = 0.02;
-            //shadowGenerator.useCloseExponentialShadowMap = true;
-            //shadowGenerator.useExponentialShadowMap = true;
-            //shadowGenerator.useBlurExponentialShadowMap = true;
-            //shadowGenerator.usePoissonSampling = true;
-            this.shadowGenerator = shadowGenerator;
-        }
-        else if (AppSettings.shadowOptions.value === "cascaded") {
-            const shadowGenerator = new CascadedShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
-            //shadowGenerator.debug = true;
-            //shadowGenerator.autoCalcDepthBounds = true;
-            shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.freezeShadowCastersBoundingInfo = true;
-            shadowGenerator.stabilizeCascades = true;
-            shadowGenerator.shadowMaxZ = 250;
-            shadowGenerator.numCascades = 4;
-            shadowGenerator.lambda = 0.6;
-            // Self-shadow bias
-            shadowGenerator.bias = 0.001;
-            shadowGenerator.normalBias = 0.02;
-            //shadowGenerator.splitFrustum();
-            this.shadowGenerator = shadowGenerator;
-        }
-        else this.shadowGenerator = null;
+        this.shadowGenerator = this.createShadowGenerator(this.sunLight.light);
 
         // NOTE: add a dummy shadow caster, otherwise shadows won't work.
         if (this.shadowGenerator) {
@@ -141,17 +112,6 @@ export class InteriorWorld extends BaseWorld {
             shadowDummy.position.y = -10;
             shadowDummy.parent = this.worldNode;
             this.shadowGenerator.addShadowCaster(shadowDummy);
-        }
-
-        if(this.shadowGenerator) {
-            let rtt = this.shadowGenerator.getShadowMap();
-
-            if(rtt) {
-                Logging.InfoDev("Setting up custom render list for shadow generator")
-                rtt.getCustomRenderList = (layer, renderList, renderListLength) => {
-                    return this.shadowRenderList;
-                };
-            }
         }
 
         this.game.scene.registerBeforeRender(this.updateShadowRenderList);
@@ -221,23 +181,29 @@ export class InteriorWorld extends BaseWorld {
         this.worldNode.dispose();
     }
 
+    public setPlaceKey(placeKey: PlaceKey) {
+        this.placeKey = placeKey;
+    }
+
     // TODO: add a list of pending places to load.
-    public async loadWorld(placeKey: PlaceKey) {
-        assert(this.place === null, "Interior was already loaded!");
+    protected override async _loadWorld() {
+        //Logging.InfoDev("InteriorWorld::loadWorld");
+        assert(this.placeKey !== null, "PlaceKey not set on Interior");
+        assert(this.place === null, "Interior was already loaded");
         this.worldUpdatePending = true;
 
         // Batch load all (un)loaded places metadata and return
-        const place_metadata = await Metadata.getPlaceMetadata(placeKey.id, placeKey.fa2);
+        const place_metadata = await Metadata.getPlaceMetadata(this.placeKey.id, this.placeKey.fa2);
         assert(place_metadata);
 
-        await this.loadPlace(placeKey, place_metadata);
+        await this.loadPlace(this.placeKey, place_metadata);
 
         // We only need to set the place once for interiors.
         this.updateCurrentPlace();
 
         this.worldUpdatePending = false;
 
-        await this.game.multiClient.changeRoom("interior", {placeId: placeKey.id});
+        await this.game.multiClient.changeRoom("interior", {placeId: this.placeKey.id});
     };
 
     private async reloadPlace() {
@@ -276,10 +242,7 @@ export class InteriorWorld extends BaseWorld {
         this.game.playerController.currentPlace = this.place;
     }
 
-    private lastShadowListTime: number = 0;
-    private shadowRenderList: AbstractMesh[] = [];
-
-    private updateShadowRenderList = () => {
+    protected override updateShadowRenderList = () => {
         // Update shadow list if enough time has passed.
         if(performance.now() - this.lastShadowListTime > shadowListUpdateInterval)
         {

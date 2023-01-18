@@ -106,49 +106,7 @@ export class World extends BaseWorld {
         this.waterNode = waterNode;
 
         // After, camera, lights, etc, the shadow generator
-        if (AppSettings.shadowOptions.value === "standard") {
-            const shadowGenerator = new ShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
-            shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.filter = ShadowGenerator.FILTER_PCF;
-            shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
-            // Self-shadow bias
-            shadowGenerator.bias = 0.001;
-            shadowGenerator.normalBias = 0.02;
-            //shadowGenerator.useCloseExponentialShadowMap = true;
-            //shadowGenerator.useExponentialShadowMap = true;
-            //shadowGenerator.useBlurExponentialShadowMap = true;
-            //shadowGenerator.usePoissonSampling = true;
-            this.shadowGenerator = shadowGenerator;
-        }
-        else if (AppSettings.shadowOptions.value === "cascaded") {
-            const shadowGenerator = new CascadedShadowGenerator(AppSettings.shadowMapRes.value, this.sunLight.light);
-            shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
-            //shadowGenerator.debug = true;
-            //shadowGenerator.autoCalcDepthBounds = false;
-            shadowGenerator.frustumEdgeFalloff = 0.1;
-            shadowGenerator.freezeShadowCastersBoundingInfo = true;
-            shadowGenerator.stabilizeCascades = true;
-            shadowGenerator.shadowMaxZ = 75;
-            shadowGenerator.numCascades = 2;
-            shadowGenerator.lambda = 0.6;
-            // Self-shadow bias
-            shadowGenerator.bias = 0.001;
-            shadowGenerator.normalBias = 0.02;
-            //shadowGenerator.splitFrustum();
-            this.shadowGenerator = shadowGenerator;
-        }
-        else this.shadowGenerator = null;
-
-        if(this.shadowGenerator) {
-            let rtt = this.shadowGenerator.getShadowMap();
-
-            if(rtt) {
-                Logging.InfoDev("Setting up custom render list for shadow generator")
-                rtt.getCustomRenderList = (layer, renderList, renderListLength) => {
-                    return this.shadowRenderList;
-                };
-            }
-        }
+        this.shadowGenerator = this.createShadowGenerator(this.sunLight.light);
 
         // Load districts, ie: ground meshes, bridges, etc.
         this.loadDistricts();
@@ -226,7 +184,7 @@ export class World extends BaseWorld {
     }
 
     // TODO: add a list of pending places to load.
-    public async loadWorld() {
+    protected override async _loadWorld() {
         // TODO: assert that the world can only be loaded once!
         this.worldUpdatePending = true;
 
@@ -505,10 +463,7 @@ export class World extends BaseWorld {
         }
     }
 
-    private lastShadowListTime: number = 0;
-    private shadowRenderList: AbstractMesh[] = [];
-
-    private updateShadowRenderList = () => {
+    protected override updateShadowRenderList = () => {
         // Update shadow list if enough time has passed.
         if(performance.now() - this.lastShadowListTime > shadowListUpdateInterval)
         {

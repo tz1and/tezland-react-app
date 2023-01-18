@@ -61,6 +61,8 @@ export class Game {
         this.scene.blockMaterialDirtyMechanism = true;
 
         // Not sure if this is right, but let's assume it is.
+        // TODO: See this issue
+        // https://forum.babylonjs.com/t/scene-ready-observable-not-firing-with-v5-35-0/36166/17
         this.scene.freezeActiveMeshes();
 
         // Fog is currently needed for underwater.
@@ -201,6 +203,7 @@ export class Game {
         else {
             this.world?.dispose();
             this.world = new toWorldType(this);
+            //assert(this.world, "World is null");
 
             if (this.world instanceof InteriorWorld) {
                 Logging.InfoDev("Switching world to InteriorWorld");
@@ -216,15 +219,15 @@ export class Game {
                 }
 
                 assert(placeId !== undefined, "placeId is undefined");
-                this.world.loadWorld(new PlaceKey(placeId, Conf.interior_contract)).catch(e => {});
+                this.world.setPlaceKey(new PlaceKey(placeId, Conf.interior_contract));
             }
             else if (this.world instanceof World) {
                 Logging.InfoDev("Switching world to World");
                 // Teleport player to desired world location.
                 this.playerController.teleportToLocal(location);
-
-                this.world.loadWorld().catch(e => {});
             }
+
+            this.world.loadWorld();
         }
     }
 
