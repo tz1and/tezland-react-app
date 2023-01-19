@@ -7,6 +7,7 @@ import { Logging } from "./Logging";
 import { preprocessMesh } from "./MeshPreprocessing";
 import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
 import { ModuleThread, Pool } from "threads";
+import { Transfer } from 'threads/worker';
 import assert from "assert";
 import TokenKey from "./TokenKey";
 import { isImageFileType } from "./Utils";
@@ -100,7 +101,7 @@ export default class ArtifactDownload {
             let processed: Uint8Array;
             if (pool) {
                 processed = await pool.queue(moduleThread => {
-                    return moduleThread.preprocessMesh(cachedBuf!, mime_type, maxTexRes);
+                    return moduleThread.preprocessMesh(Transfer(cachedBuf!), mime_type, maxTexRes);
                 })
             }
             else {
