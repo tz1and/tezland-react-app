@@ -40,7 +40,7 @@ export class Game {
 
     private world: Nullable<BaseWorld> = null;
 
-    private group: TransformNode;
+    private assetGroup: TransformNode;
 
     constructor(engine: Engine, walletProvider: ITezosWalletProvider) {
         this.engine = engine;
@@ -99,9 +99,9 @@ export class Game {
         // create camera first
         this.playerController = new PlayerController(this);
 
-        this.group = new TransformNode("assets");
-        this.group.setEnabled(false);
-        this.group.position.y = -50;
+        this.assetGroup = new TransformNode("assetGroup");
+        this.assetGroup.setEnabled(false);
+        this.assetGroup.position.y = -50;
 
         // TODO: need to figure out how to exclude GUI.
         this.setupDefaultRenderingPipeline();
@@ -124,7 +124,7 @@ export class Game {
             this.scene.cleanCachedTextureBuffer();
         }, 60000);
 
-        ArtifactMemCache.initialise(this.group).then(() => {
+        ArtifactMemCache.initialise(this.assetGroup).then(() => {
             const location = this.getSpwanLocation();
             this.teleportTo(location);
         });
