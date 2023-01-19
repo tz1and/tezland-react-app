@@ -8,8 +8,44 @@ import { Logging } from './Logging';
 import assert from 'assert';
 import { isImageFileType } from './Utils';
 import { detectInsideWebworker } from '../workers/WorkerUtils';
-const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
 
+
+const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);
+const createImageBitmapAvailable = typeof createImageBitmap === "function";
+
+async function resizeImage(buffer: ArrayBuffer, mime_type: string, maxTexRes: number) {
+    // TODO: unduplicate image resizing code!
+    const res = await createImageBitmap(new Blob([buffer])); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
+
+    // Compute new height < maxTexRes
+    let newWidth = res.width;
+    let newHeight = res.height;
+    if (res.width > maxTexRes || res.height > maxTexRes) {
+        const aspectRatio = res.width / res.height;
+        if (res.width > res.height) {
+            newWidth = maxTexRes;
+            newHeight = Math.floor(maxTexRes / aspectRatio);
+        }
+        else {
+            newHeight = maxTexRes;
+            newWidth = Math.floor(maxTexRes * aspectRatio);
+        }
+    }
+
+    //Logging.InfoDev("old", res.width, res.height);
+    //Logging.InfoDev("new", newWidth, newHeight);
+
+    const canvas: any = new OffscreenCanvas(newWidth, newHeight);
+    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    assert(context);
+    context.drawImage(res, 0, 0, newWidth, newHeight);
+
+    const blob: Blob = await canvas.convertToBlob({type: mime_type});
+    const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
+    res.close();
+
+    return newImageBuffer;
+}
 
 /*import { Buffer } from "buffer";
 export async function preprocessMeshBase64(buffer: string, mime_type: string, maxTexRes: number): Promise<string> {
@@ -22,37 +58,7 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
     //if (detectInsideWebworker()) Logging.InfoDev("Processing in webworker");
 
     if(isImageFileType(mime_type)) {
-        // TODO: unduplicate image resizing code!
-        const res = await createImageBitmap(new Blob([buffer])); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
-
-        // Compute new height < maxTexRes
-        let newWidth = res.width;
-        let newHeight = res.height;
-        if (res.width > maxTexRes || res.height > maxTexRes) {
-            const aspectRatio = res.width / res.height;
-            if (res.width > res.height) {
-                newWidth = maxTexRes;
-                newHeight = Math.floor(maxTexRes / aspectRatio);
-            }
-            else {
-                newHeight = maxTexRes;
-                newWidth = Math.floor(maxTexRes * aspectRatio);
-            }
-        }
-
-        //Logging.InfoDev("old", res.width, res.height);
-        //Logging.InfoDev("new", newWidth, newHeight);
-
-        const canvas: any = new OffscreenCanvas(newWidth, newHeight);
-        const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-        assert(context);
-        context.drawImage(res, 0, 0, newWidth, newHeight);
-
-        const blob: Blob = await canvas.convertToBlob({type: mime_type});
-        const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
-        res.close();
-
-        return newImageBuffer;
+        return resizeImage(buffer, mime_type, maxTexRes);
     }
 
     // TODO: preprocess!
@@ -75,7 +81,6 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         //dedup(), // NOTE: dedup broken in latest?
     ];
 
-    const createImageBitmapAvailable = typeof createImageBitmap === "function";
     if (detectInsideWebworker() && !createImageBitmapAvailable) Logging.Warn("createImageBitmapAvailable not available in webworker");
 
     if (!createImageBitmapAvailable) transforms.push(textureResize({size: [maxTexRes, maxTexRes]}));
@@ -117,38 +122,7 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         
             if (image && (texMimeType === "image/jpeg" || texMimeType === "image/png")) {
                 try {
-                    // TODD: use high or pixelated resize quality, depending on sampler.
-                    const res = await createImageBitmap(new Blob([image])); // {resizeWidth: width, resizeHeight: height, resizeQuality: "medium"}
-
-                    // Compute new height < maxTexRes
-                    let newWidth = res.width;
-                    let newHeight = res.height;
-                    if (res.width > maxTexRes || res.height > maxTexRes) {
-                        const aspectRatio = res.width / res.height;
-                        if (res.width > res.height) {
-                            newWidth = maxTexRes;
-                            newHeight = Math.floor(maxTexRes / aspectRatio);
-                        }
-                        else {
-                            newHeight = maxTexRes;
-                            newWidth = Math.floor(maxTexRes * aspectRatio);
-                        }
-
-                        //Logging.InfoDev("old", res.width, res.height);
-                        //Logging.InfoDev("new", newWidth, newHeight);
-                    }
-
-                    const canvas: any = new OffscreenCanvas(newWidth, newHeight);
-                    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-                    assert(context);
-                    context.drawImage(res, 0, 0, newWidth, newHeight);
-
-                    const blob: Blob = await canvas.convertToBlob({type: t.getMimeType()});
-                    const newImageBuffer = new Uint8Array(await blob.arrayBuffer());
-
-                    t.setImage(newImageBuffer);
-
-                    res.close();
+                    t.setImage(await resizeImage(image, t.getMimeType(), maxTexRes));
                 }
                 catch(e: any) {
                     Logging.Warn("Failed to resize texture: " + t.getName(), e);
