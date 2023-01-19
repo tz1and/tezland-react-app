@@ -4,8 +4,14 @@ import { DatabaseStorage, FallbackStorage, IStorageProvider } from "../storage";
 import { FrameParams } from "../utils/FrameImage";
 import { Logging } from "../utils/Logging";
 
-export type FileWithMetadata = {
-    file: File;
+export type BufferFile = {
+    buffer: ArrayBuffer;
+    name: string;
+    type: string;
+}
+
+export type BufferFileWithMetadata = {
+    file: BufferFile;
     metadata: ItemTokenMetadata;
 }
 

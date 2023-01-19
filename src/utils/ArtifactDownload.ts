@@ -1,4 +1,4 @@
-import Metadata, { FileWithMetadata } from "../world/Metadata";
+import Metadata, { BufferFileWithMetadata } from "../world/Metadata";
 //import { Logging } from "./Logging";
 import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
@@ -42,7 +42,7 @@ export const enum GatewayType {
 export default class ArtifactDownload {
     public static async downloadArtifact(
         token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes: number,
-        gatewayType: GatewayType = GatewayType.Native, pool?: PreprocessWorkerPoolType): Promise<FileWithMetadata> {
+        gatewayType: GatewayType = GatewayType.Native, pool?: PreprocessWorkerPoolType): Promise<BufferFileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_key.id.toNumber(), token_key.fa2);
         assert(itemMetadata);
 
@@ -110,12 +110,12 @@ export default class ArtifactDownload {
 
             const new_mime_type = isImageFileType(mime_type) ? mime_type : "model/gltf-binary";
 
-            return { file: new File([processed], itemMetadata.artifactUri, {type: new_mime_type }), metadata: itemMetadata };
+            return { file: {buffer: processed, name: itemMetadata.artifactUri, type: new_mime_type}, metadata: itemMetadata };
         }
         catch(e: any) {
             Logging.ErrorDev(`Pre-processing model for token ${token_key.id} failed: ${e}`);
 
-            return { file: new File([cachedBuf], itemMetadata.artifactUri, {type: mime_type }), metadata: itemMetadata };
+            return { file: {buffer: cachedBuf, name: itemMetadata.artifactUri, type: mime_type}, metadata: itemMetadata };
         }
     }
 

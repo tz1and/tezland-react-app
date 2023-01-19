@@ -7,7 +7,7 @@ import { ModuleThread, spawn, Thread } from "threads"
 import { Logging } from "./Logging";
 import assert from "assert";
 import { getFileType, isImageFileType } from "./Utils";
-import { ItemTokenMetadata } from "../world/Metadata";
+import { BufferFile, ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import RefCounted from "./RefCounted";
@@ -131,7 +131,7 @@ class ArtifactMemCache {
             else if(file_type === "jpg" || file_type === "jpeg") mime_type = "image/jpeg";
             else throw new Error("Unsupported mimeType");
 
-            const fileWithMimeType = new File([await file.arrayBuffer()], file.name, { type: mime_type });
+            const bufferFile = {buffer: await file.arrayBuffer(), name: file.name, type: mime_type } as BufferFile;
 
             let resolution;
             if (isImageFileType(mime_type)) {
@@ -144,7 +144,7 @@ class ArtifactMemCache {
             }
 
             // NOTE: this is kinda nasty...
-            return ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
+            return ArtifactProcessingQueue.queueProcessArtifact({file: bufferFile, metadata: {
                 baseScale: 1, ...resolution
             } as ItemTokenMetadata}, scene);
         })()

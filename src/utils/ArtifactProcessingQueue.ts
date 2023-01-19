@@ -4,7 +4,7 @@ import { AssetContainer, Material, MultiMaterial,
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import assert from "assert";
 import PQueue from "p-queue";
-import { FileWithMetadata } from "../world/Metadata";
+import { BufferFileWithMetadata } from "../world/Metadata";
 import { createFrameForImage } from "./FrameImage";
 import { Logging } from "./Logging";
 import RefCounted from "./RefCounted";
@@ -49,18 +49,20 @@ class ArtifactProcessingQueue {
         this.isSlow = false;
     }
 
-    public queueProcessArtifact(download: FileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
+    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
         const parsePromiseTask = () => this.processArtifact(download, scene);
         return this.processArtifactTasks.add(parsePromiseTask);
     }
     
-    private async processArtifact(download: FileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
+    private async processArtifact(download: BufferFileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
+        const file = new File([download.file.buffer], download.file.name, {type: download.file.type});
+
         if (isImageFileType(download.file.type)) {
             const assetContainer = new AssetContainer(scene);
             // TODO: get dimensions from metadata or something!
             assert(download.metadata.width !== null && download.metadata.height !== null, "No image resolution in metadata.");
             assert(download.metadata.imageFrameJson, "No image frame in metadata.");
-            createFrameForImage(download.file, {width: download.metadata.width, height: download.metadata.height}, download.metadata.imageFrameJson, scene, assetContainer);
+            createFrameForImage(file, {width: download.metadata.width, height: download.metadata.height}, download.metadata.imageFrameJson, scene, assetContainer);
 
             // Enabled collision on all meshes.
             assetContainer.meshes.forEach((m) => {
@@ -95,7 +97,7 @@ class ArtifactProcessingQueue {
             else throw new Error("Unsupported mimeType");
 
             // LoadAssetContainer?
-            const result = await SceneLoader.LoadAssetContainerAsync(download.file.name, download.file, scene, null, plugin_ext);
+            const result = await SceneLoader.LoadAssetContainerAsync(download.file.name, file, scene, null, plugin_ext);
         
             // remove all lights and cameras.
             while (result.lights.length) result.lights[0].dispose();
