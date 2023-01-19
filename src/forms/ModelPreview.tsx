@@ -23,6 +23,8 @@ class PreviewScene {
 
     private previewObject: Nullable<TransformNode>;
 
+    private assetGroup: TransformNode;
+
     constructor(engine: Engine) {
         // Get the canvas element from the DOM.
         this.engine = engine;
@@ -35,15 +37,21 @@ class PreviewScene {
         });
 
         this.previewObject = null;
+
+        this.assetGroup = new TransformNode("assets", this.scene)
+        this.assetGroup.setEnabled(false);
+    }
+
+    public async initialise() {
+        return ArtifactMemCache.initialise(this.assetGroup, false);
     }
 
     public dispose() {
-        // Destorying the engine should prbably be enough.
-        this.scene.dispose();
-
         ArtifactMemCache.dispose().finally(() => {
             // Babylon needs to be destroyed after the worker threads.
             // I THINK!
+            // Destorying the engine should prbably be enough.
+            this.scene.dispose();
             this.engine.dispose();
         });
     }
@@ -204,7 +212,13 @@ class PreviewScene {
         }
 
         try {
-            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, null));
+            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
+
+            // If we want loaded assets to not all be in the root we need to:
+            // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
+            // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
+            const assetRoot = BabylonUtils.getAssetRoot(asset.object);
+            assetRoot.parent = null;
 
             // Instantiate.
             // Getting first root node is probably enough.
@@ -214,6 +228,9 @@ class PreviewScene {
             // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
             const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
             this.previewObject = instance.rootNodes[0];
+
+            // Re-root to group.
+            assetRoot.parent = this.assetGroup;
 
             this.scaleAndCenterVertically(this.previewObject);
 
@@ -306,22 +323,21 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     override componentDidMount() {
         assert(this.mount.current);
 
-        BabylonUtils.createEngine(this.mount.current).then(engine => {
-            try {
-                this.setState({preview: new PreviewScene(engine)}, () => {
+        try {
+            BabylonUtils.createEngine(this.mount.current).then(engine => {
+                this.setState({preview: new PreviewScene(engine)}, async () => {
                     assert(this.state.preview);
+                    await this.state.preview.initialise();
                     if(this.props.tokenKey) {
-                        this.state.preview.loadFromTokenKey(this.props.modelLoaded, this.props.tokenKey).then((res) => {
-                            this.setState({ polycount: res });
-    
-                            if(this.loadingRef.current) this.loadingRef.current.hidden = true;
-                        });
+                        const res = await this.state.preview.loadFromTokenKey(this.props.modelLoaded, this.props.tokenKey);
+                        this.setState({ polycount: res });
+                        if(this.loadingRef.current) this.loadingRef.current.hidden = true;
                     }
                     else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
                 });
-            }
-            catch(err: any) { }
-        }).catch(err => {});
+            });
+        }
+        catch(err) { }
     }
 
     override componentWillUnmount() {
