@@ -42,7 +42,7 @@ class ArtifactMemCache {
     private artifactCache: Map<string, Promise<RefCounted<AssetContainer>>>;
     private workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
 
-    private group: Nullable<TransformNode> = null;
+    private assetGroup: Nullable<TransformNode> = null;
 
     /**
      * This is checked by world to know when it needs to do some cleanup.
@@ -53,12 +53,18 @@ class ArtifactMemCache {
         this.artifactCache = new Map();
     }
 
-    public async initialise(group: Nullable<TransformNode>) {
-        this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
-            new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
-                { type: 'module', name: "ArtifactDownload.worker" }));
-        await this.workerThread.initialise();
-        this.group = group;
+    public async initialise(assetGroup: Nullable<TransformNode>, spawnWorker: boolean = true) {
+        if(spawnWorker) {
+            this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
+                new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
+                    { type: 'module', name: "ArtifactDownload.worker" }));
+            await this.workerThread.initialise();
+        }
+        else {
+            assert(this.workerThread === null, "workerThread was not null on init")
+        }
+
+        this.assetGroup = assetGroup;
     }
 
     public async dispose() {
@@ -80,7 +86,7 @@ class ArtifactMemCache {
         })
         this.artifactCache.clear();
 
-        this.group = null;
+        this.assetGroup = null;
     }
 
     public cleanup(scene: Scene) {
@@ -152,7 +158,7 @@ class ArtifactMemCache {
             // NOTE: this is kinda nasty...
             return ArtifactProcessingQueue.queueProcessArtifact({file: bufferFile, metadata: {
                 baseScale: 1, ...resolution
-            } as ItemTokenMetadata}, scene, this.group);
+            } as ItemTokenMetadata}, scene, this.assetGroup);
         })()
 
         this.artifactCache.set(token_key.toString(), assetPromise);
@@ -190,7 +196,7 @@ class ArtifactMemCache {
         instance.rootNodes[0].parent = parent;
 
         // Re-root to group.
-        assetRoot.parent = this.group;
+        assetRoot.parent = this.assetGroup;
 
         // Increase refcount.
         asset.incRefCount();
@@ -211,7 +217,7 @@ class ArtifactMemCache {
             const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this.workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, this.group));
+            assetPromise = this.workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, this.assetGroup));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
@@ -258,7 +264,7 @@ class ArtifactMemCache {
         instance.rootNodes[0].parent = parent;
 
         // Re-root to group.
-        assetRoot.parent = this.group;
+        assetRoot.parent = this.assetGroup;
 
         // Increase refcount.
         asset.incRefCount();
@@ -306,6 +312,8 @@ class ArtifactMemCache {
             throw e;
         }
 
+        // TODO: factor our into an instantiate method
+
         // If we want loaded assets to not all be in the root we need to:
         // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
         // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
@@ -318,7 +326,7 @@ class ArtifactMemCache {
         instance.rootNodes[0].parent = parent;
 
         // Re-root to group.
-        assetRoot.parent = this.group;
+        assetRoot.parent = this.assetGroup;
 
         // Increase refcount.
         asset.incRefCount();

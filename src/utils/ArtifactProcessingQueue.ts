@@ -50,12 +50,12 @@ class ArtifactProcessingQueue {
         this.isSlow = false;
     }
 
-    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, group: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
-        const parsePromiseTask = () => this.processArtifact(download, scene, group);
+    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
+        const parsePromiseTask = () => this.processArtifact(download, scene, assetGroup);
         return this.processArtifactTasks.add(parsePromiseTask);
     }
     
-    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, group: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
+    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
         const file = new File([download.file.buffer], download.file.name, {type: download.file.type});
 
         if (isImageFileType(download.file.type)) {
@@ -89,7 +89,7 @@ class ArtifactProcessingQueue {
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             assetContainer.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-            BabylonUtils.getAssetRoot(assetContainer).parent = group;
+            BabylonUtils.getAssetRoot(assetContainer).parent = assetGroup;
 
             return new RefCounted(assetContainer);
         }
@@ -136,7 +136,7 @@ class ArtifactProcessingQueue {
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-            BabylonUtils.getAssetRoot(result).parent = group;
+            BabylonUtils.getAssetRoot(result).parent = assetGroup;
         
             return new RefCounted(result);
         }
