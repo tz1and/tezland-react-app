@@ -23,7 +23,11 @@ const pool = Pool(
             { type: 'module', name: "MeshPreprocessing.worker" })),
         // At least two, but at most 8 threads.
         // Note: Pool.terminate chashes chromium if there are 16 threads.
-        Math.max(2, Math.min(8, getNumLogicalCores())));
+        {
+            size: Math.max(2, Math.min(8, getNumLogicalCores())),
+            concurrency: 1 // async
+        });
+        
 
 const downloadArtifactTransfer = async (token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
     number, gatwayType: GatewayType = GatewayType.Native): Promise<TransferDescriptor<BufferFileWithMetadata>> =>
