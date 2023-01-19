@@ -1,4 +1,4 @@
-import { Engine, EngineOptions /*, WebGPUEngine, WebGPUEngineOptions*/ } from "@babylonjs/core";
+import { AssetContainer, Engine, EngineOptions, Node /*, WebGPUEngine, WebGPUEngineOptions*/ } from "@babylonjs/core";
 import AppSettings from "../storage/AppSettings";
 
 
@@ -41,6 +41,14 @@ namespace BabylonUtils {
 
         engine.disableManifestCheck = true;
         return engine;
+    }
+
+    export function getAssetRoot(asset: AssetContainer): Node {
+        if (asset.rootNodes.length > 0) {
+            return asset.rootNodes[0];
+        } else {
+            return asset.meshes[0];
+        }
     }
 }
 

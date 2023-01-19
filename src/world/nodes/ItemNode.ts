@@ -266,6 +266,8 @@ export default class ItemNode extends TransformNode {
 
             if (this.teleporterData) this.getWorld().game.addItemToHighlightLayer(this);
 
+            // Enable/Disable collision.
+            // TODO: find a better way that doesn't update child mesh collisions in checkCollisions.
             this.getChildMeshes().forEach((m) => {
                 m.checkCollisions = !this._disableCollision;
             })

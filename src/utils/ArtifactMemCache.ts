@@ -12,6 +12,7 @@ import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import RefCounted from "./RefCounted";
 import { defaultFrameParams } from "./FrameImage";
+import BabylonUtils from "../world/BabylonUtils";
 //import { Logging } from "./Logging";
 
 
@@ -41,6 +42,8 @@ class ArtifactMemCache {
     private artifactCache: Map<string, Promise<RefCounted<AssetContainer>>>;
     private workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
 
+    private group: Nullable<TransformNode> = null;
+
     /**
      * This is checked by world to know when it needs to do some cleanup.
      */
@@ -50,11 +53,12 @@ class ArtifactMemCache {
         this.artifactCache = new Map();
     }
 
-    public async initialise() {
+    public async initialise(group: Nullable<TransformNode>) {
         this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
             new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
                 { type: 'module', name: "ArtifactDownload.worker" }));
         await this.workerThread.initialise();
+        this.group = group;
     }
 
     public async dispose() {
@@ -75,6 +79,8 @@ class ArtifactMemCache {
             v.then(res => res.object.dispose());
         })
         this.artifactCache.clear();
+
+        this.group = null;
     }
 
     public cleanup(scene: Scene) {
@@ -146,7 +152,7 @@ class ArtifactMemCache {
             // NOTE: this is kinda nasty...
             return ArtifactProcessingQueue.queueProcessArtifact({file: bufferFile, metadata: {
                 baseScale: 1, ...resolution
-            } as ItemTokenMetadata}, scene);
+            } as ItemTokenMetadata}, scene, this.group);
         })()
 
         this.artifactCache.set(token_key.toString(), assetPromise);
@@ -162,13 +168,16 @@ class ArtifactMemCache {
 
         if (parent.isDisposed()) return null;
 
+        // If we want loaded assets to not all be in the root we need to:
+        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
+        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
+        const assetRoot = BabylonUtils.getAssetRoot(asset.object);
+        assetRoot.parent = null;
+
         // get the original, untransformed bounding vectors from the asset.
-        if (asset.object.rootNodes.length > 0) {
-            parent.boundingVectors = asset.object.rootNodes[0].getHierarchyBoundingVectors();
-        } else {
-            parent.boundingVectors = asset.object.meshes[0].getHierarchyBoundingVectors();
-        }
-    
+        // IMPORTANT: only wors properly when assetRoot is parented to null;
+        parent.boundingVectors = assetRoot.getHierarchyBoundingVectors();
+
         // Instantiate.
         // Getting first root node is probably enough.
         // Note: imported glTFs are rotate because of the difference in coordinate systems.
@@ -179,6 +188,9 @@ class ArtifactMemCache {
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].name = `item${file.name}_clone`;
         instance.rootNodes[0].parent = parent;
+
+        // Re-root to group.
+        assetRoot.parent = this.group;
 
         // Increase refcount.
         asset.incRefCount();
@@ -199,7 +211,7 @@ class ArtifactMemCache {
             const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this.workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene));
+            assetPromise = this.workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, this.group));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
@@ -225,12 +237,15 @@ class ArtifactMemCache {
     
         if (parent.isDisposed()) return null;
 
+        // If we want loaded assets to not all be in the root we need to:
+        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
+        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
+        const assetRoot = BabylonUtils.getAssetRoot(asset.object);
+        assetRoot.parent = null;
+
         // get the original, untransformed bounding vectors from the asset.
-        if (asset.object.rootNodes.length > 0) {
-            parent.boundingVectors = asset.object.rootNodes[0].getHierarchyBoundingVectors();
-        } else {
-            parent.boundingVectors = asset.object.meshes[0].getHierarchyBoundingVectors();
-        }
+        // IMPORTANT: only wors properly when assetRoot is parented to null;
+        parent.boundingVectors = assetRoot.getHierarchyBoundingVectors();
     
         // Instantiate.
         // Getting first root node is probably enough.
@@ -241,6 +256,9 @@ class ArtifactMemCache {
         const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
         instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
         instance.rootNodes[0].parent = parent;
+
+        // Re-root to group.
+        assetRoot.parent = this.group;
 
         // Increase refcount.
         asset.incRefCount();
@@ -258,6 +276,7 @@ class ArtifactMemCache {
             // TODO: make sure glb file is pre-processed!
             assetPromise = (async () => {
                 const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
+                res.addAllToScene();
                 return new RefCounted(res);
                 // Enable this, but figure out why booths are darker sometimes.
                 // Probably to do with reflection probe, RTTs not updating or something.
@@ -287,10 +306,19 @@ class ArtifactMemCache {
             throw e;
         }
 
+        // If we want loaded assets to not all be in the root we need to:
+        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
+        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
+        const assetRoot = BabylonUtils.getAssetRoot(asset.object);
+        assetRoot.parent = null;
+
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
         const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
         instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
         instance.rootNodes[0].parent = parent;
+
+        // Re-root to group.
+        assetRoot.parent = this.group;
 
         // Increase refcount.
         asset.incRefCount();

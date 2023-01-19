@@ -1,5 +1,5 @@
 import { DefaultRenderingPipeline, Engine, Scene,
-    Nullable, Color3, HighlightLayer, Mesh, Vector3, TonemappingOperator } from "@babylonjs/core";
+    Nullable, Color3, HighlightLayer, Mesh, Vector3, TonemappingOperator, TransformNode } from "@babylonjs/core";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -39,6 +39,8 @@ export class Game {
     readonly loadingQueue; // For loading items.
 
     private world: Nullable<BaseWorld> = null;
+
+    private group: TransformNode;
 
     constructor(engine: Engine, walletProvider: ITezosWalletProvider) {
         this.engine = engine;
@@ -97,6 +99,10 @@ export class Game {
         // create camera first
         this.playerController = new PlayerController(this);
 
+        this.group = new TransformNode("assets");
+        this.group.setEnabled(false);
+        this.group.position.y = -50;
+
         // TODO: need to figure out how to exclude GUI.
         this.setupDefaultRenderingPipeline();
 
@@ -118,7 +124,7 @@ export class Game {
             this.scene.cleanCachedTextureBuffer();
         }, 60000);
 
-        ArtifactMemCache.initialise().then(() => {
+        ArtifactMemCache.initialise(this.group).then(() => {
             const location = this.getSpwanLocation();
             this.teleportTo(location);
         });

@@ -1,9 +1,10 @@
 import { AssetContainer, Material, MultiMaterial,
     Nullable, PBRMaterial, Scene, SceneLoader,
-    StandardMaterial, Vector3 } from "@babylonjs/core";
+    StandardMaterial, TransformNode, Vector3 } from "@babylonjs/core";
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import assert from "assert";
 import PQueue from "p-queue";
+import BabylonUtils from "../world/BabylonUtils";
 import { BufferFileWithMetadata } from "../world/Metadata";
 import { createFrameForImage } from "./FrameImage";
 import { Logging } from "./Logging";
@@ -49,12 +50,12 @@ class ArtifactProcessingQueue {
         this.isSlow = false;
     }
 
-    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
-        const parsePromiseTask = () => this.processArtifact(download, scene);
+    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, group: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
+        const parsePromiseTask = () => this.processArtifact(download, scene, group);
         return this.processArtifactTasks.add(parsePromiseTask);
     }
     
-    private async processArtifact(download: BufferFileWithMetadata, scene: Scene): Promise<RefCounted<AssetContainer>> {
+    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, group: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
         const file = new File([download.file.buffer], download.file.name, {type: download.file.type});
 
         if (isImageFileType(download.file.type)) {
@@ -64,9 +65,11 @@ class ArtifactProcessingQueue {
             assert(download.metadata.imageFrameJson, "No image frame in metadata.");
             createFrameForImage(file, {width: download.metadata.width, height: download.metadata.height}, download.metadata.imageFrameJson, scene, assetContainer);
 
-            // Enabled collision on all meshes.
+            assetContainer.addAllToScene();
+
+            // Disable collision on all meshes.
             assetContainer.meshes.forEach((m) => {
-                m.checkCollisions = true;
+                m.checkCollisions = false;
                 // needed? maybe decide based on polycount!
                 //m.useOctreeForCollisions = true;
                 //m.useOctreeForPicking = true;
@@ -86,6 +89,8 @@ class ArtifactProcessingQueue {
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             assetContainer.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
+            BabylonUtils.getAssetRoot(assetContainer).parent = group;
+
             return new RefCounted(assetContainer);
         }
         else {
@@ -98,6 +103,8 @@ class ArtifactProcessingQueue {
 
             // LoadAssetContainer?
             const result = await SceneLoader.LoadAssetContainerAsync(download.file.name, file, scene, null, plugin_ext);
+
+            result.addAllToScene();
         
             // remove all lights and cameras.
             while (result.lights.length) result.lights[0].dispose();
@@ -105,9 +112,9 @@ class ArtifactProcessingQueue {
         
             ArtifactProcessingQueue.removeRefraction(result.materials);
         
-            // Enabled collision on all meshes.
+            // Disable collision on all meshes.
             result.meshes.forEach((m) => {
-                m.checkCollisions = true;
+                m.checkCollisions = false;
                 // needed? maybe decide based on polycount!
                 //m.useOctreeForCollisions = true;
                 //m.useOctreeForPicking = true;
@@ -128,6 +135,8 @@ class ArtifactProcessingQueue {
             const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
+
+            BabylonUtils.getAssetRoot(result).parent = group;
         
             return new RefCounted(result);
         }

@@ -10,7 +10,7 @@ import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';
 import BabylonUtils from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
-import { instantiateOptions } from '../utils/ArtifactMemCache';
+import ArtifactMemCache, { instantiateOptions } from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
 import { Logging } from '../utils/Logging';
 import { createFrameForImage, defaultFrameParams, FrameParams } from '../utils/FrameImage';
@@ -40,7 +40,12 @@ class PreviewScene {
     public dispose() {
         // Destorying the engine should prbably be enough.
         this.scene.dispose();
-        this.engine.dispose();
+
+        ArtifactMemCache.dispose().finally(() => {
+            // Babylon needs to be destroyed after the worker threads.
+            // I THINK!
+            this.engine.dispose();
+        });
     }
 
     public setBgColor(color: string) {
@@ -199,7 +204,7 @@ class PreviewScene {
         }
 
         try {
-            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene));
+            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, null));
 
             // Instantiate.
             // Getting first root node is probably enough.
