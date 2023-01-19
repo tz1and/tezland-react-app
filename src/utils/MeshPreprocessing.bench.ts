@@ -3,7 +3,7 @@ import fs from 'fs';
 import { preprocessMesh } from './MeshPreprocessing';
 
 const file = fs.readFileSync('public/models/telebooth_dengiskong_v2.glb')
-const fileBase64 = file.toString('base64');
+//const fileBase64 = file.toString('base64');
 
 bench('benchmark mesh processing array', async () => {
     await preprocessMesh(file, "model/gltf-binary", 256);
