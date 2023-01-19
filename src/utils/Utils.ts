@@ -13,20 +13,6 @@ export const toHexString = (bytes: Uint8Array) => bytes.reduce((str: String, byt
 
 export const fromHexString = (hexString: string) => new Uint8Array(hexString.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
 
-export function readFileAsync(file: File): Promise<ArrayBuffer> {
-  return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-
-    reader.onload = () => {
-      resolve(reader.result as ArrayBuffer);
-    };
-
-    reader.onerror = reject;
-
-    reader.readAsArrayBuffer(file);
-  })
-}
-
 export const dataURItoBlob = (dataURI: string): Blob => {
   // separate out the mime component
   var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
@@ -104,16 +90,6 @@ export const signedArea = (data: number[], start: number, end: number, dim: numb
       j = i;
   }
   return sum / 2;
-}
-
-export const getUrlFileSizeHead = async (url: string): Promise<number> => {
-  const response = await fetch(url, { method: 'HEAD'});
-
-  const contentLength = response.headers.get("content-length");
-  if(contentLength)
-    return parseInt(contentLength);
-
-  throw new Error("content-length not in response");
 }
 
 export const yesNo = (v: boolean): string => {
