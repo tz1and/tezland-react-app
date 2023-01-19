@@ -174,34 +174,8 @@ class ArtifactMemCache {
 
         if (parent.isDisposed()) return null;
 
-        // If we want loaded assets to not all be in the root we need to:
-        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
-        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
-        const assetRoot = BabylonUtils.getAssetRoot(asset.object);
-        assetRoot.parent = null;
-
-        // get the original, untransformed bounding vectors from the asset.
-        // IMPORTANT: only wors properly when assetRoot is parented to null;
-        parent.boundingVectors = assetRoot.getHierarchyBoundingVectors();
-
-        // Instantiate.
-        // Getting first root node is probably enough.
-        // Note: imported glTFs are rotate because of the difference in coordinate systems.
-        // Don't flip em.
-        // NOTE: when an object is supposed to animate, instancing won't work.
-        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
-        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
-        instance.rootNodes[0].name = `item${file.name}_clone`;
-        instance.rootNodes[0].parent = parent;
-
-        // Re-root to group.
-        assetRoot.parent = this.assetGroup;
-
-        // Increase refcount.
-        asset.incRefCount();
-
-        this.itemsLoaded = true;
+        const instanceRoot = this.instantiateCachedAssetContainer(asset, parent, `item${file.name}_clone`);
+        instanceRoot.getChildMeshes().forEach((m) => { m.checkCollisions = true; });
     
         return parent;
     }
@@ -243,33 +217,7 @@ class ArtifactMemCache {
     
         if (parent.isDisposed()) return null;
 
-        // If we want loaded assets to not all be in the root we need to:
-        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
-        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
-        const assetRoot = BabylonUtils.getAssetRoot(asset.object);
-        assetRoot.parent = null;
-
-        // get the original, untransformed bounding vectors from the asset.
-        // IMPORTANT: only wors properly when assetRoot is parented to null;
-        parent.boundingVectors = assetRoot.getHierarchyBoundingVectors();
-    
-        // Instantiate.
-        // Getting first root node is probably enough.
-        // Note: imported glTFs are rotate because of the difference in coordinate systems.
-        // Don't flip em.
-        // NOTE: when an object is supposed to animate, instancing won't work.
-        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
-        instance.rootNodes[0].name = `item${token_key.toString()}_clone`;
-        instance.rootNodes[0].parent = parent;
-
-        // Re-root to group.
-        assetRoot.parent = this.assetGroup;
-
-        // Increase refcount.
-        asset.incRefCount();
-
-        this.itemsLoaded = true;
+        this.instantiateCachedAssetContainer(asset, parent, `item${token_key.toString()}_clone`, clone);
     
         return parent;
     }
@@ -312,28 +260,53 @@ class ArtifactMemCache {
             throw e;
         }
 
-        // TODO: factor our into an instantiate method
+        const instanceRoot = this.instantiateCachedAssetContainer(asset, parent, `item${fileName}_clone`);
+        instanceRoot.getChildMeshes().forEach((m) => { m.checkCollisions = true; });
 
-        // If we want loaded assets to not all be in the root we need to:
-        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
-        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
-        const assetRoot = BabylonUtils.getAssetRoot(asset.object);
-        assetRoot.parent = null;
+        return parent;
+    }
 
-        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
-        instance.rootNodes[0].getChildMeshes().forEach((m) => { m.checkCollisions = true; })
-        instance.rootNodes[0].parent = parent;
-
-        // Re-root to group.
-        assetRoot.parent = this.assetGroup;
+    private instantiateCachedAssetContainer(asset: RefCounted<AssetContainer>, parent: ItemNode | TransformNode, name: string, clone: boolean = false): TransformNode {
+        const instanceRoot = this.instantiateAssetContainer(asset.object, parent, name, clone);
 
         // Increase refcount.
         asset.incRefCount();
 
+        // Set itemsLoaded flag.
         this.itemsLoaded = true;
 
-        return parent;
+        return instanceRoot;
+    }
+
+    private instantiateAssetContainer(asset: AssetContainer, parent: ItemNode | TransformNode, name: string, clone: boolean = false): TransformNode {
+        // If we want loaded assets to not all be in the root we need to:
+        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
+        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
+        const assetRoot = BabylonUtils.getAssetRoot(asset);
+        assetRoot.parent = null;
+
+        // get the original, untransformed bounding vectors from the asset.
+        // IMPORTANT: only wors properly when assetRoot is parented to null;
+        if(parent instanceof ItemNode) {
+            parent.boundingVectors = assetRoot.getHierarchyBoundingVectors();
+        }
+    
+        // Instantiate.
+        // Getting first root node is probably enough.
+        // Note: imported glTFs are rotate because of the difference in coordinate systems.
+        // Don't flip em.
+        // NOTE: when an object is supposed to animate, instancing won't work.
+        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
+        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
+        assert(instance.rootNodes.length === 1, "loaded model can only have one root node");
+        const instanceRoot = instance.rootNodes[0];
+        instanceRoot.name = name;
+        instanceRoot.parent = parent;
+
+        // Re-root to group.
+        assetRoot.parent = this.assetGroup;
+
+        return instanceRoot;
     }
 }
 

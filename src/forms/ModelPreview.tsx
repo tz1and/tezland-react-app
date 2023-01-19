@@ -214,6 +214,8 @@ class PreviewScene {
         try {
             const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
 
+            // TODO: use instantiateAssetContainer
+
             // If we want loaded assets to not all be in the root we need to:
             // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
             // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
