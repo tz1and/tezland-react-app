@@ -1,5 +1,5 @@
 import React, { RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import './VirtualSpace.css';
+import './InteractiveMap.css';
 import { useTezosWalletContext } from './TezosWalletContext';
 import { MapPopoverInfo, MarkerMode, WorldMap } from '../world/map/WorldMap';
 import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
@@ -134,7 +134,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = (props) => {
     return (
         <div className='position-relative'>
             {popover}
-            <canvas className={props.className} id="renderCanvas" touch-action="none" ref={mount} />
+            <canvas className={props.className} id="mapCanvas" touch-action="none" ref={mount} />
         </div>
     )
 }
