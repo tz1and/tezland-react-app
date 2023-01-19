@@ -2,11 +2,11 @@ import ArtifactDownload, { GatewayType } from '../utils/ArtifactDownload';
 import { MeshPreprocessingWorkerApi } from './MeshPreprocessing.worker';
 import { getNumLogicalCores } from './WorkerUtils';
 import BigNumber from 'bignumber.js';
-import { expose } from 'threads/worker';
-import { spawn, Pool } from "threads"
+import { expose, Transfer } from 'threads/worker';
+import { spawn, Pool, TransferDescriptor } from "threads"
 import { Logging } from '../utils/Logging';
 import TokenKey from '../utils/TokenKey';
-import Metadata from '../world/Metadata';
+import Metadata, { BufferFileWithMetadata } from '../world/Metadata';
 
 
 async function initialiseWorkerStorage() {
@@ -25,11 +25,12 @@ const pool = Pool(
         // Note: Pool.terminate chashes chromium if there are 16 threads.
         Math.max(2, Math.min(8, getNumLogicalCores())));
 
-const downloadArtifact: (typeof ArtifactDownload.downloadArtifact) = async (
-    token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
-    number, gatwayType: GatewayType = GatewayType.Native) => {
+const downloadArtifactTransfer = async (token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
+    number, gatwayType: GatewayType = GatewayType.Native): Promise<TransferDescriptor<BufferFileWithMetadata>> =>
+{
     Object.setPrototypeOf(token_key.id, BigNumber.prototype);
-    return ArtifactDownload.downloadArtifact(token_key, sizeLimit, polygonLimit, maxTexRes, gatwayType, pool);
+    const res = await ArtifactDownload.downloadArtifact(token_key, sizeLimit, polygonLimit, maxTexRes, gatwayType, pool);
+    return Transfer(res, [res.file.buffer]);
 }
 
 const initialise = async () => {
@@ -47,7 +48,7 @@ const shutdown = async () => {
 
 export const ArtifactDownloadWorkerApi = {
     initialise: initialise,
-    downloadArtifact: downloadArtifact,
+    downloadArtifact: downloadArtifactTransfer,
     shutdown: shutdown
 }
 
