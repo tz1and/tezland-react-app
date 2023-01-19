@@ -1,9 +1,10 @@
 import CBuffer from "CBuffer";
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, InputGroup } from "react-bootstrap";
-import EventBus, { ChatMessageEvent, SendChatMessageEvent } from "../../utils/eventbus/EventBus";
+import EventBus, { ChatMessageEvent, ChatRoomEvent, SendChatMessageEvent } from "../../utils/eventbus/EventBus";
 import { truncateAddress } from "../../utils/TezosUtils";
 import { ChatMessage, OverlayForm } from "../../world/AppControlFunctions";
+import { Player } from "../../world/MultiplayerClient";
 
 
 type ChatProps = {
@@ -40,7 +41,7 @@ export const Chat: React.FC<ChatProps> = (props) => {
     const messageContainer = useRef<HTMLDivElement>(null);
 
     const [chatMessageBuffer, setChatMessageBuffer] = useState<ChatBufferState>({buffer: new CBuffer<ChatMessage>(128)});
-    //const [players, setPlayers] = useState<Player[]>([]);
+    const [players, setPlayers] = useState<Player[]>([]);
 
     const addChatMessage = useCallback((e: ChatMessageEvent) => {
         chatMessageBuffer.buffer.push(e.msg);
@@ -49,27 +50,27 @@ export const Chat: React.FC<ChatProps> = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    /*const chatRoom = useCallback((e: ChatRoomEvent) => {
+    const chatRoom = useCallback((e: ChatRoomEvent) => {
         setPlayers([...e.room.players.values()]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])*/
+    }, [])
 
     useEffect(() => {
         //Logging.InfoDev("running Chat::useEffect");
         EventBus.subscribe("chat-message", addChatMessage);
-        //EventBus.subscribe("chat-room", chatRoom);
+        EventBus.subscribe("chat-room", chatRoom);
         return () => {
             //Logging.InfoDev("unsubscribing from newChatMessage");
             EventBus.unsubscribe("chat-message", addChatMessage);
-            //EventBus.unsubscribe("chat-room", chatRoom);
+            EventBus.unsubscribe("chat-room", chatRoom);
         }
-    }, [addChatMessage/*, chatRoom*/]);
+    }, [addChatMessage, chatRoom]);
 
     return (
         <div>
             {chatVisible && <div className={`position-absolute chatPanel ${!chatActive && 'chatPanelInactive'}`}>
                 <Card className={`chatCard ${!chatActive && 'chatCardInactive'}`}>
-                    <Card.Header>Chat</Card.Header>
+                    <Card.Header>Chat {players.length > 0 && `👥${players.length}`}</Card.Header>
                     <Card.Body className='messageContainer' ref={messageContainer}>
                         {/*players.map((player, idx) => {return <p className='m-1' key={`player${idx}`}><b>{truncateAddress(player.name)}</b></p>})*/}
                         {chatMessageBuffer.buffer.map((msg, idx) => {return <p className='m-1' key={idx}><b>{msg.from ? truncateAddress(msg.from) : "System"}</b>: {msg.msg}</p>}).toArray()}

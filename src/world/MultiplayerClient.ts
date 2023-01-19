@@ -119,6 +119,8 @@ export default class MultiplayerClient { //extends EventEmitter {
     }
 
     private playerJoin = (player: Player, sessionId: string) => {
+        if (this.currentRoom) EventBus.publish("chat-room", new ChatRoomEvent(this.currentRoom.state));
+
         if(this.isPlayer(sessionId)) return;
 
         const p = new OtherPlayer(player, sessionId, this.otherPlayersNode);
@@ -126,11 +128,11 @@ export default class MultiplayerClient { //extends EventEmitter {
         p.updateNextTransform();
         p.moveToNext();
         Logging.LogDev("MultiplayerClient: player connected:", sessionId);
-
-        if (this.currentRoom) EventBus.publish("chat-room", new ChatRoomEvent(this.currentRoom.state));
     }
 
     private playerLeave = (player: Player, sessionId: string) => {
+        if (this.currentRoom) EventBus.publish("chat-room", new ChatRoomEvent(this.currentRoom.state));
+
         if(this.isPlayer(sessionId)) return;
 
         const p = this.otherPlayers.get(sessionId);
@@ -139,8 +141,6 @@ export default class MultiplayerClient { //extends EventEmitter {
             p.dispose();
             Logging.LogDev("MultiplayerClient: player disconnected:", sessionId);
         }
-
-        if (this.currentRoom) EventBus.publish("chat-room", new ChatRoomEvent(this.currentRoom.state));
     }
 
     // We don't really need to handle incoming chat messages here.
