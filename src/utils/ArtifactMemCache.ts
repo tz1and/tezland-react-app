@@ -152,8 +152,7 @@ class ArtifactMemCache {
 
         if (parent.isDisposed()) return null;
 
-        const instanceRoot = this.instantiateCachedAssetContainer(asset, parent, `item${file.name}_clone`, parent.boundingVectors);
-        instanceRoot.getChildMeshes().forEach((m) => { m.checkCollisions = true; });
+        this.instantiateCachedAssetContainer(asset, parent, `item${file.name}_clone`, parent.boundingVectors);
     
         return parent;
     }
