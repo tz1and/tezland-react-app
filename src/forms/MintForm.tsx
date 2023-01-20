@@ -198,7 +198,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         const metadata_royalties = new Map<string, number>();
         // Metadata royalties are in permille.
         for (const [k, v] of values.itemRoyalties) metadata_royalties.set(k, Math.floor(v * 10));
-        metadata_royalties.set(Conf.fees_address, 35);
+        if(metadata_royalties.size > 0) metadata_royalties.set(Conf.fees_address, 35);
 
         const isImage = isImageFileType(mime_type);
 
