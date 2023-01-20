@@ -4,7 +4,7 @@ import { AssetContainer, Material, MultiMaterial,
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import assert from "assert";
 import PQueue from "p-queue";
-import BabylonUtils from "../world/BabylonUtils";
+import { AssetContainerExt } from "../world/BabylonUtils";
 import { BufferFileWithMetadata } from "../world/Metadata";
 import { createFrameForImage } from "./FrameImage";
 import { Logging } from "./Logging";
@@ -50,12 +50,12 @@ class ArtifactProcessingQueue {
         this.isSlow = false;
     }
 
-    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
+    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainerExt>> {
         const parsePromiseTask = () => this.processArtifact(download, scene, assetGroup);
         return this.processArtifactTasks.add(parsePromiseTask);
     }
     
-    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainer>> {
+    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainerExt>> {
         const file = new File([download.file.buffer], download.file.name, {type: download.file.type});
 
         if (isImageFileType(download.file.type)) {
@@ -89,9 +89,7 @@ class ArtifactProcessingQueue {
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             assetContainer.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-            BabylonUtils.getAssetRoot(assetContainer).parent = assetGroup;
-
-            return new RefCounted(assetContainer);
+            return new RefCounted(new AssetContainerExt(assetContainer, assetGroup));
         }
         else {
             let plugin_ext;
@@ -135,10 +133,8 @@ class ArtifactProcessingQueue {
             const extent_max = Math.max(Math.max(extent.x, extent.y), extent.z);
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
-
-            BabylonUtils.getAssetRoot(result).parent = assetGroup;
         
-            return new RefCounted(result);
+            return new RefCounted(new AssetContainerExt(result, assetGroup));
         }
     }
 

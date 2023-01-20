@@ -1,8 +1,7 @@
 import { Vector3, Color3, Matrix, Vector4,
     Quaternion, HemisphericLight, ShadowGenerator,
     Mesh, DeepImmutable, MeshBuilder, Nullable, Ray,
-    ReflectionProbe, RenderTargetTexture,
-    SceneLoader, TransformNode } from "@babylonjs/core";
+    ReflectionProbe, RenderTargetTexture, TransformNode } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";
@@ -14,9 +13,8 @@ import { ParameterSchema } from '@taquito/michelson-encoder'
 import SunLight from "./nodes/SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
 import assert from "assert";
-import { Edge } from "../worldgen/WorldPolygon";
 import WorldGrid from "../utils/WorldGrid";
-import ArtifactMemCache, { instantiateOptions } from "../utils/ArtifactMemCache";
+import ArtifactMemCache from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./nodes/TeleporterBooth";
 import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
@@ -381,7 +379,7 @@ export class World extends BaseWorld {
     //private roadDecorations: Nullable<TransformNode> = null;
 
     // TODO: Needs to be culled!
-    public async loadRoadDecorations(curbs: Edge[], counter: number) {
+    /*public async loadRoadDecorations(curbs: Edge[], counter: number) {
         const roadDecorations = new TransformNode(`roadDecorations${counter}`, this.game.scene);
         roadDecorations.parent = this.worldNode;
 
@@ -407,7 +405,7 @@ export class World extends BaseWorld {
                 }
             }
         }
-    }
+    }*/
 
     private async reloadPlace(placeKey: PlaceKey) {
         // TODO: assert the place belong to this world.

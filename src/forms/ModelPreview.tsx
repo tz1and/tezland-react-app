@@ -10,7 +10,7 @@ import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import ArtifactDownload from '../utils/ArtifactDownload';
 import BabylonUtils from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
-import ArtifactMemCache, { instantiateOptions } from '../utils/ArtifactMemCache';
+import ArtifactMemCache from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
 import { Logging } from '../utils/Logging';
 import { createFrameForImage, defaultFrameParams, FrameParams } from '../utils/FrameImage';
@@ -212,31 +212,13 @@ class PreviewScene {
         }
 
         try {
-            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
+            const refcountedAsset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
 
-            // TODO: use instantiateAssetContainer
-
-            // If we want loaded assets to not all be in the root we need to:
-            // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
-            // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
-            const assetRoot = BabylonUtils.getAssetRoot(asset.object);
-            assetRoot.parent = null;
-
-            // Instantiate.
-            // Getting first root node is probably enough.
-            // Note: imported glTFs are rotate because of the difference in coordinate systems.
-            // Don't flip em.
-            // NOTE: when an object is supposed to animate, instancing won't work.
-            // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-            const instance = asset.object.instantiateModelsToScene(undefined, false, instantiateOptions());
-            this.previewObject = instance.rootNodes[0];
-
-            // Re-root to group.
-            assetRoot.parent = this.assetGroup;
+            this.previewObject = refcountedAsset.object.instantiate(null, "previeModel");
 
             this.scaleAndCenterVertically(this.previewObject);
 
-            const polycount = MeshUtils.countPolygons(asset.object.meshes);
+            const polycount = MeshUtils.countPolygons(refcountedAsset.object.asset.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.

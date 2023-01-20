@@ -1,4 +1,6 @@
-import { AssetContainer, Engine, EngineOptions, Node /*, WebGPUEngine, WebGPUEngineOptions*/ } from "@babylonjs/core";
+import { AssetContainer, Engine, EngineOptions, Node, Nullable, /*, WebGPUEngine, WebGPUEngineOptions*/ 
+    TransformNode, Vector3} from "@babylonjs/core";
+import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 
 
@@ -53,3 +55,83 @@ namespace BabylonUtils {
 }
 
 export default BabylonUtils;
+
+
+export type BoundingVectors = {
+    min: Vector3;
+    max: Vector3;
+}
+
+const instantiateOptions = (clone: boolean = false): {
+    doNotInstantiate?: boolean | ((node: TransformNode) => boolean);
+    predicate?: (entity: any) => boolean;
+} => {
+    return {
+        /**
+         * Note that by default instantiateModelsToScene will always clone
+         * meshes if they have a skeleton, even if you set doNotInstantiate = false.
+         * If you want to force instanciation in this case, you should pass
+         * () => false for doNotInstantiate.
+         */
+        doNotInstantiate: clone ? true : () => false
+        /*predicate: (entity) => {
+            if (entity instanceof TransformNode && entity.name === "__root__") return true;
+            if (entity instanceof Mesh && (!entity.geometry || entity.geometry.getTotalVertices() === 0)) return false;
+            if (entity instanceof InstancedMesh && entity.subMeshes.length === 0) return false;
+            return true;
+        }*/
+    }
+}
+
+export class AssetContainerExt {
+    constructor(readonly asset: AssetContainer, readonly assetGroup: Nullable<TransformNode>) {
+        BabylonUtils.getAssetRoot(asset).parent = assetGroup;
+    }
+
+    /**
+     * Instantiates an models in an AssetContainer.
+     * @param parent the node the new instance/clone is parented to
+     * @param name the name of the instances root node
+     * @param boundingVectorsOut if not null, bounding vectors are copied to this ref
+     * @param clone if false, an instance will be created
+     * @returns the instance root node
+     */
+    public instantiate(parent: Nullable<TransformNode>, name: string,
+        boundingVectorsOut: Nullable<BoundingVectors> = null, clone: boolean = false): TransformNode
+    {
+        // If we want loaded assets to not all be in the root we need to:
+        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
+        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
+        const assetRoot = BabylonUtils.getAssetRoot(this.asset);
+        assetRoot.parent = null;
+
+        // get the original, untransformed bounding vectors from the asset.
+        // IMPORTANT: only works properly when assetRoot is parented to null;
+        if(boundingVectorsOut) {
+            const boundingVectors = assetRoot.getHierarchyBoundingVectors();
+            boundingVectorsOut.min.copyFrom(boundingVectors.min);
+            boundingVectorsOut.max.copyFrom(boundingVectors.max);
+        }
+    
+        // Instantiate.
+        // Getting first root node is probably enough.
+        // Note: imported glTFs are rotate because of the difference in coordinate systems.
+        // Don't flip em.
+        // NOTE: when an object is supposed to animate, instancing won't work.
+        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
+        const instance = this.asset.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
+        assert(instance.rootNodes.length === 1, "loaded model can only have one root node");
+        const instanceRoot = instance.rootNodes[0];
+        instanceRoot.name = name;
+        instanceRoot.parent = parent;
+
+        // Re-root to group.
+        assetRoot.parent = this.assetGroup;
+
+        return instanceRoot;
+    }
+
+    public dispose() {
+        this.asset.dispose();
+    }
+}

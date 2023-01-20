@@ -11,6 +11,7 @@ import { triHelper, Trilean } from "../../forms/FormUtils";
 import BasePlaceNode from "./BasePlaceNode";
 import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
+import { BoundingVectors } from "../BabylonUtils";
 
 
 const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
@@ -100,10 +101,7 @@ export default class ItemNode extends TransformNode {
 
     public teleporterData: Nullable<TeleporterData>;
 
-    public boundingVectors: Nullable<{
-        min: Vector3;
-        max: Vector3;
-    }>;
+    public boundingVectors: BoundingVectors;
 
     constructor(place_or_world: BasePlaceNode | BaseWorld, tokenKey: TokenKey,
         name: string, scene?: Nullable<Scene>, isPure?: boolean) {
@@ -126,7 +124,10 @@ export default class ItemNode extends TransformNode {
 
         this._loadState = ItemLoadState.NotLoaded;
 
-        this.boundingVectors = null;
+        this.boundingVectors = {
+            min: Vector3.Zero(),
+            max: Vector3.Zero()
+        };
     }
 
     // TODO: needs some custom stuff for displying in inspector.

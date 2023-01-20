@@ -503,7 +503,7 @@ export default abstract class BasePlaceNode extends TransformNode {
 
     public isInBounds(object: ItemNode) {
         if(!this._placeBounds) return false;
-        if(!object.boundingVectors) return false;
+        // NOTE: boundingVectors === 0 should be an error?
 
         const {min, max} = object.boundingVectors;
         const bbox = new BoundingBox(min, max, object.getWorldMatrix());

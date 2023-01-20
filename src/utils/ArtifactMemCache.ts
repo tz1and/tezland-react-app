@@ -1,4 +1,4 @@
-import { AssetContainer, Nullable, Scene, SceneLoader, TransformNode } from "@babylonjs/core";
+import { Nullable, Scene, SceneLoader, TransformNode } from "@babylonjs/core";
 import ItemNode from "../world/nodes/ItemNode";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
@@ -12,34 +12,12 @@ import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import RefCounted from "./RefCounted";
 import { defaultFrameParams } from "./FrameImage";
-import BabylonUtils from "../world/BabylonUtils";
+import { AssetContainerExt, BoundingVectors } from "../world/BabylonUtils";
 //import { Logging } from "./Logging";
 
 
-export const instantiateOptions = (clone: boolean = false): {
-    doNotInstantiate?: boolean | ((node: TransformNode) => boolean);
-    predicate?: (entity: any) => boolean;
-} => {
-    return {
-        /**
-         * Note that by default instantiateModelsToScene will always clone
-         * meshes if they have a skeleton, even if you set doNotInstantiate = false.
-         * If you want to force instanciation in this case, you should pass
-         * () => false for doNotInstantiate.
-         */
-        doNotInstantiate: clone ? true : () => false
-        /*predicate: (entity) => {
-            if (entity instanceof TransformNode && entity.name === "__root__") return true;
-            if (entity instanceof Mesh && (!entity.geometry || entity.geometry.getTotalVertices() === 0)) return false;
-            if (entity instanceof InstancedMesh && entity.subMeshes.length === 0) return false;
-            return true;
-        }*/
-    }
-}
-
-
 class ArtifactMemCache {
-    private artifactCache: Map<string, Promise<RefCounted<AssetContainer>>>;
+    private artifactCache: Map<string, Promise<RefCounted<AssetContainerExt>>>;
     private workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
 
     private assetGroup: Nullable<TransformNode> = null;
@@ -174,7 +152,7 @@ class ArtifactMemCache {
 
         if (parent.isDisposed()) return null;
 
-        const instanceRoot = this.instantiateCachedAssetContainer(asset, parent, `item${file.name}_clone`);
+        const instanceRoot = this.instantiateCachedAssetContainer(asset, parent, `item${file.name}_clone`, parent.boundingVectors);
         instanceRoot.getChildMeshes().forEach((m) => { m.checkCollisions = true; });
     
         return parent;
@@ -217,7 +195,7 @@ class ArtifactMemCache {
     
         if (parent.isDisposed()) return null;
 
-        this.instantiateCachedAssetContainer(asset, parent, `item${token_key.toString()}_clone`, clone);
+        this.instantiateCachedAssetContainer(asset, parent, `item${token_key.toString()}_clone`, parent.boundingVectors, clone);
     
         return parent;
     }
@@ -231,7 +209,7 @@ class ArtifactMemCache {
             assetPromise = (async () => {
                 const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
                 res.addAllToScene();
-                return new RefCounted(res);
+                return new RefCounted(new AssetContainerExt(res, this.assetGroup));
                 // Enable this, but figure out why booths are darker sometimes.
                 // Probably to do with reflection probe, RTTs not updating or something.
                 // Maybe related to freeze active meshes?
@@ -266,45 +244,16 @@ class ArtifactMemCache {
         return parent;
     }
 
-    private instantiateCachedAssetContainer(asset: RefCounted<AssetContainer>, parent: ItemNode | TransformNode, name: string, clone: boolean = false): TransformNode {
-        const instanceRoot = this.instantiateAssetContainer(asset.object, parent, name, clone);
+    private instantiateCachedAssetContainer(asset: RefCounted<AssetContainerExt>, parent: ItemNode | TransformNode, name: string,
+        boundingVectorsOut: Nullable<BoundingVectors> = null, clone: boolean = false): TransformNode
+    {
+        const instanceRoot = asset.object.instantiate(parent, name, boundingVectorsOut, clone);
 
         // Increase refcount.
         asset.incRefCount();
 
         // Set itemsLoaded flag.
         this.itemsLoaded = true;
-
-        return instanceRoot;
-    }
-
-    private instantiateAssetContainer(asset: AssetContainer, parent: ItemNode | TransformNode, name: string, clone: boolean = false): TransformNode {
-        // If we want loaded assets to not all be in the root we need to:
-        // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
-        // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
-        const assetRoot = BabylonUtils.getAssetRoot(asset);
-        assetRoot.parent = null;
-
-        // get the original, untransformed bounding vectors from the asset.
-        // IMPORTANT: only wors properly when assetRoot is parented to null;
-        if(parent instanceof ItemNode) {
-            parent.boundingVectors = assetRoot.getHierarchyBoundingVectors();
-        }
-    
-        // Instantiate.
-        // Getting first root node is probably enough.
-        // Note: imported glTFs are rotate because of the difference in coordinate systems.
-        // Don't flip em.
-        // NOTE: when an object is supposed to animate, instancing won't work.
-        // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = asset.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
-        assert(instance.rootNodes.length === 1, "loaded model can only have one root node");
-        const instanceRoot = instance.rootNodes[0];
-        instanceRoot.name = name;
-        instanceRoot.parent = parent;
-
-        // Re-root to group.
-        assetRoot.parent = this.assetGroup;
 
         return instanceRoot;
     }
