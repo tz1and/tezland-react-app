@@ -68,7 +68,7 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
 
     private static getRpcNode() {
         let rpc_node_idx = AppSettings.rpcNode.value;
-        if (AppSettings.rpcNode.value > Config.allowed_tezos_nodes.length) {
+        if (rpc_node_idx >= Config.allowed_tezos_nodes.length) {
             Logging.Warn("Invalid RPC node set - using default.");
             rpc_node_idx = 0;
         }
