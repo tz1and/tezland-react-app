@@ -307,8 +307,8 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
     override componentDidMount() {
         assert(this.mount.current);
 
-        try {
-            BabylonUtils.createEngine(this.mount.current).then(engine => {
+        BabylonUtils.createEngine(this.mount.current).then(engine => {
+            try {
                 this.setState({preview: new PreviewScene(engine)}, async () => {
                     assert(this.state.preview);
                     await this.state.preview.initialise();
@@ -319,9 +319,10 @@ class ModelPreview extends React.Component<ModelPreviewProps, ModelPreviewState>
                     }
                     else if(this.loadingRef.current) this.loadingRef.current.hidden = true;
                 });
-            });
-        }
-        catch(err) { }
+            }
+            catch(err) { }
+        }).catch(() => { });
+        
     }
 
     override componentWillUnmount() {

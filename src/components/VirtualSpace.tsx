@@ -55,8 +55,12 @@ const VirtualSpace: React.FC<{}> = (props) => {
             }
             catch(err: any) {
                 setError(err);
+                Logging.Error(err);
             }
-        }).catch(err => setError(err));
+        }).catch(err => {
+            setError(err);
+            Logging.Error(err);
+        });
 
         return () => {
             game?.dispose();
