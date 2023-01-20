@@ -8,7 +8,6 @@ import { AssetContainerExt } from "../world/BabylonUtils";
 import { BufferFileWithMetadata } from "../world/Metadata";
 import { createFrameForImage } from "./FrameImage";
 import { Logging } from "./Logging";
-import RefCounted from "./RefCounted";
 import { isImageFileType } from "./Utils";
 
 GLTFFileLoader.IncrementalLoading = false;
@@ -50,12 +49,12 @@ class ArtifactProcessingQueue {
         this.isSlow = false;
     }
 
-    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainerExt>> {
+    public queueProcessArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<AssetContainerExt> {
         const parsePromiseTask = () => this.processArtifact(download, scene, assetGroup);
         return this.processArtifactTasks.add(parsePromiseTask);
     }
     
-    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<RefCounted<AssetContainerExt>> {
+    private async processArtifact(download: BufferFileWithMetadata, scene: Scene, assetGroup: Nullable<TransformNode>): Promise<AssetContainerExt> {
         const file = new File([download.file.buffer], download.file.name, {type: download.file.type});
 
         if (isImageFileType(download.file.type)) {
@@ -89,7 +88,7 @@ class ArtifactProcessingQueue {
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             assetContainer.transformNodes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
 
-            return new RefCounted(new AssetContainerExt(assetContainer, assetGroup));
+            return new AssetContainerExt(assetContainer, assetGroup);
         }
         else {
             let plugin_ext;
@@ -134,7 +133,7 @@ class ArtifactProcessingQueue {
             const new_scale = baseScale / extent_max; // Scale to 1 meters, the default.
             result.meshes[0].scaling.multiplyInPlace(new Vector3(new_scale, new_scale, new_scale));
         
-            return new RefCounted(new AssetContainerExt(result, assetGroup));
+            return new AssetContainerExt(result, assetGroup);
         }
     }
 

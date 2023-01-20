@@ -212,13 +212,13 @@ class PreviewScene {
         }
 
         try {
-            const refcountedAsset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
+            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
 
-            this.previewObject = refcountedAsset.object.instantiate(null, "previeModel");
+            this.previewObject = asset.instantiate(null, "previeModel");
 
             this.scaleAndCenterVertically(this.previewObject);
 
-            const polycount = MeshUtils.countPolygons(refcountedAsset.object.asset.meshes);
+            const polycount = MeshUtils.countPolygons(asset.container.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.

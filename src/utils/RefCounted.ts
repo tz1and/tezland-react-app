@@ -1,14 +1,12 @@
 import { Logging } from "./Logging";
 
 
-export default class RefCounted<T> {
-    readonly object: T;
+export default abstract class RefCounted {
     private _refcount: number;
 
     public get refcount(): number { return this._refcount; }
 
-    constructor(object: T) {
-        this.object = object;
+    constructor() {
         this._refcount = 0;
     }
 

@@ -2,6 +2,7 @@ import { AssetContainer, Engine, EngineOptions, Node, Nullable, /*, WebGPUEngine
     TransformNode, Vector3} from "@babylonjs/core";
 import assert from "assert";
 import AppSettings from "../storage/AppSettings";
+import RefCounted from "../utils/RefCounted";
 
 
 namespace BabylonUtils {
@@ -83,9 +84,10 @@ const instantiateOptions = (clone: boolean = false): {
     }
 }
 
-export class AssetContainerExt {
-    constructor(readonly asset: AssetContainer, readonly assetGroup: Nullable<TransformNode>) {
-        BabylonUtils.getAssetRoot(asset).parent = assetGroup;
+export class AssetContainerExt extends RefCounted {
+    constructor(readonly container: AssetContainer, readonly assetGroup: Nullable<TransformNode>) {
+        super();
+        BabylonUtils.getAssetRoot(container).parent = assetGroup;
     }
 
     /**
@@ -102,7 +104,7 @@ export class AssetContainerExt {
         // If we want loaded assets to not all be in the root we need to:
         // https://forum.babylonjs.com/t/proper-way-to-create-an-instance-of-a-loaded-glb/37478/15?u=852kerfunkle
         // Assign them to a new root and before calling instantiateModelsToScene assign them to null again.
-        const assetRoot = BabylonUtils.getAssetRoot(this.asset);
+        const assetRoot = BabylonUtils.getAssetRoot(this.container);
         assetRoot.parent = null;
 
         // get the original, untransformed bounding vectors from the asset.
@@ -119,7 +121,7 @@ export class AssetContainerExt {
         // Don't flip em.
         // NOTE: when an object is supposed to animate, instancing won't work.
         // NOTE: using doNotInstantiate predicate to force skinned meshes to instantiate. https://github.com/BabylonJS/Babylon.js/pull/12764
-        const instance = this.asset.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
+        const instance = this.container.instantiateModelsToScene(undefined, false, instantiateOptions(clone));
         assert(instance.rootNodes.length === 1, "loaded model can only have one root node");
         const instanceRoot = instance.rootNodes[0];
         instanceRoot.name = name;
@@ -132,6 +134,6 @@ export class AssetContainerExt {
     }
 
     public dispose() {
-        this.asset.dispose();
+        this.container.dispose();
     }
 }

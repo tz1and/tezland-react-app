@@ -10,14 +10,13 @@ import { getFileType, isImageFileType } from "./Utils";
 import { BufferFile, ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
-import RefCounted from "./RefCounted";
 import { defaultFrameParams } from "./FrameImage";
 import { AssetContainerExt, BoundingVectors } from "../world/BabylonUtils";
 //import { Logging } from "./Logging";
 
 
 class ArtifactMemCache {
-    private artifactCache: Map<string, Promise<RefCounted<AssetContainerExt>>>;
+    private artifactCache: Map<string, Promise<AssetContainerExt>>;
     private workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
 
     private assetGroup: Nullable<TransformNode> = null;
@@ -60,7 +59,7 @@ class ArtifactMemCache {
         ArtifactProcessingQueue.dispose();
 
         this.artifactCache.forEach(v => {
-            v.then(res => res.object.dispose());
+            v.then(res => res.dispose());
         })
         this.artifactCache.clear();
 
@@ -80,7 +79,7 @@ class ArtifactMemCache {
                 // If it doesn't, delete asset and cache entry.
                 if (!isReferenced) {
                     Logging.InfoDev("Grabage collecting", k);
-                    res.object.dispose();
+                    res.dispose();
                     this.artifactCache.delete(k);
                 }
             });
@@ -106,7 +105,7 @@ class ArtifactMemCache {
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
         let assetPromise = this.artifactCache.get(token_key.toString());
         if(assetPromise) {
-            (await assetPromise).object.dispose();
+            (await assetPromise).dispose();
             this.artifactCache.delete(token_key.toString());
         }
 
@@ -208,7 +207,7 @@ class ArtifactMemCache {
             assetPromise = (async () => {
                 const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
                 res.addAllToScene();
-                return new RefCounted(new AssetContainerExt(res, this.assetGroup));
+                return new AssetContainerExt(res, this.assetGroup);
                 // Enable this, but figure out why booths are darker sometimes.
                 // Probably to do with reflection probe, RTTs not updating or something.
                 // Maybe related to freeze active meshes?
@@ -243,10 +242,10 @@ class ArtifactMemCache {
         return parent;
     }
 
-    private instantiateCachedAssetContainer(asset: RefCounted<AssetContainerExt>, parent: ItemNode | TransformNode, name: string,
+    private instantiateCachedAssetContainer(asset: AssetContainerExt, parent: TransformNode, name: string,
         boundingVectorsOut: Nullable<BoundingVectors> = null, clone: boolean = false): TransformNode
     {
-        const instanceRoot = asset.object.instantiate(parent, name, boundingVectorsOut, clone);
+        const instanceRoot = asset.instantiate(parent, name, boundingVectorsOut, clone);
 
         // Increase refcount.
         asset.incRefCount();
