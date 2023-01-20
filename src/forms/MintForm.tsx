@@ -10,14 +10,12 @@ import {
 import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
-import { createItemTokenMetadata } from '../ipfs/ipfs';
-import { dataURItoBlob, fileToFileLike, getFileExt, getFileType, isImageFile, isImageFileType } from '../utils/Utils';
+import { getFileExt, isImageFile } from '../utils/Utils';
 import TezosWalletContext from '../components/TezosWalletContext';
 import { validateAddress, ValidationResult } from '@taquito/utils';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
 import { Trilean, triHelper } from './FormUtils';
-import { decode, DecodedPng } from 'fast-png';
 import assert from 'assert';
 import { TagPreview } from '../components/TagPreview';
 import { Col, Container, Row } from 'react-bootstrap';
@@ -25,19 +23,8 @@ import { grapphQLUser } from '../graphql/user';
 import { GetUserCollectionsQuery } from '../graphql/generated/user';
 import { Logging } from '../utils/Logging';
 import { Royalties } from '../components/Royalties';
+import MintFormUitls from './MintFormUtils';
 
-
-interface MintFormValues {
-    collection: string;
-    itemTitle: string;
-    itemDescription: string;
-    itemTags: string;
-    itemAmount: number;
-    itemRoyalties: [string, number][];
-    frameRatio: number;
-    frameColor: string;
-    itemFile?: File | undefined;
-}
 
 type MintFormProps = {
     closable?: boolean;
@@ -54,7 +41,7 @@ type MintFormState = {
 }
 
 export class MintFrom extends React.Component<MintFormProps, MintFormState> {
-    private initialValues: MintFormValues = {
+    private initialValues: MintFormUitls.MintFormValues = {
         collection: Conf.item_contract,
         itemTitle: "",
         itemDescription: "",
@@ -65,7 +52,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         frameColor: '#555555'
     };
     private modelPreviewRef = React.createRef<ModelPreview>();
-    private formikRef = React.createRef<FormikProps<MintFormValues>>();
+    private formikRef = React.createRef<FormikProps<MintFormUitls.MintFormValues>>();
     private isClosable: boolean;
 
     private closeTimeout: NodeJS.Timeout | null = null;
@@ -149,118 +136,15 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
         else this.setState({ modelLimitWarning: "", modelLoadingState: loadingState }, validateCallback);
     }
 
-    private static checkImageValid(image: DecodedPng, w: number, h: number, title: string) {
-        // check channels.
-        if (image.channels < 3) throw new Error(`Invalid ${title} image: num channels < 3`);
-
-        // check resolution.
-        if (image.width !== w) throw new Error(`Invalid ${title} image: wrong width`);
-        if (image.height !== h) throw new Error(`Invalid ${title} image: wrong height`);
-
-        // Check most pixels aren't 0!
-        let zero_count = 0;
-        for (let i = 0; i < image.data.length; ++i) {
-            if(image.data[i] === 0) ++zero_count;
-        }
-        if (zero_count > image.data.length / 3) throw new Error(`Invalid ${title} image: data mostly empty`);
-    }
-
-    private async uploadAndMint(values: MintFormValues, callback?: (completed: boolean) => void) {
-        assert(values.itemFile);
+    private async uploadAndMint(values: MintFormUitls.MintFormValues, callback?: (completed: boolean) => void) {
         assert(this.modelPreviewRef.current);
 
-        // TEMP: don't check this for images, etc:
-        // For some meshes (fox) you can't count the polygons...
-        assert(this.modelPreviewRef.current.state.polycount >= 0);
+        // Get thumbnail and display images.
+        const thumbnail = await this.modelPreviewRef.current.getThumbnail(MintFormUitls.ThumbnailImageRes);
+        const display = await this.modelPreviewRef.current.getThumbnail(MintFormUitls.DisplayImageRes);
 
-        // Get thumbnail and check it's valid.
-        const thumbnailRes = 350;
-        const thumbnail = await this.modelPreviewRef.current.getThumbnail(thumbnailRes);
-        const decoded_thumbnail = decode(await dataURItoBlob(thumbnail).arrayBuffer());
-        MintFrom.checkImageValid(decoded_thumbnail, thumbnailRes, thumbnailRes, "thumbnail");
-
-        // Get display and check it's valid.
-        const displayRes = 1000;
-        const display = await this.modelPreviewRef.current.getThumbnail(displayRes);
-        const decoded_display = decode(await dataURItoBlob(display).arrayBuffer());
-        MintFrom.checkImageValid(decoded_display, displayRes, displayRes, "display");
-
-        // TODO: validate mimeType in validation.
-        let mime_type;
-        const file_type = await getFileType(values.itemFile);
-        // TODO: have a getMimeType
-        if(file_type === "glb") mime_type = "model/gltf-binary";
-        else if(file_type === "gltf") mime_type = "model/gltf+json";
-        else if(file_type === "png") mime_type = "image/png";
-        else if(file_type === "jpg" || file_type === "jpeg") mime_type = "image/jpeg";
-        else throw new Error("Unsupported mimeType");
-
-        const metadata_royalties = new Map<string, number>();
-        // Metadata royalties are in permille.
-        for (const [k, v] of values.itemRoyalties) metadata_royalties.set(k, Math.floor(v * 10));
-        if(metadata_royalties.size > 0) metadata_royalties.set(Conf.fees_address, 35);
-
-        const isImage = isImageFileType(mime_type);
-
-        let imageDimenstions;
-        if (isImage) {
-            // TODO: get this from model preview. pass image dimensions back to mint form.
-            // also the image frame settings? no, they probably need to be passed *into* model preview.
-            const res = await createImageBitmap(values.itemFile);
-            imageDimenstions = {
-                value: res.width + "x" + res.height,
-                unit: "px"
-            }
-            res.close();
-        }
-
-        const frameParams = this.modelPreviewRef.current.state.frameParams;
-
-        // TODO: add frame parameters!
-        const metadata = createItemTokenMetadata({
-            name: values.itemTitle,
-            description: values.itemDescription,
-            date: this.state.modelMintDate,
-            minter: this.context.walletPHK(),
-            artifactUri: await fileToFileLike(values.itemFile, mime_type),
-            displayUri: { dataUri: display, type: "image/png", name: "display.png" },
-            thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" },
-            tags: values.itemTags,
-            formats: [
-                {
-                    uri: { topLevelRef: "artifactUri" },
-                    mimeType: mime_type,
-                    fileSize: values.itemFile.size,
-                    fileName: values.itemFile.name,
-                    dimensions: imageDimenstions
-                },
-                {
-                    uri: { topLevelRef: "displayUri" },
-                    mimeType: "image/png",
-                    fileName: "display.png",
-                    dimensions: {
-                        value: displayRes + "x" + displayRes,
-                        unit: "px"
-                    }
-                },
-                {
-                    uri: { topLevelRef: "thumbnailUri" },
-                    mimeType: "image/png",
-                    fileName: "thumbnail.png",
-                    dimensions: {
-                        value: thumbnailRes + "x" + thumbnailRes,
-                        unit: "px"
-                    }
-                }
-            ],
-            baseScale: 1,
-            polygonCount: this.modelPreviewRef.current.state.polycount,
-            royalties: {
-                decimals: 3,
-                shares: metadata_royalties
-            },
-            imageFrame: isImage ? frameParams : undefined
-        });
+        const metadata = await MintFormUitls.formValuesToItemTokenMetadata(values, this.context.walletPHK(), this.modelPreviewRef.current.state.polycount,
+            this.state.modelMintDate, thumbnail, display, this.modelPreviewRef.current.state.frameParams);
 
         let data;
         try {
@@ -318,7 +202,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
                         validate = {(values) => {
                             assert(this.modelPreviewRef.current);
 
-                            const errors: FormikErrors<MintFormValues> = {};
+                            const errors: FormikErrors<MintFormUitls.MintFormValues> = {};
 
                             if (values.collection.length === 0) {
                                 errors.itemTitle = 'Invalid collection';
