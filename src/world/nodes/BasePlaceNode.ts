@@ -261,7 +261,7 @@ export default abstract class BasePlaceNode extends TransformNode {
     public displayOutOfBoundsItemsNotification() {
         // TODO: add button to remove out of bounds items.
         // Display out of bounds notifications if there are any.
-        if (this.outOfBoundsItems > 0 && this.permissions.hasPlaceItems() || this.permissions.hasModifyAll()) {
+        if (this.outOfBoundsItems > 0 && (this.permissions.hasPlaceItems() || this.permissions.hasModifyAll())) {
             EventBus.publish("add-notification", new AddNotificationEvent({
                 id: "oobItems" + this.placeKey.id,
                 title: "Out of bounds items!",
