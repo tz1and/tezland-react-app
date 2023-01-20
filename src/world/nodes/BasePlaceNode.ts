@@ -144,8 +144,8 @@ export default abstract class BasePlaceNode extends TransformNode {
     // The items loaded in this place.
     private items: Map<string, ItemNode> = new Map();
 
-    // Set of out of bounds items in this place.
-    public outOfBoundsItems: Set<number> = new Set();
+    // Number of out of bounds items in this place.
+    public outOfBoundsItems: number = 0;
 
     constructor(placeKey: PlaceKey, placeMetadata: PlaceTokenMetadata, world: BaseWorld) {
         super(`placeRoot${placeKey.id}`, world.game.scene);
@@ -166,7 +166,7 @@ export default abstract class BasePlaceNode extends TransformNode {
         this.world.game.scene.blockfreeActiveMeshesAndRenderingGroups = true;
 
         this.items.clear();
-        this.outOfBoundsItems.clear();
+        this.outOfBoundsItems = 0;
 
         // TODO: have some flag if it's loading right now or something.
         this._placeBounds?.dispose();
@@ -261,15 +261,13 @@ export default abstract class BasePlaceNode extends TransformNode {
     public displayOutOfBoundsItemsNotification() {
         // TODO: add button to remove out of bounds items.
         // Display out of bounds notifications if there are any.
-        if (this.outOfBoundsItems.size > 0 && this.permissions.hasPlaceItems()) {
-            const itemList = Array.from(this.outOfBoundsItems).join(', ');
+        if (this.outOfBoundsItems > 0 && this.permissions.hasPlaceItems() || this.permissions.hasModifyAll()) {
             EventBus.publish("add-notification", new AddNotificationEvent({
                 id: "oobItems" + this.placeKey.id,
                 title: "Out of bounds items!",
-                body: `Your Place #${this.placeKey.id} has out of bounds items!\n\nItem ids (in Place): ${itemList}.\n\nYou can remove them using better-call.dev.\nFor now.`,
+                body: `Your Place #${this.placeKey.id} has out of bounds items!\n\nYou can remove them in the place properties panel.`,
                 type: 'warning'
             }));
-            Logging.Warn("place doesn't fully contain objects: " + itemList);
         }
     }
 

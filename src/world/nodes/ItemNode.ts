@@ -32,14 +32,8 @@ const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
             // TODO: show this if you are the owner instead of disposing.
             //item.setDisplayBounds(true, 0);
 
-            // Add to out of bounds items to be displayed when owner enters.
-            place.outOfBoundsItems.add(item.itemId.toNumber());
-
-            // Dispose item.
-            // TODO: Probably better to hide/disable items.
-            // So they can eventually be shown to the owner for removal.
-            item.dispose();
-            return;
+            item.markOutOfBounds();
+            place.outOfBoundsItems += 1;
         }
 
         // Freeze wold matrix.
@@ -53,7 +47,8 @@ export const enum ItemLoadState {
     NotLoaded = 0,
     Queued = 1,
     Loaded = 2,
-    Failed = 3
+    Failed = 3,
+    OutOfBounds = 4,
 }
 
 
@@ -251,6 +246,14 @@ export default class ItemNode extends TransformNode {
         // rename to updateBoundingBoxHelper.
         assert(!this.boundsNode, "Bounds node was already set");
         this.boundsNode = cube;
+    }
+
+    public markOutOfBounds() {
+        // Dispose instance, mark OutOfBounds.
+        assert(this._loadState === ItemLoadState.Loaded, "Only loaded items can be marked out of bounds");
+        this.getChildren().forEach((node) => { node.dispose(); });
+        ArtifactMemCache.decAssetRefCount(this.tokenKey);
+        this._loadState = ItemLoadState.OutOfBounds;
     }
 
     public async loadItem() {

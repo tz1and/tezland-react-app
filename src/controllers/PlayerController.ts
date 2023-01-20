@@ -397,7 +397,6 @@ export default class PlayerController {
                 // Update permissions, place info, notifications.
                 place.updateOwnerAndPermissions().then(() => {
                     EventBus.publish("change-current-place", new ChangeCurrentPlaceEvent(place));
-
                     Logging.InfoDev("entered place: " + place.placeKey.id);
 
                     place.displayOutOfBoundsItemsNotification();
