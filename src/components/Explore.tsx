@@ -107,12 +107,14 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
     // TODO: use EventBus where it's passed.
     burnItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this._loadForm(OverlayForm.BurnItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
+        const props: TransferItemFromProps = { tokenKey: tokenKey, maxQuantity: quantity};
+        this._loadForm(OverlayForm.BurnItem, props);
     }
 
     // TODO: use EventBus where it's passed.
     transferItemFromInventory = (tokenKey: TokenKey, quantity: number) => {
-        this._loadForm(OverlayForm.TransferItem, { tokenKey: tokenKey, maxQuantity: quantity} as TransferItemFromProps);
+        const props: TransferItemFromProps = { tokenKey: tokenKey, maxQuantity: quantity};
+        this._loadForm(OverlayForm.TransferItem, props);
     }
 
     addNotification = (e: AddNotificationEvent) => {

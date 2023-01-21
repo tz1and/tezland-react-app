@@ -383,7 +383,7 @@ export class WorldMap {
         //console.log("marker clicked", eventData, eventState, eventState.currentTarget.metadata);
         const target = eventState.currentTarget;
         assert(target);
-        this.mapControlFunctions.showPopover({ screenPos: [target.centerX, target.centerY], metadata: target.metadata } as MapPopoverInfo);
+        this.mapControlFunctions.showPopover({ screenPos: [target.centerX, target.centerY], metadata: target.metadata });
     }
 
     private setCursor(cursor: string) {

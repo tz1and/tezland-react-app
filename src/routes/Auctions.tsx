@@ -265,7 +265,7 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
         Logging.InfoDev(value, event);
 
         const event_checked = event.currentTarget.checked;
-        const event_value = event.currentTarget.value as AuctionTypeFilter;
+        const event_value: AuctionTypeFilter = event.currentTarget.value;
 
         Logging.InfoDev(event_checked, event_value);
 

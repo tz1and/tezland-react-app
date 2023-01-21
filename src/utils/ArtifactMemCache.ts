@@ -120,7 +120,7 @@ class ArtifactMemCache {
             else if(file_type === "jpg" || file_type === "jpeg") mime_type = "image/jpeg";
             else throw new Error("Unsupported mimeType");
 
-            const bufferFile = {buffer: await file.arrayBuffer(), name: file.name, type: mime_type } as BufferFile;
+            const bufferFile: BufferFile = { buffer: await file.arrayBuffer(), name: file.name, type: mime_type };
 
             let resolution;
             if (isImageFileType(mime_type)) {

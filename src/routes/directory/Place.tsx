@@ -42,10 +42,10 @@ export const Place: React.FC<PlaceProps> = (props) => {
 
     const teleportToPlace = () => {
         if(getDirectoryEnabledGlobal()) {
-            window.parent.postMessage({
+            const controlEvent: iFrameControlEvent = {
                 tz1andEvent: true,
-                teleportToLocation: new WorldLocation({placeKey: new PlaceKey(props.placeKey.id, props.placeKey.fa2)})
-            } as iFrameControlEvent, "*");
+                teleportToLocation: new WorldLocation({placeKey: new PlaceKey(props.placeKey.id, props.placeKey.fa2)}) };
+            window.parent.postMessage(controlEvent, "*");
         }
         else {
             navigate(DirectoryUtils.placeExploreLink(props.placeKey));

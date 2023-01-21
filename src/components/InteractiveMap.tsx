@@ -22,10 +22,10 @@ const InteractiveMapPopup: React.FC<InteractiveMapPopupProps> = (props) => {
     const teleportToMapLocation = () => {
         if (getDirectoryEnabledGlobal()) {
 
-            window.parent.postMessage({
+            const controlEvent: iFrameControlEvent = {
                 tz1andEvent: true,
-                teleportToLocation: markerMetadata.location
-            } as iFrameControlEvent, "*");
+                teleportToLocation: markerMetadata.location };
+            window.parent.postMessage(controlEvent, "*");
         }
         else {
             if (markerMetadata.location.placeKey)

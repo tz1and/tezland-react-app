@@ -251,9 +251,8 @@ export default class PlayerController {
                     case 'KeyN':
                         if(isDev()) {
                             document.exitPointerLock();
-                            EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, {
-                                mapCoords: [this.playerTrigger.position.x, this.playerTrigger.position.z]
-                            } as DirectoryFormProps));
+                            const props: DirectoryFormProps = { mapCoords: [this.playerTrigger.position.x, this.playerTrigger.position.z] };
+                            EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, props));
                         }
                         break;
                 }

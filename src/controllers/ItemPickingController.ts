@@ -301,9 +301,8 @@ export default class ItemPickingController extends BaseUserController {
 
                 if(instanceRoot && instanceRoot instanceof TeleporterBooth) {
                     document.exitPointerLock();
-                    EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, {
-                        mapCoords: [instanceRoot.position.x, instanceRoot.position.z]
-                    } as DirectoryFormProps));
+                    const props: DirectoryFormProps = { mapCoords: [instanceRoot.position.x, instanceRoot.position.z] };
+                    EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, props));
 
                     eventState.skipNextObservers = true;
                 }
@@ -321,13 +320,14 @@ export default class ItemPickingController extends BaseUserController {
                     if (instanceRoot.isValidItem()) {
                         document.exitPointerLock();
                         // IMPORTANT! TODO: a bit clumsy, but maybe ok.
-                        EventBus.publish("load-form", new LoadFormEvent(OverlayForm.CollectItem, {
+                        const props: CollectItemFromProps = {
                             tokenKey: instanceRoot.tokenKey,
                             placeKey: instanceRoot.getPlace().placeKey,
                             chunkId: instanceRoot.chunkId.toNumber(),
                             itemId: instanceRoot.itemId.toNumber(),
                             issuer: instanceRoot.issuer,
-                            xtzPerItem: instanceRoot.xtzPerItem } as CollectItemFromProps));
+                            xtzPerItem: instanceRoot.xtzPerItem };
+                        EventBus.publish("load-form", new LoadFormEvent(OverlayForm.CollectItem, props));
                     }
 
                     eventState.skipNextObservers = true;

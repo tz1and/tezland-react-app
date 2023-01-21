@@ -13,7 +13,7 @@ const validThumbnailImageUri = imageBufferToDataUri(validThumbnailImage);
 const validDisplayImage = fs.readFileSync('assets/test/img/display.png');
 const validDisplayImageUri = imageBufferToDataUri(validDisplayImage);
 
-const newValidFormValues = () => {
+const newValidFormValues = (): MintFormUitls.MintFormValues => {
     return {
         collection: Conf.item_contract,
         itemTitle: "Test",
@@ -24,7 +24,7 @@ const newValidFormValues = () => {
         frameRatio: 0.02,
         frameColor: "#222222",
         itemFile: new File([Buffer.from("ffffffff", "hex")], "test.glb", {type: "model/gltf-binary"})
-    } as MintFormUitls.MintFormValues
+    }
 }
 
 const expectItemParams = (meta: ItemMetadata) => {
