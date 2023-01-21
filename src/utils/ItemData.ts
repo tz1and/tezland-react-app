@@ -1,4 +1,5 @@
-import { DeepImmutable, Nullable, Quaternion, Vector3 } from "@babylonjs/core";
+import { DeepImmutable, Nullable } from "@babylonjs/core/types";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths";
 import assert from "assert";
 import { packTo, unpack } from "byte-data";
 import Conf from "../Config";

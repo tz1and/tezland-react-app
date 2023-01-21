@@ -1,5 +1,8 @@
-import { Scene, Engine, Observer, Nullable,
-    KeyboardInfo, KeyboardEventTypes } from '@babylonjs/core';
+import { Engine } from '@babylonjs/core/Engines';
+import { KeyboardEventTypes, KeyboardInfo } from '@babylonjs/core/Events';
+import { Observer } from '@babylonjs/core/Misc';
+import { Scene } from '@babylonjs/core/scene';
+import { Nullable } from '@babylonjs/core/types';
 import assert from 'assert';
 
 

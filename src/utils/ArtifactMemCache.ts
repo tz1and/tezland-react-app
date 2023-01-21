@@ -1,4 +1,7 @@
-import { Nullable, Scene, SceneLoader, TransformNode } from "@babylonjs/core";
+import { Nullable } from "@babylonjs/core/types";
+import { TransformNode } from "@babylonjs/core/Meshes";
+import { Scene } from "@babylonjs/core/scene";
+import { SceneLoader } from "@babylonjs/core/Loading";
 import ItemNode from "../world/nodes/ItemNode";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";

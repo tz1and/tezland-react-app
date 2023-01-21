@@ -1,4 +1,4 @@
-import { Vector2 } from "@babylonjs/core";
+import { Vector2 } from "@babylonjs/core/Maths";
 import { Matrix2D } from "@babylonjs/gui";
 import { Polygon, Ring } from "polygon-clipping";
 

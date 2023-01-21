@@ -1,6 +1,10 @@
-import { AssetContainer, Material, MultiMaterial,
-    Nullable, PBRMaterial, Scene, SceneLoader,
-    StandardMaterial, TransformNode, Vector3 } from "@babylonjs/core";
+import { AssetContainer } from '@babylonjs/core/assetContainer';
+import { SceneLoader } from '@babylonjs/core/Loading';
+import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from '@babylonjs/core/Materials';
+import { Vector3 } from '@babylonjs/core/Maths';
+import { TransformNode } from '@babylonjs/core/Meshes';
+import { Scene } from '@babylonjs/core/scene';
+import { Nullable } from '@babylonjs/core/types';
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import assert from "assert";
 import PQueue from "p-queue";

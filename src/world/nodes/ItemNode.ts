@@ -1,5 +1,9 @@
-import { Nullable, Scene, Node, TransformNode, DeepImmutable, Vector3,
-    MeshBuilder, BoundingBox, Matrix, Color3 } from "@babylonjs/core";
+import { MeshBuilder, TransformNode } from "@babylonjs/core/Meshes";
+import { DeepImmutable, Nullable } from "@babylonjs/core/types";
+import { Node } from "@babylonjs/core/node";
+import { Scene } from "@babylonjs/core/scene";
+import { Color3, Matrix, Vector3 } from "@babylonjs/core/Maths";
+import { BoundingBox } from "@babylonjs/core/Culling";
 import { SimpleMaterial } from "@babylonjs/materials";
 import BigNumber from "bignumber.js";
 import ArtifactMemCache from "../../utils/ArtifactMemCache";

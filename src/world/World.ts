@@ -1,7 +1,10 @@
-import { Vector3, Color3, Matrix, Vector4,
-    Quaternion, HemisphericLight, ShadowGenerator,
-    Mesh, DeepImmutable, MeshBuilder, Nullable, Ray,
-    ReflectionProbe, RenderTargetTexture, TransformNode } from "@babylonjs/core";
+import { Mesh, MeshBuilder, TransformNode } from "@babylonjs/core/Meshes";
+import { HemisphericLight, ShadowGenerator } from "@babylonjs/core/Lights";
+import { DeepImmutable, Nullable } from "@babylonjs/core/types";
+import { Color3, Matrix, Quaternion, Vector3, Vector4 } from "@babylonjs/core/Maths";
+import { ReflectionProbe } from "@babylonjs/core/Probes";
+import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures";
+import { Ray } from "@babylonjs/core/Culling";
 import { SkyMaterial } from "@babylonjs/materials";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";
 import AppSettings from "../storage/AppSettings";

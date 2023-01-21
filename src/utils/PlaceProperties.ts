@@ -1,4 +1,5 @@
-import { Nullable, Vector3 } from "@babylonjs/core";
+import { Nullable } from "@babylonjs/core/types";
+import { Vector3 } from "@babylonjs/core/Maths";
 import { ItemDataParser, ItemDataWriter } from "./ItemData";
 import { Logging } from "./Logging";
 import { fromHexString, toHexString } from "./Utils";

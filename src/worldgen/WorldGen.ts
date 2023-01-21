@@ -1,4 +1,4 @@
-import { Vector2 } from "@babylonjs/core";
+import { Vector2 } from "@babylonjs/core/Maths";
 import District, { DistrictDefinition } from "./District";
 
 // TODO: add bridgeConnectionPoints to District. Index into bridges.

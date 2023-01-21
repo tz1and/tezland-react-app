@@ -1,5 +1,8 @@
-import { BoundingBox, Color3, Material, Mesh, MeshBuilder,
-    Nullable, TransformNode, Vector3 } from "@babylonjs/core";
+import { Nullable } from '@babylonjs/core/types';
+import { Mesh, MeshBuilder, TransformNode } from '@babylonjs/core/Meshes';
+import { Color3, Vector3 } from '@babylonjs/core/Maths';
+import { Material } from '@babylonjs/core/Materials';
+import { BoundingBox } from '@babylonjs/core/Culling';
 import earcut from 'earcut';
 import BigNumber from "bignumber.js";
 import Contracts from "../../tz/Contracts";

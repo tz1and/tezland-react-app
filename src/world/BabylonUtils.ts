@@ -1,5 +1,9 @@
-import { AssetContainer, Engine, EngineOptions, Node, Nullable, /*, WebGPUEngine, WebGPUEngineOptions*/ 
-    TransformNode, Vector3} from "@babylonjs/core";
+import { AssetContainer } from "@babylonjs/core/assetContainer";
+import { Engine, EngineOptions } from "@babylonjs/core/Engines";
+import { Vector3 } from "@babylonjs/core/Maths";
+import { TransformNode } from "@babylonjs/core/Meshes";
+import { Nullable } from "@babylonjs/core/types";
+import { Node } from "@babylonjs/core/node";
 import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import RefCounted from "../utils/RefCounted";

@@ -1,4 +1,7 @@
-import { EventState, FreeCamera, ICameraInput, IMouseEvent, IPointerEvent, IWheelEvent, Nullable, Observable, Observer, PointerEventTypes, PointerInfo, Tools } from "@babylonjs/core";
+import { FreeCamera, ICameraInput } from "@babylonjs/core/Cameras";
+import { IMouseEvent, IPointerEvent, IWheelEvent, PointerEventTypes, PointerInfo } from "@babylonjs/core/Events";
+import { EventState, Observable, Observer, Tools } from "@babylonjs/core/Misc";
+import { Nullable } from "@babylonjs/core/types";
 import assert from "assert";
 
 /**

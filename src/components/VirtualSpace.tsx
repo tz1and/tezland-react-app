@@ -3,7 +3,7 @@ import './VirtualSpace.css';
 import { useTezosWalletContext } from './TezosWalletContext';
 import assert from 'assert';
 import { Logging } from '../utils/Logging';
-import { Logger } from '@babylonjs/core';
+import { Logger } from '@babylonjs/core/Misc';
 import BabylonUtils from '../world/BabylonUtils';
 import { Game } from '../world/Game';
 import Contracts from '../tz/Contracts';

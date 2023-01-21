@@ -1,6 +1,9 @@
-import { Vector3, Color3, HemisphericLight,
-    ShadowGenerator, Mesh, Nullable, ReflectionProbe,
-    RenderTargetTexture, TransformNode, Color4, MeshBuilder } from "@babylonjs/core";
+import { ReflectionProbe } from "@babylonjs/core/Probes";
+import { HemisphericLight, ShadowGenerator } from "@babylonjs/core/Lights";
+import { Mesh, MeshBuilder, TransformNode } from "@babylonjs/core/Meshes";
+import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths";
+import { Nullable } from "@babylonjs/core/types";
+import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures";
 import { SkyMaterial } from "@babylonjs/materials";
 import InteriorPlaceNode from "./nodes/InteriorPlaceNode";
 import Metadata, { PlaceTokenMetadata } from "./Metadata";

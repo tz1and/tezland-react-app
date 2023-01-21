@@ -1,6 +1,11 @@
-import { Angle, Axis, EventState, FreeCamera, KeyboardEventTypes,
-    KeyboardInfo, Mesh, Nullable, Ray, Scene,
-    Tools, Vector2, Vector3 } from "@babylonjs/core";
+import { FreeCamera } from "@babylonjs/core/Cameras";
+import { Scene } from "@babylonjs/core/scene";
+import { Angle, Axis, Vector2, Vector3 } from "@babylonjs/core/Maths";
+import { Mesh } from "@babylonjs/core/Meshes";
+import { Nullable } from "@babylonjs/core/types";
+import { KeyboardEventTypes, KeyboardInfo } from "@babylonjs/core/Events";
+import { EventState, Tools } from "@babylonjs/core/Misc";
+import { Ray } from "@babylonjs/core/Culling";
 import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";

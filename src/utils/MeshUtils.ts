@@ -1,5 +1,8 @@
-import { AbstractMesh, Axis, Material, Mesh, MeshBuilder,
-    Ray, Scene, Vector3 } from "@babylonjs/core";
+import { Ray } from "@babylonjs/core/Culling";
+import { Material } from "@babylonjs/core/Materials";
+import { Axis, Vector3 } from "@babylonjs/core/Maths";
+import { AbstractMesh, Mesh, MeshBuilder } from "@babylonjs/core/Meshes";
+import { Scene } from "@babylonjs/core/scene";
 import earcut from "earcut";
 
 export namespace MeshUtils {

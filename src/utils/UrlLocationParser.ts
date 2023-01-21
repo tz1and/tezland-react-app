@@ -1,4 +1,4 @@
-import { Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core/Maths";
 import assert from "assert";
 import Conf from "../Config";
 import PlaceKey from "./PlaceKey";

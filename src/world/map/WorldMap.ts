@@ -5,9 +5,13 @@ import markerIconPink from '../../img/map/mapmarker-pink.png'
 import markerIconPurple from '../../img/map/mapmarker-purple.png'
 import markerIconRed from '../../img/map/mapmarker-red.png'
 
-import { Engine, Scene, Vector3, Color3,
-    Matrix, Vector4, Quaternion, HemisphericLight, Mesh,
-    EventState, FreeCamera, MeshBuilder, TransformNode } from "@babylonjs/core";
+import { Engine } from '@babylonjs/core/Engines'
+import { Scene } from '@babylonjs/core/scene'
+import { FreeCamera } from '@babylonjs/core/Cameras'
+import { Color3, Matrix, Quaternion, Vector3, Vector4 } from '@babylonjs/core/Maths'
+import { HemisphericLight } from '@babylonjs/core/Lights'
+import { EventState } from '@babylonjs/core/Misc'
+import { Mesh, MeshBuilder, TransformNode } from '@babylonjs/core/Meshes'
 import { SimpleMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, Control, Image,
     TextBlock, Vector2WithInfo } from "@babylonjs/gui";

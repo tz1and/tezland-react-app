@@ -1,6 +1,10 @@
 import Conf from '../Config';
-import {  Constants, DynamicTexture, Mesh, MeshBuilder, Nullable,
-    StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { Nullable } from '@babylonjs/core/types';
+import { Mesh, MeshBuilder, TransformNode } from '@babylonjs/core/Meshes';
+import { Vector3 } from '@babylonjs/core/Maths';
+import { StandardMaterial } from '@babylonjs/core/Materials';
+import { DynamicTexture } from '@babylonjs/core/Materials/Textures';
+import { Constants } from '@babylonjs/core/Engines';
 import { truncateAddress } from '../utils/TezosUtils';
 import { Logging } from '../utils/Logging';
 import { Game } from './Game';

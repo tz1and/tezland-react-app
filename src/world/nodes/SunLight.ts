@@ -1,5 +1,7 @@
-import { Color3, DirectionalLight, Scene, Vector3, Node } from "@babylonjs/core";
-//import { Nullable, DirectionalLightFrustumViewer } from '@babylonjs/core';
+import { DirectionalLight } from "@babylonjs/core/Lights";
+import { Color3, Vector3 } from "@babylonjs/core/Maths";
+import { Node } from "@babylonjs/core/node";
+import { Scene } from "@babylonjs/core/scene";
 //import { isDev } from "../utils/Utils";
 
 

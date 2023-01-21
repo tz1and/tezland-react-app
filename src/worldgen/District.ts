@@ -1,4 +1,4 @@
-import { Vector2 } from '@babylonjs/core';
+import { Vector2 } from '@babylonjs/core/Maths';
 import Block from './Block';
 import WorldPolygon, { Edge } from './WorldPolygon'
 

@@ -1,4 +1,7 @@
-import { Color3, DeepImmutable, Mesh, MeshBuilder, Quaternion, Scene, TransformNode, Vector3 } from "@babylonjs/core";
+import { Color3, Quaternion, Vector3 } from "@babylonjs/core/Maths";
+import { Mesh, MeshBuilder, TransformNode } from "@babylonjs/core/Meshes";
+import { Scene } from "@babylonjs/core/scene";
+import { DeepImmutable } from "@babylonjs/core/types";
 import { SimpleMaterial } from "@babylonjs/materials";
 import ItemNode from "../world/nodes/ItemNode";
 

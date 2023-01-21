@@ -1,6 +1,9 @@
-import { Nullable, PickingInfo, TransformNode, Node,
-    PointerInfo, Observer, KeyboardInfo, EventState,
-    PointerEventTypes, KeyboardEventTypes } from "@babylonjs/core";
+import { TransformNode } from "@babylonjs/core/Meshes";
+import { Node } from "@babylonjs/core/node";
+import { Nullable } from "@babylonjs/core/types";
+import { KeyboardEventTypes, KeyboardInfo, PointerEventTypes, PointerInfo } from "@babylonjs/core/Events";
+import { EventState, Observer } from "@babylonjs/core/Misc";
+import { PickingInfo } from "@babylonjs/core/Collisions";
 import { Rectangle, StackPanel, TextBlock } from "@babylonjs/gui";
 import { grapphQLUser } from "../graphql/user";
 import { truncate } from "../utils/Utils";

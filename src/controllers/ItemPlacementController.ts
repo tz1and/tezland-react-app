@@ -1,6 +1,8 @@
-import { EventState, IWheelEvent, KeyboardEventTypes,
-    KeyboardInfo, Nullable, Observer, PickingInfo,
-    PointerEventTypes, PointerInfo, Quaternion, Vector3 } from "@babylonjs/core";
+import { IWheelEvent, KeyboardEventTypes, KeyboardInfo, PointerEventTypes, PointerInfo } from "@babylonjs/core/Events";
+import { EventState, Observer } from "@babylonjs/core/Misc";
+import { Nullable } from "@babylonjs/core/types";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths";
+import { PickingInfo } from "@babylonjs/core/Collisions";
 import assert from "assert";
 import { Logging } from "../utils/Logging";
 import { OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";

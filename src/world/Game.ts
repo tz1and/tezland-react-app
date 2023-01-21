@@ -1,5 +1,10 @@
-import { DefaultRenderingPipeline, Engine, Scene,
-    Nullable, Color3, HighlightLayer, Mesh, Vector3, TonemappingOperator, TransformNode } from "@babylonjs/core";
+import { Engine } from "@babylonjs/core/Engines";
+import { Scene } from "@babylonjs/core/scene";
+import { HighlightLayer } from "@babylonjs/core/Layers";
+import { Nullable } from "@babylonjs/core/types";
+import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
+import { Color3, Vector3 } from "@babylonjs/core/Maths";
+import { DefaultRenderingPipeline, TonemappingOperator } from "@babylonjs/core/PostProcesses";
 import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
@@ -78,7 +83,10 @@ export class Game {
 
         // Enable inspector in dev
         if (import.meta.env.DEV) {
-            import("@babylonjs/inspector").then( () => {
+            Promise.all([
+                import("@babylonjs/core/Debug/debugLayer"),
+                import("@babylonjs/inspector")
+            ]).then( () => {
                 const inspector_root = document.getElementById("inspector-host");
                 assert(inspector_root);
                 this.scene.debugLayer.show({ showExplorer: true, embedMode: true, globalRoot: inspector_root });

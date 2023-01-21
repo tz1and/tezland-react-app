@@ -1,5 +1,6 @@
-import { Mesh, Nullable,
-    Vector3, Color4, TransformNode } from "@babylonjs/core";
+import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
+import { Color4, Vector3 } from "@babylonjs/core/Maths";
+import { Nullable } from "@babylonjs/core/types";
 import { WorldMap } from "./WorldMap";
 import { MeshUtils } from "../../utils/MeshUtils";
 import { PublicPlaces } from "../../worldgen/PublicPlaces";

@@ -1,4 +1,5 @@
-import { CascadedShadowGenerator, Color3, DirectionalLight, ShadowGenerator } from "@babylonjs/core";
+import { CascadedShadowGenerator, DirectionalLight, ShadowGenerator } from "@babylonjs/core/Lights";
+import { Color3 } from "@babylonjs/core/Maths";
 import { AbstractMesh, TransformNode } from "@babylonjs/core/Meshes";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";

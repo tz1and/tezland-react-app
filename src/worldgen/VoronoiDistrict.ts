@@ -1,4 +1,4 @@
-import { Vector2 } from "@babylonjs/core";
+import { Vector2 } from "@babylonjs/core/Maths";
 import Prando from "prando";
 import { BoundingBox, Diagram, Site, Voronoi } from "voronoijs";
 import { DeepEqualsSet } from "../utils/Sets";

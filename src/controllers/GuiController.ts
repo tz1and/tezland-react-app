@@ -1,4 +1,6 @@
-import { Nullable, Scene, UtilityLayerRenderer } from "@babylonjs/core";
+import { UtilityLayerRenderer } from "@babylonjs/core/Rendering";
+import { Nullable } from "@babylonjs/core/types";
+import { Scene } from "@babylonjs/core/scene";
 import { AdvancedDynamicTexture, Control, Ellipse, Image, TextBlock } from "@babylonjs/gui";
 import AppSettings from "../storage/AppSettings";
 import handIcon from 'bootstrap-icons/icons/hand-index.svg';

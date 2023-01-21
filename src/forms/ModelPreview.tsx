@@ -1,7 +1,16 @@
 import React from 'react';
-import { ArcRotateCamera, Color3, Color4, Engine, FreeCamera, HemisphericLight, Mesh,
-    MeshBuilder, Nullable, ReflectionProbe, RenderTargetTexture,
-    Scene, SceneLoader, StandardMaterial, Tools, TransformNode, Vector3 } from "@babylonjs/core";
+import { Engine } from '@babylonjs/core/Engines';
+import { Scene } from '@babylonjs/core/scene';
+import { Nullable } from '@babylonjs/core/types';
+import { Mesh, MeshBuilder, TransformNode } from '@babylonjs/core/Meshes';
+import { Color3, Color4, Vector3 } from '@babylonjs/core/Maths';
+import { HemisphericLight } from '@babylonjs/core/Lights';
+import { ArcRotateCamera, FreeCamera } from '@babylonjs/core/Cameras';
+import { ReflectionProbe } from '@babylonjs/core/Probes';
+import { RenderTargetTexture } from '@babylonjs/core/Materials/Textures';
+import { StandardMaterial } from '@babylonjs/core/Materials';
+import { SceneLoader } from '@babylonjs/core/Loading';
+import { Tools } from '@babylonjs/core/Misc';
 import { SkyMaterial } from "@babylonjs/materials";
 import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';

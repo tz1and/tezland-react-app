@@ -1,4 +1,4 @@
-import { Vector3 } from '@babylonjs/core';
+import { Vector3 } from '@babylonjs/core/Maths';
 import WorldGrid from './WorldGrid';
 
 test('grid calc', () => {

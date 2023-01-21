@@ -1,4 +1,6 @@
-import { Scene, TransformNode, Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core/Maths";
+import { TransformNode } from "@babylonjs/core/Meshes";
+import { Scene } from "@babylonjs/core/scene";
 import ArtifactMemCache from "../../utils/ArtifactMemCache";
 
 
