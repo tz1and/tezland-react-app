@@ -114,7 +114,7 @@ export default class PlayerController {
         // We need to update it here, otherwise collisions will be incorrect!
         this.playerTrigger.refreshBoundingInfo();
 
-        this.scene.registerAfterRender(this.updateController);
+        this.scene.registerBeforeRender(this.updateController);
 
         // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
         this.onPointerlockChange = () => {
@@ -354,7 +354,7 @@ export default class PlayerController {
         document.removeEventListener("pointerlockchange", this.onPointerlockChange, false);
         document.removeEventListener("pointerlockerror", this.onPointerlockError, false);
 
-        this.scene.unregisterAfterRender(this.updateController);
+        this.scene.unregisterBeforeRender(this.updateController);
 
         this.gui.dispose();
 

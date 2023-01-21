@@ -246,7 +246,7 @@ export class WorldMap {
 
         window.addEventListener('resize', this.onResize);
 
-        this.scene.registerAfterRender(this.updateWorld);
+        this.scene.registerBeforeRender(this.updateWorld);
 
         // Set cursor over canvas.
         canvas.onpointerenter = () => this.setCursor("crosshair");
@@ -310,7 +310,7 @@ export class WorldMap {
     public dispose() {
         window.removeEventListener('resize', this.onResize);
 
-        this.scene.unregisterAfterRender(this.updateWorld);
+        this.scene.unregisterBeforeRender(this.updateWorld);
 
         this.places.clear();
 

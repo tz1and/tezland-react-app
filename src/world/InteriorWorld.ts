@@ -116,7 +116,7 @@ export class InteriorWorld extends BaseWorld {
         }
 
         this.game.scene.registerBeforeRender(this.updateShadowRenderList);
-        this.game.scene.registerAfterRender(this.updateWorld);
+        this.game.scene.registerBeforeRender(this.updateWorld);
 
         this.registerPlacesSubscription();
 
@@ -166,7 +166,7 @@ export class InteriorWorld extends BaseWorld {
 
     public dispose() {
         this.game.scene.unregisterBeforeRender(this.updateShadowRenderList);
-        this.game.scene.unregisterAfterRender(this.updateWorld);
+        this.game.scene.unregisterBeforeRender(this.updateWorld);
 
         this.game.scene.environmentTexture = null;
         this.reflectionProbe.dispose();
