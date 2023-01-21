@@ -4,7 +4,7 @@ import { Angle, Vector2 } from '@babylonjs/core'
 import Conf from "../Config";
 import { MichelsonMap, OpKind, WalletParamsWithKind } from "@taquito/taquito";
 import { char2Bytes } from '@taquito/utils'
-import { createPlaceTokenMetadata, upload_places } from "../ipfs/ipfs";
+import { PlaceMetadata, upload_places } from "../ipfs/ipfs";
 import { downloadFile, signedArea, sleep } from "../utils/Utils";
 import { mutezToTez, tezToMutez } from "../utils/TezosUtils";
 import TezosWalletContext from "../components/TezosWalletContext";
@@ -30,6 +30,14 @@ type GenerateMapState = {
 
 type GenerateMapProps = {
 
+}
+
+const PlaceMetadataDefaults = {
+    isTransferable: true,
+    isBooleanAmount: true,
+    shouldPreferSymbol: false,
+    symbol: 'PLACE',
+    decimals: 0,
 }
 
 export default class GenerateMap extends React.Component<GenerateMapProps, GenerateMapState> {
@@ -99,7 +107,7 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
             {width: 160, height: 160, build_height: 160, to: prodAdminAddress}, // Interior #0, Admin
         ]
 
-        const places = []
+        const places: string[] = []
 
         for (const [idx, params] of place_params.entries()) {
             const lot_id = next_minted_place_id + idx;
@@ -108,21 +116,26 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
             const [lot, centercoords, pointsrel] = this.squareLot(params.width, params.height, params.build_height);
 
-            places.push(createPlaceTokenMetadata({
+            const place_metadata: PlaceMetadata = {
+                // base
                 name: `tz1and Interior #${lot_id}`,
                 description: `${lot.area().toFixed(2)} \u33A1`,
                 minter: walletphk,
+                // place
                 centerCoordinates: centercoords,
                 borderCoordinates: pointsrel,
                 buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
                 placeType: "interior",
                 royalties: {
                     decimals: 3,
-                    shares: new Map([
-                        [Conf.fees_address, 100]
-                    ])
-                }
-            }));
+                    shares: {
+                        [Conf.fees_address]: 100
+                    }
+                },
+                ...PlaceMetadataDefaults
+            }
+
+            places.push(JSON.stringify(place_metadata));
 
             console.log("place area and dims", lot.area(), [params.width, params.height, lot.buildHeight]);
         }
@@ -185,21 +198,26 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
             const [lot, centercoords, pointsrel] = this.squareLot(w, h, build_height);
 
-            places.push(createPlaceTokenMetadata({
+            const place_metadata: PlaceMetadata = {
+                // base
                 name: `tz1and Interior #${lot_id}`,
                 description: `${lot.area().toFixed(2)} \u33A1`,
                 minter: walletphk,
+                // place
                 centerCoordinates: centercoords,
                 borderCoordinates: pointsrel,
                 buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
                 placeType: "interior",
                 royalties: {
                     decimals: 3,
-                    shares: new Map([
-                        [Conf.fees_address, 100]
-                    ])
-                }
-            }));
+                    shares: {
+                        [Conf.fees_address]: 100
+                    }
+                },
+                ...PlaceMetadataDefaults
+            }
+
+            places.push(JSON.stringify(place_metadata));
 
             const priceMult = 3;
             const pricePerAreaFactor = 1 / (40 / priceMult);
@@ -281,21 +299,26 @@ export default class GenerateMap extends React.Component<GenerateMapProps, Gener
 
                             const centercoords: number[] = [parseFloat((centroid.x + district.center.x).toFixed(4)), 0, parseFloat((centroid.y + district.center.y).toFixed(4))];
 
-                            places.push(createPlaceTokenMetadata({
+                            const place_metadata: PlaceMetadata = {
+                                // base
                                 name: `tz1and Place #${lot_counter}`,
                                 description: `${lot.area().toFixed(2)} \u33A1`,
                                 minter: walletphk,
+                                // place
                                 centerCoordinates: centercoords,
                                 borderCoordinates: pointsrel,
                                 buildHeight: parseFloat(lot.buildHeight.toFixed(4)),
                                 placeType: "exterior",
                                 royalties: {
                                     decimals: 3,
-                                    shares: new Map([
-                                        [Conf.fees_address, 100]
-                                    ])
-                                }
-                            }));
+                                    shares: {
+                                        [Conf.fees_address]: 100
+                                    }
+                                },
+                                ...PlaceMetadataDefaults
+                            }
+
+                            places.push(JSON.stringify(place_metadata));
                         }
 
                         ++lot_counter;

@@ -1,13 +1,7 @@
 import React from 'react';
-import {
-    Formik,
-    Form,
-    Field,
-    FormikErrors,
-    ErrorMessage,
-    FormikProps
-} from 'formik';
-import { createCollectionMetadata } from '../ipfs/ipfs';
+import { Formik, Form, Field, FormikErrors,
+    ErrorMessage, FormikProps } from 'formik';
+import { CollectionMetadata, processTags } from '../ipfs/ipfs';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import { Trilean, triHelper } from './FormUtils';
@@ -29,6 +23,17 @@ type MintFormState = {
     error: string;
     successState: Trilean;
     collectionMintDate: Date;
+}
+
+const CollectionMetadataDefaults = {
+    interfaces: [ "TZIP-012", "TZIP-016" ],
+    description: "A tz1and private Item collection.\n\nBased on the SmartPy FA2 implementation.",
+    version: "1.0.0",
+    authors: [ "852Kerfunkle <https://github.com/852Kerfunkle>", "SmartPy <https://smartpy.io/#contact>" ],
+    homepage: "https://www.tz1and.com",
+    source: { "tools": [ "SmartPy" ], "location": "https://github.com/tz1and" },
+    license: { "name": "MIT" },
+    permissions: { "receiver": "owner-no-hook", "sender": "owner-no-hook", "operator": "pauseable-owner-or-operator-transfer" }
 }
 
 export class MintCollectionForm extends React.Component<MintCollectionFormProps, MintFormState> {
@@ -59,19 +64,20 @@ export class MintCollectionForm extends React.Component<MintCollectionFormProps,
     private errorDisplay = (e: string) => <small className="d-block text-danger">{e}</small>;
 
     private async uploadAndMint(values: MintCollectionFormValues, callback?: (completed: boolean) => void) {
-        const metadata = createCollectionMetadata({
+        const metadata: CollectionMetadata = {
             name: values.collectionName,
-            description: values.collectionDescription,
-            date: this.state.collectionMintDate,
+            userDescription: values.collectionDescription,
+            date: this.state.collectionMintDate.toISOString(),
             minter: this.context.walletPHK(),
-            tags: values.collectionTags
-        });
+            tags: processTags(values.collectionTags),
+            ...CollectionMetadataDefaults
+        };
 
         // Post here and wait for result
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: metadata
+            body: JSON.stringify(metadata)
         };
         const response = await fetch(Conf.backend_url + "/upload", requestOptions)
         const data = await response.json();

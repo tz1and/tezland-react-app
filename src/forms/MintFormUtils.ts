@@ -3,7 +3,7 @@ import { decode, DecodedPng } from "fast-png";
 import Conf from "../Config";
 import { FrameParams } from "../utils/FrameImage";
 import { dataURItoBlob, fileToFileLike, getFileType, isImageFileType } from "../utils/Utils";
-import { createItemTokenMetadata } from '../ipfs/ipfs';
+import { ItemMetadata, processTags } from '../ipfs/ipfs';
 
 
 namespace MintFormUtils {
@@ -51,7 +51,7 @@ namespace MintFormUtils {
      * @returns Token metadata as string
      */
     export async function formValuesToItemTokenMetadata(values: MintFormValues, minter: string, polycount: number,
-        mintDate: Date, thumbnail: string, display: string, frameParams?: FrameParams): Promise<string>
+        mintDate: Date, thumbnail: string, display: string, frameParams?: FrameParams): Promise<ItemMetadata>
     {
         assert(polycount >= 0, "Polycount is negative");
         assert(values.itemFile, "No file set in form");
@@ -77,7 +77,9 @@ namespace MintFormUtils {
         const metadata_royalties = new Map<string, number>();
         // Metadata royalties are in permille.
         for (const [k, v] of values.itemRoyalties) metadata_royalties.set(k, Math.floor(v * 10));
-        if(metadata_royalties.size > 0) metadata_royalties.set(Conf.fees_address, 35);
+        // NOTE: if we want to stop adding platform fees to tokens.
+        // if(metadata_royalties.size > 0)
+        metadata_royalties.set(Conf.fees_address, 35);
 
         const isImage = isImageFileType(mime_type);
 
@@ -95,16 +97,22 @@ namespace MintFormUtils {
             res.close();
         }
 
-        // TODO: add frame parameters!
-        const metadata = createItemTokenMetadata({
+        return {
+            // base
             name: values.itemTitle,
             description: values.itemDescription,
-            date: mintDate,
             minter: minter,
+            // token
+            isTransferable: true,
+            isBooleanAmount: false,
+            shouldPreferSymbol: false,
+            symbol: 'ITEM',
+            decimals: 0,
+            // item
             artifactUri: await fileToFileLike(values.itemFile, mime_type),
             displayUri: { dataUri: display, type: "image/png", name: "display.png" },
             thumbnailUri: { dataUri: thumbnail, type: "image/png", name: "thumbnail.png" },
-            tags: values.itemTags,
+            tags: processTags(values.itemTags),
             formats: [
                 {
                     uri: { topLevelRef: "artifactUri" },
@@ -134,14 +142,13 @@ namespace MintFormUtils {
             ],
             baseScale: 1,
             polygonCount: polycount,
+            date: mintDate.toISOString(),
             royalties: {
                 decimals: 3,
-                shares: metadata_royalties
+                shares: Object.fromEntries(metadata_royalties)
             },
             imageFrame: isImage ? frameParams : undefined
-        });
-
-        return metadata;
+        };
     }
 }
 

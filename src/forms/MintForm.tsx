@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-    Formik,
-    Form,
-    Field,
-    FormikErrors,
-    ErrorMessage,
-    FormikProps
-} from 'formik';
+import { Formik, Form, Field, FormikErrors,
+    ErrorMessage, FormikProps } from 'formik';
 import CustomFileUpload from './CustomFileUpload'
 import ModelPreview, { ModelLoadingState } from './ModelPreview'
 import Contracts from '../tz/Contracts'
@@ -152,7 +146,7 @@ export class MintFrom extends React.Component<MintFormProps, MintFormState> {
             const requestOptions = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: metadata
+                body: JSON.stringify(metadata)
             };
             const response = await fetch(Conf.backend_url + "/upload", requestOptions);
             data = await response.json();
