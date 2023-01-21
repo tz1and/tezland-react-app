@@ -82,7 +82,7 @@ const serialiseToString: SerialiseFunc<number | string | boolean> = (value: numb
 const serialiseToJson: SerialiseFunc<any> = (value: any) => JSON.stringify(value);
 
 export type ShadowOptions = "none" | "standard" | "cascaded";
-export type TextureRes = 256 | 512 | 1024 | 2048 | 4096;
+export type TextureRes = 128 | 256 | 512 | 1024 | 2048 | 4096;
 
 export default class AppSettings {
     // general
