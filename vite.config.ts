@@ -74,14 +74,25 @@ export default defineConfig(({command, mode}) => {
                     manualChunks: {
                         babylonjsCore: ['@babylonjs/core'],
                         babylonjsOther: ['@babylonjs/gui',
-                            '@babylonjs/loaders',
-                            '@babylonjs/materials',
                             '@babylonjs/gui-editor',
                             '@babylonjs/inspector',
+                            '@babylonjs/loaders',
+                            '@babylonjs/materials',
                             '@babylonjs/serializers'],
-                        gltfTransform: ['@gltf-transform/core',
+                        gltfTransform: [
+                            '@gltf-transform/core',
                             '@gltf-transform/extensions',
                             '@gltf-transform/functions'],
+                        taquito: [
+                            '@taquito/beacon-wallet',
+                            '@taquito/http-utils',
+                            '@taquito/local-forging',
+                            '@taquito/michel-codec',
+                            '@taquito/michelson-encoder',
+                            '@taquito/rpc',
+                            '@taquito/signer',
+                            '@taquito/taquito',
+                            '@taquito/utils'],
 
                         // TODO: try taquito again with the above method.
 

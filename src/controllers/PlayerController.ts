@@ -1,6 +1,7 @@
 import { FreeCamera } from "@babylonjs/core/Cameras";
 import { Scene } from "@babylonjs/core/scene";
 import { Angle, Axis, Vector2, Vector3 } from "@babylonjs/core/Maths";
+import "@babylonjs/core/Collisions/collisionCoordinator"
 import { Mesh } from "@babylonjs/core/Meshes";
 import { Nullable } from "@babylonjs/core/types";
 import { KeyboardEventTypes, KeyboardInfo } from "@babylonjs/core/Events";
