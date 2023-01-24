@@ -27,7 +27,6 @@ const pool = Pool(
             size: Math.max(2, Math.min(8, getNumLogicalCores())),
             concurrency: 1 // async
         });
-        
 
 const downloadArtifactTransfer = async (token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
     number, gatwayType: GatewayType = GatewayType.Native): Promise<TransferDescriptor<BufferFileWithMetadata>> =>

@@ -268,11 +268,12 @@ export default class ItemNode extends TransformNode {
         }
 
         try {
+            const game = this.getWorld().game;
             const clone = this.teleporterData !== null || this._recieveShadows;
-            await ArtifactMemCache.loadArtifact(this.tokenKey, this.getWorld().game, this, clone);
+            await ArtifactMemCache.loadArtifact(this.tokenKey, game, this, game.assetGroup, clone);
             this._loadState = ItemLoadState.Loaded;
 
-            if (this.teleporterData) this.getWorld().game.addItemToHighlightLayer(this);
+            if (this.teleporterData) game.addItemToHighlightLayer(this);
 
             // Enable/Disable collision.
             // TODO: find a better way that doesn't update child mesh collisions in checkCollisions.
@@ -304,7 +305,7 @@ export default class ItemNode extends TransformNode {
 
         try {
             // TODO: pass token key?
-            await ArtifactMemCache.loadFromFile(file, this.tokenKey, this._scene, this);
+            await ArtifactMemCache.loadFromFile(file, this.tokenKey, this._scene, this, this.getWorld().game.assetGroup);
             this._loadState = ItemLoadState.Loaded;
 
             // TODO: see createBoundingBoxHelper

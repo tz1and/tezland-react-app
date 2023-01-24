@@ -30,6 +30,7 @@ export default class Conf {
     public static dutch_auction_contract: string = getEnvVar('VITE_DUTCH_AUCTION_CONTRACT');
     public static interior_contract: string = getEnvVar('VITE_INTERIOR_CONTRACT');
     public static factory_contract: string = getEnvVar('VITE_FACTORY_CONTRACT');
+    public static marketplace_contract: string = getEnvVar('VITE_MARKETPLACE_CONTRACT');
 
     public static fees_address: string = "tz1UZFB9kGauB6F5c2gfJo4hVcvrD8MeJ3Vf";
 

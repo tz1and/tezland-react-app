@@ -6,7 +6,7 @@ import ItemNode from "../world/nodes/ItemNode";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
 import AppSettings from "../storage/AppSettings";
-import { ModuleThread, spawn, Thread } from "threads"
+import { ModuleThread, spawn } from "threads"
 import { Logging } from "./Logging";
 import assert from "assert";
 import { getFileType, isImageFileType } from "./Utils";
@@ -20,9 +20,12 @@ import { AssetContainerExt, BoundingVectors } from "../world/BabylonUtils";
 
 class ArtifactMemCache {
     private artifactCache: Map<string, Promise<AssetContainerExt>>;
-    private workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
+    private _workerThread: ModuleThread<typeof ArtifactDownloadWorkerApi> | null = null;
+    private initialised: boolean;
 
-    private assetGroup: Nullable<TransformNode> = null;
+    public get workerThread(): ModuleThread<typeof ArtifactDownloadWorkerApi> | null { return this._workerThread; };
+
+    //private assetGroup: Nullable<TransformNode> = null;
 
     /**
      * This is checked by world to know when it needs to do some cleanup.
@@ -31,24 +34,33 @@ class ArtifactMemCache {
 
     constructor() {
         this.artifactCache = new Map();
+        this.initialised = false;
     }
 
-    public async initialise(assetGroup: Nullable<TransformNode>, spawnWorker: boolean = true) {
-        if(spawnWorker) {
-            this.workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
-                new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
-                    { type: 'module', name: "ArtifactDownload.worker" }));
-            await this.workerThread.initialise();
-        }
-        else {
-            assert(this.workerThread === null, "workerThread was not null on init")
+    public async initialise() {
+        if(this.initialised) {
+            Logging.InfoDev("ArtifactMemCache was already initialised")
+            return;
         }
 
-        this.assetGroup = assetGroup;
+        this.initialised = true;
+
+        try {
+            this._workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
+                new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
+                    { type: 'module', name: "ArtifactDownload.worker" }));
+            await this._workerThread.initialise();
+        }
+        catch(e) {
+            Logging.Error("Failed to spawn worker threads:", e);
+        }
+
+        //this.assetGroup = assetGroup;
     }
 
     public async dispose() {
-        if (this.workerThread) {
+        // Don't kill the worker for now.
+        /*if (this.workerThread) {
             await this.workerThread.shutdown();
             try {
                 await Thread.terminate(this.workerThread);
@@ -57,7 +69,7 @@ class ArtifactMemCache {
                 Logging.ErrorDev("Thread failed to terminate: ArtifactDownload.worker:", e);
             }
             this.workerThread = null;
-        }
+        }*/
 
         ArtifactProcessingQueue.dispose();
 
@@ -66,13 +78,11 @@ class ArtifactMemCache {
         })
         this.artifactCache.clear();
 
-        this.assetGroup = null;
+        //this.assetGroup = null;
     }
 
-    public cleanup(scene: Scene) {
-        // https://doc.babylonjs.com/features/featuresDeepDive/scene/optimize_your_scene#scene-with-large-number-of-meshes
-        scene.blockfreeActiveMeshesAndRenderingGroups = true;
-
+    public cleanup() {
+        Logging.Info("Running asset cleanup");
         // For all assets in the cache
         this.artifactCache.forEach((v, k) => {
             v.then(res => {
@@ -87,8 +97,6 @@ class ArtifactMemCache {
                 }
             });
         });
-
-        scene.blockfreeActiveMeshesAndRenderingGroups = false;
     }
 
     /**
@@ -102,7 +110,7 @@ class ArtifactMemCache {
         });
     }
 
-    public async loadFromFile(file: File, token_key: TokenKey, scene: Scene, parent: ItemNode): Promise<Nullable<TransformNode>> {
+    public async loadFromFile(file: File, token_key: TokenKey, scene: Scene, parent: ItemNode, assetGroup: Nullable<TransformNode>): Promise<Nullable<TransformNode>> {
         // check if we have this item in the scene already.
         // Otherwise, download it.
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
@@ -138,7 +146,7 @@ class ArtifactMemCache {
             // NOTE: this is kinda nasty...
             return ArtifactProcessingQueue.queueProcessArtifact({file: bufferFile, metadata: {
                 baseScale: 1, ...resolution
-            } as ItemTokenMetadata}, scene, this.assetGroup);
+            } as ItemTokenMetadata}, scene, assetGroup);
         })()
 
         this.artifactCache.set(token_key.toString(), assetPromise);
@@ -159,8 +167,8 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, clone: boolean = false): Promise<Nullable<TransformNode>> {
-        assert(this.workerThread);
+    public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, assetGroup: Nullable<TransformNode>, clone: boolean = false): Promise<Nullable<TransformNode>> {
+        assert(this._workerThread);
 
         // check if we have this item in the scene already.
         // Otherwise, download it.
@@ -170,7 +178,7 @@ class ArtifactMemCache {
             const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this.workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, this.assetGroup));
+            assetPromise = this._workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, assetGroup));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);
@@ -201,7 +209,7 @@ class ArtifactMemCache {
         return parent;
     }
 
-    public async loadOther(id: number, fileName: string, scene: Scene, parent: TransformNode) {
+    public async loadOther(id: number, fileName: string, scene: Scene, parent: TransformNode, assetGroup: Nullable<TransformNode>) {
         const token_key = TokenKey.fromNumber(id, "internalitem");
 
         let assetPromise = this.artifactCache.get(token_key.toString());
@@ -210,7 +218,7 @@ class ArtifactMemCache {
             assetPromise = (async () => {
                 const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
                 res.addAllToScene();
-                return new AssetContainerExt(res, this.assetGroup);
+                return new AssetContainerExt(res, assetGroup);
                 // Enable this, but figure out why booths are darker sometimes.
                 // Probably to do with reflection probe, RTTs not updating or something.
                 // Maybe related to freeze active meshes?

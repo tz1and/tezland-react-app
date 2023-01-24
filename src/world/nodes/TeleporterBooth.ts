@@ -1,7 +1,7 @@
 import { Vector3 } from "@babylonjs/core/Maths";
 import { TransformNode } from "@babylonjs/core/Meshes";
-import { Scene } from "@babylonjs/core/scene";
 import ArtifactMemCache from "../../utils/ArtifactMemCache";
+import { Game } from "../Game";
 
 
 export default class TeleporterBooth extends TransformNode {
@@ -13,15 +13,15 @@ export default class TeleporterBooth extends TransformNode {
         { id: -80075, filename: 'telebooth_dengiskong_v2.glb', scale: 3.75 }*/
     ];
 
-    constructor(pos: Vector3, scene: Scene, isPure?: boolean) {
-        super("Teleporter Booth", scene, isPure);
+    constructor(pos: Vector3, game: Game, isPure?: boolean) {
+        super("Teleporter Booth", game.scene, isPure);
         this.position = pos;
 
         const chosen_booth = this.pickRandomBooth();
         this.scaling.multiplyInPlace(new Vector3(chosen_booth.scale, chosen_booth.scale, chosen_booth.scale));
 
         // TODO: Well, we should be using webpack for the booth models.
-        ArtifactMemCache.loadOther(chosen_booth.id, chosen_booth.filename, scene, this).then(res => {
+        ArtifactMemCache.loadOther(chosen_booth.id, chosen_booth.filename, game.scene, this, game.assetGroup).then(res => {
             res.getChildMeshes().forEach(c => {
                 c.freezeWorldMatrix();
             });

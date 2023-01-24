@@ -374,7 +374,7 @@ export class World extends BaseWorld {
     //private teleportation booths
     private async loadTeleportationBooths(district: any) {
         for (const p of district.teleportation_booths) {
-            const booth = new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.game.scene);
+            const booth = new TeleporterBooth(new Vector3(p.x + district.center.x, 0, p.y + district.center.y), this.game);
             booth.parent = this.worldNode;
         }
     }

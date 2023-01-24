@@ -16,8 +16,7 @@ import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
 import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
-import ArtifactDownload from '../utils/ArtifactDownload';
-import BabylonUtils from '../world/BabylonUtils';
+import BabylonUtils, { AssetContainerExt } from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
 import ArtifactMemCache from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
@@ -31,6 +30,7 @@ class PreviewScene {
     private scene: Scene;
 
     private previewObject: Nullable<TransformNode>;
+    private asset: Nullable<AssetContainerExt>;
 
     private assetGroup: TransformNode;
 
@@ -46,23 +46,33 @@ class PreviewScene {
         });
 
         this.previewObject = null;
+        this.asset = null;
 
         this.assetGroup = new TransformNode("assets", this.scene)
         this.assetGroup.setEnabled(false);
     }
 
     public async initialise() {
-        return ArtifactMemCache.initialise(this.assetGroup, false);
+        return ArtifactMemCache.initialise();
     }
 
     public dispose() {
-        ArtifactMemCache.dispose().finally(() => {
+        this.releasePreviewObject();
+        // NOTE: we probably don't want to clear the artifact memcache here.
+        /*ArtifactMemCache.dispose().finally(() => {
             // Babylon needs to be destroyed after the worker threads.
             // I THINK!
             // Destorying the engine should prbably be enough.
             this.scene.dispose();
             this.engine.dispose();
-        });
+        });*/
+
+        // The asset is not actually inserted into the mem cache, so we don't
+        // need to worry about cleanup - for now
+        //ArtifactMemCache.cleanup();
+
+        this.scene.dispose();
+        this.engine.dispose();
     }
 
     public setBgColor(color: string) {
@@ -137,6 +147,20 @@ class PreviewScene {
         }
     }
 
+    private releasePreviewObject() {
+        if(this.previewObject) {
+            if(this.asset) {
+                // The asset is not actually inserted into the mem cache, so we don't
+                // need to worry about refcount - for now
+                //this.asset.decRefCount();
+                this.asset.dispose();
+            }
+            this.previewObject.dispose();
+            this.previewObject = null;
+            this.asset = null;
+        }
+    }
+
     private scaleAndCenterVertically(object: TransformNode) {
         const {min, max} = object.getHierarchyBoundingVectors(true);
         const extent = max.subtract(min);
@@ -155,10 +179,7 @@ class PreviewScene {
         // Tell the mint form the model is unloaded/false.
         modelLoaded('none', 0, 0);
 
-        if(this.previewObject) {
-             this.previewObject.dispose();
-             this.previewObject = null;
-        }
+        this.releasePreviewObject();
 
         if(!file) {
             Logging.ErrorDev("File not set.")
@@ -215,19 +236,22 @@ class PreviewScene {
         // Tell the mint form the model is unloaded/false.
         modelLoaded('none', 0, 0);
 
-        if(this.previewObject) {
-             this.previewObject.dispose();
-             this.previewObject = null;
-        }
+        this.releasePreviewObject();
 
         try {
-            const asset = await ArtifactDownload.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
+            assert(ArtifactMemCache.workerThread, "worker thread was null");
+            this.asset = await ArtifactMemCache.workerThread.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
+            assert(this.asset, "asset somehow was null")
 
-            this.previewObject = asset.instantiate(null, "previeModel");
+            this.previewObject = this.asset.instantiate(null, "previeModel");
+
+            // The asset is not actually inserted into the mem cache, so we don't
+            // need to worry about refcount - for now
+            //this.asset.incRefCount();
 
             this.scaleAndCenterVertically(this.previewObject);
 
-            const polycount = MeshUtils.countPolygons(asset.container.meshes);
+            const polycount = MeshUtils.countPolygons(this.asset.container.meshes);
             //Logging.Log("polycount", polycount);
 
             // Model loaded successfully.

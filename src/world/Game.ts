@@ -45,7 +45,7 @@ export class Game {
 
     private world: Nullable<BaseWorld> = null;
 
-    private assetGroup: TransformNode;
+    readonly assetGroup: TransformNode;
 
     constructor(engine: Engine, walletProvider: ITezosWalletProvider) {
         this.engine = engine;
@@ -127,12 +127,14 @@ export class Game {
 
         // Run asset cleanup once every minute.
         this.cleanupInterval = window.setInterval(() => {
-            Logging.Info("Running asset cleanup")
-            ArtifactMemCache.cleanup(this.scene);
+            // https://doc.babylonjs.com/features/featuresDeepDive/scene/optimize_your_scene#scene-with-large-number-of-meshes
+            this.scene.blockfreeActiveMeshesAndRenderingGroups = true;
+            ArtifactMemCache.cleanup();
+            this.scene.blockfreeActiveMeshesAndRenderingGroups = false;
             this.scene.cleanCachedTextureBuffer();
         }, 60000);
 
-        ArtifactMemCache.initialise(this.assetGroup).then(() => {
+        ArtifactMemCache.initialise().then(() => {
             const location = this.getSpwanLocation();
             this.teleportTo(location);
         });
