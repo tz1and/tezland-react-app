@@ -39,7 +39,7 @@ class ArtifactMemCache {
 
     public async initialise() {
         if(this.initialised) {
-            Logging.InfoDev("ArtifactMemCache was already initialised")
+            Logging.WarnDev("ArtifactMemCache was already initialised");
             return;
         }
 
