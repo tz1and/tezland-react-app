@@ -278,6 +278,8 @@ export default class ItemPlacementController extends BaseUserController {
             }));
 
             Logging.InfoDev("failed to load item: " + e);
+
+            throw e;
         }
     }
 
@@ -333,7 +335,7 @@ export default class ItemPlacementController extends BaseUserController {
             // reset pointer
             this.playerController.gui.setCursor(CursorType.Pointer);
         }
-        catch(e: any) {
+        catch(e) {
             this.currentItem = undefined;
             this.currentItemQuantity = 0;
             this.playerController.gui.setCursor(CursorType.Pointer);
@@ -341,11 +343,13 @@ export default class ItemPlacementController extends BaseUserController {
             EventBus.publish("add-notification", new AddNotificationEvent({
                 id: "droppedFileFailed" + file.name,
                 title: "File failed to load",
-                body: `File "${file.name}" failed to load.\n\nError: ${e.message}`,
+                body: `File "${file.name}" failed to load.\n\n${e}`,
                 type: 'danger'
             }));
 
             Logging.InfoDev("failed to load file: " + e);
+
+            throw e;
         }
     }
 }

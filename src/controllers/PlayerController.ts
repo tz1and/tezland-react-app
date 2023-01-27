@@ -417,7 +417,7 @@ export default class PlayerController {
         const world = this.game.getCurrentWorld();
         assert(world, "World not set");
         controller.setCurrentItem(world, token_key, quantity).catch(() => {
-            // TODO: handle error
+            this.controllerManager.activate("picking", this);
         });
     }
 
@@ -427,7 +427,7 @@ export default class PlayerController {
         const world = this.game.getCurrentWorld();
         assert(world, "World not set");
         controller.setFile(world, file).then(() => {
-            // TODO: handle error
+            this.controllerManager.activate("picking", this);
         });
     }
 
