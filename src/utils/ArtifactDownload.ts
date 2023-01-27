@@ -53,12 +53,12 @@ export default class ArtifactDownload {
         let polygonCount = itemMetadata.polygonCount;
         // early out if the file size from metadata is > sizeLimit.
         if(fileSize > sizeLimit) {
-            throw new Error(`Item ${token_key.id} exceeds size limits (${fileSize} > ${sizeLimit}). Ignoring.`);
+            throw new Error(`Item ${token_key.id} exceeds size limits (${fileSize} > ${sizeLimit}).`);
         }
 
         // early out if the polygon count from metadata is > polygonLimit.
         if(polygonCount > polygonLimit) {
-            throw new Error(`Item ${token_key.id} exceeds triangle limits (${polygonCount} > ${polygonLimit}). Ignoring.`);
+            throw new Error(`Item ${token_key.id} exceeds triangle limits (${polygonCount} > ${polygonLimit}).`);
         }
 
         const mime_type = itemMetadata.mimeType;
