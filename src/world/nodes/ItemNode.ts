@@ -16,6 +16,7 @@ import BasePlaceNode from "./BasePlaceNode";
 import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
 import { BoundingVectors } from "../BabylonUtils";
+import TokenBlacklist from "../../utils/TokenBlacklist";
 
 
 const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
@@ -29,8 +30,8 @@ const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {
             return;
         }
 
-        // TODO: isInBounds fails if artifact failed to load for some reason (limits or whatever)
-        if (!place.isInBounds(item)) {
+        // Mark as "OutOfBounds" if item is moderated or out of bounds.
+        if (item.moderated || !place.isInBounds(item)) {
             Logging.WarnDev(`place #${place.placeKey.id} doesn't fully contain item with id`, item.itemId.toNumber());
 
             // TODO: show this if you are the owner instead of disposing.
@@ -70,6 +71,8 @@ export default class ItemNode extends TransformNode {
 
     private _loadState: ItemLoadState;
     public get loadState(): ItemLoadState { return this._loadState; }
+
+    readonly moderated: boolean;
 
     private _recieveShadows: boolean;
     public get recieveShadows() { return this._recieveShadows; }
@@ -120,6 +123,8 @@ export default class ItemNode extends TransformNode {
         this._disableCollision = false;
         this._recieveShadows = false;
         this.teleporterData = null;
+
+        this.moderated = TokenBlacklist.has(tokenKey.toString());
 
         this._loadState = ItemLoadState.NotLoaded;
 

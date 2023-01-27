@@ -6,6 +6,7 @@ import ItemTracker from '../controllers/ItemTracker';
 import { FetchDataItemToken, FetchDataResult, ItemClickedFunc } from './TokenInfiniteScroll';
 import { MetadataUtils } from '../utils/MetadataUtils';
 import TokenKey from '../utils/TokenKey';
+import TokenBlacklist from '../utils/TokenBlacklist';
 
 
 type InventoryItemProps = {
@@ -33,9 +34,14 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
 
     const token_key = TokenKey.fromNumber(token_data.tokenId, token_data.contractId);
 
+    const moderated = TokenBlacklist.has(token_key.toString());
+
     let itemTrackedBalance = "";
     let balanceColor = "";
-    if (props.trackItems) {
+    if(moderated) {
+        balanceColor = "bg-danger-light";
+    }
+    else if(props.trackItems) {
         const trackedItemBalance = -ItemTracker.getTempItemTrack(token_key);
         if (trackedItemBalance !== 0) itemTrackedBalance = `(${numberWithSign(trackedItemBalance)})`;
 
@@ -60,7 +66,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = (props) => {
         >
             <div className={`card m-2 inventory-item ${balanceColor}`} id={token_key.toString()}>
                 <div className='position-absolute' style={{zIndex: 1010, right: "0.5rem", top: "0.5rem" }}>
-                    { props.onTransfer && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_key, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
+                    { (!moderated && props.onTransfer) && <button className='btn btn-sm btn-primary me-1' onClick={() => props.onTransfer && props.onTransfer(token_key, item_data.quantity)}><i className="bi bi-send-fill"></i></button> }
                     { props.onBurn && <button className='btn btn-sm btn-danger' onClick={() => props.onBurn && props.onBurn(token_key, item_data.quantity)}><i className="bi bi-trash-fill"></i></button> }
                 </div>
 

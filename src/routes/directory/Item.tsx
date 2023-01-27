@@ -8,6 +8,7 @@ import { ItemTags } from '../../components/item/ItemTags';
 import { MetadataUtils } from '../../utils/MetadataUtils';
 import { ItemDisplay } from '../../components/item/ItemDisplay';
 import TokenKey from '../../utils/TokenKey';
+import TokenBlacklist from '../../utils/TokenBlacklist';
 
 
 const Item: React.FC<{}> = (props) => {
@@ -16,16 +17,19 @@ const Item: React.FC<{}> = (props) => {
     const [tokenKey, setTokenKey] = useState<TokenKey>(TokenKey.fromNumber(parseInt(params.id!), params.fa2!));
     const [metadata, setMetadata] = useState<ItemTokenMetadata>();
 
+    const [moderated] = useState(TokenBlacklist.has(tokenKey.toString()));
+
     // Set tokenId state when prop changes.
     useEffect(() => {
         setTokenKey(TokenKey.fromNumber(parseInt(params.id!), params.fa2!));
     }, [params.id, params.fa2]);
 
     useEffect(() => {
+        if(moderated) return;
         Metadata.getItemMetadata(tokenKey.id.toNumber(), tokenKey.fa2).then(res => {
             setMetadata(res);
         });
-    }, [tokenKey]);
+    }, [tokenKey, moderated]);
 
     let content =
         <div>
@@ -48,18 +52,22 @@ const Item: React.FC<{}> = (props) => {
     return (
         <main>
             <div className="position-relative container text-start mt-4">
-                {content}
+                {moderated && <p className="bg-danger-light rounded p-3">
+                    This item has been flagged to be in violation of the rules.</p>}
+                {!moderated && <div>
+                    {content}
 
-                <Tabs defaultActiveKey="holders" activeKey={activeKey!}
-                    mountOnEnter={true} unmountOnExit={true}
-                    onSelect={(eventKey) => window.location.hash = eventKey || ""}>
-                    <Tab eventKey="holders" title="World/Holders">
-                        <WorldHolderInfo tokenKey={tokenKey} />
-                    </Tab>
-                    <Tab eventKey="history" title="History">
-                        <CollectionHistory tokenKey={tokenKey} />
-                    </Tab>
-                </Tabs>
+                    <Tabs defaultActiveKey="holders" activeKey={activeKey!}
+                        mountOnEnter={true} unmountOnExit={true}
+                        onSelect={(eventKey) => window.location.hash = eventKey || ""}>
+                        <Tab eventKey="holders" title="World/Holders">
+                            <WorldHolderInfo tokenKey={tokenKey} />
+                        </Tab>
+                        <Tab eventKey="history" title="History">
+                            <CollectionHistory tokenKey={tokenKey} />
+                        </Tab>
+                    </Tabs>
+                </div>}
             </div>
         </main>
     );

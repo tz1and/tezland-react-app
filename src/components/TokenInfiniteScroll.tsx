@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import TokenBlacklist from '../utils/TokenBlacklist';
 import TokenKey from '../utils/TokenKey';
 import { scrollbarVisible } from '../utils/Utils';
 
@@ -79,6 +80,8 @@ export const TokenInfiniteScroll: React.FC<TokenInfiniteScrollProps> = (props) =
         props.fetchDataFunc(state.itemOffset, props.fetchAmount).then((res) => {
             for (const r of res) {
                 const key = r.key !== undefined ? r.key : TokenKey.fromNumber(r.token.tokenId, r.token.contractId).toString();
+                // Don't show moderated items on token pages.
+                if(TokenBlacklist.has(key.toString())) continue;
                 state.itemMap.set(key, r);
             }
             const more_data = res.length === props.fetchAmount;

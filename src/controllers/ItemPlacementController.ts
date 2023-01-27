@@ -175,6 +175,7 @@ export default class ItemPlacementController extends BaseUserController {
                         assert(parent);
 
                         const newObject = ItemNode.CreateItemNode(this.playerController.currentPlace, this.currentItem, this.playerController.scene, parent);
+                        assert(!newObject.moderated);
                         await newObject.loadItem();
 
                         if(newObject) {
@@ -227,6 +228,14 @@ export default class ItemPlacementController extends BaseUserController {
             this.playerController.gui.setCursor(CursorType.Loading);
 
             this.tempObject = ItemNode.CreateItemNode(world, token_key, this.playerController.scene, null);
+
+            // Handle moderated items.
+            if(this.tempObject.moderated) {
+                this.tempObject.dispose();
+                this.tempObject = null;
+                throw new Error("The item you are trying to place has been flagged to be in violation of the rules.")
+            }
+
             await this.tempObject.loadItem();
 
             this.currentItem = token_key;
@@ -264,7 +273,7 @@ export default class ItemPlacementController extends BaseUserController {
             EventBus.publish("add-notification", new AddNotificationEvent({
                 id: "itemLimits" + token_key.id,
                 title: "Item failed to load",
-                body: `The item you selected (token id: ${token_key.id}) failed to load.\n\nPossibly, it exceeds the Item limits in your settings.`,
+                body: `The item you selected (token id: ${token_key.id}) failed to load.\n\n${e}`,
                 type: 'danger'
             }));
 
