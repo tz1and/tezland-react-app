@@ -32,7 +32,7 @@ import PlaceKey from "../../utils/PlaceKey";
 import WorldLocation from "../../utils/WorldLocation";
 import { ImportedWorldDef } from "../ImportWorldDef";
 import Conf from "../../Config";
-import assert from "assert";
+import { assert } from '../../utils/Assert'
 
 
 export const enum MarkerMode {

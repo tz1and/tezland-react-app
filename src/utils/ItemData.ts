@@ -1,11 +1,11 @@
 import { DeepImmutable, Nullable } from "@babylonjs/core/types";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths";
-import assert from "assert";
 import { packTo, unpack } from "byte-data";
 import Conf from "../Config";
 import PlaceKey from "./PlaceKey";
 import { fromHexString } from "./Utils";
 import WorldLocation from "./WorldLocation";
+import { assert } from "./Assert";
 
 export const enum TeleporterType {
     Exterior = 0,

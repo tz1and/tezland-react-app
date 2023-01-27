@@ -8,9 +8,9 @@ import { Logging } from "./Logging";
 import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
 import { ModuleThread, Pool } from "threads";
 import { Transfer } from 'threads/worker';
-import assert from "assert";
 import TokenKey from "./TokenKey";
 import { isImageFileType } from "./Utils";
+import { assert } from "./Assert";
 
 
 async function fetchWithTimeout(input: RequestInfo, timeout: number, init?: RequestInit): Promise<Response> {

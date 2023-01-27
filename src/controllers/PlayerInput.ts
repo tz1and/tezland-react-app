@@ -3,7 +3,7 @@ import { KeyboardEventTypes, KeyboardInfo } from '@babylonjs/core/Events';
 import { Observer } from '@babylonjs/core/Misc';
 import { Scene } from '@babylonjs/core/scene';
 import { Nullable } from '@babylonjs/core/types';
-import assert from 'assert';
+import { assert } from '../utils/Assert';
 
 
 export class PlayerKeyboardInput {

@@ -1,6 +1,6 @@
-import assert from "assert";
 import React from "react";
 import { Button } from "react-bootstrap";
+import { assert } from "../utils/Assert";
 import PlaceKey from "../utils/PlaceKey";
 import { signedArea } from "../utils/Utils";
 import Metadata from "../world/Metadata";

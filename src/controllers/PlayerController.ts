@@ -7,7 +7,6 @@ import { Nullable } from "@babylonjs/core/types";
 import { KeyboardEventTypes, KeyboardInfo } from "@babylonjs/core/Events";
 import { EventState, Tools } from "@babylonjs/core/Misc";
 import { Ray } from "@babylonjs/core/Culling";
-import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import { Logging } from "../utils/Logging";
 import { downloadFile, isDev, isEpsilonEqual } from "../utils/Utils";
@@ -24,6 +23,8 @@ import PlaceKey, { getPlaceType, PlaceType } from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 import { ImportedWorldDef } from "../world/ImportWorldDef";
 import EventBus, { AddNotificationEvent, ChangeCurrentPlaceEvent, LoadFormEvent, UnlockControlsEvent } from "../utils/eventbus/EventBus";
+import { assert } from "../utils/Assert";
+
 
 const Gravity = 9.81;
 const GravityUnderwater = -0.25;

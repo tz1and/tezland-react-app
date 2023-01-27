@@ -1,6 +1,6 @@
 import { Vector3 } from "@babylonjs/core/Maths";
-import assert from "assert";
 import Conf from "../Config";
+import { assert } from "./Assert";
 import PlaceKey from "./PlaceKey";
 import WorldLocation from "./WorldLocation";
 

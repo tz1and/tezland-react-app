@@ -13,7 +13,6 @@ import { OperationContent, Subscription } from "@taquito/taquito";
 import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import SunLight from "./nodes/SunLight";
-import assert from "assert";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import { BaseWorld } from "./BaseWorld";
 import ArtifactProcessingQueue from "../utils/ArtifactProcessingQueue";
@@ -22,6 +21,7 @@ import PlaceKey from "../utils/PlaceKey";
 import PlaceProperties from "../utils/PlaceProperties";
 import WorldLocation from "../utils/WorldLocation";
 import Water from "./nodes/Water";
+import { assert } from "../utils/Assert";
 //import bg_tex from '../img/bg_texture.png';
 
 

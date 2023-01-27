@@ -12,11 +12,11 @@ import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import { BatchWalletOperation } from "@taquito/taquito/dist/types/wallet/batch-operation";
 import { Logging } from "../utils/Logging";
 import { SHA3 } from 'sha3';
-import assert from "assert";
 import { ItemDataWriter } from "../utils/ItemData";
 import { grapphQLUser } from "../graphql/user";
 import TokenKey from "../utils/TokenKey";
 import PlaceKey from "../utils/PlaceKey";
+import { assert } from "../utils/Assert";
 
 
 export const ALL_WORLD_EP_NAMES = ["get_item", "place_items", "update_place", "remove_items", "set_item_data"];

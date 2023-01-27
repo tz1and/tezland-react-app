@@ -20,7 +20,6 @@ import { TermsForm } from '../forms/Terms';
 import { BurnForm } from '../forms/BurnForm';
 import { TransferForm } from '../forms/TransferForm';
 import { DirectoryForm } from '../forms/DirectoryForm';
-import assert from 'assert';
 import { CollectForm } from '../forms/CollectForm';
 import TokenKey from '../utils/TokenKey';
 import WorldLocation from '../utils/WorldLocation';
@@ -29,6 +28,7 @@ import { PlaceInfo } from './overlay/PlaceInfo';
 import { Game } from '../world/Game';
 import EventBus, { AddNotificationEvent, ChangeCurrentPlaceEvent,
     LoadFormEvent, UnlockControlsEvent } from '../utils/eventbus/EventBus';
+import { assert } from '../utils/Assert';
 
 
 type ExploreProps = {

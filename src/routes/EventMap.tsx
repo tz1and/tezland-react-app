@@ -4,7 +4,7 @@ import { MarkerMode } from '../world/map/WorldMap';
 import { useParams } from 'react-router-dom';
 import { grapphQLUser } from '../graphql/user';
 import InteractiveMap from '../components/InteractiveMap';
-import assert from 'assert';
+import { assert } from '../utils/Assert';
 
 
 const EventMap: React.FC<{}> = () => {

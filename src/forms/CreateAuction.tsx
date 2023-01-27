@@ -12,12 +12,12 @@ import Metadata from '../world/Metadata';
 import { useNavigate } from 'react-router-dom';
 import { fetchUserPlaces } from '../ipfs/graphql';
 import TezosWalletContext from '../components/TezosWalletContext';
-import assert from 'assert';
 import { Trilean, triHelper } from './FormUtils';
 import { FetchDataPlaceToken, FetchDataResult } from '../components/TokenInfiniteScroll';
 import Conf from '../Config';
 import { getPlaceType } from "../utils/PlaceKey";
 import { WorldMap2D } from '../components/WorldMap2D';
+import { assert } from '../utils/Assert';
 
 
 interface CreateAuctionFormValues {

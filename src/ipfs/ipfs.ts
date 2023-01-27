@@ -1,7 +1,7 @@
 import Conf from '../Config';
 import { FileLike, RefLike } from '../utils/Utils';
-import assert from 'assert';
 import { FrameParams } from '../utils/FrameImage';
+import { assert } from '../utils/Assert';
 
 
 type MetadataRoyalties = {

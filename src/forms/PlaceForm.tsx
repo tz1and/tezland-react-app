@@ -7,7 +7,6 @@ import {
     ErrorMessage
 } from 'formik';
 import BigNumber from 'bignumber.js';
-import assert from 'assert';
 import ItemNode from '../world/nodes/ItemNode';
 import ItemTracker from '../controllers/ItemTracker';
 import { TeleporterType } from '../utils/ItemData';
@@ -15,6 +14,7 @@ import { Vector3 } from '@babylonjs/core/Maths';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import AppSettings from '../storage/AppSettings';
 import { getPlaceType, PlaceType } from '../utils/PlaceKey';
+import { assert } from '../utils/Assert';
 
 
 interface PlaceFormValues {

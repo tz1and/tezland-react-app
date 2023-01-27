@@ -4,9 +4,9 @@ import { Vector3 } from "@babylonjs/core/Maths";
 import { TransformNode } from "@babylonjs/core/Meshes";
 import { Nullable } from "@babylonjs/core/types";
 import { Node } from "@babylonjs/core/node";
-import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import RefCounted from "../utils/RefCounted";
+import { assert } from "../utils/Assert";
 
 
 namespace BabylonUtils {

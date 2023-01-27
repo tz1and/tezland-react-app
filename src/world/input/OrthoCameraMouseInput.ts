@@ -2,7 +2,7 @@ import { FreeCamera, ICameraInput } from "@babylonjs/core/Cameras";
 import { IMouseEvent, IPointerEvent, IWheelEvent, PointerEventTypes, PointerInfo } from "@babylonjs/core/Events";
 import { EventState, Observable, Observer, Tools } from "@babylonjs/core/Misc";
 import { Nullable } from "@babylonjs/core/types";
-import assert from "assert";
+import { assert } from "../../utils/Assert";
 
 /**
  * Manage the mouse inputs to control the movement of a free camera.

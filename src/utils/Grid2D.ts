@@ -1,4 +1,4 @@
-import assert from "assert";
+import { assert } from "./Assert";
 import { Logging } from "./Logging";
 
 

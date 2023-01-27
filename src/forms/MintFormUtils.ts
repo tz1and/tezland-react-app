@@ -1,9 +1,9 @@
-import assert from "assert";
 import { decode, DecodedPng } from "fast-png";
 import Conf from "../Config";
 import { FrameParams } from "../utils/FrameImage";
 import { dataURItoBlob, fileToFileLike, getFileType, isImageFileType } from "../utils/Utils";
 import { ItemMetadata, processTags } from '../ipfs/ipfs';
+import { assert } from "../utils/Assert";
 
 
 namespace MintFormUtils {

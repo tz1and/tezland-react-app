@@ -1,8 +1,8 @@
 import BasePlaceNode from "./BasePlaceNode";
 import { bytes2Char } from "@taquito/utils";
 import { InteriorWorld } from "../InteriorWorld";
-import assert from "assert";
 import PlaceProperties from "../../utils/PlaceProperties";
+import { assert } from "../../utils/Assert";
 
 
 export default class InteriorPlaceNode extends BasePlaceNode {

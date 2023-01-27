@@ -4,10 +4,10 @@ import React from "react";
 import { fetchUserPlaces } from "../ipfs/graphql";
 import AppSettings from "../storage/AppSettings";
 import { FetchDataPlaceToken, FetchDataResult } from "./TokenInfiniteScroll";
-import assert from "assert";
 import Conf from "../Config";
 import PlaceKey, { getPlaceName } from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
+import { assert } from "../utils/Assert";
 
 
 type SpawnSelectProps = {

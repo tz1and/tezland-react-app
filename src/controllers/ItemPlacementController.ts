@@ -3,7 +3,6 @@ import { EventState, Observer } from "@babylonjs/core/Misc";
 import { Nullable } from "@babylonjs/core/types";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths";
 import { PickingInfo } from "@babylonjs/core/Collisions";
-import assert from "assert";
 import { Logging } from "../utils/Logging";
 import { OverlayForm, PlaceItemFromProps } from "../world/AppControlFunctions";
 import ItemNode from "../world/nodes/ItemNode";
@@ -17,6 +16,7 @@ import TokenKey from "../utils/TokenKey";
 import { ItemDataParser, ItemDataWriter } from "../utils/ItemData";
 import { toHexString } from "../utils/Utils";
 import EventBus, { AddNotificationEvent, LoadFormEvent } from "../utils/eventbus/EventBus";
+import { assert } from "../utils/Assert";
 
 
 export default class ItemPlacementController extends BaseUserController {

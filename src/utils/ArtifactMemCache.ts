@@ -8,13 +8,13 @@ import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
 import AppSettings from "../storage/AppSettings";
 import { ModuleThread, spawn } from "threads"
 import { Logging } from "./Logging";
-import assert from "assert";
 import { getFileType, isImageFileType } from "./Utils";
 import { BufferFile, ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import { defaultFrameParams } from "./FrameImage";
 import { AssetContainerExt, BoundingVectors } from "../world/BabylonUtils";
+import { assert } from "./Assert";
 //import { Logging } from "./Logging";
 
 

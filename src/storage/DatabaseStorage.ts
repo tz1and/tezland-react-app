@@ -1,7 +1,7 @@
 import { Logging } from "../utils/Logging";
 import { IStorageProvider, TezlandDB } from "./IStorageProvider";
 import { openDB, IDBPDatabase, StoreNames, StoreValue, StoreKey } from 'idb';
-import assert from "assert";
+import { assert } from "../utils/Assert";
 
 
 const databaseVersion = 14;

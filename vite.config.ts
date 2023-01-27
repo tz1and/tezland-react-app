@@ -23,7 +23,6 @@ export default defineConfig(({command, mode}) => {
     return {
         resolve: {
             alias: {
-                assert: "assert/",
                 buffer: "buffer/",
                 crypto: "crypto-browserify",
                 //event: "event/",

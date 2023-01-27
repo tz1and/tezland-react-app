@@ -7,10 +7,11 @@ import Conf from "../Config";
 import { isDev } from "../utils/Utils";
 import EventEmitter from "events";
 import { OperationPending, OperationPendingData } from "./OperationPending";
-import assert from "assert";
 import AppSettings from "../storage/AppSettings";
 import Config from "../Config";
 import { Logging } from "../utils/Logging";
+import { assert } from "../utils/Assert";
+
 
 export type ITezosWalletProvider = {
     //setWalletAddress(walletAddress: string): void;

@@ -13,10 +13,10 @@ import { BaseWorld } from "../BaseWorld";
 import { World } from "../World";
 import { triHelper, Trilean } from "../../forms/FormUtils";
 import BasePlaceNode from "./BasePlaceNode";
-import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
 import { BoundingVectors } from "../BabylonUtils";
 import TokenBlacklist from "../../utils/TokenBlacklist";
+import { assert } from "../../utils/Assert";
 
 
 const LoadItemTask = (item: ItemNode, place: BasePlaceNode) => {

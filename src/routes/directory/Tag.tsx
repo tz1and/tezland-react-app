@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import assert from 'assert';
 //import { useTezosWalletContext } from './TezosWalletContext';
 import { InventoryItem } from '../../components/InventoryItem';
 import { FetchDataFunc, FetchDataResultArray, TokenInfiniteScroll, ItemClickedFunc } from '../../components/TokenInfiniteScroll';
@@ -8,6 +7,7 @@ import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import { Helmet } from 'react-helmet-async';
 import TokenKey from '../../utils/TokenKey';
+import { assert } from '../../utils/Assert';
 
 
 type TagProps = { };

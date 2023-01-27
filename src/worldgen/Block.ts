@@ -1,8 +1,8 @@
 import { Vector2 } from '@babylonjs/core/Maths';
 import { Matrix2D } from '@babylonjs/gui';
-import assert from 'assert';
 import { Polygon } from 'polygon-clipping';
 import Prando from 'prando';
+import { assert } from '../utils/Assert';
 import { BlockGenOptions } from './District';
 import Lot from './Lot';
 import Rectangle, { translateAndRotate } from './Rectangle';

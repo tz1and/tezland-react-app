@@ -15,7 +15,6 @@ import { OperationContentsAndResultTransaction } from '@taquito/rpc'
 import { ParameterSchema } from '@taquito/michelson-encoder'
 import SunLight from "./nodes/SunLight";
 import { MeshUtils } from "../utils/MeshUtils";
-import assert from "assert";
 import WorldGrid from "../utils/WorldGrid";
 import ArtifactMemCache from "../utils/ArtifactMemCache";
 import TeleporterBooth from "./nodes/TeleporterBooth";
@@ -28,6 +27,7 @@ import PlaceKey from "../utils/PlaceKey";
 import { ImportedWorldDef } from "./ImportWorldDef";
 import Water from "./nodes/Water";
 import EventBus, { ChangeCurrentPlaceEvent } from "../utils/eventbus/EventBus";
+import { assert } from "../utils/Assert";
 
 
 const worldUpdateDistance = 10; // in m

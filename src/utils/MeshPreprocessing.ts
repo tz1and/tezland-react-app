@@ -5,9 +5,9 @@ import { prune, /*dedup,*/ quantize, weld, reorder, unpartition, resample, textu
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from "meshoptimizer";
 import { Logging } from './Logging';
-import assert from 'assert';
 import { isImageFileType } from './Utils';
 import { detectInsideWebworker } from '../workers/WorkerUtils';
+import { assert } from './Assert';
 
 
 const io = new WebIO().registerExtensions(KHRONOS_EXTENSIONS);

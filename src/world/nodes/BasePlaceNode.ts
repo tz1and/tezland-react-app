@@ -15,12 +15,12 @@ import { World } from "../World";
 import ItemTracker from "../../controllers/ItemTracker";
 import AppSettings from "../../storage/AppSettings";
 import { SimpleMaterial } from "@babylonjs/materials";
-import assert from "assert";
 import TokenKey from "../../utils/TokenKey";
 import PlaceKey from "../../utils/PlaceKey";
 import PlaceProperties from "../../utils/PlaceProperties";
 import { MeshUtils } from "../../utils/MeshUtils";
 import EventBus, { AddNotificationEvent } from "../../utils/eventbus/EventBus";
+import { assert } from '../../utils/Assert';
 
 
 export type PlaceItemData = {

@@ -1,5 +1,5 @@
-import assert from 'assert';
 import { Logging } from '../../utils/Logging';
+import { assert } from '../../utils/Assert';
 import BASIS from './basis_encoder';
 
 

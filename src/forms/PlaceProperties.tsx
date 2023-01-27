@@ -10,12 +10,12 @@ import Contracts from '../tz/Contracts';
 import { useTezosWalletContext } from '../components/TezosWalletContext';
 import { Trilean, triHelper } from './FormUtils';
 import BasePlaceNode from '../world/nodes/BasePlaceNode';
-import assert from 'assert';
 import { getPlaceType, PlaceType } from '../utils/PlaceKey';
 import { Vector3 } from '@babylonjs/core/Maths';
 import PlaceProperties, { colorToBytes } from '../utils/PlaceProperties';
 import { Button, ButtonToolbar, Col, Container, Row } from 'react-bootstrap';
 import { MeshUtils } from '../utils/MeshUtils';
+import { assert } from '../utils/Assert';
 
 
 interface PlacePropertiesFormValues {

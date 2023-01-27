@@ -1,4 +1,4 @@
-import { AssertionError } from 'assert';
+import { AssertionError } from './Assert';
 import Grid2D, { Grid1D, GridBenchmark, Tuple, WorldGridAccessor } from './Grid2D';
 
 test('contruction', () => {

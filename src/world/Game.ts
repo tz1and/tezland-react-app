@@ -5,7 +5,6 @@ import { Nullable } from "@babylonjs/core/types";
 import { Mesh, TransformNode } from "@babylonjs/core/Meshes";
 import { Color3, Vector3 } from "@babylonjs/core/Maths";
 import { DefaultRenderingPipeline, TonemappingOperator } from "@babylonjs/core/PostProcesses";
-import assert from "assert";
 import { ITezosWalletProvider } from "../components/TezosWalletContext";
 import PlayerController from "../controllers/PlayerController";
 import AppSettings from "../storage/AppSettings";
@@ -22,6 +21,7 @@ import PlaceKey from "../utils/PlaceKey";
 import WorldLocation from "../utils/WorldLocation";
 import { UrlLocationParser } from "../utils/UrlLocationParser";
 import MultiplayerClient from "./MultiplayerClient";
+import { assert } from "../utils/Assert";
 
 
 export class Game {

@@ -10,7 +10,6 @@ import { validateAddress, ValidationResult } from '@taquito/utils';
 import Conf from '../Config';
 import AppSettings from '../storage/AppSettings';
 import { Trilean, triHelper } from './FormUtils';
-import assert from 'assert';
 import { TagPreview } from '../components/TagPreview';
 import { Col, Container, Row } from 'react-bootstrap';
 import { grapphQLUser } from '../graphql/user';
@@ -18,6 +17,7 @@ import { GetUserCollectionsQuery } from '../graphql/generated/user';
 import { Logging } from '../utils/Logging';
 import { Royalties } from '../components/Royalties';
 import MintFormUitls from './MintFormUtils';
+import { assert } from '../utils/Assert';
 
 
 type MintFormProps = {

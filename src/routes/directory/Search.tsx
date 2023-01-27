@@ -1,4 +1,3 @@
-import assert from 'assert';
 import React, { useRef, useState } from 'react';
 import { Button, InputGroup, Form, Row, Col, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,6 +7,7 @@ import { SearchByStringsQuery } from '../../graphql/generated/user';
 import { grapphQLUser } from '../../graphql/user';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import TokenKey from '../../utils/TokenKey';
+import { assert } from '../../utils/Assert';
 
 
 type SearchProps = { };

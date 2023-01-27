@@ -11,7 +11,6 @@ import TezosWalletContext from "../components/TezosWalletContext";
 import WorldGen, { Bridge, WorldDefinition } from "../worldgen/WorldGen";
 import VoronoiDistrict, { ExclusionZone } from "../worldgen/VoronoiDistrict";
 import { PublicPlaces } from "../worldgen/PublicPlaces";
-import assert from "assert";
 import Contracts from "../tz/Contracts";
 import Metadata from "../world/Metadata";
 import BigNumber from "bignumber.js";
@@ -19,6 +18,7 @@ import Lot from "../worldgen/Lot";
 import Prando from "prando";
 import PlaceKey from "../utils/PlaceKey";
 import { PlacePermissions } from "../world/nodes/BasePlaceNode";
+import { assert } from "../utils/Assert";
 
 const prodAdminAddress = "tz1Ly2nrAF7p4dYGHYfuDNTX6M3Ly8tDZ7Pn";
 

@@ -14,7 +14,6 @@ import { Tools } from '@babylonjs/core/Misc';
 import { SkyMaterial } from "@babylonjs/materials";
 import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
-import assert from 'assert';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
 import BabylonUtils, { AssetContainerExt } from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
@@ -22,6 +21,7 @@ import ArtifactMemCache from '../utils/ArtifactMemCache';
 import { MeshUtils } from '../utils/MeshUtils';
 import { Logging } from '../utils/Logging';
 import { createFrameForImage, defaultFrameParams, FrameParams } from '../utils/FrameImage';
+import { assert } from '../utils/Assert';
 
 
 class PreviewScene {

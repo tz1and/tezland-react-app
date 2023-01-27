@@ -16,12 +16,12 @@ import BaseUserController from "./BaseUserController";
 import { CursorType } from "./GuiController";
 import ItemTracker from "./ItemTracker";
 import PlayerController from "./PlayerController";
-import assert from "assert";
 import TokenKey from "../utils/TokenKey";
 import TzktAccounts from "../utils/TzktAccounts";
 import { Logging } from "../utils/Logging";
 import { toWorldLoaction } from "../utils/ItemData";
 import EventBus, { LoadFormEvent } from "../utils/eventbus/EventBus";
+import { assert } from "../utils/Assert";
 
 
 class ItemInfoGui extends Rectangle {

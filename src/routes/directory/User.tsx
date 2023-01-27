@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tab, Tabs } from 'react-bootstrap';
-import assert from 'assert';
 import { Owned } from '../../components/Owned';
 import { Created } from '../../components/Created';
 import { Places } from '../../components/Places';
 import { DirectoryUtils } from '../../utils/DirectoryUtils';
 import TzktAccounts, { TzktAccount } from '../../utils/TzktAccounts';
+import { assert } from '../../utils/Assert';
 
 
 export const useTzktAlias = (address: string) => {
