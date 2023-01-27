@@ -4,7 +4,7 @@ import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
 import pRetry, { AbortError } from "p-retry";
 import { Logging } from "./Logging";
-//import { preprocessMesh } from "./MeshPreprocessing";
+import { preprocessMesh } from "./MeshPreprocessing";
 import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
 import { ModuleThread, Pool } from "threads";
 import { Transfer } from 'threads/worker';
@@ -42,7 +42,7 @@ export const enum GatewayType {
 export default class ArtifactDownload {
     public static async downloadArtifact(
         token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes: number,
-        gatewayType: GatewayType = GatewayType.Native, pool: PreprocessWorkerPoolType): Promise<BufferFileWithMetadata> {
+        gatewayType: GatewayType = GatewayType.Native, pool?: PreprocessWorkerPoolType): Promise<BufferFileWithMetadata> {
         const itemMetadata = await Metadata.getItemMetadata(token_key.id.toNumber(), token_key.fa2);
         assert(itemMetadata);
 
@@ -65,7 +65,7 @@ export default class ArtifactDownload {
 
         //if (detectInsideWebworker()) Logging.InfoDev("Loading in webworker: " + itemMetadata.artifactUri);
 
-        let cachedBuf = await this.loadFromDBCache(itemMetadata.artifactUri)
+        let cachedBuf = await ArtifactDownload.loadFromDBCache(itemMetadata.artifactUri)
         if(!cachedBuf) {
             cachedBuf = await pRetry(async () => {
                 // Timeout after 10 seconds.
@@ -93,20 +93,20 @@ export default class ArtifactDownload {
                 }
             })
 
-            this.saveToDBCache(itemMetadata.artifactUri, cachedBuf);
+            ArtifactDownload.saveToDBCache(itemMetadata.artifactUri, cachedBuf);
         }
         //else Logging.Info("got artifact from db cache", itemMetadata.artifactUri)
 
         try {
             let processed: Uint8Array;
-            //if (pool) {
+            if (pool) {
                 processed = await pool.queue(moduleThread => {
                     return moduleThread.preprocessMesh(Transfer(cachedBuf!), mime_type, maxTexRes);
                 })
-            /*}
+            }
             else {
                 processed = await preprocessMesh(cachedBuf, mime_type, maxTexRes);
-            }*/
+            }
 
             const new_mime_type = isImageFileType(mime_type) ? mime_type : "model/gltf-binary";
 

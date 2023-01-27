@@ -3,6 +3,7 @@ import { TransformNode } from "@babylonjs/core/Meshes";
 import { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading";
 import ItemNode from "../world/nodes/ItemNode";
+import ArtifactDownload from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
 import AppSettings from "../storage/AppSettings";
@@ -14,7 +15,6 @@ import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import { defaultFrameParams } from "./FrameImage";
 import { AssetContainerExt, BoundingVectors } from "../world/BabylonUtils";
-import { assert } from "./Assert";
 //import { Logging } from "./Logging";
 
 
@@ -52,7 +52,8 @@ class ArtifactMemCache {
             await this._workerThread.initialise();
         }
         catch(e) {
-            Logging.Error("Failed to spawn worker threads:", e);
+            Logging.Error("Failed to spawn worker thread:", e);
+            this._workerThread = null;
         }
 
         //this.assetGroup = assetGroup;
@@ -168,8 +169,6 @@ class ArtifactMemCache {
     }
 
     public async loadArtifact(token_key: TokenKey, game: Game, parent: ItemNode, assetGroup: Nullable<TransformNode>, clone: boolean = false): Promise<Nullable<TransformNode>> {
-        assert(this._workerThread);
-
         // check if we have this item in the scene already.
         // Otherwise, download it.
         // NOTE: important: do not await anything between getting and adding the assetPromise to the set.
@@ -178,7 +177,8 @@ class ArtifactMemCache {
             const limits = game.getWorldLimits();
             const maxTexRes = AppSettings.textureRes.value;
 
-            assetPromise = this._workerThread.downloadArtifact(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, assetGroup));
+            const downloadFunc = this._workerThread ? this._workerThread.downloadArtifact : ArtifactDownload.downloadArtifact;
+            assetPromise = downloadFunc(token_key, limits.fileSizeLimit, limits.triangleLimit, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, game.scene, assetGroup));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);

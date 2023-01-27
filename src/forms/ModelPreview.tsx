@@ -15,6 +15,7 @@ import { SkyMaterial } from "@babylonjs/materials";
 import { getFileType, isImageFile } from '../utils/Utils';
 import SunLight from '../world/nodes/SunLight';
 import ArtifactProcessingQueue from '../utils/ArtifactProcessingQueue';
+import ArtifactDownload from '../utils/ArtifactDownload';
 import BabylonUtils, { AssetContainerExt } from '../world/BabylonUtils';
 import TokenKey from '../utils/TokenKey';
 import ArtifactMemCache from '../utils/ArtifactMemCache';
@@ -239,8 +240,8 @@ class PreviewScene {
         this.releasePreviewObject();
 
         try {
-            assert(ArtifactMemCache.workerThread, "worker thread was null");
-            this.asset = await ArtifactMemCache.workerThread.downloadArtifact(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
+            const downloadFunc = ArtifactMemCache.workerThread ? ArtifactMemCache.workerThread.downloadArtifact : ArtifactDownload.downloadArtifact;
+            this.asset = await downloadFunc(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
             assert(this.asset, "asset somehow was null")
 
             this.previewObject = this.asset.instantiate(null, "previeModel");
