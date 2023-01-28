@@ -17,4 +17,8 @@ export default class TokenKey {
     public toString(): string {
         return `${this.fa2}#${this.id.toNumber()}`;
     }
+
+    public equals(other: TokenKey): boolean {
+        return this.id.eq(other.id) && this.fa2 === other.fa2;
+    }
 }

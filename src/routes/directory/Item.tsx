@@ -21,7 +21,8 @@ const Item: React.FC<{}> = (props) => {
 
     // Set tokenId state when prop changes.
     useEffect(() => {
-        setTokenKey(TokenKey.fromNumber(parseInt(params.id!), params.fa2!));
+        const newTokenKey = TokenKey.fromNumber(parseInt(params.id!), params.fa2!);
+        if(!newTokenKey.equals(tokenKey)) setTokenKey(newTokenKey);
     }, [params.id, params.fa2]);
 
     useEffect(() => {
