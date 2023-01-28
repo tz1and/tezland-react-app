@@ -30,6 +30,7 @@ const Item: React.FC<{}> = (props) => {
         Metadata.getItemMetadata(tokenKey.id.toNumber(), tokenKey.fa2).then(res => {
             setMetadata(res);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tokenKey, moderated]);
 
     let content =

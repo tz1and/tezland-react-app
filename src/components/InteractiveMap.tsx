@@ -113,8 +113,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = (props) => {
             //setWorldMap(undefined);
             map?.dispose();
         }
-    // NOTE: there must be a better way to ignore deps than to ignore the lint rule
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // NOTE: there must be a better way to ignore deps than to ignore the lint rule
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mount]); //, context, props.location, props.markerMode, props.placeId, props.threeD, props.zoom, showPopoverCallback, worldMap]);
 
     useEffect(() => {
