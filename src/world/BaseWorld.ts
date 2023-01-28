@@ -13,27 +13,17 @@ export abstract class BaseWorld {
     }
 
     public loadWorld() {
-        // TODO: See this issue
-        // https://forum.babylonjs.com/t/scene-ready-observable-not-firing-with-v5-35-0/36166/17
-        /*Logging.InfoDev("BaseWorld::loadWorld");
         if (this.game.scene.isReady(false)) {
-            Logging.InfoDev("scene was ready");
             this._loadWorld().catch((e) => {
                 Logging.Error("Loading world failed:", e);
             });
         } else {
-            Logging.InfoDev("scene wasn't ready");
             this.game.scene.onReadyObservable.addOnce(() => {
-                Logging.InfoDev("onReady");
                 this._loadWorld().catch((e) => {
                     Logging.Error("Loading world failed:", e);
                 });
             });
-        }*/
-
-        this._loadWorld().catch((e) => {
-            Logging.Error("Loading world failed:", e);
-        });
+        }
     }
 
     protected createShadowGenerator(light: DirectionalLight) {

@@ -51,7 +51,7 @@ export class World extends BaseWorld {
     private worldPlaceCount: number = 0;
 
     private lastUpdatePosition: Vector3;
-    private worldUpdatePending: boolean = false;
+    private worldUpdatePending: boolean = true;
 
     private subscription?: Subscription<OperationContent> | undefined;
 
@@ -186,7 +186,6 @@ export class World extends BaseWorld {
     // TODO: add a list of pending places to load.
     protected override async _loadWorld() {
         // TODO: assert that the world can only be loaded once!
-        this.worldUpdatePending = true;
 
         // fetch the most recent world place count
         this.worldPlaceCount = (await Contracts.countExteriorPlacesView(this.game.walletProvider)).toNumber();
