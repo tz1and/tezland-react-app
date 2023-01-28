@@ -88,6 +88,9 @@ const instantiateOptions = (clone: boolean = false): {
     }
 }
 
+// TODO: InstantiatedEntried now has a dispose() function. We could hold on to these to make sure instances
+// are properly disposed of. InstanceExt could hang on to AssetContainerExt and handle refernce count stuff
+// on dispose.
 export class AssetContainerExt extends RefCounted {
     constructor(readonly container: AssetContainer, readonly assetGroup: Nullable<TransformNode>) {
         super();
@@ -133,6 +136,8 @@ export class AssetContainerExt extends RefCounted {
 
         // Re-root to group.
         assetRoot.parent = this.assetGroup;
+
+        this.incRefCount();
 
         return instanceRoot;
     }

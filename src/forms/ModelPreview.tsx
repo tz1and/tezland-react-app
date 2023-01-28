@@ -244,11 +244,9 @@ class PreviewScene {
             this.asset = await downloadFunc(tokenKey, Infinity, Infinity, Infinity).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, this.scene, this.assetGroup));
             assert(this.asset, "asset somehow was null")
 
-            this.previewObject = this.asset.instantiate(null, "previeModel");
-
             // The asset is not actually inserted into the mem cache, so we don't
             // need to worry about refcount - for now
-            //this.asset.incRefCount();
+            this.previewObject = this.asset.instantiate(null, "previeModel");
 
             this.scaleAndCenterVertically(this.previewObject);
 

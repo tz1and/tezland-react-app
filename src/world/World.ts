@@ -108,9 +108,6 @@ export class World extends BaseWorld {
         // After, camera, lights, etc, the shadow generator
         this.shadowGenerator = this.createShadowGenerator(this.sunLight.light);
 
-        // Load districts, ie: ground meshes, bridges, etc.
-        this.loadDistricts();
-
         this.game.scene.registerBeforeRender(this.updateShadowRenderList);
         this.game.scene.registerBeforeRender(this.updateWorld);
 
@@ -186,6 +183,9 @@ export class World extends BaseWorld {
     // TODO: add a list of pending places to load.
     protected override async _loadWorld() {
         // TODO: assert that the world can only be loaded once!
+
+        // Load districts, ie: ground meshes, bridges, etc.
+        this.loadDistricts();
 
         // fetch the most recent world place count
         this.worldPlaceCount = (await Contracts.countExteriorPlacesView(this.game.walletProvider)).toNumber();

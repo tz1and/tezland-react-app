@@ -1,11 +1,11 @@
 import { Nullable } from "@babylonjs/core/types";
 import { TransformNode } from "@babylonjs/core/Meshes";
 import { Scene } from "@babylonjs/core/scene";
-import { SceneLoader } from "@babylonjs/core/Loading";
 import ItemNode from "../world/nodes/ItemNode";
 import ArtifactDownload from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
+import { preprocessMesh } from "./MeshPreprocessing";
 import AppSettings from "../storage/AppSettings";
 import { ModuleThread, spawn } from "threads"
 import { Logging } from "./Logging";
@@ -14,7 +14,7 @@ import { BufferFile, ItemTokenMetadata } from "../world/Metadata";
 import { Game } from "../world/Game";
 import TokenKey from "./TokenKey";
 import { defaultFrameParams } from "./FrameImage";
-import { AssetContainerExt, BoundingVectors } from "../world/BabylonUtils";
+import { AssetContainerExt } from "../world/BabylonUtils";
 //import { Logging } from "./Logging";
 
 
@@ -165,7 +165,7 @@ class ArtifactMemCache {
 
         if (parent.isDisposed()) return null;
 
-        this.instantiateCachedAssetContainer(asset, parent, `item${file.name}_clone`, parent.boundingVectors);
+        asset.instantiate(parent, `item${file.name}_clone`, parent.boundingVectors);
     
         return parent;
     }
@@ -206,7 +206,10 @@ class ArtifactMemCache {
     
         if (parent.isDisposed()) return null;
 
-        this.instantiateCachedAssetContainer(asset, parent, `item${token_key.toString()}_clone`, parent.boundingVectors, clone);
+        asset.instantiate(parent, `item${token_key.toString()}_clone`, parent.boundingVectors, clone);
+
+        // Set itemsLoaded flag.
+        this.itemsLoaded = true;
     
         return parent;
     }
@@ -216,20 +219,17 @@ class ArtifactMemCache {
 
         let assetPromise = this.artifactCache.get(token_key.toString());
         if(!assetPromise) {
-            // TODO: make sure glb file is pre-processed!
             assetPromise = (async () => {
-                const res = await SceneLoader.LoadAssetContainerAsync('/models/', fileName, scene, null, '.glb');
-                res.addAllToScene();
-                return new AssetContainerExt(res, assetGroup);
-                // Enable this, but figure out why booths are darker sometimes.
-                // Probably to do with reflection probe, RTTs not updating or something.
-                // Maybe related to freeze active meshes?
-                /*const response = await fetch('/models/' + fileName);
-                const fileWithMimeType = new File([await response.arrayBuffer()], fileName, { type: "model/gltf-binary" });
+                // TODO: should go through ArtifactDownload.worker.
+                const response = await fetch('/models/' + fileName);
+                const maxTexRes = AppSettings.textureRes.value;
+                const processed = await preprocessMesh(await response.arrayBuffer(), "model/gltf-binary", maxTexRes);
 
-                return ArtifactProcessingQueue.queueProcessArtifact({file: fileWithMimeType, metadata: {
+                const bufferFile: BufferFile = {buffer: processed, name: fileName, type: "model/gltf-binary"};
+
+                return ArtifactProcessingQueue.queueProcessArtifact({file: bufferFile, metadata: {
                     baseScale: 1
-                } as ItemTokenMetadata}, scene);*/
+                } as ItemTokenMetadata}, scene, assetGroup);
             })()
     
             /*if (this.artifactCache.has(token_id_number)) {
@@ -249,24 +249,13 @@ class ArtifactMemCache {
             throw e;
         }
 
-        const instanceRoot = this.instantiateCachedAssetContainer(asset, parent, `item${fileName}_clone`);
+        const instanceRoot = asset.instantiate(parent, `item${fileName}_clone`);
         instanceRoot.getChildMeshes().forEach((m) => { m.checkCollisions = true; });
-
-        return parent;
-    }
-
-    private instantiateCachedAssetContainer(asset: AssetContainerExt, parent: TransformNode, name: string,
-        boundingVectorsOut: Nullable<BoundingVectors> = null, clone: boolean = false): TransformNode
-    {
-        const instanceRoot = asset.instantiate(parent, name, boundingVectorsOut, clone);
-
-        // Increase refcount.
-        asset.incRefCount();
 
         // Set itemsLoaded flag.
         this.itemsLoaded = true;
 
-        return instanceRoot;
+        return parent;
     }
 }
 
