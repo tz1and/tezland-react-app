@@ -78,6 +78,8 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         resample(),
         weld({ tolerance: 0 }), // NOTE: weld with tolerance > 0 seems broken?
         quantize(),
+        // Dedup is broken because of this bug in bjs:
+        // https://github.com/BabylonJS/Babylon.js/issues/13454
         //dedup(), // NOTE: dedup broken in latest?
     ];
 
@@ -97,8 +99,7 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         transforms.push(unpartition());
     }
 
-    //if (!isDev())
-        document.setLogger(new Logger(Logger.Verbosity.ERROR));
+    document.setLogger(new Logger(Logger.Verbosity.ERROR));
     await document.transform(
         ...transforms
     );
