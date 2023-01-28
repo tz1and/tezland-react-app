@@ -3,7 +3,7 @@ import { MeshPreprocessingWorkerApi } from './MeshPreprocessing.worker';
 import { getNumLogicalCores } from './WorkerUtils';
 import BigNumber from 'bignumber.js';
 import { expose, Transfer } from 'threads/worker';
-import { spawn, Pool, TransferDescriptor } from "threads"
+import { spawn, Pool, TransferDescriptor, ModuleThread } from "threads"
 import { Logging } from '../utils/Logging';
 import TokenKey from '../utils/TokenKey';
 import Metadata, { BufferFileWithMetadata } from '../world/Metadata';
@@ -17,16 +17,9 @@ function shutdownWorkerStorage() {
     Metadata.ShutdownStorage();
 }
 
-const pool = Pool(
-    () => spawn<typeof MeshPreprocessingWorkerApi>(
-        new Worker(new URL("./MeshPreprocessing.worker.ts", import.meta.url),
-            { type: 'module', name: "MeshPreprocessing.worker" })),
-        // At least two, but at most 8 threads.
-        // Note: Pool.terminate chashes chromium if there are 16 threads.
-        {
-            size: Math.max(2, Math.min(8, getNumLogicalCores())),
-            concurrency: 1 // async
-        });
+export type PreprocessWorkerPoolType = Pool<ModuleThread<typeof MeshPreprocessingWorkerApi>>;
+
+var pool: PreprocessWorkerPoolType;
 
 const downloadArtifactTransfer = async (token_key: TokenKey, sizeLimit: number, polygonLimit: number, maxTexRes:
     number, gatwayType: GatewayType = GatewayType.Native): Promise<TransferDescriptor<BufferFileWithMetadata>> =>
@@ -37,6 +30,17 @@ const downloadArtifactTransfer = async (token_key: TokenKey, sizeLimit: number, 
 }
 
 const initialise = async () => {
+    pool = Pool(() => spawn<typeof MeshPreprocessingWorkerApi>(
+        new Worker(new URL("./MeshPreprocessing.worker.ts", import.meta.url),
+            { type: 'module', name: "MeshPreprocessing.worker" }), {
+                timeout: 20000
+            }),
+        // At least two, but at most 8 threads.
+        // Note: Pool.terminate chashes chromium if there are 16 threads.
+        {
+            size: Math.max(2, Math.min(8, getNumLogicalCores())),
+            concurrency: 1 // async
+        });
     await initialiseWorkerStorage();
 }
 

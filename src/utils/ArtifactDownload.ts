@@ -5,8 +5,7 @@ import { DatabaseStorage } from "../storage/DatabaseStorage";
 import pRetry, { AbortError } from "p-retry";
 import { Logging } from "./Logging";
 import { preprocessMesh } from "./MeshPreprocessing";
-import { MeshPreprocessingWorkerApi } from '../workers/MeshPreprocessing.worker';
-import { ModuleThread, Pool } from "threads";
+import { PreprocessWorkerPoolType } from "../workers/ArtifactDownload.worker";
 import { Transfer } from 'threads/worker';
 import TokenKey from "./TokenKey";
 import { isImageFileType } from "./Utils";
@@ -31,8 +30,6 @@ function decodeSplitEncodeURI(uri: string) {
     });
     return encodedParts.join('/');
 }
-
-type PreprocessWorkerPoolType = Pool<ModuleThread<typeof MeshPreprocessingWorkerApi>>;
 
 export const enum GatewayType {
     Native = 0,

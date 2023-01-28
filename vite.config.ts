@@ -78,11 +78,10 @@ export default defineConfig(({command, mode}) => {
                             '@babylonjs/loaders',
                             '@babylonjs/materials',
                             '@babylonjs/serializers'],
-                        // NOTE: not needed currently, because processing is only in worker.
-                        /*gltfTransform: [
+                        gltfTransform: [
                             '@gltf-transform/core',
                             '@gltf-transform/extensions',
-                            '@gltf-transform/functions'],*/
+                            '@gltf-transform/functions'],
                         taquito: [
                             '@taquito/beacon-wallet',
                             '@taquito/http-utils',

@@ -48,7 +48,9 @@ class ArtifactMemCache {
         try {
             this._workerThread = await spawn<typeof ArtifactDownloadWorkerApi>(
                 new Worker(new URL("../workers/ArtifactDownload.worker.ts", import.meta.url),
-                    { type: 'module', name: "ArtifactDownload.worker" }));
+                    { type: 'module', name: "ArtifactDownload.worker" }), {
+                        timeout: 20000
+                    });
             await this._workerThread.initialise();
         }
         catch(e) {
@@ -61,15 +63,15 @@ class ArtifactMemCache {
 
     public async dispose() {
         // Don't kill the worker for now.
-        /*if (this.workerThread) {
-            await this.workerThread.shutdown();
+        /*if (this._workerThread) {
+            await this._workerThread.shutdown();
             try {
-                await Thread.terminate(this.workerThread);
+                await Thread.terminate(this._workerThread);
                 Logging.InfoDev("Thread terminated: ArtifactDownload.worker");
             } catch(e) {
                 Logging.ErrorDev("Thread failed to terminate: ArtifactDownload.worker:", e);
             }
-            this.workerThread = null;
+            this._workerThread = null;
         }*/
 
         ArtifactProcessingQueue.dispose();
