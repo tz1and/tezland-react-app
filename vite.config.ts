@@ -43,18 +43,7 @@ export default defineConfig(({command, mode}) => {
                     NodeGlobalsPolyfillPlugin({
                         buffer: true,
                         process: true
-                    }),
-                    // This is a workaround for an upstream bug in some package.
-                    // Occasionally try to remove it...
-                    {
-                        name: 'fix-node-globals-polyfill',
-                        setup(build) {
-                            build.onResolve(
-                                { filter: /(_virtual-process-polyfill_|_buffer)\.js/ },
-                                ({ path }) => ({ path })
-                            )
-                        }
-                    }
+                    })
                 ]
             }
         },
