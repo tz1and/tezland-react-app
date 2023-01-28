@@ -5,7 +5,6 @@ import ItemNode from "../world/nodes/ItemNode";
 import ArtifactDownload from "./ArtifactDownload";
 import ArtifactProcessingQueue from "./ArtifactProcessingQueue";
 import { ArtifactDownloadWorkerApi } from "../workers/ArtifactDownload.worker";
-import { preprocessMesh } from "./MeshPreprocessing";
 import AppSettings from "../storage/AppSettings";
 import { ModuleThread, spawn } from "threads"
 import { Logging } from "./Logging";
@@ -125,6 +124,7 @@ class ArtifactMemCache {
 
         // So we don't directly await anything between.
         assetPromise = (async () => {
+            // TODO: add ArtifactDownload.processModel
             var mime_type;
             const file_type = await getFileType(file);
             // TODO: have a getMimeType
@@ -219,18 +219,10 @@ class ArtifactMemCache {
 
         let assetPromise = this.artifactCache.get(token_key.toString());
         if(!assetPromise) {
-            assetPromise = (async () => {
-                // TODO: should go through ArtifactDownload.worker.
-                const response = await fetch('/models/' + fileName);
-                const maxTexRes = AppSettings.textureRes.value;
-                const processed = await preprocessMesh(await response.arrayBuffer(), "model/gltf-binary", maxTexRes);
+            const maxTexRes = AppSettings.textureRes.value;
 
-                const bufferFile: BufferFile = {buffer: processed, name: fileName, type: "model/gltf-binary"};
-
-                return ArtifactProcessingQueue.queueProcessArtifact({file: bufferFile, metadata: {
-                    baseScale: 1
-                } as ItemTokenMetadata}, scene, assetGroup);
-            })()
+            const downloadFunc = this._workerThread ? this._workerThread.downloadModel : ArtifactDownload.downloadModel;
+            assetPromise = downloadFunc('/models/', fileName, maxTexRes).then(res => ArtifactProcessingQueue.queueProcessArtifact(res, scene, assetGroup));
     
             /*if (this.artifactCache.has(token_id_number)) {
                 Logging.ErrorDev("Asset was already loaded!", token_id_number);

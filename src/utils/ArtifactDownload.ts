@@ -1,4 +1,4 @@
-import Metadata, { BufferFileWithMetadata } from "../world/Metadata";
+import Metadata, { BufferFile, BufferFileWithMetadata, ItemTokenMetadata } from "../world/Metadata";
 //import { Logging } from "./Logging";
 import Conf from "../Config";
 import { DatabaseStorage } from "../storage/DatabaseStorage";
@@ -94,25 +94,39 @@ export default class ArtifactDownload {
         }
         //else Logging.Info("got artifact from db cache", itemMetadata.artifactUri)
 
+        return { file: await ArtifactDownload.preprocessMesh(cachedBuf, itemMetadata.artifactUri, mime_type, maxTexRes, pool), metadata: itemMetadata };
+    }
+
+    public static async downloadModel(baseUrl: string, fileName: string, maxTexRes: number, pool?: PreprocessWorkerPoolType): Promise<BufferFileWithMetadata> {
+        // TODO: only works for binary gltf model for now.
+        const mime_type =  "model/gltf-binary";
+
+        const response = await fetch(baseUrl + fileName);
+        const buf = await response.arrayBuffer();
+
+        return { file: await ArtifactDownload.preprocessMesh(buf, fileName, mime_type, maxTexRes, pool), metadata: {baseScale: 1} as ItemTokenMetadata };
+    }
+
+    private static async preprocessMesh(buffer: ArrayBuffer, fileName: string, mime_type: string, maxTexRes: number, pool: PreprocessWorkerPoolType | undefined): Promise<BufferFile> {
         try {
             let processed: Uint8Array;
             if (pool) {
                 processed = await pool.queue(moduleThread => {
-                    return moduleThread.preprocessMesh(Transfer(cachedBuf!), mime_type, maxTexRes);
+                    return moduleThread.preprocessMesh(Transfer(buffer), mime_type, maxTexRes);
                 })
             }
             else {
-                processed = await preprocessMesh(cachedBuf, mime_type, maxTexRes);
+                processed = await preprocessMesh(buffer, mime_type, maxTexRes);
             }
 
             const new_mime_type = isImageFileType(mime_type) ? mime_type : "model/gltf-binary";
 
-            return { file: {buffer: processed, name: itemMetadata.artifactUri, type: new_mime_type}, metadata: itemMetadata };
+            return {buffer: processed, name: fileName, type: new_mime_type};
         }
         catch(e: any) {
-            Logging.ErrorDev(`Pre-processing model for token ${token_key.id} failed: ${e}`);
+            Logging.ErrorDev(`Pre-processing mesh ${fileName} failed: ${e}`);
 
-            return { file: {buffer: cachedBuf, name: itemMetadata.artifactUri, type: mime_type}, metadata: itemMetadata };
+            return {buffer: buffer, name: fileName, type: mime_type};
         }
     }
 

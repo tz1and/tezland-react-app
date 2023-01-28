@@ -29,6 +29,13 @@ const downloadArtifactTransfer = async (token_key: TokenKey, sizeLimit: number, 
     return Transfer(res, [res.file.buffer]);
 }
 
+const downloadModelTransfer = async (baseUrl: string, fileName: string, maxTexRes: number):
+    Promise<TransferDescriptor<BufferFileWithMetadata>> =>
+{
+    const res = await ArtifactDownload.downloadModel(baseUrl, fileName, maxTexRes, pool);
+    return Transfer(res, [res.file.buffer]);
+}
+
 const initialise = async () => {
     pool = Pool(() => spawn<typeof MeshPreprocessingWorkerApi>(
         new Worker(new URL("./MeshPreprocessing.worker.ts", import.meta.url),
@@ -56,6 +63,7 @@ const shutdown = async () => {
 export const ArtifactDownloadWorkerApi = {
     initialise: initialise,
     downloadArtifact: downloadArtifactTransfer,
+    downloadModel: downloadModelTransfer,
     shutdown: shutdown
 }
 
