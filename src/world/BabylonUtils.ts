@@ -1,5 +1,5 @@
 import { AssetContainer } from "@babylonjs/core/assetContainer";
-import { Engine, EngineOptions } from "@babylonjs/core/Engines";
+import { Engine, EngineOptions, WebGPUEngine, WebGPUEngineOptions } from "@babylonjs/core/Engines";
 import { Vector3 } from "@babylonjs/core/Maths";
 import { TransformNode } from "@babylonjs/core/Meshes";
 import { Nullable } from "@babylonjs/core/types";
@@ -16,9 +16,9 @@ namespace BabylonUtils {
 
     export async function createEngine(canvas: HTMLCanvasElement) {
         let engine: Engine;
-        /*const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
+        const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
 
-        if (webGPUSupported) {
+        if (false && webGPUSupported) {
             const options: WebGPUEngineOptions = {
                 audioEngine: false,
                 antialiasing: AppSettings.enableAntialiasing.value,
@@ -30,7 +30,7 @@ namespace BabylonUtils {
             await webGpuEngine.initAsync();
             engine = webGpuEngine;
         }
-        else*/ {
+        else {
             if (!isWebGL2Supported()) throw new Error("WebGL 2 not support");
 
             const options: EngineOptions = {
