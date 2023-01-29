@@ -10,7 +10,7 @@ import AuctionCard from '../components/AuctionCard';
 import TezosWalletContext from '../components/TezosWalletContext';
 import Conf from '../Config';
 import { grapphQLUser } from '../graphql/user';
-import DutchAuction, { AuctionKey } from '../tz/DutchAuction';
+import DutchAuction, { AuctionKey, isPlaceAllowedToTrade } from '../tz/DutchAuction';
 import { Logging } from '../utils/Logging';
 import { scrollbarVisible } from '../utils/Utils';
 import PlaceKey from '../utils/PlaceKey';
@@ -212,8 +212,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
             let last_auction_id = 0;
             const new_auctions = new Map<string, any>();
             for (const r of res) {
-                new_auctions.set(AuctionKey.fromNumber(r.tokenId, r.fa2, r.ownerId).toString(), r);
                 last_auction_id = r.transientId;
+                const auction_key = AuctionKey.fromNumber(r.tokenId, r.fa2, r.ownerId);
+                if(!isPlaceAllowedToTrade(auction_key)) continue;
+                new_auctions.set(auction_key.toString(), r);
             }
 
             this.setState({
@@ -231,8 +233,10 @@ class Auctions extends React.Component<AuctionsProps, AuctionsState> {
                 const more_data = res.length === Auctions.FetchAmount;
                 let last_auction_id = 0;
                 for (const r of res) {
-                    this.state.auctions.set(AuctionKey.fromNumber(r.tokenId, r.fa2, r.ownerId).toString(), r);
                     last_auction_id = r.transientId;
+                    const auction_key = AuctionKey.fromNumber(r.tokenId, r.fa2, r.ownerId);
+                    if(!isPlaceAllowedToTrade(auction_key)) continue;
+                    this.state.auctions.set(auction_key.toString(), r);
                 }
 
                 this.setState({

@@ -31,9 +31,17 @@ export class AuctionKey {
     }
 }
 
+export function isPlaceAllowedToTrade(key: AuctionKey): boolean {
+    if(key.fa2 === Conf.interior_contract && (key.token_id.eq(2) || key.token_id.eq(3))) return false;
+    return true;
+}
+
 export default class DutchAuction {
     // Duration is in hours.
     static async createAuction(walletProvider: ITezosWalletProvider, fa2: string, tokenId: BigNumber, startPrice: number, endPrice: number, duration: number, callback?: (completed: boolean) => void) {
+        const auction_key = new AuctionKey(tokenId, fa2, walletProvider.walletPHK());
+        if(!isPlaceAllowedToTrade(auction_key)) throw new Error("error");
+
         const auctionsWallet = await walletProvider.tezosToolkit().wallet.at(Conf.dutch_auction_contract);
         const placesWallet = await walletProvider.tezosToolkit().wallet.at(fa2);
 
@@ -57,11 +65,7 @@ export default class DutchAuction {
             {
                 kind: OpKind.TRANSACTION,
                 ...auctionsWallet.methodsObject.create({
-                    auction_key: {
-                        fa2: fa2,
-                        token_id: tokenId,
-                        owner: walletProvider.walletPHK()
-                    },
+                    auction_key: auction_key,
                     auction: {
                         start_price: tezToMutez(startPrice),
                         end_price: tezToMutez(endPrice),
