@@ -2,7 +2,7 @@ import React, { createContext, PropsWithChildren, useContext } from "react"
 import { TezosToolkit } from "@taquito/taquito";
 import { RpcClient, RpcClientCache } from '@taquito/rpc';
 import { BeaconWallet } from '@taquito/beacon-wallet';
-import { NetworkType, DAppClientOptions } from '@airgap/beacon-dapp';
+import { NetworkType, DAppClientOptions/*, BeaconEvent*/ } from '@airgap/beacon-dapp';
 import Conf from "../Config";
 import { isDev } from "../utils/Utils";
 import EventEmitter from "events";
@@ -109,17 +109,14 @@ class TezosWalletProvider extends React.Component<PropsWithChildren<TezosWalletP
             name: isDev() ? 'tz1and-dev' : 'tz1and',
             preferredNetwork: TezosWalletProvider.getNetworkType(),
             appUrl: Conf.public_url,
-            iconUrl: Conf.public_url + "/logo192.png",
-            /*eventHandlers: {
-              PERMISSION_REQUEST_SUCCESS: {
-                handler: async (data: any) => {
-                  Logging.LogDev('permission data:', data);
-                },
-              },
-            }*/
+            iconUrl: Conf.public_url + "/logo192.png"
         };
         this.setState({ beaconWallet: new BeaconWallet(options) }, () => {
             assert(this.state.beaconWallet);
+
+            /*this.state.beaconWallet.client.subscribeToEvent(BeaconEvent.PERMISSION_REQUEST_SUCCESS, (data) => {
+                Logging.LogDev('permission data:', data);
+            });*/
 
             // Set wallet provider.
             this.state.tezos.setWalletProvider(this.state.beaconWallet);
