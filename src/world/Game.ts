@@ -111,7 +111,6 @@ export class Game {
         this.assetGroup.setEnabled(false);
         this.assetGroup.position.y = -50;
 
-        // TODO: need to figure out how to exclude GUI.
         this.setupDefaultRenderingPipeline();
 
         // Render every frame
