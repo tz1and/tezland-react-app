@@ -17,7 +17,7 @@ import PlaceKey from '../utils/PlaceKey';
 
 
 type AuctionTypeFilter = 'all' | 'primary' | 'secondary';
-const defaultAuctionTypeFilter: AuctionTypeFilter = 'all';
+const defaultAuctionTypeFilter: AuctionTypeFilter = 'primary';
 
 type AuctionsProps = {}
 
