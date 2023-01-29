@@ -18,7 +18,7 @@ import VirtualSpace from './components/VirtualSpace';
 import MintFormWrapper from './forms/MintFormWrapper';
 import MintCollectionFormWrapper from './forms/MintCollectionFormWrapper';
 import PageNotFound from './routes/PageNotFound';
-import { TezosWalletProvider } from './components/TezosWalletContext'
+import TezosWalletOperations from './components/TezosWalletOperations'
 import User from './routes/directory/User';
 import Item from './routes/directory/Item';
 import { Tag } from './routes/directory/Tag';
@@ -78,7 +78,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
     }
 
     return (
-        <TezosWalletProvider>
+        <TezosWalletOperations>
             <BrowserRouter>
                 {props.children}
                 <Routes>
@@ -129,7 +129,7 @@ function AppRouter(props: React.PropsWithChildren<{}>) {
                     <Route path="/explore" element={<VirtualSpace />} />
                 </Routes>
             </BrowserRouter>
-        </TezosWalletProvider>
+        </TezosWalletOperations>
     )
 }
 
