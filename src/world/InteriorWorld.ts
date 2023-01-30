@@ -113,9 +113,10 @@ export class InteriorWorld extends BaseWorld {
             shadowDummy.position.y = -10;
             shadowDummy.parent = this.worldNode;
             this.shadowGenerator.addShadowCaster(shadowDummy);
+
+            this.game.scene.registerBeforeRender(this.updateShadowRenderList);
         }
 
-        this.game.scene.registerBeforeRender(this.updateShadowRenderList);
         this.game.scene.registerBeforeRender(this.updateWorld);
 
         this.registerPlacesSubscription();

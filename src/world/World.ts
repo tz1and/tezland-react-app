@@ -107,8 +107,8 @@ export class World extends BaseWorld {
 
         // After, camera, lights, etc, the shadow generator
         this.shadowGenerator = this.createShadowGenerator(this.sunLight.light);
+        if(this.shadowGenerator) this.game.scene.registerBeforeRender(this.updateShadowRenderList);
 
-        this.game.scene.registerBeforeRender(this.updateShadowRenderList);
         this.game.scene.registerBeforeRender(this.updateWorld);
 
         this.registerPlacesSubscription();
