@@ -26,12 +26,14 @@ namespace BabylonUtils {
                 stencil: true,
                 doNotHandleContextLost: true};
 
-            const webGpuEngine = new WebGPUEngine(canvas, options);
-            await webGpuEngine.initAsync();
+            const webGpuEngine = await WebGPUEngine.CreateAsync(canvas, options);
+            webGpuEngine.compatibilityMode = false;
+            // TODO: look into snapshot rendering.
+            //webGpuEngine.snapshotRendering = true;
             engine = webGpuEngine;
         }
         else {
-            if (!isWebGL2Supported()) throw new Error("WebGL 2 not support");
+            if (!isWebGL2Supported()) throw new Error("WebGL 2 not supported");
 
             const options: EngineOptions = {
                 audioEngine: false,

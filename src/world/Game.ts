@@ -115,6 +115,7 @@ export class Game {
         this.engine.stopRenderLoop();
         this.engine.runRenderLoop(() => {
             this.scene.render();
+            // TODO: update fps every X seconds or something.
             const frameId = this.engine.frameId;
             if (frameId > 0 && frameId % 5 === 0)
                 this.playerController.gui.setFps(this.engine.getFps());
