@@ -68,8 +68,6 @@ export class Game {
         this.scene.blockMaterialDirtyMechanism = true;
 
         // Not sure if this is right, but let's assume it is.
-        // TODO: See this issue
-        // https://forum.babylonjs.com/t/scene-ready-observable-not-firing-with-v5-35-0/36166/17
         this.scene.freezeActiveMeshes();
 
         // Fog is currently needed for underwater.
