@@ -1,5 +1,5 @@
 import { Document, Logger, Transform, WebIO } from '@gltf-transform/core';
-import { prune, /*dedup,*/ quantize, weld, reorder, unpartition, resample, textureResize } from '@gltf-transform/functions';
+import { prune, /*dedup,*/ quantize, weld, reorder, unpartition, resample, /*flatten,*/ textureResize } from '@gltf-transform/functions';
 //import { TextureBasisu } from '@gltf-transform/extensions';
 //import { encodeWrapper } from '../external/basis_encoder/basis_loader';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
@@ -81,6 +81,7 @@ export async function preprocessMesh(buffer: ArrayBuffer, mime_type: string, max
         // Dedup is broken because of this bug in bjs:
         // https://github.com/BabylonJS/Babylon.js/issues/13454
         //dedup(), // NOTE: dedup broken in latest?
+        //flatten() // gltf transform 3.0
     ];
 
     if (detectInsideWebworker() && !createImageBitmapAvailable) Logging.Warn("createImageBitmapAvailable not available in webworker");
