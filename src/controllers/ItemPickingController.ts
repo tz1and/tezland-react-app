@@ -303,7 +303,7 @@ export default class ItemPickingController extends BaseUserController {
                 const instanceRoot = this.getInstanceRoot(this.current_node);
 
                 if(instanceRoot && instanceRoot instanceof TeleporterBooth) {
-                    document.exitPointerLock();
+                    this.playerController.exitPointerlock();
                     const props: DirectoryFormProps = { mapCoords: [instanceRoot.position.x, instanceRoot.position.z] };
                     EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, props));
 
@@ -321,7 +321,7 @@ export default class ItemPickingController extends BaseUserController {
                 if(instanceRoot) {
                     // If it's a valid token, not an imported model.
                     if (instanceRoot.isValidItem()) {
-                        document.exitPointerLock();
+                        this.playerController.exitPointerlock();
                         // IMPORTANT! TODO: a bit clumsy, but maybe ok.
                         const props: CollectItemFromProps = {
                             tokenKey: instanceRoot.tokenKey,

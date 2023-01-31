@@ -23,9 +23,8 @@ const VirtualSpace: React.FC<{}> = (props) => {
         // Well, it seems requestPointerLock can return a promise.
         // Try to handle it. To not get a top level DOM exception.
         // Sneaky Chrome...
-        const promise: unknown = mount.current?.requestPointerLock();
-        if (promise instanceof Promise) promise.catch((e: DOMException) => { Logging.DirDev(e); })
-    }, [mount])
+        game?.engine.enterPointerlock();
+    }, [game])
 
     useEffect(() => {
         //Logging.InfoDev("running VirtualSpace::useEffect");

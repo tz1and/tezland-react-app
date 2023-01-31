@@ -188,7 +188,7 @@ export default class ItemPlacementController extends BaseUserController {
 
                             // If it's a valid token, not an imported model, bring up the place item dialog.
                             if (this.tempObject.isValidItem()) {
-                                document.exitPointerLock();
+                                this.playerController.exitPointerlock();
                                 const props: PlaceItemFromProps = { node: newObject, maxQuantity: currentItemBalance};
                                 EventBus.publish("load-form", new LoadFormEvent(OverlayForm.PlaceItem, props));
                             }

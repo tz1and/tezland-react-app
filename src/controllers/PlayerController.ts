@@ -70,9 +70,6 @@ export default class PlayerController {
     //private isPointerLocked: boolean = false; // TODO: still needed for something?
     private _currentPlace: Nullable<BasePlaceNode>;
 
-    private onPointerlockChange: () => void;
-    private onPointerlockError: () => void;
-
     private last_unglitch_time: number = 0;
 
     constructor(game: Game) {
@@ -94,6 +91,7 @@ export default class PlayerController {
         // NOTE: upward is also handled by "jump"
         this.input.keysUpward = [];
         this.input.keysDownward = [86/*v*/];
+        this.input.attachControl(this.scene);
 
         // Mesh builder :  {height: PlayerController.BODY_HEIGHT, radius: 0.5, updatable: false}
         this.playerTrigger = new Mesh("player", this.scene);
@@ -103,6 +101,7 @@ export default class PlayerController {
         this.playerTrigger.isVisible = false;
         //this.playerTrigger.actionManager = new ActionManager(this.scene);
         this.camera.parent = this.playerTrigger;
+        this.camera.attachControl();
 
         // Ellipsoid for debugging.
         /*var ellipsoid = MeshBuilder.CreateCylinder("debug", {diameter: (this.playerTrigger.ellipsoid.x *2), height: (this.playerTrigger.ellipsoid.y * 2), subdivisions: 24}, this.scene);
@@ -117,33 +116,6 @@ export default class PlayerController {
         this.playerTrigger.refreshBoundingInfo();
 
         this.scene.registerBeforeRender(this.updateController);
-
-        // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
-        this.onPointerlockChange = () => {
-            var controlEnabled = document.pointerLockElement || null;
-            
-            // If the user is already locked
-            if (!controlEnabled) {
-                // blur canvas to stop keyboard events.
-                this.scene.getEngine().getRenderingCanvas()?.blur();
-                this.camera.detachControl();
-                this.input.detachControl();
-                //this.isPointerLocked = false;
-                EventBus.publish("unlock-controls", new UnlockControlsEvent());
-            } else {
-                // focus on canvas for keyboard input to work.
-                this.scene.getEngine().getRenderingCanvas()?.focus();
-                this.camera.attachControl();
-                this.input.attachControl(this.scene);
-                //this.isPointerLocked = true;
-            }
-        };
-
-        // Catch pointerlock errors to not get stuck
-        this.onPointerlockError = () => {
-            Logging.Error("Pointerlock request failed.");
-            EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Instructions));
-        };
 
         // add pointerlock event listeners
         document.addEventListener("pointerlockchange", this.onPointerlockChange, false);
@@ -168,13 +140,13 @@ export default class PlayerController {
                             // We don't check permissions because removing of own items is always allowed.
                             // Permissions are checked when placing/marking for removal instead.
                             if(this._currentPlace.save())
-                                document.exitPointerLock();
+                                this.exitPointerlock();
                         }
                         break;
                     
                     // Opens the mint form
                     case 'KeyM':
-                        document.exitPointerLock();
+                        this.exitPointerlock();
                         EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Mint));
                         break;
 
@@ -182,7 +154,7 @@ export default class PlayerController {
                     case 'KeyP':
                         if(this._currentPlace && this._currentPlace.placeData) {
                             if (this._currentPlace.getPermissions.hasProps()) {
-                                document.exitPointerLock();
+                                this.exitPointerlock();
                                 // NOTE: we just assume, placeInfo in Explore is up to date.
                                 EventBus.publish("load-form", new LoadFormEvent(OverlayForm.PlaceProperties));
                             } else {
@@ -198,7 +170,7 @@ export default class PlayerController {
 
                     // Opens the inventory
                     case 'KeyI':
-                        document.exitPointerLock();
+                        this.exitPointerlock();
                         EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Inventory));
                         break;
 
@@ -218,7 +190,7 @@ export default class PlayerController {
                             title: "bookmarks.create() on MDN",
                             url: "https://developer.mozilla.org/Add-ons/WebExtensions/API/bookmarks/create"
                         }, () => {
-                            document.exitPointerLock();
+                            this.exitPointerlock();
                         });
                         break;*/
 
@@ -257,7 +229,7 @@ export default class PlayerController {
                     // Opens directory - Dev only
                     case 'KeyN':
                         if(isDev()) {
-                            document.exitPointerLock();
+                            this.exitPointerlock();
                             const props: DirectoryFormProps = { mapCoords: [this.playerTrigger.position.x, this.playerTrigger.position.z] };
                             EventBus.publish("load-form", new LoadFormEvent(OverlayForm.Directory, props));
                         }
@@ -265,6 +237,23 @@ export default class PlayerController {
                 }
             }
         }, KeyboardEventTypes.KEYDOWN | KeyboardEventTypes.KEYUP);
+    }
+
+    private onPointerlockChange = () => {
+        if(!document.pointerLockElement) {
+            this.game.engine.getRenderingCanvas()?.blur();
+            EventBus.publish("unlock-controls", new UnlockControlsEvent());
+        }
+    }
+
+    // NOTE: only needed while this isn't merged: https://github.com/BabylonJS/Babylon.js/pull/13487
+    private onPointerlockError = () => {
+        Logging.Error("Pointerlock request failed.");
+        EventBus.publish("unlock-controls", new UnlockControlsEvent());
+    };
+
+    public exitPointerlock() {
+        this.game.engine.exitPointerlock();
     }
 
     private async teleportToPlace(place_key: PlaceKey) {
