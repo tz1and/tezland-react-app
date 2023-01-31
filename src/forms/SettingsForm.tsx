@@ -269,11 +269,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                                         <label htmlFor="textureRes" className="form-label">Texture resolution</label>
                                         <Field id="textureRes" name="textureRes" as="select" value={values.textureRes} className="form-select" aria-describedby="shadowMapResHelp" disabled={isSubmitting} >
                                             <option key={128} value={128}>Potato</option>
-                                            <option key={256} value={256}>Very Low</option>
-                                            <option key={512} value={512}>Low</option>
-                                            <option key={1024} value={1024}>Medium</option>
-                                            <option key={2048} value={2048}>High</option>
-                                            <option key={4096} value={4096}>Utra</option>
+                                            <option key={256} value={256}>Low</option>
+                                            <option key={512} value={512}>Medium</option>
+                                            <option key={1024} value={1024}>High</option>
+                                            <option key={2048} value={2048}>Ultra</option>
+                                            <option key={4096} value={4096}>Don't try</option>
                                         </Field>
                                         <div id="shadowMapResHelp" className="form-text">Texture resolution. Sets the maximum resolution of textures.</div>
                                     </div>
