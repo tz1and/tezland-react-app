@@ -34,7 +34,6 @@ import { assert } from '../utils/Assert';
 type ExploreProps = {
     game: Game | null;
     loadError: any | undefined;
-    lockControls: () => void;
 };
 
 type ExploreState = {
@@ -89,7 +88,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         this._loadForm(OverlayForm.None);
 
-        this.props.lockControls();
+        this.props.game?.engine.enterPointerlock();
     }
 
     unlockControls = (e: UnlockControlsEvent) => {
@@ -102,7 +101,7 @@ export default class Explore extends React.Component<ExploreProps, ExploreState>
 
         assert(this.props.game);
         this.props.game.playerController.selectItemForPlacement(tokenKey, quantity);
-        this.props.lockControls();
+        this.props.game?.engine.enterPointerlock();
     }
 
     // TODO: use EventBus where it's passed.
