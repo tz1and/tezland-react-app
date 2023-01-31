@@ -28,7 +28,7 @@
     "idb": "^7.0.1",
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
-    "license-checker-rseidelsohn": "^3.0.0",
+    "license-checker-rseidelsohn": "^4.0.0",
     "meshoptimizer": "^0.18.0",
     "p-queue": "file:../p-queue",
     "p-retry": "^5.1.1",
